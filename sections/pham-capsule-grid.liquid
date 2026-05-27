@@ -1,0 +1,263 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- liquid
+  assign coll              = collections[section.settings.collection]
+  assign products_limit    = section.settings.products_limit | default: 8
+  assign desktop_columns   = section.settings.desktop_columns | default: 4
+  assign mobile_columns    = section.settings.mobile_columns | default: 2
+  assign show_view_all     = section.settings.show_view_all
+-%}
+
+<section class="pham-capsule-grid"
+         data-pham-capsule-grid
+         data-section-id="{{ section.id }}"
+         style="
+           --pham-grid-desktop-cols: {{ desktop_columns }};
+           --pham-grid-mobile-cols: {{ mobile_columns }};
+         "
+         role="region"
+         aria-label="{{ section.settings.title | default: 'Featured products' | escape }}">
+  <div class="pham-container">
+
+    {%- if section.settings.eyebrow != blank
+          or section.settings.title != blank
+          or section.settings.subtitle != blank
+          or show_view_all -%}
+      <header class="pham-capsule-grid__head reveal-up">
+        <div class="pham-capsule-grid__head-text">
+          {%- if section.settings.eyebrow != blank -%}
+            <p class="pham-eyebrow pham-capsule-grid__eyebrow">{{ section.settings.eyebrow }}</p>
+          {%- endif -%}
+          {%- if section.settings.title != blank -%}
+            <h2 class="pham-capsule-grid__title">{{ section.settings.title }}</h2>
+          {%- endif -%}
+          {%- if section.settings.subtitle != blank -%}
+            <p class="pham-capsule-grid__subtitle">{{ section.settings.subtitle }}</p>
+          {%- endif -%}
+        </div>
+
+        {%- if show_view_all and coll != blank -%}
+          <a href="{{ coll.url }}" class="pham-capsule-grid__view-all">
+            <span>{{ section.settings.view_all_label | default: 'View all' }}</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if coll != blank and coll.products.size > 0 -%}
+      <div class="pham-capsule-grid__list stagger-children" role="list">
+        {%- for product in coll.products limit: products_limit -%}
+          <div class="pham-capsule-grid__cell" role="listitem">
+            {% render 'pham-product-card', product: product, eager: forloop.first %}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <div class="pham-capsule-grid__list stagger-children" role="list">
+        {%- for i in (1..products_limit) -%}
+          <div class="pham-capsule-grid__cell" role="listitem">
+            {% render 'pham-product-card', product: blank %}
+          </div>
+        {%- endfor -%}
+      </div>
+      {%- if coll == blank -%}
+        <p class="pham-capsule-grid__placeholder pham-eyebrow">Select a collection in the theme editor</p>
+      {%- endif -%}
+    {%- endif -%}
+
+  </div>
+</section>
+
+<style>
+  .pham-capsule-grid {
+    background-color: var(--color-void);
+    padding-block: var(--space-2xl);
+    color: var(--color-bone);
+  }
+  .pham-capsule-grid__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+  .pham-capsule-grid__head-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  .pham-capsule-grid__eyebrow { color: var(--color-accent); margin: 0; }
+  .pham-capsule-grid__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-bone);
+    margin: 0;
+  }
+  .pham-capsule-grid__subtitle {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--text-lg);
+    color: var(--color-bone-80);
+    margin: 0;
+    max-width: 56ch;
+  }
+  .pham-capsule-grid__view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-bone);
+    text-decoration: none;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--color-bone);
+    transition: color var(--duration-base) var(--ease-luxury),
+                gap var(--duration-base) var(--ease-luxury),
+                border-color var(--duration-base) var(--ease-luxury);
+  }
+  .pham-capsule-grid__view-all:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    gap: var(--space-sm);
+  }
+
+  /* Grid: 1px gap on an ash background creates natural hairlines between cells */
+  .pham-capsule-grid__list {
+    display: grid;
+    grid-template-columns: repeat(var(--pham-grid-desktop-cols, 4), 1fr);
+    gap: 1px;
+    background-color: var(--color-ash);
+    border: 1px solid var(--color-ash);
+  }
+  .pham-capsule-grid__cell {
+    background-color: var(--color-void);
+    padding: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+  }
+  .pham-capsule-grid__cell .pham-product-card { flex: 1; }
+
+  .pham-capsule-grid__placeholder {
+    text-align: center;
+    color: var(--color-smoke);
+    margin-top: var(--space-md);
+  }
+
+  @media (max-width: 768px) {
+    .pham-capsule-grid__list {
+      grid-template-columns: repeat(var(--pham-grid-mobile-cols, 2), 1fr);
+    }
+    .pham-capsule-grid__head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .pham-capsule-grid { padding-block: var(--space-xl); }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Capsule Grid",
+  "tag": "section",
+  "class": "pham-capsule-grid-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "EDITION 01"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "The Capsule"
+    },
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "Eight pieces. One season. Slow-made in limited editions."
+    },
+    {
+      "type": "header",
+      "content": "Source"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_limit",
+      "label": "Products to show",
+      "min": 2,
+      "max": 24,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "desktop_columns",
+      "label": "Desktop columns",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "mobile_columns",
+      "label": "Mobile columns",
+      "min": 1,
+      "max": 2,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "header",
+      "content": "View all"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "Show 'View all' link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "view_all_label",
+      "label": "View all label",
+      "default": "View all"
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Capsule Grid",
+      "category": "PHAM",
+      "settings": {
+        "products_limit": 8,
+        "desktop_columns": 4,
+        "mobile_columns": 2
+      }
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "collection"]
+  }
+}
+{% endschema %}

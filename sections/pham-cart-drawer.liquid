@@ -1,0 +1,33 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- comment -%}
+  Section wrapper for the PHAM cart drawer.
+
+  Purpose: enables Shopify's Section Rendering API so pham-cart.js can
+  fetch `?section_id=pham-cart-drawer` to refresh the drawer markup
+  without a page reload.
+
+  The drawer's structural markup lives in snippets/pham-cart-drawer.liquid
+  and is rendered both here (Section Rendering endpoint) and once
+  globally from sections/pham-header.liquid (always-on DOM).
+{%- endcomment -%}
+
+{% render 'pham-cart-drawer' %}
+
+{% schema %}
+{
+  "name": "PHAM Cart Drawer",
+  "tag": "div",
+  "class": "pham-cart-drawer-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "This section powers the AJAX cart drawer refresh endpoint. It does not render UI in the theme editor — its markup is injected into the page by the PHAM header. Do not delete."
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Cart Drawer"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,201 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- liquid
+  assign menu_handle = section.settings.menu | default: 'footer'
+  assign menu        = linklists[menu_handle]
+  assign year        = 'now' | date: '%Y'
+-%}
+
+<footer class="pham-footer"
+        data-pham-footer
+        role="contentinfo"
+        data-section-id="{{ section.id }}"
+        data-section-type="pham-footer">
+  <div class="pham-container">
+    <div class="pham-footer__grid">
+
+      {%- comment -%} ============== COLUMN 1 — BRAND PHILOSOPHY ============== {%- endcomment -%}
+      <div class="pham-footer__col pham-footer__col--brand">
+        <h2 class="pham-footer__wordmark">{{ shop.name | default: 'PHAM' | upcase }}</h2>
+        <p class="pham-footer__tagline">{{ section.settings.tagline }}</p>
+        {%- if settings.pham_social_instagram != blank or settings.pham_social_tiktok != blank -%}
+          <ul class="pham-footer__socials" role="list">
+            {%- if settings.pham_social_instagram != blank -%}
+              <li>
+                <a href="{{ settings.pham_social_instagram }}"
+                   class="pham-footer__social"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   aria-label="Instagram">Instagram</a>
+              </li>
+            {%- endif -%}
+            {%- if settings.pham_social_tiktok != blank -%}
+              <li>
+                <a href="{{ settings.pham_social_tiktok }}"
+                   class="pham-footer__social"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   aria-label="TikTok">TikTok</a>
+              </li>
+            {%- endif -%}
+          </ul>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} ============== COLUMN 2 — QUICK MENU ============== {%- endcomment -%}
+      <div class="pham-footer__col pham-footer__col--menu">
+        <h3 class="pham-footer__heading">{{ section.settings.menu_heading }}</h3>
+        {%- if menu != blank and menu.links.size > 0 -%}
+          <ul class="pham-footer__menu" role="list">
+            {%- for link in menu.links -%}
+              <li class="pham-footer__menu-item">
+                <a href="{{ link.url }}" class="pham-footer__link">{{ link.title | escape }}</a>
+              </li>
+            {%- endfor -%}
+          </ul>
+        {%- else -%}
+          <ul class="pham-footer__menu" role="list">
+            <li><a href="{{ routes.all_products_collection_url }}" class="pham-footer__link">Shop</a></li>
+            <li><a href="{{ routes.search_url }}" class="pham-footer__link">Search</a></li>
+            <li><a href="{{ routes.account_url }}" class="pham-footer__link">Account</a></li>
+          </ul>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} ============== COLUMN 3 — NEWSLETTER ============== {%- endcomment -%}
+      <div class="pham-footer__col pham-footer__col--newsletter">
+        <h3 class="pham-footer__heading">{{ section.settings.newsletter_heading }}</h3>
+        <p class="pham-footer__newsletter-copy">{{ section.settings.newsletter_text }}</p>
+
+        {%- form 'customer', class: 'pham-footer__form', id: 'pham-footer-newsletter' -%}
+          <input type="hidden" name="contact[tags]" value="newsletter">
+          <div class="pham-footer__form-row">
+            <label for="pham-footer-email" class="pham-visually-hidden">Email address</label>
+            <input id="pham-footer-email"
+                   type="email"
+                   name="contact[email]"
+                   class="pham-footer__input"
+                   placeholder="EMAIL ADDRESS"
+                   value="{{ form.email }}"
+                   required
+                   autocomplete="email"
+                   spellcheck="false"
+                   autocapitalize="off">
+            <button type="submit" class="pham-footer__submit" aria-label="Subscribe to the PHAM newsletter">
+              <span class="pham-footer__submit-label">SUBSCRIBE</span>
+              <span class="pham-footer__submit-arrow" aria-hidden="true">&rarr;</span>
+            </button>
+          </div>
+
+          {%- if form.errors -%}
+            <p class="pham-footer__form-msg pham-footer__form-msg--error" role="alert">
+              {{ form.errors | default_errors }}
+            </p>
+          {%- endif -%}
+          {%- if form.posted_successfully? -%}
+            <p class="pham-footer__form-msg pham-footer__form-msg--success" role="status">
+              Thank you. The atelier will be in touch.
+            </p>
+          {%- endif -%}
+        {%- endform -%}
+      </div>
+    </div>
+
+    {%- comment -%} ============== BOTTOM ROW ============== {%- endcomment -%}
+    <hr class="pham-footer__divider pham-rule" aria-hidden="true">
+
+    <div class="pham-footer__bottom">
+      <p class="pham-footer__copyright">
+        &copy; {{ year }} {{ shop.name | escape }}. {{ section.settings.copyright_suffix }}
+      </p>
+
+      {%- if section.settings.show_payment_icons -%}
+        {%- if shop.enabled_payment_types.size > 0 -%}
+          <ul class="pham-footer__payments" role="list" aria-label="Accepted payment methods">
+            {%- for type in shop.enabled_payment_types -%}
+              <li class="pham-footer__payment-item">
+                {{ type | payment_type_svg_tag: class: 'pham-footer__payment-icon' }}
+              </li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "PHAM Footer",
+  "tag": "section",
+  "class": "pham-footer-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Brand"
+    },
+    {
+      "type": "textarea",
+      "id": "tagline",
+      "label": "Brand tagline",
+      "default": "Silence is luxury. Restraint is power. — An atelier of considered, slow-made garments for those who understand that elegance is what you choose not to say."
+    },
+    {
+      "type": "header",
+      "content": "Menu column"
+    },
+    {
+      "type": "text",
+      "id": "menu_heading",
+      "label": "Menu heading",
+      "default": "Atelier"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "footer"
+    },
+    {
+      "type": "header",
+      "content": "Newsletter"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_heading",
+      "label": "Newsletter heading",
+      "default": "The Sealed List"
+    },
+    {
+      "type": "textarea",
+      "id": "newsletter_text",
+      "label": "Newsletter description",
+      "default": "Private releases. No noise. No frequency. Only when an edition is ready."
+    },
+    {
+      "type": "header",
+      "content": "Bottom row"
+    },
+    {
+      "type": "text",
+      "id": "copyright_suffix",
+      "label": "Copyright suffix",
+      "default": "All rights reserved."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "Show payment icons",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Footer",
+      "category": "Footer"
+    }
+  ],
+  "enabled_on": {
+    "groups": ["footer"]
+  }
+}
+{% endschema %}

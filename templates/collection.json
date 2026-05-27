@@ -1,0 +1,18 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-collection-grid",
+      "settings": {
+        "eyebrow": "ATELIER · EDITION",
+        "products_per_page": 12,
+        "desktop_columns": 4,
+        "mobile_columns": 2,
+        "enable_filtering": true,
+        "enable_sorting": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

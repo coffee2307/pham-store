@@ -1,0 +1,19 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-product-main",
+      "settings": {
+        "show_vendor": true,
+        "show_sku": false,
+        "details_heading": "Product details",
+        "shipping_heading": "Shipping & Returns",
+        "shipping_content": "<p>Complimentary worldwide express shipping on all orders. Returns accepted within 14 days of receipt.</p>",
+        "care_heading": "Composition & Care",
+        "care_content": "<p>Dry clean only. Store flat in a breathable garment bag away from direct sunlight.</p>"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

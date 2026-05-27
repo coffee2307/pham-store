@@ -1,0 +1,43 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- comment -%}
+  PHAM — Accordion snippet
+
+  USAGE:
+    {% render 'pham-accordion', heading: 'Composition', content: '<p>100% Italian wool</p>' %}
+    {% render 'pham-accordion', heading: 'Care', content: product.description, open: true, id: 'care' %}
+
+  PARAMETERS:
+    heading  (required) — plain string label rendered inside <summary>
+    content  (required) — HTML or text body
+    open     (optional, default false) — start expanded
+    id       (optional) — id prefix for aria wiring; auto-generated when absent
+    size     (optional, default 'md') — 'sm' | 'md' | 'lg'
+{%- endcomment -%}
+
+{%- liquid
+  assign acc_open = open | default: false
+  assign acc_size = size | default: 'md'
+  assign acc_id   = id | default: 'pham-acc-' | append: heading | handleize
+-%}
+
+<details class="pham-accordion pham-accordion--{{ acc_size }}"
+         data-pham-accordion
+         {% if acc_open %}open{% endif %}>
+  <summary class="pham-accordion__summary"
+           id="{{ acc_id }}-summary"
+           aria-controls="{{ acc_id }}-panel">
+    <span class="pham-accordion__heading">{{ heading }}</span>
+    <span class="pham-accordion__icon" aria-hidden="true">
+      <span class="pham-accordion__icon-bar pham-accordion__icon-bar--h"></span>
+      <span class="pham-accordion__icon-bar pham-accordion__icon-bar--v"></span>
+    </span>
+  </summary>
+  <div class="pham-accordion__body"
+       id="{{ acc_id }}-panel"
+       role="region"
+       aria-labelledby="{{ acc_id }}-summary">
+    <div class="pham-accordion__content">
+      {{ content }}
+    </div>
+  </div>
+</details>

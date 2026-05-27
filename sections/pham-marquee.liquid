@@ -1,0 +1,230 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- liquid
+  assign text       = section.settings.text
+  if text == blank
+    assign text = settings.pham_marquee_text
+  endif
+  if text == blank
+    assign text = 'SILENCE IS LUXURY · RESTRAINT IS POWER'
+  endif
+
+  assign speed = section.settings.speed
+  if speed == blank or speed == 0
+    assign speed = settings.pham_marquee_speed
+  endif
+  if speed == blank or speed == 0
+    assign speed = 40
+  endif
+
+  assign separator       = section.settings.separator | default: ' · '
+  assign font_style      = section.settings.font_style | default: 'mono'
+  assign font_size       = section.settings.font_size | default: 14
+  assign background_clr  = section.settings.background | default: '#0D0D0D'
+  assign text_clr        = section.settings.text_color | default: '#EAE6DF'
+  assign accent_clr      = section.settings.accent_color | default: '#C5A880'
+  assign repetitions     = section.settings.repetitions | default: 6
+-%}
+
+<section class="pham-marquee"
+         data-pham-marquee
+         data-section-id="{{ section.id }}"
+         role="region"
+         aria-label="Announcement marquee"
+         style="
+           --pham-marquee-speed: {{ speed }}s;
+           --pham-marquee-bg: {{ background_clr }};
+           --pham-marquee-fg: {{ text_clr }};
+           --pham-marquee-accent: {{ accent_clr }};
+           --pham-marquee-size: {{ font_size }}px;
+         ">
+  <div class="pham-marquee__track pham-marquee__track--{{ font_style }}">
+    <div class="pham-marquee__group" aria-label="Announcement">
+      {%- for i in (1..repetitions) -%}
+        <span class="pham-marquee__item">{{ text }}</span>
+        <span class="pham-marquee__dot" aria-hidden="true">{{ separator | strip }}</span>
+      {%- endfor -%}
+    </div>
+    <div class="pham-marquee__group" aria-hidden="true">
+      {%- for i in (1..repetitions) -%}
+        <span class="pham-marquee__item">{{ text }}</span>
+        <span class="pham-marquee__dot" aria-hidden="true">{{ separator | strip }}</span>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<style>
+  .pham-marquee {
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    background-color: var(--pham-marquee-bg, var(--color-obsidian));
+    color: var(--pham-marquee-fg, var(--color-bone));
+    border-top: 1px solid var(--color-ash);
+    border-bottom: 1px solid var(--color-ash);
+    padding-block: var(--space-md);
+    width: 100%;
+  }
+  .pham-marquee__track {
+    display: flex;
+    width: max-content;
+    animation: pham-marquee-scroll var(--pham-marquee-speed, 40s) linear infinite;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+  }
+  .pham-marquee__group {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .pham-marquee__item,
+  .pham-marquee__dot {
+    display: inline-block;
+    font-size: var(--pham-marquee-size, 14px);
+    line-height: 1;
+    padding: 0 var(--space-md);
+    color: inherit;
+  }
+  .pham-marquee__dot {
+    color: var(--pham-marquee-accent, var(--color-accent));
+  }
+  .pham-marquee__track--mono .pham-marquee__item,
+  .pham-marquee__track--mono .pham-marquee__dot {
+    font-family: var(--font-mono);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+  }
+  .pham-marquee__track--display .pham-marquee__item {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+    letter-spacing: var(--tracking-tight);
+    text-transform: none;
+  }
+  .pham-marquee__track--display .pham-marquee__dot {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+  }
+  .pham-marquee__track--display .pham-marquee__item::first-letter { text-transform: uppercase; }
+
+  @keyframes pham-marquee-scroll {
+    0%   { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-50%, 0, 0); }
+  }
+
+  .pham-marquee:hover .pham-marquee__track,
+  .pham-marquee:focus-within .pham-marquee__track {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pham-marquee__track { animation: none; transform: translate3d(0, 0, 0); }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Marquee",
+  "tag": "section",
+  "class": "pham-marquee-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Marquee text",
+      "info": "Leave blank to use the global PHAM marquee text from theme settings."
+    },
+    {
+      "type": "text",
+      "id": "separator",
+      "label": "Separator character",
+      "default": " · "
+    },
+    {
+      "type": "range",
+      "id": "repetitions",
+      "label": "Phrase repetitions per group",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 6,
+      "info": "Higher values are smoother on wide screens."
+    },
+    {
+      "type": "header",
+      "content": "Motion"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Speed (seconds per loop)",
+      "min": 10,
+      "max": 120,
+      "step": 5,
+      "unit": "s",
+      "default": 40,
+      "info": "Lower = faster. Leave at default to inherit from global PHAM settings."
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "font_style",
+      "label": "Font",
+      "default": "mono",
+      "options": [
+        { "value": "mono",    "label": "Mono (Space Mono)" },
+        { "value": "display", "label": "Display italic (Cormorant Garamond)" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font size",
+      "min": 10,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "label": "Background",
+      "default": "#0D0D0D"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#EAE6DF"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Separator accent",
+      "default": "#C5A880"
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Marquee",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["*"]
+  }
+}
+{% endschema %}

@@ -1,0 +1,338 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+<section class="pham-article" data-pham-article data-section-id="{{ section.id }}" role="region" aria-label="{{ article.title | escape | default: 'Article' }}">
+  <article class="pham-article__wrap">
+    {%- if article.image -%}
+      <div class="pham-article__hero reveal-up">
+        {{ article.image
+            | image_url: width: 2400
+            | image_tag:
+              loading: 'eager',
+              fetchpriority: 'high',
+              widths: '480, 768, 1080, 1440, 1920, 2400',
+              sizes: '100vw',
+              class: 'pham-article__hero-img',
+              alt: article.image.alt | default: article.title
+        }}
+      </div>
+    {%- endif -%}
+
+    <header class="pham-article__head reveal-up">
+      <div class="pham-container">
+        <p class="pham-eyebrow pham-article__eyebrow">
+          {%- if article.tags.size > 0 -%}
+            {%- for tag in article.tags limit: 1 -%}{{ tag }}{%- endfor -%}
+          {%- else -%}
+            Journal · Editorial
+          {%- endif -%}
+        </p>
+        <h1 class="pham-article__title">{{ article.title }}</h1>
+        <p class="pham-article__byline">
+          <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}">{{ article.published_at | date: '%B %-d, %Y' }}</time>
+          {%- if article.author != blank -%}
+            <span aria-hidden="true">·</span> By {{ article.author }}
+          {%- endif -%}
+          {%- if section.settings.show_reading_time -%}
+            {%- assign words = article.content | strip_html | split: ' ' | size -%}
+            {%- assign minutes = words | divided_by: 220.0 | ceil -%}
+            {%- if minutes > 0 -%}
+              <span aria-hidden="true">·</span> {{ minutes }} min read
+            {%- endif -%}
+          {%- endif -%}
+        </p>
+      </div>
+    </header>
+
+    <div class="pham-article__body reveal-up">
+      <div class="pham-container pham-article__container">
+        <div class="pham-article__content rte">
+          {{ article.content }}
+        </div>
+
+        {%- if section.settings.show_share -%}
+          <div class="pham-article__share">
+            <span class="pham-eyebrow">Share</span>
+            <a href="https://twitter.com/intent/tweet?text={{ article.title | url_encode }}&url={{ shop.url | append: article.url | url_encode }}" target="_blank" rel="noopener noreferrer" class="pham-article__share-link">Twitter</a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ shop.url | append: article.url | url_encode }}" target="_blank" rel="noopener noreferrer" class="pham-article__share-link">Facebook</a>
+            <a href="https://pinterest.com/pin/create/button/?url={{ shop.url | append: article.url | url_encode }}&description={{ article.title | url_encode }}" target="_blank" rel="noopener noreferrer" class="pham-article__share-link">Pinterest</a>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- if blog.next_article or blog.previous_article -%}
+      <nav class="pham-article__nav" role="navigation" aria-label="Article navigation">
+        <div class="pham-container pham-article__nav-inner">
+          {%- if blog.previous_article -%}
+            <a href="{{ blog.previous_article }}" class="pham-article__nav-link pham-article__nav-link--prev" rel="prev">
+              <span class="pham-eyebrow">Previous</span>
+              <span class="pham-article__nav-title">{{ blog.previous_article.title }}</span>
+            </a>
+          {%- else -%}
+            <span></span>
+          {%- endif -%}
+          {%- if blog.next_article -%}
+            <a href="{{ blog.next_article }}" class="pham-article__nav-link pham-article__nav-link--next" rel="next">
+              <span class="pham-eyebrow">Next</span>
+              <span class="pham-article__nav-title">{{ blog.next_article.title }}</span>
+            </a>
+          {%- else -%}
+            <span></span>
+          {%- endif -%}
+        </div>
+      </nav>
+    {%- endif -%}
+
+    {%- if section.settings.show_comments and blog.comments_enabled? -%}
+      <div class="pham-article__comments">
+        <div class="pham-container">
+          <h2 class="pham-article__comments-title">{{ section.settings.comments_heading }}</h2>
+          {%- if article.comments_count > 0 -%}
+            <ul class="pham-article__comments-list" role="list">
+              {%- for comment in article.comments -%}
+                <li class="pham-article__comment">
+                  <p class="pham-article__comment-meta">
+                    <strong>{{ comment.author }}</strong> · <time datetime="{{ comment.created_at | date: '%Y-%m-%d' }}">{{ comment.created_at | date: '%B %-d, %Y' }}</time>
+                  </p>
+                  <div class="pham-article__comment-body">{{ comment.content }}</div>
+                </li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+
+          {%- form 'new_comment', article -%}
+            <h3 class="pham-article__form-heading">Leave a note</h3>
+            {%- if form.errors -%}
+              <p class="pham-footer__form-msg pham-footer__form-msg--error" role="alert">{{ form.errors | default_errors }}</p>
+            {%- endif -%}
+            {%- if form.posted_successfully? -%}
+              <p class="pham-footer__form-msg pham-footer__form-msg--success" role="status">Thank you for the correspondence.</p>
+            {%- endif -%}
+            <div class="pham-article__form-row">
+              <label for="pham-comment-author">Name</label>
+              <input type="text" id="pham-comment-author" name="comment[author]" required>
+            </div>
+            <div class="pham-article__form-row">
+              <label for="pham-comment-email">Email</label>
+              <input type="email" id="pham-comment-email" name="comment[email]" required>
+            </div>
+            <div class="pham-article__form-row">
+              <label for="pham-comment-body">Comment</label>
+              <textarea id="pham-comment-body" name="comment[body]" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="pham-article__form-submit">Post comment</button>
+          {%- endform -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </article>
+</section>
+
+<style>
+  .pham-article {
+    background-color: var(--color-void);
+    color: var(--color-bone);
+    padding-block: 0 var(--space-2xl);
+  }
+  .pham-article__hero {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background-color: var(--color-obsidian);
+    margin-bottom: var(--space-xl);
+  }
+  .pham-article__hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .pham-article__head { margin-bottom: var(--space-xl); }
+  .pham-article__eyebrow { color: var(--color-accent); margin: 0 0 var(--space-sm); }
+  .pham-article__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    line-height: 1.02;
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-bone);
+    margin: 0 0 var(--space-sm);
+    max-width: 22ch;
+  }
+  .pham-article__byline {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    margin: 0;
+  }
+
+  .pham-article__container { max-width: 720px; }
+  .pham-article__content {
+    font-family: var(--font-body);
+    font-size: var(--text-md);
+    line-height: 1.8;
+    color: var(--color-bone-80);
+  }
+  .pham-article__content > * + * { margin-top: var(--space-md); }
+  .pham-article__content h2 { font-family: var(--font-display); font-weight: 300; font-size: 2rem; letter-spacing: var(--tracking-tight); color: var(--color-bone); margin-top: var(--space-xl); }
+  .pham-article__content h3 { font-family: var(--font-display); font-weight: 300; font-size: 1.5rem; color: var(--color-bone); margin-top: var(--space-lg); }
+  .pham-article__content a  { color: var(--color-accent); text-decoration: underline; text-underline-offset: 3px; }
+  .pham-article__content blockquote {
+    border-left: 1px solid var(--color-accent);
+    padding-left: var(--space-md);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--text-xl);
+    line-height: 1.4;
+    color: var(--color-bone);
+  }
+  .pham-article__content img { width: 100%; height: auto; margin-block: var(--space-md); }
+  .pham-article__content ul,
+  .pham-article__content ol { padding-left: var(--space-md); }
+
+  .pham-article__share {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-ash);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+  }
+  .pham-article__share-link {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-bone);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-luxury);
+  }
+  .pham-article__share-link:hover { color: var(--color-accent); }
+
+  .pham-article__nav {
+    margin-top: var(--space-2xl);
+    border-top: 1px solid var(--color-ash);
+    border-bottom: 1px solid var(--color-ash);
+    padding-block: var(--space-lg);
+  }
+  .pham-article__nav-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+  .pham-article__nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-decoration: none;
+    color: var(--color-bone);
+    transition: color var(--duration-fast) var(--ease-luxury);
+  }
+  .pham-article__nav-link:hover { color: var(--color-accent); }
+  .pham-article__nav-link--next { text-align: right; }
+  .pham-article__nav-title { font-family: var(--font-display); font-size: var(--text-lg); }
+
+  .pham-article__comments { margin-top: var(--space-2xl); }
+  .pham-article__comments-title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: var(--text-xl);
+    color: var(--color-bone);
+    margin: 0 0 var(--space-md);
+  }
+  .pham-article__comments-list { list-style: none; margin: 0 0 var(--space-lg); padding: 0; display: flex; flex-direction: column; gap: var(--space-md); }
+  .pham-article__comment-meta { color: var(--color-smoke); font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-base); margin: 0 0 4px; }
+  .pham-article__comment-meta strong { color: var(--color-bone); font-weight: 500; }
+  .pham-article__comment-body { color: var(--color-bone-80); line-height: 1.7; }
+  .pham-article__form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: var(--space-sm);
+  }
+  .pham-article__form-row label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+  .pham-article__form-row input,
+  .pham-article__form-row textarea {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-ash);
+    color: var(--color-bone);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    padding: var(--space-xs) 0;
+  }
+  .pham-article__form-row input:focus,
+  .pham-article__form-row textarea:focus { outline: none; border-color: var(--color-accent); }
+  .pham-article__form-heading { font-family: var(--font-display); font-weight: 300; font-size: var(--text-lg); margin: var(--space-md) 0; color: var(--color-bone); }
+  .pham-article__form-submit {
+    background: transparent;
+    color: var(--color-bone);
+    border: 1px solid var(--color-bone);
+    padding: var(--space-sm) var(--space-md);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color var(--duration-base) var(--ease-luxury), color var(--duration-base) var(--ease-luxury);
+  }
+  .pham-article__form-submit:hover { background-color: var(--color-accent); border-color: var(--color-accent); color: var(--color-void); }
+
+  @media (max-width: 768px) {
+    .pham-article__nav-inner { grid-template-columns: 1fr; }
+    .pham-article__nav-link--next { text-align: left; }
+    .pham-article__hero { aspect-ratio: 4/5; }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Article",
+  "tag": "section",
+  "class": "pham-article-section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_reading_time",
+      "label": "Show estimated reading time",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_share",
+      "label": "Show share links",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comments",
+      "label": "Show comments",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "comments_heading",
+      "label": "Comments heading",
+      "default": "Correspondence"
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Article",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["article"]
+  }
+}
+{% endschema %}

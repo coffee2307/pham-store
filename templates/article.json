@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-article",
+      "settings": {
+        "show_reading_time": true,
+        "show_share": true,
+        "show_comments": true,
+        "comments_heading": "Correspondence"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

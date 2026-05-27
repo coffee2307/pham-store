@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-404",
+      "settings": {
+        "eyebrow": "PHAM · 404",
+        "title": "This page is silent.",
+        "description": "The link may be incorrect, the edition has been retired, or this page has been removed from the atelier.",
+        "cta_label": "Return to atelier",
+        "secondary_label": "Browse the collection"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

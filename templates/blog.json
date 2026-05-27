@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-blog-grid",
+      "settings": {
+        "eyebrow": "JOURNAL · NOTES",
+        "intro": "Editorial, atelier notes, and slow correspondence from PHAM.",
+        "articles_per_page": 12,
+        "columns": 3
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

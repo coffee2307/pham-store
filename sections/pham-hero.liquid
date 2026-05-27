@@ -1,0 +1,475 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- liquid
+  assign height_class    = 'pham-hero--' | append: section.settings.height
+  assign text_alignment  = section.settings.text_alignment | default: 'center'
+  assign overlay_opacity = section.settings.overlay_opacity | default: 40 | times: 0.01
+  assign show_scroll     = section.settings.show_scroll
+  assign custom_height   = section.settings.custom_height_px | default: 720
+-%}
+
+<section class="pham-hero {{ height_class }} pham-hero--align-{{ text_alignment }}"
+         data-pham-hero
+         data-section-id="{{ section.id }}"
+         style="--pham-hero-overlay-opacity: {{ overlay_opacity }}; --pham-hero-min-height: {{ custom_height }}px;"
+         role="region"
+         aria-label="Hero">
+
+  <div class="pham-hero__media" aria-hidden="true">
+    {%- if section.settings.media_type == 'video' -%}
+      {%- if section.settings.video != blank -%}
+        <video class="pham-hero__video"
+               autoplay muted loop playsinline preload="metadata"
+               {% if section.settings.image != blank %}poster="{{ section.settings.image | image_url: width: 1920 }}"{% endif %}>
+          {%- for source in section.settings.video.sources -%}
+            <source src="{{ source.url }}" type="{{ source.mime_type }}">
+          {%- endfor -%}
+        </video>
+      {%- elsif section.settings.video_url != blank -%}
+        <video class="pham-hero__video"
+               autoplay muted loop playsinline preload="metadata"
+               {% if section.settings.image != blank %}poster="{{ section.settings.image | image_url: width: 1920 }}"{% endif %}>
+          <source src="{{ section.settings.video_url }}" type="video/mp4">
+        </video>
+      {%- elsif section.settings.image != blank -%}
+        {{ section.settings.image
+            | image_url: width: 2400
+            | image_tag:
+              loading: 'eager',
+              fetchpriority: 'high',
+              widths: '480, 768, 1080, 1440, 1920, 2400',
+              sizes: '100vw',
+              class: 'pham-hero__img',
+              alt: section.settings.image.alt | default: shop.name
+        }}
+      {%- endif -%}
+    {%- else -%}
+      {%- if section.settings.image != blank -%}
+        {{ section.settings.image
+            | image_url: width: 2400
+            | image_tag:
+              loading: 'eager',
+              fetchpriority: 'high',
+              widths: '480, 768, 1080, 1440, 1920, 2400',
+              sizes: '100vw',
+              class: 'pham-hero__img',
+              alt: section.settings.image.alt | default: shop.name
+        }}
+      {%- endif -%}
+    {%- endif -%}
+
+    <div class="pham-hero__overlay" aria-hidden="true"></div>
+  </div>
+
+  <div class="pham-hero__inner pham-container">
+    <div class="pham-hero__content reveal-up">
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'eyebrow' -%}
+            <p class="pham-hero__eyebrow pham-eyebrow" {{ block.shopify_attributes }}>
+              {{ block.settings.text }}
+            </p>
+          {%- when 'heading' -%}
+            <h1 class="pham-hero__heading"
+                {{ block.shopify_attributes }}
+                style="--pham-hero-heading-size: {{ block.settings.font_size }}px">
+              {{ block.settings.text }}
+            </h1>
+          {%- when 'subheading' -%}
+            <p class="pham-hero__subheading" {{ block.shopify_attributes }}>
+              {{ block.settings.text }}
+            </p>
+          {%- when 'button' -%}
+            <div class="pham-hero__cta-wrap" {{ block.shopify_attributes }}>
+              <a href="{{ block.settings.link | default: '#' }}"
+                 class="pham-hero__cta"
+                 {% if block.settings.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                <span class="pham-hero__cta-fill" aria-hidden="true"></span>
+                <span class="pham-hero__cta-label">{{ block.settings.label }}</span>
+                <span class="pham-hero__cta-arrow" aria-hidden="true">&rarr;</span>
+              </a>
+            </div>
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+  </div>
+
+  {%- if show_scroll -%}
+    <a href="#pham-hero-anchor-{{ section.id }}"
+       class="pham-hero__scroll"
+       aria-label="Scroll down to content"
+       data-pham-no-transition>
+      <span class="pham-hero__scroll-label">Scroll</span>
+      <span class="pham-hero__scroll-line" aria-hidden="true"></span>
+    </a>
+    <span id="pham-hero-anchor-{{ section.id }}" class="pham-hero__anchor" aria-hidden="true"></span>
+  {%- endif -%}
+</section>
+
+<style>
+  .pham-hero {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: var(--color-bone);
+    isolation: isolate;
+    background-color: var(--color-void);
+  }
+  .pham-hero--full   { min-height: 100vh; min-height: 100svh; }
+  .pham-hero--medium { min-height: 70vh;  min-height: 70svh;  }
+  .pham-hero--small  { min-height: 50vh;  min-height: 50svh;  }
+  .pham-hero--custom { min-height: var(--pham-hero-min-height, 600px); }
+
+  .pham-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .pham-hero__img,
+  .pham-hero__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+  .pham-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(5, 5, 5, var(--pham-hero-overlay-opacity, 0.4));
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .pham-hero__inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: var(--space-2xl);
+  }
+  .pham-hero__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    max-width: 800px;
+    align-items: center;
+    text-align: center;
+  }
+  .pham-hero--align-left   .pham-hero__content {
+    align-items: flex-start; text-align: left; max-width: 720px; margin-right: auto; margin-left: 0;
+  }
+  .pham-hero--align-right  .pham-hero__content {
+    align-items: flex-end; text-align: right; max-width: 720px; margin-left: auto; margin-right: 0;
+  }
+  .pham-hero--align-center .pham-hero__content { align-items: center; text-align: center; margin-inline: auto; }
+
+  .pham-hero__eyebrow {
+    color: var(--color-accent);
+    margin: 0;
+  }
+  .pham-hero__heading {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-style: normal;
+    font-size: clamp(2.5rem, calc(var(--pham-hero-heading-size, 96px) * 0.5), var(--pham-hero-heading-size, 96px));
+    line-height: 1.02;
+    letter-spacing: var(--tracking-tight);
+    margin: 0;
+    color: var(--color-bone);
+  }
+  .pham-hero__subheading {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1rem, 1.6vw, 1.25rem);
+    line-height: 1.55;
+    margin: 0;
+    color: var(--color-bone-80);
+    max-width: 56ch;
+  }
+
+  /* CTA — outline button with clip-path left-to-right sweep on hover */
+  .pham-hero__cta-wrap { margin-top: var(--space-sm); }
+  .pham-hero__cta {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-bone);
+    background: transparent;
+    border: 1px solid var(--color-bone);
+    text-decoration: none;
+    overflow: hidden;
+    isolation: isolate;
+    transition: color var(--duration-base) var(--ease-luxury),
+                gap var(--duration-base) var(--ease-luxury);
+  }
+  .pham-hero__cta-label,
+  .pham-hero__cta-arrow { position: relative; z-index: 2; }
+  .pham-hero__cta-fill {
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-bone);
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path var(--duration-base) var(--ease-luxury);
+    z-index: 1;
+  }
+  .pham-hero__cta:hover { color: var(--color-void); gap: var(--space-sm); }
+  .pham-hero__cta:hover .pham-hero__cta-fill { clip-path: inset(0 0 0 0); }
+  .pham-hero__cta:focus-visible { outline-offset: 4px; }
+
+  /* Scroll indicator */
+  .pham-hero__scroll {
+    position: absolute;
+    bottom: var(--space-lg);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--color-bone-60);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    transition: color var(--duration-fast) var(--ease-luxury);
+  }
+  .pham-hero__scroll:hover { color: var(--color-accent); }
+  .pham-hero__scroll-line {
+    display: block;
+    width: 1px;
+    height: 40px;
+    background-color: var(--color-accent);
+    transform: scaleY(0);
+    transform-origin: top center;
+    animation: pham-hero-scroll-line 2s var(--ease-cinematic) infinite;
+  }
+  .pham-hero__anchor {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    opacity: 0;
+  }
+  @keyframes pham-hero-scroll-line {
+    0%   { transform: scaleY(0); transform-origin: top center; }
+    49%  { transform: scaleY(1); transform-origin: top center; }
+    50%  { transform: scaleY(1); transform-origin: bottom center; }
+    100% { transform: scaleY(0); transform-origin: bottom center; }
+  }
+
+  @media (max-width: 640px) {
+    .pham-hero__heading { font-size: clamp(2rem, 11vw, 4rem); }
+    .pham-hero__inner   { padding-block: var(--space-xl); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pham-hero__scroll-line { animation: none; transform: scaleY(1); transform-origin: center; }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Hero",
+  "tag": "section",
+  "class": "pham-hero-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Media"
+    },
+    {
+      "type": "select",
+      "id": "media_type",
+      "label": "Background media",
+      "default": "image",
+      "options": [
+        { "value": "image", "label": "Image" },
+        { "value": "video", "label": "Video" }
+      ]
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Background image (or video poster)"
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Uploaded video"
+    },
+    {
+      "type": "video_url",
+      "id": "video_url",
+      "label": "External video URL (YouTube or Vimeo)",
+      "accept": ["youtube", "vimeo"]
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Height",
+      "default": "full",
+      "options": [
+        { "value": "full",   "label": "Full viewport (100vh / 100svh)" },
+        { "value": "medium", "label": "Medium (70vh)" },
+        { "value": "small",  "label": "Small (50vh)" },
+        { "value": "custom", "label": "Custom" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "custom_height_px",
+      "label": "Custom height",
+      "min": 320,
+      "max": 1200,
+      "step": 20,
+      "unit": "px",
+      "default": 720,
+      "visible_if": "{{ section.settings.height == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "default": "center",
+      "options": [
+        { "value": "left",   "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right",  "label": "Right" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_scroll",
+      "label": "Show scroll-down indicator",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "eyebrow",
+      "name": "Eyebrow",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Eyebrow text",
+          "default": "NEW EDITION · SS26"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "name": "Heading",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Heading",
+          "default": "Silence is luxury."
+        },
+        {
+          "type": "range",
+          "id": "font_size",
+          "label": "Max font size",
+          "min": 32,
+          "max": 200,
+          "step": 4,
+          "unit": "px",
+          "default": 96
+        }
+      ]
+    },
+    {
+      "type": "subheading",
+      "name": "Subheading",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Subheading",
+          "default": "Restraint is power. An atelier of considered, slow-made garments for those who understand that elegance is what you choose not to say."
+        }
+      ]
+    },
+    {
+      "type": "button",
+      "name": "Button",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Discover the Collection"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_new_tab",
+          "label": "Open in new tab",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Hero",
+      "category": "PHAM",
+      "blocks": [
+        { "type": "eyebrow" },
+        { "type": "heading" },
+        { "type": "subheading" },
+        { "type": "button" }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "collection", "404", "password"]
+  }
+}
+{% endschema %}

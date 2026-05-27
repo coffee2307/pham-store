@@ -1,0 +1,18 @@
+{
+  "type": "header",
+  "name": "Header",
+  "sections": {
+    "pham-header": {
+      "type": "pham-header",
+      "settings": {
+        "menu": "main-menu",
+        "show_search": true,
+        "show_account": true,
+        "transparent_on_top": false
+      }
+    }
+  },
+  "order": [
+    "pham-header"
+  ]
+}

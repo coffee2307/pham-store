@@ -1,0 +1,178 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+<section class="pham-404" data-pham-404 data-section-id="{{ section.id }}" role="region" aria-label="Page not found">
+  <div class="pham-container pham-404__inner reveal-up">
+    <p class="pham-eyebrow pham-404__eyebrow">{{ section.settings.eyebrow }}</p>
+    <p class="pham-404__code" aria-hidden="true">404</p>
+    <h1 class="pham-404__title">{{ section.settings.title | default: 'This page is silent.' }}</h1>
+    {%- if section.settings.description != blank -%}
+      <p class="pham-404__description">{{ section.settings.description }}</p>
+    {%- endif -%}
+    <div class="pham-404__actions">
+      <a href="{{ routes.root_url }}" class="pham-404__cta">
+        <span class="pham-404__cta-fill" aria-hidden="true"></span>
+        <span class="pham-404__cta-label">{{ section.settings.cta_label | default: 'Return to atelier' }}</span>
+        <span class="pham-404__cta-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      {%- if section.settings.secondary_label != blank -%}
+        <a href="{{ section.settings.secondary_link | default: routes.all_products_collection_url }}" class="pham-404__secondary">
+          {{ section.settings.secondary_label }}
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<style>
+  .pham-404 {
+    background-color: var(--color-void);
+    color: var(--color-bone);
+    min-height: 80vh;
+    min-height: 80svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: var(--space-2xl);
+  }
+  .pham-404__inner {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    max-width: 640px;
+  }
+  .pham-404__eyebrow { color: var(--color-accent); margin: 0; }
+  .pham-404__code {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(5rem, 18vw, 14rem);
+    line-height: 0.9;
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-bone);
+    margin: var(--space-sm) 0;
+    background: linear-gradient(180deg, var(--color-bone) 0%, var(--color-smoke) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  .pham-404__title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    line-height: 1.1;
+    color: var(--color-bone);
+    margin: 0;
+  }
+  .pham-404__description {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    color: var(--color-bone-80);
+    margin: 0;
+    max-width: 52ch;
+  }
+  .pham-404__actions {
+    margin-top: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .pham-404__cta {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    background: transparent;
+    color: var(--color-bone);
+    border: 1px solid var(--color-bone);
+    overflow: hidden;
+    isolation: isolate;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color var(--duration-base) var(--ease-luxury), gap var(--duration-base) var(--ease-luxury);
+  }
+  .pham-404__cta-fill {
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-accent);
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path var(--duration-base) var(--ease-luxury);
+    z-index: 1;
+  }
+  .pham-404__cta-label,
+  .pham-404__cta-arrow { position: relative; z-index: 2; }
+  .pham-404__cta:hover { color: var(--color-void); gap: var(--space-sm); }
+  .pham-404__cta:hover .pham-404__cta-fill { clip-path: inset(0 0 0 0); }
+  .pham-404__secondary {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .pham-404__secondary:hover { color: var(--color-accent); }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM 404",
+  "tag": "section",
+  "class": "pham-404-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "PHAM · 404"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "This page is silent."
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "The link may be incorrect, the edition has been retired, or this page has been removed from the atelier."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Primary CTA label",
+      "default": "Return to atelier"
+    },
+    {
+      "type": "text",
+      "id": "secondary_label",
+      "label": "Secondary link label",
+      "default": "Browse the collection"
+    },
+    {
+      "type": "url",
+      "id": "secondary_link",
+      "label": "Secondary link URL"
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM 404",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["404"]
+  }
+}
+{% endschema %}

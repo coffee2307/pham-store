@@ -1,0 +1,636 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- liquid
+  assign product_handle = section.settings.product
+  assign product        = all_products[product_handle]
+  assign media_position = section.settings.media_position | default: 'left'
+  assign show_view_pdp  = section.settings.show_view_pdp
+  assign current_variant = product.selected_or_first_available_variant
+-%}
+
+<section class="pham-product-spotlight pham-product-spotlight--media-{{ media_position }}"
+         data-pham-spotlight="{{ section.id }}"
+         data-section-id="{{ section.id }}"
+         role="region"
+         aria-label="{{ product.title | default: 'Featured product' | escape }}">
+
+  {%- if product != blank and product != nil -%}
+    <div class="pham-product-spotlight__grid">
+
+      <div class="pham-product-spotlight__media reveal-up">
+        {%- if product.images.size > 0 -%}
+          <div class="pham-product-spotlight__gallery" data-pham-spotlight-gallery>
+            {%- for image in product.images limit: section.settings.image_limit -%}
+              <figure class="pham-product-spotlight__media-item">
+                {{ image
+                    | image_url: width: 1600
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '480, 768, 1080, 1440, 1600',
+                      sizes: '(max-width: 900px) 100vw, 50vw',
+                      class: 'pham-product-spotlight__img',
+                      alt: image.alt | default: product.title
+                }}
+              </figure>
+            {%- endfor -%}
+          </div>
+        {%- else -%}
+          <div class="pham-product-spotlight__skeleton pham-skeleton" aria-hidden="true"></div>
+        {%- endif -%}
+      </div>
+
+      <div class="pham-product-spotlight__panel reveal-up">
+        <div class="pham-product-spotlight__panel-inner">
+          {%- if section.settings.eyebrow != blank -%}
+            <p class="pham-eyebrow pham-product-spotlight__eyebrow">{{ section.settings.eyebrow }}</p>
+          {%- endif -%}
+
+          <h2 class="pham-product-spotlight__title">{{ product.title }}</h2>
+
+          <p class="pham-product-spotlight__price" data-pham-spotlight-price>
+            {%- if product.compare_at_price > product.price -%}
+              <s class="pham-product-spotlight__price-compare">{{ product.compare_at_price | money }}</s>
+              <span class="pham-product-spotlight__price-sale">{{ current_variant.price | money }}</span>
+            {%- else -%}
+              <span>{{ current_variant.price | money }}</span>
+            {%- endif -%}
+          </p>
+
+          {%- if section.settings.show_inventory and current_variant.inventory_management != blank and current_variant.inventory_quantity > 0 and current_variant.inventory_quantity <= 5 -%}
+            <p class="pham-product-spotlight__inventory">
+              EDITION OF {{ current_variant.inventory_quantity }} AVAILABLE
+            </p>
+          {%- endif -%}
+
+          {%- if section.settings.description != blank -%}
+            <div class="pham-product-spotlight__desc rte">{{ section.settings.description }}</div>
+          {%- elsif product.description != blank -%}
+            <div class="pham-product-spotlight__desc rte">
+              {{ product.description | strip_html | truncatewords: 60 }}
+            </div>
+          {%- endif -%}
+
+          <form action="{{ routes.cart_add_url }}"
+                method="post"
+                enctype="multipart/form-data"
+                class="pham-product-spotlight__form"
+                data-pham-spotlight-form
+                data-action="add-to-cart"
+                novalidate>
+            <input type="hidden" name="form_type" value="product">
+            <input type="hidden" name="utf8" value="✓">
+
+            {%- unless product.has_only_default_variant -%}
+              <div class="pham-product-spotlight__options">
+                {%- for option in product.options_with_values -%}
+                  <fieldset class="pham-product-spotlight__option" data-option-index="{{ forloop.index0 }}">
+                    <legend class="pham-product-spotlight__legend">
+                      <span class="pham-product-spotlight__legend-name">{{ option.name }}</span>
+                      <span class="pham-product-spotlight__legend-value" data-pham-spotlight-option-value="{{ forloop.index0 }}">
+                        {{ option.selected_value }}
+                      </span>
+                    </legend>
+                    <div class="pham-product-spotlight__variants" role="radiogroup" aria-label="{{ option.name | escape }}">
+                      {%- for value in option.values -%}
+                        {%- assign value_handle = value | handleize -%}
+                        {%- assign input_id = 'pham-spotlight-' | append: section.id | append: '-' | append: forloop.index0 | append: '-' | append: value_handle -%}
+                        <input type="radio"
+                               id="{{ input_id }}"
+                               name="options[{{ option.name | escape }}]"
+                               value="{{ value | escape }}"
+                               class="pham-visually-hidden pham-product-spotlight__radio"
+                               data-pham-option
+                               data-option-index="{{ forloop.parentloop.index0 }}"
+                               {% if option.selected_value == value %}checked{% endif %}>
+                        <label for="{{ input_id }}" class="pham-product-spotlight__radio-label">
+                          <span>{{ value }}</span>
+                        </label>
+                      {%- endfor -%}
+                    </div>
+                  </fieldset>
+                {%- endfor -%}
+              </div>
+            {%- endunless -%}
+
+            <input type="hidden"
+                   name="id"
+                   value="{{ current_variant.id }}"
+                   data-pham-spotlight-id>
+
+            <div class="pham-product-spotlight__qty">
+              <label for="pham-spotlight-qty-{{ section.id }}" class="pham-product-spotlight__qty-label">Quantity</label>
+              <input id="pham-spotlight-qty-{{ section.id }}"
+                     type="number"
+                     name="quantity"
+                     value="1"
+                     min="1"
+                     inputmode="numeric"
+                     pattern="[0-9]*"
+                     class="pham-product-spotlight__qty-input">
+            </div>
+
+            <button type="submit"
+                    class="pham-product-spotlight__add"
+                    data-pham-spotlight-submit
+                    {% unless current_variant.available %}disabled aria-disabled="true"{% endunless %}>
+              <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
+              <span class="pham-product-spotlight__add-text">
+                <span class="pham-product-spotlight__add-label" data-pham-spotlight-btn-label>
+                  {% if current_variant.available %}Add to Cart{% else %}Sold out{% endif %}
+                </span>
+                <span class="pham-product-spotlight__add-price" data-pham-spotlight-btn-price>
+                  {{ current_variant.price | money }}
+                </span>
+              </span>
+            </button>
+          </form>
+
+          {%- if show_view_pdp -%}
+            <a href="{{ product.url }}" class="pham-product-spotlight__pdp-link">
+              <span>View full product</span>
+              <span aria-hidden="true">&rarr;</span>
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+
+    </div>
+
+    <script type="application/json" data-pham-spotlight-variants>
+      {{ product.variants | json }}
+    </script>
+  {%- else -%}
+    <div class="pham-product-spotlight__empty pham-container">
+      <p class="pham-eyebrow">PHAM Product Spotlight</p>
+      <p class="pham-product-spotlight__empty-text">Select a product in the theme editor.</p>
+    </div>
+  {%- endif -%}
+</section>
+
+<style>
+  .pham-product-spotlight {
+    background-color: var(--color-void);
+    color: var(--color-bone);
+  }
+  .pham-product-spotlight__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+  .pham-product-spotlight--media-right .pham-product-spotlight__grid {
+    grid-template-areas: 'panel media';
+    grid-template-columns: 1fr 1fr;
+  }
+  .pham-product-spotlight--media-right .pham-product-spotlight__media { order: 2; }
+  .pham-product-spotlight--media-right .pham-product-spotlight__panel { order: 1; }
+
+  .pham-product-spotlight__media {
+    background-color: var(--color-obsidian);
+    position: relative;
+    overflow: hidden;
+  }
+  .pham-product-spotlight__gallery {
+    display: flex;
+    flex-direction: column;
+  }
+  .pham-product-spotlight__media-item {
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .pham-product-spotlight__img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+  .pham-product-spotlight__skeleton {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+  }
+
+  .pham-product-spotlight__panel {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: var(--space-2xl) var(--gutter);
+    position: sticky;
+    top: var(--space-2xl);
+    align-self: start;
+  }
+  .pham-product-spotlight__panel-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    max-width: 480px;
+    width: 100%;
+  }
+  .pham-product-spotlight__eyebrow { color: var(--color-accent); margin: 0; }
+  .pham-product-spotlight__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: var(--tracking-tight);
+    margin: 0;
+    color: var(--color-bone);
+  }
+  .pham-product-spotlight__price {
+    font-family: var(--font-mono);
+    font-size: var(--text-md);
+    letter-spacing: var(--tracking-luxury);
+    color: var(--color-bone);
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+  }
+  .pham-product-spotlight__price-compare { color: var(--color-smoke); }
+  .pham-product-spotlight__price-sale    { color: var(--color-accent); }
+
+  .pham-product-spotlight__inventory {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin: 0;
+    padding: 6px 10px;
+    border: 1px solid var(--color-accent);
+    align-self: flex-start;
+  }
+  .pham-product-spotlight__desc {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: 1.7;
+    color: var(--color-bone-80);
+  }
+  .pham-product-spotlight__desc p { margin: 0 0 var(--space-xs); }
+
+  .pham-product-spotlight__options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  .pham-product-spotlight__option {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  .pham-product-spotlight__legend {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    width: 100%;
+    padding: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+  .pham-product-spotlight__legend-value { color: var(--color-bone); }
+  .pham-product-spotlight__variants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .pham-product-spotlight__radio-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--color-ash);
+    background-color: transparent;
+    color: var(--color-bone);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color var(--duration-fast) var(--ease-luxury),
+                color var(--duration-fast) var(--ease-luxury),
+                background-color var(--duration-fast) var(--ease-luxury);
+  }
+  .pham-product-spotlight__radio:checked + .pham-product-spotlight__radio-label {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  .pham-product-spotlight__radio:focus-visible + .pham-product-spotlight__radio-label {
+    outline: 1px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  .pham-product-spotlight__radio-label:hover {
+    border-color: var(--color-bone);
+  }
+
+  .pham-product-spotlight__qty {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .pham-product-spotlight__qty-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+  .pham-product-spotlight__qty-input {
+    width: 64px;
+    height: 38px;
+    background: transparent;
+    color: var(--color-bone);
+    border: 1px solid var(--color-ash);
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .pham-product-spotlight__qty-input::-webkit-outer-spin-button,
+  .pham-product-spotlight__qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+  }
+
+  .pham-product-spotlight__add {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    background: transparent;
+    color: var(--color-bone);
+    border: 1px solid var(--color-bone);
+    overflow: hidden;
+    isolation: isolate;
+    cursor: pointer;
+    font: inherit;
+    transition: color var(--duration-base) var(--ease-luxury);
+  }
+  .pham-product-spotlight__add[disabled],
+  .pham-product-spotlight__add[aria-disabled="true"] {
+    border-color: var(--color-ash);
+    color: var(--color-smoke);
+    cursor: not-allowed;
+  }
+  .pham-product-spotlight__add-fill {
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-accent);
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path var(--duration-base) var(--ease-luxury);
+    z-index: 1;
+  }
+  .pham-product-spotlight__add-text {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    gap: var(--space-md);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+  }
+  .pham-product-spotlight__add:hover:not([disabled]):not([aria-disabled="true"]) { color: var(--color-void); }
+  .pham-product-spotlight__add:hover:not([disabled]):not([aria-disabled="true"]) .pham-product-spotlight__add-fill {
+    clip-path: inset(0 0 0 0);
+  }
+
+  .pham-product-spotlight__pdp-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    text-decoration: none;
+    transition: color var(--duration-base) var(--ease-luxury), gap var(--duration-base) var(--ease-luxury);
+  }
+  .pham-product-spotlight__pdp-link:hover { color: var(--color-accent); gap: var(--space-sm); }
+
+  .pham-product-spotlight__empty {
+    padding-block: var(--space-2xl);
+    text-align: center;
+  }
+  .pham-product-spotlight__empty-text {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--text-lg);
+    color: var(--color-bone-60);
+    margin: var(--space-sm) 0 0;
+  }
+
+  @media (max-width: 900px) {
+    .pham-product-spotlight__grid,
+    .pham-product-spotlight--media-right .pham-product-spotlight__grid {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+    .pham-product-spotlight__panel {
+      position: static;
+      padding: var(--space-xl) var(--gutter);
+      align-items: flex-start;
+    }
+    .pham-product-spotlight--media-right .pham-product-spotlight__media   { order: 1; }
+    .pham-product-spotlight--media-right .pham-product-spotlight__panel   { order: 2; }
+  }
+</style>
+
+<script>
+  (function() {
+    'use strict';
+    var sectionId = {{ section.id | json }};
+    var root = document.querySelector('[data-pham-spotlight="' + sectionId + '"]');
+    if (!root) return;
+    var dataEl = root.querySelector('[data-pham-spotlight-variants]');
+    if (!dataEl) return;
+    var variants;
+    try { variants = JSON.parse(dataEl.textContent); } catch (e) { return; }
+    if (!Array.isArray(variants)) return;
+
+    var form = root.querySelector('[data-pham-spotlight-form]');
+    if (!form) return;
+    var variantIdInput = form.querySelector('[data-pham-spotlight-id]');
+    var priceEl = root.querySelector('[data-pham-spotlight-price]');
+    var btn = form.querySelector('[data-pham-spotlight-submit]');
+    var btnLabel = btn ? btn.querySelector('[data-pham-spotlight-btn-label]') : null;
+    var btnPrice = btn ? btn.querySelector('[data-pham-spotlight-btn-price]') : null;
+    var legendValueEls = root.querySelectorAll('[data-pham-spotlight-option-value]');
+    var currency = (window.Shopify && window.Shopify.currency && window.Shopify.currency.active) || 'USD';
+
+    function formatMoney(cents) {
+      if (typeof cents !== 'number' || !isFinite(cents)) return '';
+      try {
+        return new Intl.NumberFormat(undefined, {
+          style: 'currency',
+          currency: currency
+        }).format(cents / 100);
+      } catch (e) {
+        return '$' + (cents / 100).toFixed(2);
+      }
+    }
+
+    function getSelectedOptions() {
+      var opts = [];
+      var seenIdx = {};
+      var radios = root.querySelectorAll('input[type="radio"][data-pham-option]');
+      for (var i = 0; i < radios.length; i++) {
+        var r = radios[i];
+        if (r.checked) {
+          var idx = parseInt(r.dataset.optionIndex, 10);
+          if (isNaN(idx)) continue;
+          opts[idx] = r.value;
+          seenIdx[idx] = true;
+        }
+      }
+      return opts;
+    }
+
+    function findVariant(opts) {
+      for (var i = 0; i < variants.length; i++) {
+        var v = variants[i];
+        if (!v.options) continue;
+        var match = true;
+        for (var j = 0; j < v.options.length; j++) {
+          if ((v.options[j] || '') !== (opts[j] || '')) { match = false; break; }
+        }
+        if (match) return v;
+      }
+      return null;
+    }
+
+    function updateLegendValues(opts) {
+      for (var i = 0; i < legendValueEls.length; i++) {
+        var el = legendValueEls[i];
+        var idx = parseInt(el.getAttribute('data-pham-spotlight-option-value'), 10);
+        if (isNaN(idx)) continue;
+        if (opts[idx] != null) el.textContent = opts[idx];
+      }
+    }
+
+    function update() {
+      var opts = getSelectedOptions();
+      updateLegendValues(opts);
+      var variant = findVariant(opts);
+      if (!variant) return;
+
+      if (variantIdInput) variantIdInput.value = String(variant.id);
+      var formatted = formatMoney(variant.price);
+      if (priceEl)  priceEl.textContent  = formatted;
+      if (btnPrice) btnPrice.textContent = formatted;
+
+      if (btn) {
+        if (!variant.available) {
+          btn.setAttribute('disabled', 'disabled');
+          btn.setAttribute('aria-disabled', 'true');
+          if (btnLabel) btnLabel.textContent = 'Sold out';
+        } else {
+          btn.removeAttribute('disabled');
+          btn.removeAttribute('aria-disabled');
+          if (btnLabel) btnLabel.textContent = 'Add to Cart';
+        }
+      }
+    }
+
+    var radios = root.querySelectorAll('input[type="radio"][data-pham-option]');
+    for (var k = 0; k < radios.length; k++) {
+      radios[k].addEventListener('change', update);
+    }
+    update();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "PHAM Product Spotlight",
+  "tag": "section",
+  "class": "pham-product-spotlight-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Product"
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Featured product"
+    },
+    {
+      "type": "range",
+      "id": "image_limit",
+      "label": "Gallery images shown",
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "PHAM EDITION · SPOTLIGHT"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description override",
+      "info": "Leave blank to use the product's description."
+    },
+    {
+      "type": "header",
+      "content": "Options"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_inventory",
+      "label": "Show low-inventory line (EDITION OF X AVAILABLE) when stock ≤ 5",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_pdp",
+      "label": "Show 'View full product' link",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "media_position",
+      "label": "Media position",
+      "default": "left",
+      "options": [
+        { "value": "left",  "label": "Media left" },
+        { "value": "right", "label": "Media right" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Product Spotlight",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product"]
+  }
+}
+{% endschema %}

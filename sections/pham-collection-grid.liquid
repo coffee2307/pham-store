@@ -1,0 +1,702 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- liquid
+  assign products_per_page = section.settings.products_per_page | default: 12
+  assign desktop_cols      = section.settings.desktop_columns | default: 4
+  assign mobile_cols       = section.settings.mobile_columns | default: 2
+  assign enable_filtering  = section.settings.enable_filtering
+  assign enable_sorting    = section.settings.enable_sorting
+-%}
+
+<section class="pham-collection-grid"
+         data-pham-collection-grid
+         data-section-id="{{ section.id }}"
+         style="--pham-collection-desktop-cols: {{ desktop_cols }}; --pham-collection-mobile-cols: {{ mobile_cols }};"
+         role="region"
+         aria-label="{{ collection.title | escape | default: 'Collection' }}">
+  <div class="pham-container">
+
+    {%- comment -%} ============= HEADER ============= {%- endcomment -%}
+    <header class="pham-collection-grid__head reveal-up">
+      <p class="pham-eyebrow pham-collection-grid__eyebrow">{{ section.settings.eyebrow }}</p>
+      <h1 class="pham-collection-grid__title">{{ collection.title | default: 'All products' }}</h1>
+      {%- if collection.description != blank -%}
+        <div class="pham-collection-grid__desc rte">{{ collection.description }}</div>
+      {%- endif -%}
+      <p class="pham-collection-grid__count">
+        {%- if collection.products_count > 0 -%}
+          {{ collection.products_count }} {% if collection.products_count == 1 %}piece{% else %}pieces{% endif %}
+        {%- else -%}
+          0 pieces
+        {%- endif -%}
+      </p>
+    </header>
+
+    {%- comment -%} ============= FILTER + SORT BAR ============= {%- endcomment -%}
+    {%- if enable_filtering or enable_sorting -%}
+      <form id="pham-collection-filters-{{ section.id }}"
+            class="pham-collection-filters"
+            data-pham-collection-filters>
+        {%- if collection.current_vendor -%}<input type="hidden" name="q" value="{{ collection.current_vendor }}">{%- endif -%}
+        {%- if collection.current_type   -%}<input type="hidden" name="q" value="{{ collection.current_type }}">{%- endif -%}
+
+        <div class="pham-collection-filters__bar">
+          {%- if enable_filtering -%}
+            <div class="pham-collection-filters__group" role="group" aria-label="Filters">
+              {%- for filter in collection.filters -%}
+                <details class="pham-collection-filter" data-pham-filter>
+                  <summary class="pham-collection-filter__summary">
+                    <span>{{ filter.label }}</span>
+                    {%- if filter.active_values.size > 0 or filter.min_value.value != nil or filter.max_value.value != nil -%}
+                      <span class="pham-collection-filter__count" aria-hidden="true">·</span>
+                    {%- endif -%}
+                    <span class="pham-collection-filter__icon" aria-hidden="true">+</span>
+                  </summary>
+                  <div class="pham-collection-filter__panel">
+                    {%- case filter.type -%}
+                      {%- when 'list' -%}
+                        <ul class="pham-collection-filter__list" role="list">
+                          {%- for value in filter.values -%}
+                            <li class="pham-collection-filter__item">
+                              <label class="pham-collection-filter__option {% if value.count == 0 and value.active == false %}is-disabled{% endif %}">
+                                <input type="checkbox"
+                                       name="{{ value.param_name }}"
+                                       value="{{ value.value }}"
+                                       class="pham-collection-filter__checkbox"
+                                       {% if value.active %}checked{% endif %}
+                                       {% if value.count == 0 and value.active == false %}disabled{% endif %}>
+                                <span class="pham-collection-filter__box" aria-hidden="true">
+                                  <span class="pham-collection-filter__tick" aria-hidden="true"></span>
+                                </span>
+                                <span class="pham-collection-filter__label">
+                                  {{ value.label }}
+                                  <span class="pham-collection-filter__num">({{ value.count }})</span>
+                                </span>
+                              </label>
+                            </li>
+                          {%- endfor -%}
+                        </ul>
+                      {%- when 'price_range' -%}
+                        <div class="pham-collection-filter__price">
+                          <label class="pham-collection-filter__price-field">
+                            <span class="pham-collection-filter__price-label">Min</span>
+                            <input type="number"
+                                   class="pham-collection-filter__price-input"
+                                   name="{{ filter.min_value.param_name }}"
+                                   value="{{ filter.min_value.value }}"
+                                   placeholder="{{ 0 | money_without_currency }}"
+                                   min="0"
+                                   inputmode="decimal">
+                          </label>
+                          <span class="pham-collection-filter__price-sep" aria-hidden="true">—</span>
+                          <label class="pham-collection-filter__price-field">
+                            <span class="pham-collection-filter__price-label">Max</span>
+                            <input type="number"
+                                   class="pham-collection-filter__price-input"
+                                   name="{{ filter.max_value.param_name }}"
+                                   value="{{ filter.max_value.value }}"
+                                   placeholder="{{ filter.range_max | money_without_currency }}"
+                                   min="0"
+                                   inputmode="decimal">
+                          </label>
+                        </div>
+                      {%- when 'boolean' -%}
+                        <ul class="pham-collection-filter__list" role="list">
+                          {%- for value in filter.values -%}
+                            <li class="pham-collection-filter__item">
+                              <label class="pham-collection-filter__option">
+                                <input type="checkbox"
+                                       name="{{ value.param_name }}"
+                                       value="{{ value.value }}"
+                                       class="pham-collection-filter__checkbox"
+                                       {% if value.active %}checked{% endif %}>
+                                <span class="pham-collection-filter__box" aria-hidden="true">
+                                  <span class="pham-collection-filter__tick" aria-hidden="true"></span>
+                                </span>
+                                <span class="pham-collection-filter__label">{{ value.label }}</span>
+                              </label>
+                            </li>
+                          {%- endfor -%}
+                        </ul>
+                    {%- endcase -%}
+                  </div>
+                </details>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+
+          {%- if enable_sorting -%}
+            <label class="pham-collection-sort">
+              <span class="pham-collection-sort__label">Sort</span>
+              <select name="sort_by" class="pham-collection-sort__select" data-pham-collection-sort>
+                {%- assign current_sort = collection.sort_by | default: collection.default_sort_by -%}
+                {%- for option in collection.sort_options -%}
+                  <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>{{ option.name }}</option>
+                {%- endfor -%}
+              </select>
+              <span class="pham-collection-sort__caret" aria-hidden="true">&darr;</span>
+            </label>
+          {%- endif -%}
+        </div>
+
+        {%- if collection.current_vendor or collection.current_type or collection.url -%}
+          {%- assign active_filter_count = 0 -%}
+          {%- for f in collection.filters -%}
+            {%- assign active_filter_count = active_filter_count | plus: f.active_values.size -%}
+            {%- if f.type == 'price_range' and f.min_value.value != nil -%}{%- assign active_filter_count = active_filter_count | plus: 1 -%}{%- endif -%}
+            {%- if f.type == 'price_range' and f.max_value.value != nil -%}{%- assign active_filter_count = active_filter_count | plus: 1 -%}{%- endif -%}
+          {%- endfor -%}
+
+          {%- if active_filter_count > 0 -%}
+            <div class="pham-collection-filters__active" role="group" aria-label="Active filters">
+              {%- for f in collection.filters -%}
+                {%- for v in f.active_values -%}
+                  <a href="{{ v.url_to_remove }}" class="pham-collection-filters__chip">
+                    <span>{{ v.label | escape }}</span>
+                    <span aria-hidden="true">×</span>
+                  </a>
+                {%- endfor -%}
+                {%- if f.type == 'price_range' -%}
+                  {%- if f.min_value.value != nil -%}
+                    <a href="{{ f.min_value.url_to_remove }}" class="pham-collection-filters__chip">
+                      <span>Min {{ f.min_value.value | money_without_currency }}</span>
+                      <span aria-hidden="true">×</span>
+                    </a>
+                  {%- endif -%}
+                  {%- if f.max_value.value != nil -%}
+                    <a href="{{ f.max_value.url_to_remove }}" class="pham-collection-filters__chip">
+                      <span>Max {{ f.max_value.value | money_without_currency }}</span>
+                      <span aria-hidden="true">×</span>
+                    </a>
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endfor -%}
+              <a href="{{ collection.url }}" class="pham-collection-filters__clear">Clear all</a>
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+      </form>
+    {%- endif -%}
+
+    {%- comment -%} ============= PRODUCT GRID + PAGINATION ============= {%- endcomment -%}
+    {%- paginate collection.products by products_per_page -%}
+      {%- if collection.products.size > 0 -%}
+        <div class="pham-collection-grid__list stagger-children"
+             data-pham-collection-grid-list
+             role="list">
+          {%- for product in collection.products -%}
+            <div class="pham-collection-grid__cell" role="listitem">
+              {% render 'pham-product-card', product: product, eager: forloop.first %}
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- if paginate.next -%}
+          <div class="pham-collection-grid__more" data-pham-load-more-wrap>
+            <a href="{{ paginate.next.url }}"
+               class="pham-collection-grid__more-btn"
+               data-pham-load-more
+               rel="next">
+              <span class="pham-collection-grid__more-label">Load more</span>
+              <span class="pham-collection-grid__more-meta">
+                {{ collection.products.size | plus: paginate.current_offset }} / {{ collection.products_count }}
+              </span>
+            </a>
+          </div>
+        {%- endif -%}
+      {%- else -%}
+        <div class="pham-collection-grid__empty">
+          <p class="pham-eyebrow">No pieces match these filters.</p>
+          <a href="{{ collection.url }}" class="pham-collection-grid__empty-clear">Clear filters</a>
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+
+  </div>
+</section>
+
+<style>
+  .pham-collection-grid {
+    background-color: var(--color-void);
+    color: var(--color-bone);
+    padding-block: var(--space-xl) var(--space-2xl);
+  }
+  .pham-collection-grid__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-lg);
+    max-width: 720px;
+  }
+  .pham-collection-grid__eyebrow { color: var(--color-accent); margin: 0; }
+  .pham-collection-grid__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.02;
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-bone);
+    margin: 0;
+  }
+  .pham-collection-grid__desc {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--text-lg);
+    line-height: 1.5;
+    color: var(--color-bone-80);
+    max-width: 56ch;
+  }
+  .pham-collection-grid__count {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    margin: 0;
+  }
+
+  /* Filter / sort bar */
+  .pham-collection-filters {
+    margin-bottom: var(--space-lg);
+    border-top: 1px solid var(--color-ash);
+    border-bottom: 1px solid var(--color-ash);
+  }
+  .pham-collection-filters__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding-block: var(--space-sm);
+    flex-wrap: wrap;
+  }
+  .pham-collection-filters__group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    flex: 1;
+  }
+  .pham-collection-filter { position: relative; }
+  .pham-collection-filter__summary {
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-bone);
+    padding: 8px 14px;
+    border: 1px solid var(--color-ash);
+    transition: border-color var(--duration-fast) var(--ease-luxury), color var(--duration-fast) var(--ease-luxury);
+  }
+  .pham-collection-filter__summary::-webkit-details-marker,
+  .pham-collection-filter__summary::marker { display: none; content: ''; }
+  .pham-collection-filter__summary:hover { color: var(--color-accent); border-color: var(--color-accent); }
+  .pham-collection-filter[open] .pham-collection-filter__summary { color: var(--color-accent); border-color: var(--color-accent); }
+  .pham-collection-filter__count { color: var(--color-accent); }
+  .pham-collection-filter[open] .pham-collection-filter__icon { transform: rotate(45deg); }
+  .pham-collection-filter__icon {
+    display: inline-block;
+    transition: transform var(--duration-fast) var(--ease-luxury);
+    font-family: var(--font-mono);
+  }
+
+  .pham-collection-filter__panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    min-width: 280px;
+    max-height: 360px;
+    overflow-y: auto;
+    background-color: var(--color-obsidian);
+    border: 1px solid var(--color-ash);
+    padding: var(--space-sm);
+    z-index: var(--z-overlay);
+  }
+  .pham-collection-filter__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pham-collection-filter__option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: var(--color-bone);
+    padding: 4px 0;
+  }
+  .pham-collection-filter__option.is-disabled {
+    color: var(--color-smoke);
+    cursor: not-allowed;
+  }
+  .pham-collection-filter__checkbox { position: absolute; opacity: 0; pointer-events: none; }
+  .pham-collection-filter__box {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--color-smoke);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color var(--duration-fast) var(--ease-luxury), background-color var(--duration-fast) var(--ease-luxury);
+    flex-shrink: 0;
+  }
+  .pham-collection-filter__tick {
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-accent);
+    opacity: 0;
+    transform: scale(0.4);
+    transition: opacity var(--duration-fast) var(--ease-luxury), transform var(--duration-fast) var(--ease-luxury);
+  }
+  .pham-collection-filter__checkbox:checked + .pham-collection-filter__box { border-color: var(--color-accent); }
+  .pham-collection-filter__checkbox:checked + .pham-collection-filter__box .pham-collection-filter__tick { opacity: 1; transform: scale(1); }
+  .pham-collection-filter__checkbox:focus-visible + .pham-collection-filter__box { outline: 1px solid var(--color-accent); outline-offset: 2px; }
+  .pham-collection-filter__num { color: var(--color-smoke); font-family: var(--font-mono); font-size: var(--text-xs); margin-left: 4px; }
+
+  .pham-collection-filter__price {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .pham-collection-filter__price-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .pham-collection-filter__price-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+  .pham-collection-filter__price-input {
+    background: transparent;
+    color: var(--color-bone);
+    border: 0;
+    border-bottom: 1px solid var(--color-ash);
+    padding: 6px 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .pham-collection-filter__price-input::-webkit-outer-spin-button,
+  .pham-collection-filter__price-input::-webkit-inner-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
+  .pham-collection-filter__price-input:focus { outline: none; border-bottom-color: var(--color-accent); }
+  .pham-collection-filter__price-sep { color: var(--color-smoke); padding-top: 18px; }
+
+  .pham-collection-sort {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-bone);
+  }
+  .pham-collection-sort__label { color: var(--color-smoke); }
+  .pham-collection-sort__select {
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    color: var(--color-bone);
+    border: 1px solid var(--color-ash);
+    padding: 8px 28px 8px 12px;
+    font: inherit;
+    cursor: pointer;
+  }
+  .pham-collection-sort__select:focus-visible { outline: 1px solid var(--color-accent); outline-offset: 2px; }
+  .pham-collection-sort__caret {
+    position: absolute;
+    right: 10px;
+    pointer-events: none;
+    color: var(--color-accent);
+  }
+
+  .pham-collection-filters__active {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-block: var(--space-sm);
+    border-top: 1px solid var(--color-ash);
+  }
+  .pham-collection-filters__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid var(--color-accent);
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+  .pham-collection-filters__chip:hover { background-color: var(--color-accent); color: var(--color-void); }
+  .pham-collection-filters__clear {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    align-self: center;
+  }
+
+  /* Product grid */
+  .pham-collection-grid__list {
+    display: grid;
+    grid-template-columns: repeat(var(--pham-collection-desktop-cols, 4), 1fr);
+    gap: 1px;
+    background-color: var(--color-ash);
+    border: 1px solid var(--color-ash);
+  }
+  .pham-collection-grid__cell {
+    background-color: var(--color-void);
+    padding: var(--space-sm);
+    display: flex;
+  }
+  .pham-collection-grid__cell .pham-product-card { width: 100%; }
+
+  .pham-collection-grid__more {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-xl);
+  }
+  .pham-collection-grid__more-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: var(--space-sm) var(--space-lg);
+    background: transparent;
+    color: var(--color-bone);
+    border: 1px solid var(--color-bone);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--duration-base) var(--ease-luxury),
+                color var(--duration-base) var(--ease-luxury),
+                border-color var(--duration-base) var(--ease-luxury);
+  }
+  .pham-collection-grid__more-btn:hover {
+    background-color: var(--color-accent);
+    color: var(--color-void);
+    border-color: var(--color-accent);
+  }
+  .pham-collection-grid__more-btn.is-loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .pham-collection-grid__more-meta {
+    font-size: 9px;
+    color: var(--color-smoke);
+    letter-spacing: var(--tracking-wide);
+  }
+  .pham-collection-grid__more-btn:hover .pham-collection-grid__more-meta { color: var(--color-void); }
+
+  .pham-collection-grid__empty {
+    text-align: center;
+    padding-block: var(--space-2xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    align-items: center;
+  }
+  .pham-collection-grid__empty-clear {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 768px) {
+    .pham-collection-grid__list {
+      grid-template-columns: repeat(var(--pham-collection-mobile-cols, 2), 1fr);
+    }
+    .pham-collection-filters__bar { flex-direction: column; align-items: stretch; }
+    .pham-collection-filters__group { width: 100%; overflow-x: auto; flex-wrap: nowrap; }
+    .pham-collection-filter__panel { left: 0; right: 0; min-width: 100%; }
+  }
+</style>
+
+<script>
+  (function() {
+    'use strict';
+    var sectionId = {{ section.id | json }};
+    var root = document.querySelector('[data-pham-collection-grid][data-section-id="' + sectionId + '"]');
+    if (!root) return;
+
+    /* Auto-submit filter + sort */
+    var form = root.querySelector('[data-pham-collection-filters]');
+    if (form) {
+      var debounceTimer = null;
+      function submitForm() {
+        form.submit();
+      }
+      form.addEventListener('change', function(e) {
+        if (e.target.matches('input[type="checkbox"], select')) {
+          submitForm();
+        }
+      });
+      form.addEventListener('input', function(e) {
+        if (e.target.matches('input[type="number"]')) {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(submitForm, 600);
+        }
+      });
+    }
+
+    /* AJAX load more */
+    var loadBtn = root.querySelector('[data-pham-load-more]');
+    if (!loadBtn) return;
+
+    function bindLoad(btn) {
+      if (btn._phamBound) return;
+      btn._phamBound = true;
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (btn.classList.contains('is-loading')) return;
+        btn.classList.add('is-loading');
+        btn.setAttribute('aria-busy', 'true');
+        var url = btn.getAttribute('href');
+        fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'text/html' } })
+          .then(function(res) {
+            if (!res.ok) throw new Error('Load failed');
+            return res.text();
+          })
+          .then(function(html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var newCells = doc.querySelectorAll('[data-pham-collection-grid-list] > .pham-collection-grid__cell');
+            var list = root.querySelector('[data-pham-collection-grid-list]');
+            if (list && newCells.length > 0) {
+              for (var i = 0; i < newCells.length; i++) {
+                newCells[i].classList.remove('is-visible');
+                list.appendChild(newCells[i]);
+              }
+            }
+            var newBtn = doc.querySelector('[data-pham-load-more]');
+            if (newBtn) {
+              btn.setAttribute('href', newBtn.getAttribute('href'));
+              var newMeta = newBtn.querySelector('.pham-collection-grid__more-meta');
+              var curMeta = btn.querySelector('.pham-collection-grid__more-meta');
+              if (newMeta && curMeta) curMeta.textContent = newMeta.textContent;
+              btn.classList.remove('is-loading');
+              btn.removeAttribute('aria-busy');
+            } else {
+              var wrap = btn.parentNode;
+              if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
+            }
+            if (window.PhamAnimations && typeof window.PhamAnimations.refresh === 'function') {
+              window.PhamAnimations.refresh();
+            }
+          })
+          .catch(function(err) {
+            console.error('[PHAM collection] load-more error:', err);
+            btn.classList.remove('is-loading');
+            btn.removeAttribute('aria-busy');
+          });
+      });
+    }
+    bindLoad(loadBtn);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "PHAM Collection Grid",
+  "tag": "section",
+  "class": "pham-collection-grid-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Header"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "ATELIER · EDITION"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "desktop_columns",
+      "label": "Desktop columns",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "mobile_columns",
+      "label": "Mobile columns",
+      "min": 1,
+      "max": 2,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "header",
+      "content": "Filtering"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "label": "Enable filtering",
+      "default": true,
+      "info": "Uses Shopify's Online Store 2.0 storefront filters configured in Admin → Customize → Search & discovery."
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "label": "Enable sorting",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Collection Grid",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["collection"]
+  }
+}
+{% endschema %}

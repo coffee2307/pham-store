@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-page-content",
+      "settings": {
+        "eyebrow": "PHAM · ATELIER",
+        "fallback_title": "Page",
+        "fallback_text": "<p>This page has no content yet.</p>",
+        "show_back_link": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

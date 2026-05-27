@@ -1,0 +1,107 @@
+{
+  "sections": {
+    "pham-hero": {
+      "type": "pham-hero",
+      "blocks": {
+        "eyebrow": {
+          "type": "eyebrow",
+          "settings": {
+            "text": "NEW EDITION · SS26"
+          }
+        },
+        "heading": {
+          "type": "heading",
+          "settings": {
+            "text": "Silence is luxury.",
+            "font_size": 112
+          }
+        },
+        "subheading": {
+          "type": "subheading",
+          "settings": {
+            "text": "Restraint is power. An atelier of considered, slow-made garments."
+          }
+        },
+        "button": {
+          "type": "button",
+          "settings": {
+            "label": "Discover the Collection",
+            "link": "shopify://collections/all",
+            "open_new_tab": false
+          }
+        }
+      },
+      "block_order": [
+        "eyebrow",
+        "heading",
+        "subheading",
+        "button"
+      ],
+      "settings": {
+        "media_type": "image",
+        "overlay_opacity": 45,
+        "height": "full",
+        "custom_height_px": 720,
+        "text_alignment": "center",
+        "show_scroll": true
+      }
+    },
+    "pham-marquee": {
+      "type": "pham-marquee",
+      "settings": {
+        "text": "",
+        "separator": " · ",
+        "repetitions": 6,
+        "speed": 40,
+        "font_style": "mono",
+        "font_size": 14,
+        "background": "#0D0D0D",
+        "text_color": "#EAE6DF",
+        "accent_color": "#C5A880"
+      }
+    },
+    "pham-capsule-grid": {
+      "type": "pham-capsule-grid",
+      "settings": {
+        "eyebrow": "EDITION 01",
+        "title": "The Capsule",
+        "subtitle": "Eight pieces. One season. Slow-made in limited editions.",
+        "collection": "all",
+        "products_limit": 8,
+        "desktop_columns": 4,
+        "mobile_columns": 2,
+        "show_view_all": true,
+        "view_all_label": "View all"
+      }
+    },
+    "pham-lookbook": {
+      "type": "pham-lookbook",
+      "settings": {
+        "caption": "PHAM SS26 · Look 04",
+        "enable_parallax": true,
+        "eyebrow": "EDITORIAL · 01",
+        "title": "The Architecture of Restraint",
+        "body": "<p>Slow-made in limited editions. Each piece is constructed in our atelier from Italian wool, Japanese silk, and Portuguese cotton — quietly, deliberately, and without season.</p>",
+        "cta_label": "Read the editorial",
+        "media_position": "left"
+      }
+    },
+    "pham-product-spotlight": {
+      "type": "pham-product-spotlight",
+      "settings": {
+        "image_limit": 3,
+        "eyebrow": "PHAM EDITION · SPOTLIGHT",
+        "show_inventory": true,
+        "show_view_pdp": true,
+        "media_position": "left"
+      }
+    }
+  },
+  "order": [
+    "pham-hero",
+    "pham-marquee",
+    "pham-capsule-grid",
+    "pham-lookbook",
+    "pham-product-spotlight"
+  ]
+}

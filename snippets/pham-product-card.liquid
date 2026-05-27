@@ -1,0 +1,178 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- comment -%}
+  PHAM — Product Card snippet
+
+  USAGE:
+    {% render 'pham-product-card', product: product %}
+    {% render 'pham-product-card', product: product, show_quick_add: true %}
+    {% render 'pham-product-card', product: product, eager: true %}
+
+  PARAMETERS:
+    product         (required) — A product object.
+    show_quick_add  (optional, default true)
+    eager           (optional, default false) — image loading="eager"
+    ratio           (optional, default '3/4') — aspect ratio
+{%- endcomment -%}
+
+{%- liquid
+  if product == blank
+    assign is_placeholder = true
+  else
+    assign is_placeholder = false
+  endif
+
+  if show_quick_add == nil
+    assign show_quick_add = true
+  endif
+
+  assign img_loading = 'lazy'
+  if eager
+    assign img_loading = 'eager'
+  endif
+
+  assign aspect = ratio | default: '3/4'
+
+  if is_placeholder == false
+    assign primary_img       = product.featured_image
+    assign secondary_img     = product.images[1]
+    assign first_avail       = product.selected_or_first_available_variant
+    assign sold_out          = product.available
+    assign on_sale           = false
+    if product.compare_at_price > product.price
+      assign on_sale = true
+    endif
+    if product.available == false
+      assign sold_out = true
+    else
+      assign sold_out = false
+    endif
+  endif
+-%}
+
+<article class="pham-product-card{% if sold_out %} is-sold-out{% endif %}{% if on_sale %} is-on-sale{% endif %}"
+         data-pham-product-card
+         {% unless is_placeholder %}data-product-id="{{ product.id }}" data-product-handle="{{ product.handle | escape }}"{% endunless %}
+         style="--pham-card-ratio: {{ aspect }};">
+
+  <a href="{% unless is_placeholder %}{{ product.url }}{% else %}#{% endunless %}"
+     class="pham-product-card__link"
+     aria-label="{% unless is_placeholder %}{{ product.title | escape }}{% else %}Product{% endunless %}">
+
+    <div class="pham-product-card__media">
+
+      {%- if is_placeholder -%}
+        <div class="pham-product-card__skeleton pham-skeleton pham-skeleton--image" aria-hidden="true"></div>
+      {%- else -%}
+
+        {%- if primary_img -%}
+          {{ primary_img
+              | image_url: width: 800
+              | image_tag:
+                loading: img_loading,
+                widths: '200, 300, 400, 600, 800, 1000, 1200',
+                sizes: '(max-width: 768px) 50vw, 25vw',
+                class: 'pham-product-card__img pham-img-primary',
+                alt: primary_img.alt | default: product.title,
+                data-pham-img-primary: ''
+          }}
+        {%- else -%}
+          <div class="pham-product-card__skeleton pham-skeleton pham-skeleton--image" aria-hidden="true"></div>
+        {%- endif -%}
+
+        {%- if secondary_img -%}
+          {{ secondary_img
+              | image_url: width: 800
+              | image_tag:
+                loading: 'lazy',
+                widths: '200, 300, 400, 600, 800, 1000, 1200',
+                sizes: '(max-width: 768px) 50vw, 25vw',
+                class: 'pham-product-card__img pham-img-secondary',
+                alt: secondary_img.alt | default: product.title,
+                data-pham-img-secondary: ''
+          }}
+        {%- endif -%}
+
+      {%- endif -%}
+
+      {%- comment -%} ===== BADGES ===== {%- endcomment -%}
+      <div class="pham-product-card__badges" aria-hidden="true">
+        {%- if sold_out -%}
+          <span class="pham-product-card__badge pham-product-card__badge--sold-out">SOLD OUT</span>
+        {%- elsif on_sale -%}
+          <span class="pham-product-card__badge pham-product-card__badge--sale">SALE</span>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} ===== QUICK ADD PANEL ===== {%- endcomment -%}
+      {%- if show_quick_add and is_placeholder == false and sold_out == false -%}
+        <div class="pham-product-card__quick" data-pham-quick-add>
+          {%- if product.has_only_default_variant or product.variants.size == 1 -%}
+            <form action="{{ routes.cart_add_url }}"
+                  method="post"
+                  enctype="multipart/form-data"
+                  class="pham-product-card__quick-form"
+                  data-pham-quick-form>
+              <input type="hidden" name="form_type" value="product">
+              <input type="hidden" name="utf8" value="✓">
+              <input type="hidden" name="id" value="{{ first_avail.id }}">
+              <button type="submit" class="pham-product-card__quick-btn">
+                <span class="pham-product-card__quick-label">QUICK ADD</span>
+              </button>
+            </form>
+          {%- else -%}
+            <details class="pham-product-card__quick-variants">
+              <summary class="pham-product-card__quick-btn">
+                <span class="pham-product-card__quick-label">QUICK ADD</span>
+              </summary>
+              <div class="pham-product-card__variants" role="group" aria-label="Variants for {{ product.title | escape }}">
+                {%- for variant in product.variants -%}
+                  {%- if variant.available -%}
+                    <form action="{{ routes.cart_add_url }}"
+                          method="post"
+                          enctype="multipart/form-data"
+                          class="pham-product-card__variant-form"
+                          data-pham-quick-form>
+                      <input type="hidden" name="form_type" value="product">
+                      <input type="hidden" name="utf8" value="✓">
+                      <input type="hidden" name="id" value="{{ variant.id }}">
+                      <button type="submit" class="pham-product-card__variant-btn">
+                        <span class="pham-product-card__variant-title">{{ variant.title }}</span>
+                        <span class="pham-product-card__variant-price">{{ variant.price | money }}</span>
+                      </button>
+                    </form>
+                  {%- else -%}
+                    <span class="pham-product-card__variant-btn is-sold-out" aria-disabled="true">
+                      <span class="pham-product-card__variant-title">{{ variant.title }}</span>
+                      <span class="pham-product-card__variant-price">Sold out</span>
+                    </span>
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+            </details>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="pham-product-card__meta">
+      {%- if is_placeholder -%}
+        <span class="pham-product-card__title">
+          <span class="pham-skeleton pham-skeleton--text" aria-hidden="true"></span>
+        </span>
+        <span class="pham-product-card__price">
+          <span class="pham-skeleton pham-skeleton--text" aria-hidden="true" style="width:40%"></span>
+        </span>
+      {%- else -%}
+        <h3 class="pham-product-card__title">{{ product.title }}</h3>
+        <p class="pham-product-card__price">
+          {%- if on_sale -%}
+            <span class="pham-product-card__price-old"><s>{{ product.compare_at_price | money }}</s></span>
+            <span class="pham-product-card__price-current pham-product-card__price-current--sale">{{ product.price | money }}</span>
+          {%- else -%}
+            <span class="pham-product-card__price-current">{{ product.price | money }}</span>
+          {%- endif -%}
+        </p>
+      {%- endif -%}
+    </div>
+  </a>
+</article>

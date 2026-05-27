@@ -1,0 +1,259 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- liquid
+  assign per_page = section.settings.articles_per_page | default: 12
+  assign cols     = section.settings.columns | default: 3
+-%}
+
+<section class="pham-blog" data-pham-blog data-section-id="{{ section.id }}" style="--pham-blog-cols: {{ cols }};" role="region" aria-label="{{ blog.title | default: 'Journal' | escape }}">
+  <div class="pham-container">
+    <header class="pham-blog__head reveal-up">
+      <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
+      <h1 class="pham-blog__title">{{ blog.title | default: 'Journal' }}</h1>
+      {%- if section.settings.intro != blank -%}
+        <p class="pham-blog__intro">{{ section.settings.intro }}</p>
+      {%- endif -%}
+    </header>
+
+    {%- paginate blog.articles by per_page -%}
+      {%- if blog.articles.size > 0 -%}
+        <div class="pham-blog__grid stagger-children" role="list">
+          {%- for article in blog.articles -%}
+            {%- if forloop.first -%}
+              {%- assign blog_img_loading = 'eager' -%}
+            {%- else -%}
+              {%- assign blog_img_loading = 'lazy' -%}
+            {%- endif -%}
+            <article class="pham-blog__card" role="listitem">
+              <a href="{{ article.url }}" class="pham-blog__link" aria-label="{{ article.title | escape }}">
+                <div class="pham-blog__media">
+                  {%- if article.image -%}
+                    {{ article.image
+                        | image_url: width: 1200
+                        | image_tag:
+                          loading: blog_img_loading,
+                          widths: '320, 480, 640, 800, 1200',
+                          sizes: '(max-width: 768px) 100vw, 33vw',
+                          class: 'pham-blog__img',
+                          alt: article.image.alt | default: article.title
+                    }}
+                  {%- else -%}
+                    <div class="pham-blog__img pham-skeleton" aria-hidden="true" style="aspect-ratio:4/5"></div>
+                  {%- endif -%}
+                </div>
+                <div class="pham-blog__meta">
+                  <p class="pham-blog__date">
+                    <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}">{{ article.published_at | date: '%b %-d, %Y' }}</time>
+                    {%- if article.author != blank -%}
+                      <span aria-hidden="true">·</span> {{ article.author }}
+                    {%- endif -%}
+                  </p>
+                  <h2 class="pham-blog__card-title">{{ article.title }}</h2>
+                  {%- if article.excerpt != blank or article.content != blank -%}
+                    <p class="pham-blog__excerpt">
+                      {%- if article.excerpt != blank -%}
+                        {{ article.excerpt | strip_html | truncatewords: 24 }}
+                      {%- else -%}
+                        {{ article.content | strip_html | truncatewords: 24 }}
+                      {%- endif -%}
+                    </p>
+                  {%- endif -%}
+                  <span class="pham-blog__read">Read &rarr;</span>
+                </div>
+              </a>
+            </article>
+          {%- endfor -%}
+        </div>
+
+        {%- if paginate.pages > 1 -%}
+          <nav class="pham-blog__pagination" role="navigation" aria-label="Journal pagination">
+            {%- if paginate.previous -%}
+              <a href="{{ paginate.previous.url }}" class="pham-blog__page-link" rel="prev">&larr; Previous</a>
+            {%- endif -%}
+            <span class="pham-blog__page-info">Page {{ paginate.current_page }} of {{ paginate.pages }}</span>
+            {%- if paginate.next -%}
+              <a href="{{ paginate.next.url }}" class="pham-blog__page-link" rel="next">Next &rarr;</a>
+            {%- endif -%}
+          </nav>
+        {%- endif -%}
+      {%- else -%}
+        <div class="pham-blog__empty">
+          <p class="pham-blog__empty-text">The journal is quiet for now.</p>
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</section>
+
+<style>
+  .pham-blog {
+    background-color: var(--color-void);
+    color: var(--color-bone);
+    padding-block: var(--space-2xl);
+  }
+  .pham-blog__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xl);
+    max-width: 640px;
+  }
+  .pham-blog__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.02;
+    letter-spacing: var(--tracking-tight);
+    margin: 0;
+  }
+  .pham-blog__intro {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--text-lg);
+    line-height: 1.5;
+    color: var(--color-bone-80);
+    margin: 0;
+  }
+  .pham-blog__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--pham-blog-cols, 3), 1fr);
+    gap: var(--space-lg);
+  }
+  .pham-blog__card { display: block; }
+  .pham-blog__link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    text-decoration: none;
+    color: inherit;
+  }
+  .pham-blog__media {
+    aspect-ratio: 4/5;
+    overflow: hidden;
+    background-color: var(--color-obsidian);
+  }
+  .pham-blog__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform var(--duration-cinematic) var(--ease-luxury);
+  }
+  .pham-blog__link:hover .pham-blog__img { transform: scale(1.04); }
+  .pham-blog__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pham-blog__date {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    margin: 0;
+  }
+  .pham-blog__card-title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: var(--text-xl);
+    line-height: 1.15;
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-bone);
+    margin: 0;
+    transition: color var(--duration-base) var(--ease-luxury);
+  }
+  .pham-blog__link:hover .pham-blog__card-title { color: var(--color-accent); }
+  .pham-blog__excerpt {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    color: var(--color-bone-80);
+    margin: 0;
+  }
+  .pham-blog__read {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-top: var(--space-xs);
+  }
+
+  .pham-blog__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    margin-top: var(--space-xl);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+  }
+  .pham-blog__page-link { color: var(--color-bone); text-decoration: none; padding-bottom: 2px; border-bottom: 1px solid var(--color-ash); }
+  .pham-blog__page-link:hover { color: var(--color-accent); border-color: var(--color-accent); }
+  .pham-blog__page-info { color: var(--color-smoke); }
+
+  .pham-blog__empty {
+    padding-block: var(--space-2xl);
+    text-align: center;
+  }
+  .pham-blog__empty-text { font-family: var(--font-display); font-style: italic; font-size: var(--text-xl); color: var(--color-bone-80); margin: 0; }
+
+  @media (max-width: 768px) {
+    .pham-blog__grid { grid-template-columns: 1fr; }
+  }
+  @media (min-width: 769px) and (max-width: 1100px) {
+    .pham-blog__grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Blog Grid",
+  "tag": "section",
+  "class": "pham-blog-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "JOURNAL · NOTES"
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro paragraph",
+      "default": "Editorial, atelier notes, and slow correspondence from PHAM."
+    },
+    {
+      "type": "range",
+      "id": "articles_per_page",
+      "label": "Articles per page",
+      "min": 4,
+      "max": 24,
+      "step": 2,
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 3
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Blog Grid",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["blog"]
+  }
+}
+{% endschema %}

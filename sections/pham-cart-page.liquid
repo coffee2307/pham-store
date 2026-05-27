@@ -1,0 +1,509 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+<section class="pham-cart-page" data-pham-cart-page data-section-id="{{ section.id }}" role="region" aria-label="Shopping cart">
+  <div class="pham-container">
+    <header class="pham-cart-page__head reveal-up">
+      <p class="pham-eyebrow">Atelier</p>
+      <h1 class="pham-cart-page__title">{{ section.settings.title | default: 'Your Edition' }}</h1>
+    </header>
+
+    {%- if cart.item_count > 0 -%}
+      <form action="{{ routes.cart_url }}" method="post" novalidate class="pham-cart-page__form" data-pham-no-ajax>
+        <table class="pham-cart-page__table" role="table" aria-label="Cart line items">
+          <thead class="pham-cart-page__thead">
+            <tr>
+              <th scope="col" class="pham-cart-page__th pham-cart-page__th--product">Product</th>
+              <th scope="col" class="pham-cart-page__th pham-cart-page__th--qty">Quantity</th>
+              <th scope="col" class="pham-cart-page__th pham-cart-page__th--total">Total</th>
+            </tr>
+          </thead>
+          <tbody class="pham-cart-page__tbody">
+            {%- for item in cart.items -%}
+              <tr class="pham-cart-page__row" data-line="{{ forloop.index }}">
+                <td class="pham-cart-page__cell pham-cart-page__cell--product">
+                  <a href="{{ item.url }}" class="pham-cart-page__media" aria-label="{{ item.product.title | escape }}">
+                    {%- if item.image -%}
+                      {{ item.image
+                          | image_url: width: 240
+                          | image_tag:
+                            loading: 'lazy',
+                            widths: '120, 200, 240, 360',
+                            sizes: '120px',
+                            alt: item.image.alt | default: item.product.title,
+                            class: 'pham-cart-page__img'
+                      }}
+                    {%- else -%}
+                      <div class="pham-cart-page__img pham-skeleton" aria-hidden="true"></div>
+                    {%- endif -%}
+                  </a>
+                  <div class="pham-cart-page__meta">
+                    <a href="{{ item.url }}" class="pham-cart-page__name">{{ item.product.title }}</a>
+                    {%- unless item.product.has_only_default_variant -%}
+                      <p class="pham-cart-page__variant">
+                        {%- for opt in item.options_with_values -%}
+                          <span>{{ opt.name }}: {{ opt.value }}</span>{%- unless forloop.last -%} · {%- endunless -%}
+                        {%- endfor -%}
+                      </p>
+                    {%- endunless -%}
+                    {%- if item.selling_plan_allocation -%}
+                      <p class="pham-cart-page__plan">{{ item.selling_plan_allocation.selling_plan.name }}</p>
+                    {%- endif -%}
+                    {%- if item.properties.size > 0 -%}
+                      <ul class="pham-cart-page__props" role="list">
+                        {%- for property in item.properties -%}
+                          {%- assign prop_name = property.first -%}
+                          {%- assign prop_value = property.last -%}
+                          {%- unless prop_name contains '_' or prop_value == blank -%}
+                            <li><span>{{ prop_name }}:</span> {{ prop_value }}</li>
+                          {%- endunless -%}
+                        {%- endfor -%}
+                      </ul>
+                    {%- endif -%}
+                    <p class="pham-cart-page__unit">{{ item.final_price | money }} <span aria-hidden="true">·</span> {{ item.product.vendor }}</p>
+                  </div>
+                </td>
+
+                <td class="pham-cart-page__cell pham-cart-page__cell--qty">
+                  <div class="pham-cart-page__qty" role="group" aria-label="Quantity for {{ item.product.title | escape }}">
+                    <button type="button"
+                            class="pham-cart-page__qty-btn"
+                            data-pham-qty-decrease
+                            data-line="{{ forloop.index }}"
+                            data-quantity="{{ item.quantity }}"
+                            aria-label="Decrease quantity">−</button>
+                    <input type="number"
+                           class="pham-cart-page__qty-input"
+                           value="{{ item.quantity }}"
+                           min="0"
+                           inputmode="numeric"
+                           pattern="[0-9]*"
+                           aria-label="Quantity"
+                           data-pham-qty-input
+                           data-line="{{ forloop.index }}">
+                    <button type="button"
+                            class="pham-cart-page__qty-btn"
+                            data-pham-qty-increase
+                            data-line="{{ forloop.index }}"
+                            data-quantity="{{ item.quantity }}"
+                            aria-label="Increase quantity">+</button>
+                  </div>
+                  <button type="button"
+                          class="pham-cart-page__remove"
+                          data-pham-cart-remove
+                          data-line="{{ forloop.index }}"
+                          aria-label="Remove {{ item.product.title | escape }} from cart">
+                    Remove
+                  </button>
+                </td>
+
+                <td class="pham-cart-page__cell pham-cart-page__cell--total">
+                  <span class="pham-cart-page__total">{{ item.final_line_price | money }}</span>
+                  {%- if item.original_line_price > item.final_line_price -%}
+                    <span class="pham-cart-page__total-compare"><s>{{ item.original_line_price | money }}</s></span>
+                  {%- endif -%}
+                </td>
+              </tr>
+            {%- endfor -%}
+          </tbody>
+        </table>
+
+        {%- if section.settings.show_note -%}
+          <div class="pham-cart-page__note">
+            <label for="pham-cart-note" class="pham-cart-page__note-label">Order note</label>
+            <textarea id="pham-cart-note" name="note" rows="3" class="pham-cart-page__note-input" placeholder="Add a note to your order…">{{ cart.note }}</textarea>
+          </div>
+        {%- endif -%}
+
+        <footer class="pham-cart-page__foot">
+          <div class="pham-cart-page__subtotal">
+            <span class="pham-cart-page__subtotal-label">Subtotal</span>
+            <span class="pham-cart-page__subtotal-value">{{ cart.total_price | money }}</span>
+          </div>
+          <p class="pham-cart-page__taxnote">Taxes and shipping calculated at checkout.</p>
+          <div class="pham-cart-page__actions">
+            <a href="{{ routes.all_products_collection_url }}" class="pham-cart-page__continue">Continue shopping</a>
+            <button type="submit" name="checkout" class="pham-cart-page__checkout">
+              <span class="pham-cart-page__checkout-fill" aria-hidden="true"></span>
+              <span class="pham-cart-page__checkout-label">Proceed to Checkout</span>
+            </button>
+          </div>
+        </footer>
+      </form>
+
+    {%- else -%}
+      <div class="pham-cart-page__empty reveal-up">
+        <p class="pham-cart-page__empty-mark">∅</p>
+        <p class="pham-cart-page__empty-text">Your atelier is silent.</p>
+        <p class="pham-cart-page__empty-sub">Begin the edition.</p>
+        <a href="{{ routes.all_products_collection_url }}" class="pham-cart-page__empty-cta">
+          <span>Discover the Collection</span>
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  .pham-cart-page {
+    background-color: var(--color-void);
+    color: var(--color-bone);
+    padding-block: var(--space-2xl);
+    min-height: 60vh;
+  }
+  .pham-cart-page__head {
+    margin-bottom: var(--space-xl);
+  }
+  .pham-cart-page__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.02;
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-bone);
+    margin: 0;
+  }
+  .pham-cart-page__table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .pham-cart-page__thead {
+    border-bottom: 1px solid var(--color-ash);
+  }
+  .pham-cart-page__th {
+    text-align: left;
+    padding: var(--space-sm) 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    font-weight: 400;
+  }
+  .pham-cart-page__th--total { text-align: right; }
+  .pham-cart-page__row {
+    border-bottom: 1px solid var(--color-ash);
+  }
+  .pham-cart-page__cell {
+    padding: var(--space-md) 0;
+    vertical-align: top;
+  }
+  .pham-cart-page__cell--product {
+    display: flex;
+    gap: var(--space-md);
+    align-items: flex-start;
+  }
+  .pham-cart-page__media {
+    width: 120px;
+    flex-shrink: 0;
+    display: block;
+  }
+  .pham-cart-page__img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    background-color: var(--color-charcoal);
+    display: block;
+  }
+  .pham-cart-page__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .pham-cart-page__name {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: var(--text-lg);
+    color: var(--color-bone);
+    text-decoration: none;
+    line-height: 1.2;
+  }
+  .pham-cart-page__name:hover { color: var(--color-accent); }
+  .pham-cart-page__variant,
+  .pham-cart-page__plan,
+  .pham-cart-page__unit {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-base);
+    color: var(--color-smoke);
+    margin: 0;
+  }
+  .pham-cart-page__props {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-smoke);
+  }
+  .pham-cart-page__props span { color: var(--color-bone-60); }
+
+  .pham-cart-page__cell--qty {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    align-items: flex-start;
+  }
+  .pham-cart-page__qty {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--color-ash);
+  }
+  .pham-cart-page__qty-btn {
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    color: var(--color-bone);
+    font-size: var(--text-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pham-cart-page__qty-btn:hover { color: var(--color-accent); background-color: var(--color-charcoal); }
+  .pham-cart-page__qty-input {
+    width: 48px;
+    height: 36px;
+    background: transparent;
+    border: 0;
+    border-left: 1px solid var(--color-ash);
+    border-right: 1px solid var(--color-ash);
+    color: var(--color-bone);
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .pham-cart-page__qty-input::-webkit-outer-spin-button,
+  .pham-cart-page__qty-input::-webkit-inner-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
+  .pham-cart-page__remove {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    padding: 0;
+  }
+  .pham-cart-page__remove:hover { color: var(--color-accent); }
+
+  .pham-cart-page__cell--total {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: var(--text-md);
+    letter-spacing: var(--tracking-luxury);
+    color: var(--color-bone);
+  }
+  .pham-cart-page__total-compare { color: var(--color-smoke); display: block; font-size: var(--text-xs); }
+
+  .pham-cart-page__note {
+    margin-top: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    max-width: 480px;
+  }
+  .pham-cart-page__note-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+  .pham-cart-page__note-input {
+    background: transparent;
+    color: var(--color-bone);
+    border: 1px solid var(--color-ash);
+    padding: var(--space-sm);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    resize: vertical;
+  }
+  .pham-cart-page__note-input:focus { outline: none; border-color: var(--color-accent); }
+
+  .pham-cart-page__foot {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-ash);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-sm);
+  }
+  .pham-cart-page__subtotal {
+    display: flex;
+    gap: var(--space-md);
+    align-items: baseline;
+  }
+  .pham-cart-page__subtotal-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+  .pham-cart-page__subtotal-value {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-bone);
+  }
+  .pham-cart-page__taxnote {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-smoke);
+    margin: 0;
+  }
+  .pham-cart-page__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .pham-cart-page__continue {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .pham-cart-page__continue:hover { color: var(--color-accent); }
+  .pham-cart-page__checkout {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 220px;
+    padding: var(--space-sm) var(--space-lg);
+    background: transparent;
+    color: var(--color-bone);
+    border: 1px solid var(--color-bone);
+    overflow: hidden;
+    isolation: isolate;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    transition: color var(--duration-base) var(--ease-luxury);
+  }
+  .pham-cart-page__checkout-fill {
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-accent);
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path var(--duration-base) var(--ease-luxury);
+    z-index: 1;
+  }
+  .pham-cart-page__checkout-label { position: relative; z-index: 2; }
+  .pham-cart-page__checkout:hover { color: var(--color-void); }
+  .pham-cart-page__checkout:hover .pham-cart-page__checkout-fill { clip-path: inset(0 0 0 0); }
+
+  .pham-cart-page__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-md);
+    padding-block: var(--space-2xl);
+  }
+  .pham-cart-page__empty-mark {
+    font-family: var(--font-display);
+    font-size: 5rem;
+    line-height: 1;
+    color: var(--color-accent);
+    margin: 0;
+  }
+  .pham-cart-page__empty-text {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--text-xl);
+    color: var(--color-bone);
+    margin: 0;
+  }
+  .pham-cart-page__empty-sub {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    margin: 0;
+  }
+  .pham-cart-page__empty-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    background: transparent;
+    border: 1px solid var(--color-bone);
+    color: var(--color-bone);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color var(--duration-base) var(--ease-luxury), color var(--duration-base) var(--ease-luxury), gap var(--duration-base) var(--ease-luxury);
+  }
+  .pham-cart-page__empty-cta:hover {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-void);
+    gap: var(--space-sm);
+  }
+
+  @media (max-width: 768px) {
+    .pham-cart-page__thead { display: none; }
+    .pham-cart-page__row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-sm);
+      padding-block: var(--space-md);
+    }
+    .pham-cart-page__cell--qty,
+    .pham-cart-page__cell--total {
+      padding: 0;
+    }
+    .pham-cart-page__cell--total { text-align: left; }
+    .pham-cart-page__actions { justify-content: stretch; flex-direction: column; align-items: stretch; }
+    .pham-cart-page__checkout { width: 100%; }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Cart Page",
+  "tag": "section",
+  "class": "pham-cart-page-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Page title",
+      "default": "Your Edition"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_note",
+      "label": "Show order note field",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Cart Page",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["cart"]
+  }
+}
+{% endschema %}

@@ -1,0 +1,245 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- liquid
+  assign menu_handle  = section.settings.menu | default: 'main-menu'
+  assign menu         = linklists[menu_handle]
+  assign pham_logo    = settings.pham_logo
+  assign logo_width   = settings.pham_logo_width | default: 140
+  assign show_search  = section.settings.show_search
+  assign show_account = section.settings.show_account
+-%}
+
+<header class="pham-header {% if section.settings.transparent_on_top %}pham-header--transparent{% endif %}"
+        data-pham-header
+        role="banner"
+        data-section-id="{{ section.id }}"
+        data-section-type="pham-header">
+  <div class="pham-header__inner pham-container">
+
+    {%- comment -%} LEFT — Mobile hamburger + desktop logo {%- endcomment -%}
+    <div class="pham-header__zone pham-header__zone--left">
+      <button class="pham-header__hamburger"
+              type="button"
+              data-pham-menu-toggle
+              aria-expanded="false"
+              aria-controls="pham-mobile-drawer"
+              aria-label="Open menu">
+        <span class="pham-header__hamburger-bar" aria-hidden="true"></span>
+        <span class="pham-header__hamburger-bar" aria-hidden="true"></span>
+        <span class="pham-header__hamburger-bar" aria-hidden="true"></span>
+      </button>
+
+      <a href="{{ routes.root_url }}" class="pham-header__logo pham-header__logo--desktop" aria-label="{{ shop.name | escape }}">
+        {%- if pham_logo != blank -%}
+          {{ pham_logo | image_url: width: 600
+              | image_tag:
+                loading: 'eager',
+                fetchpriority: 'high',
+                widths: '120, 240, 360, 480, 600',
+                sizes: '200px',
+                class: 'pham-header__logo-img',
+                alt: shop.name,
+                style: 'width:' | append: logo_width | append: 'px'
+          }}
+        {%- else -%}
+          <span class="pham-header__wordmark">{{ shop.name | default: 'PHAM' | upcase }}</span>
+        {%- endif -%}
+      </a>
+    </div>
+
+    {%- comment -%} CENTER — Mobile logo + desktop navigation {%- endcomment -%}
+    <div class="pham-header__zone pham-header__zone--center">
+      <a href="{{ routes.root_url }}" class="pham-header__logo pham-header__logo--mobile" aria-label="{{ shop.name | escape }}">
+        {%- if pham_logo != blank -%}
+          {{ pham_logo | image_url: width: 400
+              | image_tag:
+                loading: 'eager',
+                fetchpriority: 'high',
+                widths: '120, 200, 280, 400',
+                sizes: '140px',
+                class: 'pham-header__logo-img',
+                alt: shop.name
+          }}
+        {%- else -%}
+          <span class="pham-header__wordmark">{{ shop.name | default: 'PHAM' | upcase }}</span>
+        {%- endif -%}
+      </a>
+
+      <nav class="pham-header__nav pham-header__nav--desktop"
+           role="navigation"
+           aria-label="Primary navigation">
+        {%- if menu != blank and menu.links.size > 0 -%}
+          <ul class="pham-header__menu" role="list">
+            {%- for link in menu.links -%}
+              <li class="pham-header__menu-item {% if link.active %}is-active{% endif %}">
+                <a href="{{ link.url }}" class="pham-header__menu-link">
+                  <span class="pham-header__menu-label">{{ link.title | escape }}</span>
+                </a>
+              </li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+      </nav>
+    </div>
+
+    {%- comment -%} RIGHT — actions {%- endcomment -%}
+    <div class="pham-header__zone pham-header__zone--right">
+      {%- if show_search -%}
+        <a href="{{ routes.search_url }}" class="pham-header__action" aria-label="Search">
+          <svg class="pham-header__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
+            <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2" fill="none"/>
+            <line x1="12.5" y1="12.5" x2="16.5" y2="16.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          <span class="pham-visually-hidden">Search</span>
+        </a>
+      {%- endif -%}
+
+      {%- if show_account -%}
+        <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
+           class="pham-header__action pham-header__action--account"
+           aria-label="{% if customer %}Account{% else %}Sign in{% endif %}">
+          <svg class="pham-header__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
+            <circle cx="9" cy="6.5" r="3" stroke="currentColor" stroke-width="1.2" fill="none"/>
+            <path d="M3 16c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          </svg>
+          <span class="pham-visually-hidden">{% if customer %}Account{% else %}Sign in{% endif %}</span>
+        </a>
+      {%- endif -%}
+
+      <button type="button"
+              class="pham-header__action pham-header__action--cart"
+              data-pham-cart-open
+              aria-label="Open cart"
+              aria-haspopup="dialog">
+        <svg class="pham-header__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
+          <path d="M3.5 5h11l-1 9.5a1.5 1.5 0 0 1-1.5 1.3H6a1.5 1.5 0 0 1-1.5-1.3L3.5 5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" fill="none"/>
+          <path d="M6.5 5V4a2.5 2.5 0 0 1 5 0v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span class="pham-header__cart-count"
+              data-pham-cart-count
+              {% if cart.item_count == 0 %}data-empty="true"{% endif %}>{{ cart.item_count }}</span>
+      </button>
+    </div>
+  </div>
+
+  {%- comment -%} ============================================================
+     MOBILE DRAWER — full-screen overlay
+  ============================================================ {%- endcomment -%}
+  <div class="pham-header__drawer"
+       id="pham-mobile-drawer"
+       data-pham-mobile-drawer
+       role="dialog"
+       aria-modal="true"
+       aria-hidden="true"
+       aria-label="Site navigation">
+    <div class="pham-header__drawer-backdrop" data-pham-menu-backdrop aria-hidden="true"></div>
+
+    <div class="pham-header__drawer-panel">
+      <div class="pham-header__drawer-head">
+        <span class="pham-eyebrow">Menu</span>
+        <button type="button"
+                class="pham-header__drawer-close"
+                data-pham-menu-close
+                aria-label="Close menu">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
+            <line x1="3" y1="3" x2="15" y2="15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="15" y1="3" x2="3" y2="15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="pham-header__drawer-nav" aria-label="Mobile primary navigation">
+        {%- if menu != blank and menu.links.size > 0 -%}
+          <ul class="pham-header__drawer-menu" role="list">
+            {%- for link in menu.links -%}
+              <li class="pham-header__drawer-item">
+                <a href="{{ link.url }}" class="pham-header__drawer-link">
+                  <span class="pham-header__drawer-link-label">{{ link.title | escape }}</span>
+                  <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
+                </a>
+                {%- if link.links.size > 0 -%}
+                  <ul class="pham-header__drawer-submenu" role="list">
+                    {%- for sublink in link.links -%}
+                      <li>
+                        <a href="{{ sublink.url }}" class="pham-header__drawer-sublink">{{ sublink.title | escape }}</a>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                {%- endif -%}
+              </li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+      </nav>
+
+      <div class="pham-header__drawer-footer">
+        <div class="pham-header__drawer-utility">
+          <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
+             class="pham-header__drawer-util">
+            {% if customer %}Account{% else %}Sign in{% endif %}
+          </a>
+          <a href="{{ routes.search_url }}" class="pham-header__drawer-util">Search</a>
+        </div>
+        {%- if settings.pham_social_instagram != blank or settings.pham_social_tiktok != blank -%}
+          <div class="pham-header__drawer-socials">
+            {%- if settings.pham_social_instagram != blank -%}
+              <a href="{{ settings.pham_social_instagram }}" target="_blank" rel="noopener noreferrer" class="pham-header__drawer-social">Instagram</a>
+            {%- endif -%}
+            {%- if settings.pham_social_tiktok != blank -%}
+              <a href="{{ settings.pham_social_tiktok }}" target="_blank" rel="noopener noreferrer" class="pham-header__drawer-social">TikTok</a>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</header>
+
+{%- comment -%} Spacer offsets the fixed header in normal flow {%- endcomment -%}
+<div class="pham-header__spacer {% if section.settings.transparent_on_top %}pham-header__spacer--transparent{% endif %}" aria-hidden="true"></div>
+
+{%- comment -%} Render the cart drawer once globally {%- endcomment -%}
+{% render 'pham-cart-drawer' %}
+
+{% schema %}
+{
+  "name": "PHAM Header",
+  "tag": "section",
+  "class": "pham-header-section",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show search icon",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account",
+      "label": "Show account icon",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "transparent_on_top",
+      "label": "Transparent at top of page",
+      "info": "Useful when the first section below the header has a full-bleed image or video.",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Header",
+      "category": "Header"
+    }
+  ],
+  "enabled_on": {
+    "groups": ["header"]
+  }
+}
+{% endschema %}

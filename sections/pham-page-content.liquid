@@ -1,0 +1,130 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+<section class="pham-page" data-pham-page data-section-id="{{ section.id }}" role="region" aria-label="{{ page.title | escape | default: 'Page' }}">
+  <div class="pham-container pham-page__inner">
+    <header class="pham-page__head reveal-up">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      <h1 class="pham-page__title">{{ page.title | default: section.settings.fallback_title }}</h1>
+    </header>
+
+    <div class="pham-page__content rte reveal-up">
+      {%- if page.content != blank -%}
+        {{ page.content }}
+      {%- else -%}
+        <p>{{ section.settings.fallback_text }}</p>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.show_back_link -%}
+      <p class="pham-page__back">
+        <a href="{{ routes.root_url }}" class="pham-page__back-link">&larr; Return to atelier</a>
+      </p>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  .pham-page {
+    background-color: var(--color-void);
+    color: var(--color-bone);
+    padding-block: var(--space-2xl);
+    min-height: 60vh;
+  }
+  .pham-page__inner {
+    max-width: 760px;
+  }
+  .pham-page__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xl);
+  }
+  .pham-page__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-bone);
+    margin: 0;
+  }
+  .pham-page__content {
+    font-family: var(--font-body);
+    font-size: var(--text-md);
+    line-height: 1.8;
+    color: var(--color-bone-80);
+  }
+  .pham-page__content > * + * { margin-top: var(--space-md); }
+  .pham-page__content h2 { font-family: var(--font-display); font-weight: 300; font-size: 1.75rem; color: var(--color-bone); margin-top: var(--space-xl); }
+  .pham-page__content h3 { font-family: var(--font-display); font-weight: 300; font-size: 1.5rem; color: var(--color-bone); margin-top: var(--space-lg); }
+  .pham-page__content a  { color: var(--color-accent); text-decoration: underline; text-underline-offset: 3px; }
+  .pham-page__content ul,
+  .pham-page__content ol { padding-left: var(--space-md); }
+  .pham-page__content blockquote {
+    border-left: 1px solid var(--color-accent);
+    padding-left: var(--space-md);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--text-lg);
+    color: var(--color-bone);
+  }
+  .pham-page__back {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-ash);
+  }
+  .pham-page__back-link {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-luxury);
+  }
+  .pham-page__back-link:hover { color: var(--color-accent); }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Page Content",
+  "tag": "section",
+  "class": "pham-page-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "PHAM · ATELIER"
+    },
+    {
+      "type": "text",
+      "id": "fallback_title",
+      "label": "Fallback title (if page has no title)",
+      "default": "Page"
+    },
+    {
+      "type": "richtext",
+      "id": "fallback_text",
+      "label": "Fallback text (if page has no content)",
+      "default": "<p>This page has no content yet.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_back_link",
+      "label": "Show return-to-home link",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Page Content",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

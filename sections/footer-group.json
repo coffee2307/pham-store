@@ -1,0 +1,21 @@
+{
+  "type": "footer",
+  "name": "Footer",
+  "sections": {
+    "pham-footer": {
+      "type": "pham-footer",
+      "settings": {
+        "tagline": "Silence is luxury. Restraint is power. — An atelier of considered, slow-made garments for those who understand that elegance is what you choose not to say.",
+        "menu_heading": "Atelier",
+        "menu": "footer",
+        "newsletter_heading": "The Sealed List",
+        "newsletter_text": "Private releases. No noise. No frequency. Only when an edition is ready.",
+        "copyright_suffix": "All rights reserved.",
+        "show_payment_icons": true
+      }
+    }
+  },
+  "order": [
+    "pham-footer"
+  ]
+}

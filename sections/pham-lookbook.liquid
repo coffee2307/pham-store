@@ -1,0 +1,366 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- liquid
+  assign media_position = section.settings.media_position | default: 'left'
+  assign feature_handle = section.settings.featured_product
+  assign feature_product = all_products[feature_handle]
+  assign image = section.settings.image
+  assign enable_parallax = section.settings.enable_parallax
+-%}
+
+<section class="pham-lookbook pham-lookbook--media-{{ media_position }}{% if enable_parallax %} pham-lookbook--parallax{% endif %}"
+         data-pham-lookbook
+         data-section-id="{{ section.id }}"
+         role="region"
+         aria-label="{{ section.settings.title | default: 'Lookbook' | escape }}">
+  <div class="pham-container">
+    <div class="pham-lookbook__grid">
+
+      <figure class="pham-lookbook__media reveal-up">
+        <div class="pham-lookbook__media-frame">
+          {%- if image != blank -%}
+            {{ image
+                | image_url: width: 1800
+                | image_tag:
+                  loading: 'lazy',
+                  widths: '480, 768, 1080, 1440, 1800',
+                  sizes: '(max-width: 900px) 100vw, 60vw',
+                  class: 'pham-lookbook__img',
+                  alt: image.alt | default: section.settings.title
+            }}
+          {%- else -%}
+            <div class="pham-lookbook__img pham-skeleton" aria-hidden="true" style="aspect-ratio: 4/5"></div>
+          {%- endif -%}
+        </div>
+        {%- if section.settings.caption != blank -%}
+          <figcaption class="pham-lookbook__caption">{{ section.settings.caption }}</figcaption>
+        {%- endif -%}
+      </figure>
+
+      <div class="pham-lookbook__content reveal-up">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="pham-eyebrow pham-lookbook__eyebrow">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.title != blank -%}
+          <h2 class="pham-lookbook__title">{{ section.settings.title }}</h2>
+        {%- endif -%}
+
+        {%- if section.settings.body != blank -%}
+          <div class="pham-lookbook__copy rte">{{ section.settings.body }}</div>
+        {%- endif -%}
+
+        {%- if feature_product != blank and feature_product != nil -%}
+          <a href="{{ feature_product.url }}" class="pham-lookbook__feature">
+            <span class="pham-lookbook__feature-mark" aria-hidden="true">●</span>
+            <span class="pham-lookbook__feature-meta">
+              <span class="pham-lookbook__feature-label">Featured piece</span>
+              <span class="pham-lookbook__feature-name">{{ feature_product.title }}</span>
+            </span>
+            <span class="pham-lookbook__feature-price">{{ feature_product.price | money }}</span>
+            <span class="pham-lookbook__feature-arrow" aria-hidden="true">&rarr;</span>
+          </a>
+        {%- endif -%}
+
+        {%- if section.settings.cta_label != blank and section.settings.cta_link != blank -%}
+          <a href="{{ section.settings.cta_link }}" class="pham-lookbook__cta">
+            <span>{{ section.settings.cta_label }}</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        {%- endif -%}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+  .pham-lookbook {
+    background-color: var(--color-void);
+    color: var(--color-bone);
+    padding-block: var(--space-2xl);
+  }
+  .pham-lookbook__grid {
+    display: grid;
+    grid-template-columns: 6fr 4fr;
+    gap: var(--space-2xl);
+    align-items: center;
+  }
+  .pham-lookbook--media-right .pham-lookbook__grid {
+    grid-template-columns: 4fr 6fr;
+  }
+  .pham-lookbook--media-right .pham-lookbook__media { order: 2; }
+  .pham-lookbook--media-right .pham-lookbook__content { order: 1; }
+
+  .pham-lookbook__media {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  .pham-lookbook__media-frame {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background-color: var(--color-obsidian);
+  }
+  .pham-lookbook__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    transition: transform var(--duration-cinematic) var(--ease-luxury);
+  }
+  .pham-lookbook__media:hover .pham-lookbook__img,
+  .pham-lookbook__media:focus-within .pham-lookbook__img {
+    transform: scale(1.04);
+  }
+  .pham-lookbook__caption {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    margin: 0;
+  }
+
+  /* Scroll-driven parallax (progressive enhancement — degrades gracefully) */
+  .pham-lookbook--parallax .pham-lookbook__media-frame {
+    view-timeline-name: --pham-lookbook;
+    view-timeline-axis: block;
+  }
+  .pham-lookbook--parallax .pham-lookbook__img {
+    animation: pham-lookbook-parallax linear both;
+    animation-timeline: --pham-lookbook;
+    animation-range: cover 0% cover 100%;
+  }
+  @keyframes pham-lookbook-parallax {
+    from { transform: translate3d(0, -8%, 0) scale(1.12); }
+    to   { transform: translate3d(0,  8%, 0) scale(1.12); }
+  }
+
+  .pham-lookbook__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    max-width: 52ch;
+  }
+  .pham-lookbook__eyebrow { color: var(--color-accent); margin: 0; }
+  .pham-lookbook__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    line-height: 1.1;
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-bone);
+    margin: 0;
+  }
+  .pham-lookbook__copy {
+    font-family: var(--font-body);
+    font-size: var(--text-md);
+    line-height: 1.7;
+    color: var(--color-bone-80);
+  }
+  .pham-lookbook__copy p { margin: 0 0 var(--space-sm); }
+  .pham-lookbook__copy p:last-child { margin-bottom: 0; }
+
+  .pham-lookbook__feature {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--color-obsidian);
+    border: 1px solid var(--color-ash);
+    text-decoration: none;
+    color: var(--color-bone);
+    transition: border-color var(--duration-base) var(--ease-luxury),
+                background-color var(--duration-base) var(--ease-luxury);
+  }
+  .pham-lookbook__feature:hover {
+    border-color: var(--color-accent);
+    background-color: var(--color-charcoal);
+  }
+  .pham-lookbook__feature-mark {
+    color: var(--color-accent);
+    font-size: 8px;
+    line-height: 1;
+  }
+  .pham-lookbook__feature-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .pham-lookbook__feature-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+  .pham-lookbook__feature-name {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: var(--color-bone);
+  }
+  .pham-lookbook__feature-price {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    color: var(--color-bone);
+    white-space: nowrap;
+  }
+  .pham-lookbook__feature-arrow {
+    font-family: var(--font-mono);
+    color: var(--color-accent);
+    transition: transform var(--duration-base) var(--ease-luxury);
+  }
+  .pham-lookbook__feature:hover .pham-lookbook__feature-arrow { transform: translateX(4px); }
+
+  .pham-lookbook__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: gap var(--duration-base) var(--ease-luxury), color var(--duration-base) var(--ease-luxury);
+  }
+  .pham-lookbook__cta:hover { color: var(--color-bone); gap: var(--space-sm); }
+  .pham-lookbook__cta::after {
+    content: '';
+    display: block;
+    height: 1px;
+    width: 24px;
+    background-color: currentColor;
+    transition: width var(--duration-base) var(--ease-luxury);
+  }
+  .pham-lookbook__cta:hover::after { width: 48px; }
+
+  @media (max-width: 900px) {
+    .pham-lookbook__grid,
+    .pham-lookbook--media-right .pham-lookbook__grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-lg);
+    }
+    .pham-lookbook--media-right .pham-lookbook__media   { order: 1; }
+    .pham-lookbook--media-right .pham-lookbook__content { order: 2; }
+    .pham-lookbook { padding-block: var(--space-xl); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pham-lookbook--parallax .pham-lookbook__img { animation: none; }
+    .pham-lookbook__img,
+    .pham-lookbook__media:hover .pham-lookbook__img { transform: translate3d(0, 0, 0); transition: none; }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Lookbook",
+  "tag": "section",
+  "class": "pham-lookbook-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Media"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "caption",
+      "label": "Caption",
+      "default": "PHAM SS26 · Look 04"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_parallax",
+      "label": "Enable scroll parallax",
+      "default": true,
+      "info": "Progressive enhancement — disabled automatically when reduced motion is requested or scroll-timeline isn't supported."
+    },
+    {
+      "type": "header",
+      "content": "Editorial copy"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "EDITORIAL · 01"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "The Architecture of Restraint"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body",
+      "default": "<p>Slow-made in limited editions. Each piece is constructed in our atelier from Italian wool, Japanese silk, and Portuguese cotton — quietly, deliberately, and without season.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Feature link"
+    },
+    {
+      "type": "product",
+      "id": "featured_product",
+      "label": "Featured product"
+    },
+    {
+      "type": "header",
+      "content": "Secondary CTA"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA label",
+      "default": "Read the editorial"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA link"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "media_position",
+      "label": "Media position",
+      "default": "left",
+      "options": [
+        { "value": "left",  "label": "Media left (60%)" },
+        { "value": "right", "label": "Media right (60%)" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Lookbook",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "collection", "blog"]
+  }
+}
+{% endschema %}
