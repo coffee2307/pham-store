@@ -241,7 +241,9 @@
   .pham-hero__cta--preorder {
     padding: 20px 28px;
     font-size: var(--text-md);
-    min-width: 340px;
+    min-width: min(100%, 22rem);
+    width: fit-content;
+    max-width: 100%;
     border-width: 1px;
     box-shadow:
       0 0 0 1px var(--color-white) inset,
@@ -263,6 +265,7 @@
   .pham-hero__cta-rune {
     position: relative;
     z-index: 2;
+    white-space: nowrap;
   }
   .pham-hero__cta-rune {
     color: var(--color-white);

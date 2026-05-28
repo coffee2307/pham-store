@@ -13,8 +13,6 @@
 {%- liquid
   assign menu_handle    = section.settings.menu | default: 'main-menu'
   assign menu           = linklists[menu_handle]
-  assign pham_logo      = settings.pham_logo
-  assign logo_width     = settings.pham_logo_width | default: 140
   assign show_search    = section.settings.show_search
   assign show_account   = section.settings.show_account
 
@@ -59,41 +57,12 @@
         <span class="pham-header__hamburger-bar" aria-hidden="true"></span>
       </button>
 
-      <a href="{{ routes.root_url }}" class="pham-header__logo pham-header__logo--desktop" aria-label="{{ shop.name | escape }}">
-        {%- if pham_logo != blank -%}
-          {{ pham_logo | image_url: width: 600
-              | image_tag:
-                loading: 'eager',
-                fetchpriority: 'high',
-                widths: '120, 240, 360, 480, 600',
-                sizes: '200px',
-                class: 'pham-header__logo-img',
-                alt: shop.name,
-                style: 'width:' | append: logo_width | append: 'px'
-          }}
-        {%- else -%}
-          <span class="pham-header__wordmark">{{ shop.name | default: 'PHAM' | upcase }}</span>
-        {%- endif -%}
-      </a>
+      {% render 'pham-brand-lockup', class: 'pham-header__logo pham-header__logo--desktop' %}
     </div>
 
     {%- comment -%} CENTER — Mobile logo + desktop navigation {%- endcomment -%}
     <div class="pham-header__zone pham-header__zone--center">
-      <a href="{{ routes.root_url }}" class="pham-header__logo pham-header__logo--mobile" aria-label="{{ shop.name | escape }}">
-        {%- if pham_logo != blank -%}
-          {{ pham_logo | image_url: width: 400
-              | image_tag:
-                loading: 'eager',
-                fetchpriority: 'high',
-                widths: '120, 200, 280, 400',
-                sizes: '140px',
-                class: 'pham-header__logo-img',
-                alt: shop.name
-          }}
-        {%- else -%}
-          <span class="pham-header__wordmark">{{ shop.name | default: 'PHAM' | upcase }}</span>
-        {%- endif -%}
-      </a>
+      {% render 'pham-brand-lockup', class: 'pham-header__logo pham-header__logo--mobile' %}
 
       <nav class="pham-header__nav pham-header__nav--desktop"
            role="navigation"

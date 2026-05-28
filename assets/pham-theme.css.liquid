@@ -670,6 +670,74 @@ section[data-pham-lookbook] .pham-lookbook__grid::after {
 
 
 /* ==========================================================================
+   14b. PRE-ORDER CTA — single-line labels (no Pre-/order breaks)
+   ========================================================================== */
+[data-pham-preorder-cta],
+.pham-hero__cta--preorder,
+.pham-hero__cta-label,
+.pham-product-main__cta-text,
+.pham-product-main__cta-label,
+.pham-product-focus__cta--preorder {
+  white-space: nowrap;
+  hyphens: none;
+  word-break: keep-all;
+}
+
+.pham-hero__cta--preorder {
+  width: fit-content;
+  max-width: 100%;
+  min-width: min(100%, 22rem);
+}
+
+.pham-hero__cta-label {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+.pham-product-main__cta-text {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.pham-product-main__cta-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 749px) {
+  .pham-hero__cta--preorder {
+    width: 100%;
+    min-width: 0;
+    padding: 16px 18px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .pham-hero__cta-label {
+    text-align: center;
+    flex: 0 1 auto;
+  }
+
+  .pham-product-main__cta-text {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    padding: 16px 12px;
+    gap: 10px;
+  }
+
+  .pham-product-focus__cta--preorder {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    padding: 16px 18px;
+  }
+}
+
+
+/* ==========================================================================
    15. UNIVERSAL INPUT SYSTEM  (transparent, hairline, zero radius)
    ========================================================================== */
 input[type="search"],
@@ -1157,7 +1225,7 @@ input[type="search"]::-webkit-search-decoration {
 .pham-header--menu-open .pham-header__hamburger-bar:nth-child(2) { opacity: 0; }
 .pham-header--menu-open .pham-header__hamburger-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-/* Logo / wordmark */
+/* Logo / wordmark lockup */
 .pham-header__logo {
   display: inline-flex;
   align-items: center;
@@ -1165,20 +1233,45 @@ input[type="search"]::-webkit-search-decoration {
   color: var(--color-bone);
 }
 .pham-header__logo--mobile { display: none; }
-.pham-header__logo-img {
-  display: block;
-  height: auto;
-  max-height: 44px;
-  object-fit: contain;
-  filter: brightness(0) invert(1); /* Tech-monochrome treatment */
+.pham-brand-lockup.pham-header__logo--desktop { display: inline-flex; }
+.pham-brand-lockup.pham-header__logo--mobile  { display: none; }
+.pham-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(8px, 1.5vw, 11px);
+  text-decoration: none;
+  color: inherit;
+  font-size: var(--text-md);
+  line-height: 1;
 }
+.pham-brand-lockup__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.22em;
+  height: 1.22em;
+}
+.pham-brand-lockup__mark-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+.pham-brand-lockup__mark-img--svg {
+  filter: none;
+}
+.pham-brand-lockup__wordmark,
 .pham-header__wordmark {
   font-family: var(--font-brand);
-  font-size: var(--text-md);
+  font-size: 1em;
   font-weight: 700;
   letter-spacing: var(--tracking-tech);
   text-transform: uppercase;
   color: var(--color-bone);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 /* Desktop menu */
@@ -1422,13 +1515,31 @@ input[type="search"]::-webkit-search-decoration {
 
 /* Header responsive */
 @media (max-width: 900px) {
-  .pham-header__inner { grid-template-columns: auto 1fr auto; height: 64px; }
+  .pham-header__inner {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    height: 64px;
+  }
+  .pham-header__zone--left  { justify-content: flex-start; }
+  .pham-header__zone--center {
+    justify-content: center;
+    grid-column: 2;
+  }
+  .pham-header__zone--right { justify-content: flex-end; }
   .pham-header__spacer { height: 64px; }
   .pham-header__hamburger { display: inline-flex; }
   .pham-header__nav--desktop { display: none; }
-  .pham-header__logo--desktop { display: none; }
-  .pham-header__logo--mobile  { display: inline-flex; }
-  .pham-header__logo-img      { max-height: 28px; }
+  .pham-header__logo--desktop,
+  .pham-brand-lockup.pham-header__logo--desktop { display: none; }
+  .pham-header__logo--mobile,
+  .pham-brand-lockup.pham-header__logo--mobile  { display: inline-flex; }
+  .pham-brand-lockup { font-size: 13px; }
+  .pham-brand-lockup__mark { width: 1.2em; height: 1.2em; }
+  .pham-header__wordmark,
+  .pham-brand-lockup__wordmark {
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    color: var(--color-white);
+  }
   .pham-header__action--account { display: none; }
 }
 
@@ -1448,15 +1559,14 @@ input[type="search"]::-webkit-search-decoration {
   .pham-header__inner {
     height: 60px;
     padding-inline: 16px;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+  .pham-header__zone--center {
+    justify-content: center;
   }
   .pham-header__spacer,
   .pham-header__spacer--transparent {
     height: 60px !important;
-  }
-  .pham-header__wordmark {
-    font-size: 13px;
-    letter-spacing: 0.3em;
-    color: var(--color-white);
   }
 
   /* Drawer — full-height with dvh fallback chain, opaque, no clipping */

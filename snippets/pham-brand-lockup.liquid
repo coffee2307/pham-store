@@ -1,0 +1,43 @@
+{%- comment -%}
+  DO NOT EDIT — managed by PHAM theme architecture.
+  Brand lockup: mark icon + PHAM wordmark.
+
+  Params:
+    - class: anchor class list (required)
+    - url: link target (default: home)
+    - wordmark: override label (default: shop name)
+{%- endcomment -%}
+{%- liquid
+  assign lockup_url = url | default: routes.root_url
+  assign lockup_class = class | default: 'pham-brand-lockup'
+  assign lockup_wordmark = wordmark | default: shop.name | default: 'PHAM' | upcase
+  assign lockup_mark = settings.pham_logo
+-%}
+<a href="{{ lockup_url }}" class="{{ lockup_class }} pham-brand-lockup" aria-label="{{ lockup_wordmark | escape }}">
+  <span class="pham-brand-lockup__mark" aria-hidden="true">
+    {%- if lockup_mark != blank -%}
+      {{ lockup_mark
+          | image_url: width: 120
+          | image_tag:
+            loading: 'eager',
+            fetchpriority: 'high',
+            widths: '48, 72, 96, 120',
+            sizes: '28px',
+            class: 'pham-brand-lockup__mark-img',
+            alt: ''
+      }}
+    {%- else -%}
+      <img
+        src="{{ 'logo.svg' | asset_url }}"
+        class="pham-brand-lockup__mark-img pham-brand-lockup__mark-img--svg"
+        width="28"
+        height="28"
+        alt=""
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      >
+    {%- endif -%}
+  </span>
+  <span class="pham-brand-lockup__wordmark pham-header__wordmark">{{ lockup_wordmark | escape }}</span>
+</a>
