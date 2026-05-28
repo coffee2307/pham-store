@@ -337,9 +337,19 @@
     100% { transform: scaleY(0); transform-origin: bottom center; }
   }
 
+  @media (max-width: 749px) {
+    .pham-hero {
+      align-items: flex-start;
+    }
+    .pham-hero__inner {
+      padding-top: calc(80px + var(--space-lg));
+      padding-bottom: var(--space-xl);
+    }
+  }
+
   @media (max-width: 640px) {
     .pham-hero__heading { font-size: clamp(2rem, 11vw, 4rem); }
-    .pham-hero__inner   { padding-block: var(--space-xl); }
+    .pham-hero__inner   { padding-block: var(--space-xl); padding-top: calc(80px + var(--space-lg)); }
   }
 
   @media (prefers-reduced-motion: reduce) {

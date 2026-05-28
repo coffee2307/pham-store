@@ -1,0 +1,67 @@
+{%- comment -%}
+  PHAM — Production schedule body (for accordion)
+  @param section {section} — product-main or pre-order section
+{%- endcomment -%}
+{%- assign phase_blocks = section.blocks | where: 'type', 'phase' -%}
+<div class="pham-phases__inner">
+  <p class="pham-phases__system">SYS // ATELIER · 01</p>
+  <ol class="pham-phases__list" role="list">
+    {%- if phase_blocks.size > 0 -%}
+      {%- for block in phase_blocks -%}
+        {%- liquid
+          assign status_raw = block.settings.status | default: 'pending'
+          assign status_key = status_raw | downcase | replace: ' ', '-'
+        -%}
+        <li class="pham-phases__row pham-phases__row--{{ status_key }}" {{ block.shopify_attributes }}>
+          <span class="pham-phases__row-index">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+          <span class="pham-phases__row-label">{{ block.settings.label }}</span>
+          <span class="pham-phases__row-meta">{{ block.settings.timeline }}</span>
+          <span class="pham-phases__row-status" data-status="{{ status_key }}">
+            <span class="pham-phases__row-dot" aria-hidden="true"></span>
+            <span>{{ block.settings.status }}</span>
+          </span>
+        </li>
+      {%- endfor -%}
+    {%- else -%}
+      <li class="pham-phases__row pham-phases__row--complete">
+        <span class="pham-phases__row-index">01</span>
+        <span class="pham-phases__row-label">PATTERN · CUT</span>
+        <span class="pham-phases__row-meta">Q1 · 2026</span>
+        <span class="pham-phases__row-status" data-status="complete">
+          <span class="pham-phases__row-dot" aria-hidden="true"></span>
+          <span>COMPLETE</span>
+        </span>
+      </li>
+      <li class="pham-phases__row pham-phases__row--in-progress">
+        <span class="pham-phases__row-index">02</span>
+        <span class="pham-phases__row-label">CONSTRUCTION</span>
+        <span class="pham-phases__row-meta">Q2 · 2026</span>
+        <span class="pham-phases__row-status" data-status="in-progress">
+          <span class="pham-phases__row-dot" aria-hidden="true"></span>
+          <span>IN PROGRESS</span>
+        </span>
+      </li>
+      <li class="pham-phases__row pham-phases__row--pending">
+        <span class="pham-phases__row-index">03</span>
+        <span class="pham-phases__row-label">FINISHING · QC</span>
+        <span class="pham-phases__row-meta">Q3 · 2026</span>
+        <span class="pham-phases__row-status" data-status="pending">
+          <span class="pham-phases__row-dot" aria-hidden="true"></span>
+          <span>PENDING</span>
+        </span>
+      </li>
+      <li class="pham-phases__row pham-phases__row--pending">
+        <span class="pham-phases__row-index">04</span>
+        <span class="pham-phases__row-label">SHIPPING</span>
+        <span class="pham-phases__row-meta">SEP · 2026</span>
+        <span class="pham-phases__row-status" data-status="pending">
+          <span class="pham-phases__row-dot" aria-hidden="true"></span>
+          <span>PENDING</span>
+        </span>
+      </li>
+    {%- endif -%}
+  </ol>
+  {%- if section.settings.shipping_terms != blank -%}
+    <p class="pham-phases__terms">{{ section.settings.shipping_terms }}</p>
+  {%- endif -%}
+</div>

@@ -408,6 +408,98 @@ summary:focus-visible,
 .reveal-mask--down { clip-path: inset(0 0 100% 0); }
 .reveal-mask--down.is-visible { clip-path: inset(0 0 0% 0); }
 
+/* Product gallery scroll — reveal-up + parallax drift + subtle zoom settle */
+.pham-product-scroll-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.pham-product-main__media-item.reveal-up,
+.pham-product-spotlight__media-item.reveal-up {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity 900ms cubic-bezier(0.77, 0, 0.175, 1),
+    transform 900ms cubic-bezier(0.77, 0, 0.175, 1);
+  will-change: opacity, transform;
+}
+
+.pham-product-main__media-item.reveal-up.is-visible,
+.pham-product-spotlight__media-item.reveal-up.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+html:not(.pham-js) .pham-product-main__media-item.reveal-up,
+html:not(.pham-js) .pham-product-spotlight__media-item.reveal-up {
+  opacity: 1;
+  transform: none;
+}
+
+.pham-product-main__media-frame,
+.pham-product-spotlight__media-frame {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  background-color: var(--color-obsidian);
+}
+
+.pham-product-main__media-frame .pham-product-main__media-img,
+.pham-product-spotlight__media-frame .pham-product-spotlight__img {
+  will-change: transform;
+  transform: translate3d(0, var(--pham-parallax-y, 0), 0) scale(1.03);
+  transition: transform 1000ms cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.pham-product-main__media-item.is-visible .pham-product-main__media-frame .pham-product-main__media-img,
+.pham-product-spotlight__media-item.is-visible .pham-product-spotlight__media-frame .pham-product-spotlight__img {
+  transform: translate3d(0, var(--pham-parallax-y, 0), 0) scale(1);
+}
+
+.pham-product-main__media-item.reveal-up::after,
+.pham-product-spotlight__media-item.reveal-up::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.07) 50%,
+    transparent 58%
+  );
+  transform: translate3d(-120%, 0, 0);
+  transition: transform 900ms cubic-bezier(0.77, 0, 0.175, 1), opacity 400ms var(--ease-tech);
+}
+
+.pham-product-main__media-item.reveal-up.is-visible::after,
+.pham-product-spotlight__media-item.reveal-up.is-visible::after {
+  opacity: 1;
+  transform: translate3d(120%, 0, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pham-product-main__media-item.reveal-up,
+  .pham-product-spotlight__media-item.reveal-up {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .pham-product-main__media-frame .pham-product-main__media-img,
+  .pham-product-spotlight__media-frame .pham-product-spotlight__img {
+    transform: none !important;
+    transition: none !important;
+  }
+  .pham-product-main__media-item.reveal-up::after,
+  .pham-product-spotlight__media-item.reveal-up::after {
+    display: none;
+  }
+}
+
 /* Slide reveal — horizontal */
 .reveal-left  { opacity: 0; transform: translate3d(-40px, 0, 0); transition: opacity 800ms var(--ease-tech), transform 800ms var(--ease-tech); will-change: transform, opacity; }
 .reveal-right { opacity: 0; transform: translate3d(40px, 0, 0);  transition: opacity 800ms var(--ease-tech), transform 800ms var(--ease-tech); will-change: transform, opacity; }
@@ -579,6 +671,38 @@ section[data-pham-lookbook] .pham-lookbook__grid::after {
   border-right: 1px solid var(--color-bone);
 }
 
+/* Hero brackets — mobile: pin to viewport safe area (avoid overflow clip → thread slivers) */
+@media (max-width: 749px) {
+  section[data-pham-hero] .pham-hero__inner::before,
+  section[data-pham-hero] .pham-hero__inner::after {
+    content: none;
+  }
+
+  section[data-pham-hero]::before,
+  section[data-pham-hero]::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  section[data-pham-hero]::before {
+    top: calc(80px + var(--space-sm));
+    left: var(--gutter);
+    border-top: 1px solid var(--color-bone);
+    border-left: 1px solid var(--color-bone);
+  }
+
+  section[data-pham-hero]::after {
+    bottom: var(--space-md);
+    right: var(--gutter);
+    border-bottom: 1px solid var(--color-bone);
+    border-right: 1px solid var(--color-bone);
+  }
+}
+
 
 /* ==========================================================================
    13. HOVER GRID PATTERN OVERLAY (replaces image scale)
@@ -675,7 +799,7 @@ section[data-pham-lookbook] .pham-lookbook__grid::after {
 [data-pham-preorder-cta],
 .pham-hero__cta--preorder,
 .pham-hero__cta-label,
-.pham-product-main__cta-text,
+.pham-product-main__cta-inner,
 .pham-product-main__cta-label,
 .pham-product-focus__cta--preorder {
   white-space: nowrap;
@@ -694,7 +818,7 @@ section[data-pham-lookbook] .pham-lookbook__grid::after {
   text-align: left;
 }
 
-.pham-product-main__cta-text {
+.pham-product-main__cta-inner {
   flex-wrap: nowrap;
   min-width: 0;
 }
@@ -722,7 +846,7 @@ section[data-pham-lookbook] .pham-lookbook__grid::after {
     flex: 0 1 auto;
   }
 
-  .pham-product-main__cta-text {
+  .pham-product-main__cta-inner {
     font-size: 10px;
     letter-spacing: 0.12em;
     padding: 16px 12px;
@@ -2480,6 +2604,7 @@ select option,
 .pham-product-main {
   padding-block: clamp(48px, 8vw, 96px) clamp(64px, 10vw, 128px);
 }
+.pham-product-main .pham-container,
 .pham-page .pham-container,
 .pham-contact .pham-container,
 .pham-search .pham-container,
@@ -2489,6 +2614,86 @@ select option,
 .pham-blog .pham-container,
 .pham-404 .pham-container {
   padding-inline: var(--gutter);
+}
+
+/* Product PDP — mobile gallery inset (avoid edge-to-edge product shots) */
+@media (max-width: 749px) {
+  section[data-pham-product-main] .pham-product-main__grid {
+    gap: var(--space-xl);
+  }
+
+  section[data-pham-product-main] .pham-product-main__gallery {
+    gap: var(--space-sm);
+    padding-inline: var(--space-xs);
+  }
+
+  section[data-pham-product-main] .pham-product-main__media-item {
+    border: 1px solid var(--color-ash);
+    background-color: var(--color-obsidian);
+  }
+
+  section[data-pham-product-main] .pham-product-main__media-trigger {
+    padding: var(--space-sm);
+    box-sizing: border-box;
+  }
+
+  section[data-pham-product-main] .pham-product-main__media-img,
+  section[data-pham-product-main] .pham-product-main__media-video-frame,
+  section[data-pham-product-main] .pham-product-main__media-model-viewer {
+    object-fit: contain;
+    background-color: var(--color-obsidian);
+  }
+
+  section[data-pham-product-main] .pham-product-main__panel {
+    padding-inline: var(--space-xs);
+  }
+
+  /* Brackets clip on narrow viewports when grid is single column */
+  section[data-pham-product-main] .pham-product-main__grid::before,
+  section[data-pham-product-main] .pham-product-main__grid::after {
+    content: none;
+  }
+
+  /* Homepage product spotlight — same gallery inset treatment */
+  .pham-product-spotlight__media {
+    padding: var(--gutter);
+    padding-bottom: 0;
+    box-sizing: border-box;
+  }
+
+  .pham-product-spotlight__gallery {
+    gap: var(--space-sm);
+  }
+
+  .pham-product-spotlight__media-item {
+    border: 1px solid var(--color-ash);
+    background-color: var(--color-obsidian);
+    padding: var(--space-sm);
+    box-sizing: border-box;
+  }
+
+  .pham-product-spotlight__img {
+    object-fit: contain;
+    background-color: var(--color-obsidian);
+  }
+
+  section[data-pham-product-spotlight] .pham-product-spotlight__grid::before,
+  section[data-pham-product-spotlight] .pham-product-spotlight__grid::after {
+    content: none;
+  }
+
+  /* Lookbook bento — keep frames inside gutter on narrow screens */
+  .pham-lookbook-v2__grid {
+    padding-inline: var(--space-xs);
+    gap: var(--space-sm);
+  }
+
+  .pham-lookbook-v2__img {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 }
 
 /* Unify section H1 typography across internal pages with landing-page hero rules */

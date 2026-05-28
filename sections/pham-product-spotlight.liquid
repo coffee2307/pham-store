@@ -17,6 +17,7 @@
 
 <section class="pham-product-spotlight pham-product-spotlight--media-{{ media_position }}"
          data-pham-spotlight="{{ section.id }}"
+         data-pham-product-spotlight
          data-section-id="{{ section.id }}"
          role="region"
          aria-label="{{ product.title | default: 'Featured product' | escape }}">
@@ -26,18 +27,36 @@
 
       <div class="pham-product-spotlight__media reveal-up">
         {%- if product.images.size > 0 -%}
-          <div class="pham-product-spotlight__gallery" data-pham-spotlight-gallery>
+          <div class="pham-product-spotlight__gallery pham-product-scroll-gallery" data-pham-spotlight-gallery>
             {%- for image in product.images limit: section.settings.image_limit -%}
-              <figure class="pham-product-spotlight__media-item">
+              {%- liquid
+                case forloop.index0
+                  when 0
+                    assign sp_parallax_speed = '0.08'
+                  when 1
+                    assign sp_parallax_speed = '0.12'
+                  when 2
+                    assign sp_parallax_speed = '0.10'
+                  else
+                    assign sp_parallax_speed = '0.14'
+                endcase
+                assign sp_reveal_delay = forloop.index0 | times: 90
+              -%}
+              <figure class="pham-product-spotlight__media-item reveal-up{% if forloop.first %} is-visible{% endif %}"
+                      data-pham-delay="{{ sp_reveal_delay }}">
+                <span class="pham-product-spotlight__media-frame"
+                      data-pham-parallax
+                      data-pham-parallax-speed="{{ sp_parallax_speed }}">
                 {{ image
                     | image_url: width: 1600
                     | image_tag:
                       loading: 'lazy',
                       widths: '480, 768, 1080, 1440, 1600',
-                      sizes: '(max-width: 900px) 100vw, 50vw',
+                      sizes: '(max-width: 749px) calc(100vw - (var(--gutter) * 2) - 48px), (max-width: 900px) 100vw, 50vw',
                       class: 'pham-product-spotlight__img',
                       alt: image.alt | default: product.title
                 }}
+                </span>
               </figure>
             {%- endfor -%}
           </div>
@@ -204,6 +223,11 @@
   .pham-product-spotlight__media-item {
     margin: 0;
     position: relative;
+    overflow: hidden;
+  }
+  .pham-product-spotlight__media-frame {
+    display: block;
+    width: 100%;
     overflow: hidden;
   }
   .pham-product-spotlight__img {
@@ -453,6 +477,26 @@
     }
     .pham-product-spotlight--media-right .pham-product-spotlight__media   { order: 1; }
     .pham-product-spotlight--media-right .pham-product-spotlight__panel   { order: 2; }
+  }
+
+  @media (max-width: 749px) {
+    .pham-product-spotlight__media {
+      padding: var(--gutter);
+      padding-bottom: 0;
+      box-sizing: border-box;
+    }
+    .pham-product-spotlight__gallery {
+      gap: var(--space-sm);
+    }
+    .pham-product-spotlight__media-item {
+      border: 1px solid var(--color-ash);
+      padding: var(--space-sm);
+      box-sizing: border-box;
+    }
+    .pham-product-spotlight__img {
+      object-fit: contain;
+      background-color: var(--color-obsidian);
+    }
   }
 </style>
 
