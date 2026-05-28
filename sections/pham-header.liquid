@@ -1,12 +1,43 @@
 <!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- assign feat_product = blank -%}
+{%- capture pham_feat_handle -%}{%- render 'pham-featured-product-handle', product_ref: section.settings.featured_product -%}{%- endcapture -%}
+{%- assign pham_feat_handle = pham_feat_handle | strip -%}
+{%- if pham_feat_handle != blank -%}
+  {%- assign feat_product = all_products[pham_feat_handle] -%}
+{%- endif -%}
+{%- if feat_product == blank or feat_product == nil -%}
+  {%- for pham_item in collections.all.products limit: 1 -%}
+    {%- assign feat_product = pham_item -%}
+  {%- endfor -%}
+{%- endif -%}
 {%- liquid
-  assign menu_handle  = section.settings.menu | default: 'main-menu'
-  assign menu         = linklists[menu_handle]
-  assign pham_logo    = settings.pham_logo
-  assign logo_width   = settings.pham_logo_width | default: 140
-  assign show_search  = section.settings.show_search
-  assign show_account = section.settings.show_account
+  assign menu_handle    = section.settings.menu | default: 'main-menu'
+  assign menu           = linklists[menu_handle]
+  assign pham_logo      = settings.pham_logo
+  assign logo_width     = settings.pham_logo_width | default: 140
+  assign show_search    = section.settings.show_search
+  assign show_account   = section.settings.show_account
+
+  comment
+    Bulletproof single-product default. PHAM is a single-product
+    storefront so we treat the legacy admin menu mode as opt-OUT,
+    not opt-IN. The user must EXPLICITLY set false to revert.
+  endcomment
+  assign single_mode = true
+  if section.settings.single_product_mode == false
+    assign single_mode = false
+  endif
+
+  assign product_label = section.settings.product_label | default: 'PRODUCT'
+  assign home_label    = section.settings.home_label    | default: 'HOME'
+  assign contact_label = section.settings.contact_label | default: 'CONTACT'
+  assign contact_url   = section.settings.contact_url   | default: '/pages/contact'
+  assign show_home     = section.settings.show_home
+  assign show_product  = section.settings.show_product
+  assign show_contact  = section.settings.show_contact
 -%}
+{%- capture product_url -%}{%- render 'pham-featured-product-url', product_ref: section.settings.featured_product -%}{%- endcapture -%}
+{%- assign product_url = product_url | strip -%}
 
 <header class="pham-header {% if section.settings.transparent_on_top %}pham-header--transparent{% endif %}"
         data-pham-header
@@ -67,16 +98,49 @@
       <nav class="pham-header__nav pham-header__nav--desktop"
            role="navigation"
            aria-label="Primary navigation">
-        {%- if menu != blank and menu.links.size > 0 -%}
+        {%- if single_mode -%}
           <ul class="pham-header__menu" role="list">
-            {%- for link in menu.links -%}
-              <li class="pham-header__menu-item {% if link.active %}is-active{% endif %}">
-                <a href="{{ link.url }}" class="pham-header__menu-link">
-                  <span class="pham-header__menu-label">{{ link.title | escape }}</span>
+            {%- if show_home -%}
+              <li class="pham-header__menu-item {% if request.page_type == 'index' %}is-active{% endif %}">
+                <a href="{{ routes.root_url }}" class="pham-header__menu-link">
+                  <span class="pham-header__menu-label">{{ home_label | upcase | escape }}</span>
                 </a>
               </li>
-            {%- endfor -%}
+            {%- endif -%}
+            {%- if show_product and feat_product != blank and feat_product != nil -%}
+              <li class="pham-header__menu-item {% if request.page_type == 'product' %}is-active{% endif %}">
+                <a href="{{ product_url }}" class="pham-header__menu-link">
+                  <span class="pham-header__menu-label">{{ product_label | upcase | escape }}</span>
+                </a>
+              </li>
+            {%- endif -%}
+            {%- if show_contact -%}
+              <li class="pham-header__menu-item {% if template.name == 'page' and page.handle == 'contact' %}is-active{% endif %}">
+                <a href="{{ contact_url }}" class="pham-header__menu-link">
+                  <span class="pham-header__menu-label">{{ contact_label | upcase | escape }}</span>
+                </a>
+              </li>
+            {%- endif -%}
           </ul>
+        {%- else -%}
+          {%- if menu != blank and menu.links.size > 0 -%}
+            <ul class="pham-header__menu" role="list">
+              {%- for link in menu.links -%}
+                {%- assign link_path = link.url | split: '?' | first | split: '#' | first -%}
+                {%- assign skip_link = false -%}
+                {%- if link_path contains '/collections/all' or link_path contains '/collections/' -%}
+                  {%- assign skip_link = true -%}
+                {%- endif -%}
+                {%- unless skip_link -%}
+                  <li class="pham-header__menu-item {% if link.active %}is-active{% endif %}">
+                    <a href="{{ link.url }}" class="pham-header__menu-link">
+                      <span class="pham-header__menu-label">{% render 'pham-nav-label', title: link.title, url: link.url %}</span>
+                    </a>
+                  </li>
+                {%- endunless -%}
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
         {%- endif -%}
       </nav>
     </div>
@@ -148,26 +212,62 @@
       </div>
 
       <nav class="pham-header__drawer-nav" aria-label="Mobile primary navigation">
-        {%- if menu != blank and menu.links.size > 0 -%}
+        {%- if single_mode -%}
           <ul class="pham-header__drawer-menu" role="list">
-            {%- for link in menu.links -%}
+            {%- if show_home -%}
               <li class="pham-header__drawer-item">
-                <a href="{{ link.url }}" class="pham-header__drawer-link">
-                  <span class="pham-header__drawer-link-label">{{ link.title | escape }}</span>
+                <a href="{{ routes.root_url }}" class="pham-header__drawer-link">
+                  <span class="pham-header__drawer-link-label">{{ home_label | upcase | escape }}</span>
                   <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
                 </a>
-                {%- if link.links.size > 0 -%}
-                  <ul class="pham-header__drawer-submenu" role="list">
-                    {%- for sublink in link.links -%}
-                      <li>
-                        <a href="{{ sublink.url }}" class="pham-header__drawer-sublink">{{ sublink.title | escape }}</a>
-                      </li>
-                    {%- endfor -%}
-                  </ul>
-                {%- endif -%}
               </li>
-            {%- endfor -%}
+            {%- endif -%}
+            {%- if show_product and feat_product != blank and feat_product != nil -%}
+              <li class="pham-header__drawer-item">
+                <a href="{{ product_url }}" class="pham-header__drawer-link">
+                  <span class="pham-header__drawer-link-label">{{ product_label | upcase | escape }}</span>
+                  <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
+                </a>
+              </li>
+            {%- endif -%}
+            {%- if show_contact -%}
+              <li class="pham-header__drawer-item">
+                <a href="{{ contact_url }}" class="pham-header__drawer-link">
+                  <span class="pham-header__drawer-link-label">{{ contact_label | upcase | escape }}</span>
+                  <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
+                </a>
+              </li>
+            {%- endif -%}
           </ul>
+        {%- else -%}
+          {%- if menu != blank and menu.links.size > 0 -%}
+            <ul class="pham-header__drawer-menu" role="list">
+              {%- for link in menu.links -%}
+                {%- assign link_path = link.url | split: '?' | first | split: '#' | first -%}
+                {%- assign skip_link = false -%}
+                {%- if link_path contains '/collections/all' or link_path contains '/collections/' -%}
+                  {%- assign skip_link = true -%}
+                {%- endif -%}
+                {%- unless skip_link -%}
+                  <li class="pham-header__drawer-item">
+                    <a href="{{ link.url }}" class="pham-header__drawer-link">
+                      <span class="pham-header__drawer-link-label">{% render 'pham-nav-label', title: link.title, url: link.url %}</span>
+                      <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
+                    </a>
+                    {%- if link.links.size > 0 -%}
+                      <ul class="pham-header__drawer-submenu" role="list">
+                        {%- for sublink in link.links -%}
+                          <li>
+                            <a href="{{ sublink.url }}" class="pham-header__drawer-sublink">{% render 'pham-nav-label', title: sublink.title, url: sublink.url %}</a>
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                    {%- endif -%}
+                  </li>
+                {%- endunless -%}
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
         {%- endif -%}
       </nav>
 
@@ -175,9 +275,9 @@
         <div class="pham-header__drawer-utility">
           <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
              class="pham-header__drawer-util">
-            {% if customer %}Account{% else %}Sign in{% endif %}
+            {% if customer %}ACCOUNT{% else %}SIGN IN{% endif %}
           </a>
-          <a href="{{ routes.search_url }}" class="pham-header__drawer-util">Search</a>
+          <a href="{{ routes.search_url }}" class="pham-header__drawer-util">SEARCH</a>
         </div>
         {%- if settings.pham_social_instagram != blank or settings.pham_social_tiktok != blank -%}
           <div class="pham-header__drawer-socials">
@@ -207,10 +307,81 @@
   "class": "pham-header-section",
   "settings": [
     {
+      "type": "header",
+      "content": "Navigation mode"
+    },
+    {
+      "type": "checkbox",
+      "id": "single_product_mode",
+      "label": "Single product mode",
+      "info": "When enabled, the header shows a fixed HOME / PRODUCT / CONTACT navigation and ignores the admin menu. Designed for single-product storefronts.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Single product mode — links"
+    },
+    {
+      "type": "product",
+      "id": "featured_product",
+      "label": "Featured product (header)",
+      "info": "Section-level override. Falls back to PHAM Brand → Featured product."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_home",
+      "label": "Show HOME link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "home_label",
+      "label": "HOME label",
+      "default": "HOME"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product",
+      "label": "Show PRODUCT link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "product_label",
+      "label": "PRODUCT label",
+      "default": "PRODUCT"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_contact",
+      "label": "Show CONTACT link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "contact_label",
+      "label": "CONTACT label",
+      "default": "CONTACT"
+    },
+    {
+      "type": "url",
+      "id": "contact_url",
+      "label": "Contact page URL",
+      "info": "Defaults to /pages/contact"
+    },
+    {
+      "type": "header",
+      "content": "Legacy menu (single mode off)"
+    },
+    {
       "type": "link_list",
       "id": "menu",
       "label": "Menu",
       "default": "main-menu"
+    },
+    {
+      "type": "header",
+      "content": "Actions"
     },
     {
       "type": "checkbox",

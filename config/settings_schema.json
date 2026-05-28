@@ -2319,6 +2319,16 @@
       },
       {
         "type": "header",
+        "content": "Featured product"
+      },
+      {
+        "type": "product",
+        "id": "pham_featured_product",
+        "label": "The single product to feature",
+        "info": "Used by the header PRODUCT link, hero CTA fallback, cart and search empty states. PHAM is a single-product storefront."
+      },
+      {
+        "type": "header",
         "content": "Marquee"
       },
       {

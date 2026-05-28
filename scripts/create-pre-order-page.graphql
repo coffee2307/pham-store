@@ -1,0 +1,22 @@
+mutation CreatePreOrderPage {
+  pageCreate(
+    page: {
+      title: "Pre-Order"
+      handle: "pre-order"
+      body: ""
+      isPublished: true
+      templateSuffix: "pre-order"
+    }
+  ) {
+    page {
+      id
+      handle
+      title
+      onlineStoreUrl
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}

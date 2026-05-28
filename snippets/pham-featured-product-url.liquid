@@ -1,0 +1,29 @@
+{%- comment -%}
+  DO NOT EDIT — managed by PHAM theme architecture.
+  Resolves and outputs the featured product URL for the PHAM storefront.
+
+  Optional param: product_ref — section-level product override
+{%- endcomment -%}
+{%- capture pham_handle_raw -%}
+  {%- render 'pham-featured-product-handle', product_ref: product_ref -%}
+{%- endcapture -%}
+{%- assign pham_handle = pham_handle_raw | strip -%}
+{%- if pham_handle != blank -%}
+  {%- assign pham_resolved_product = all_products[pham_handle] -%}
+  {%- if pham_resolved_product != blank and pham_resolved_product != nil -%}
+    {{- pham_resolved_product.url -}}
+  {%- endif -%}
+{%- else -%}
+  {%- liquid
+    assign pham_preorder_page = pages['pre-order']
+
+    if pham_preorder_page != blank
+      assign pham_fallback_url = pham_preorder_page.url
+    elsif collections.all != blank
+      assign pham_fallback_url = collections.all.url
+    else
+      assign pham_fallback_url = routes.root_url
+    endif
+  -%}
+  {{- pham_fallback_url -}}
+{%- endif -%}

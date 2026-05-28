@@ -1,8 +1,18 @@
 <!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- capture pham_feat_handle -%}{%- render 'pham-featured-product-handle', product_ref: section.settings.product -%}{%- endcapture -%}
+{%- assign pham_feat_handle = pham_feat_handle | strip -%}
+{%- if pham_feat_handle != blank -%}
+  {%- assign product = all_products[pham_feat_handle] -%}
+{%- endif -%}
+{%- if product == blank or product == nil -%}
+  {%- for pham_item in collections.all.products limit: 1 -%}
+    {%- assign product = pham_item -%}
+  {%- endfor -%}
+{%- endif -%}
 {%- liquid
   assign current_variant = product.selected_or_first_available_variant
   assign on_sale = false
-  if product.compare_at_price > product.price
+  if product != blank and product.compare_at_price > product.price
     assign on_sale = true
   endif
 
@@ -15,12 +25,35 @@
   assign care_content      = section.settings.care_content
 -%}
 
-<section class="pham-product-main"
+{%- if product == blank or product == nil -%}
+<section class="pham-pre-order pham-pre-order--empty"
+         data-pham-pre-order
+         data-section-id="{{ section.id }}"
+         role="region"
+         aria-label="Pre-order">
+  <div class="pham-container pham-pre-order__empty">
+    <p class="pham-eyebrow">PRE-ORDER · EDITION 01</p>
+    <h1 class="pham-pre-order__empty-title">No edition published.</h1>
+    <p class="pham-pre-order__empty-text">Select a featured product in <strong>Theme settings → PHAM Brand → Featured product</strong>, then reload this page.</p>
+    <a href="{{ routes.root_url }}" class="pham-back-link">Return to atelier</a>
+  </div>
+</section>
+{%- else -%}
+
+<section class="pham-product-main pham-pre-order"
          data-pham-product-main
+         data-pham-pre-order
          data-section-id="{{ section.id }}"
          data-product-id="{{ product.id }}"
          role="region"
          aria-label="{{ product.title | escape }}">
+  <div class="pham-container pham-pre-order__gateway reveal-up">
+    <p class="pham-eyebrow">{{ section.settings.eyebrow | default: 'PRE-ORDER · EDITION 01' }}</p>
+    <h2 class="pham-pre-order__title">{{ section.settings.heading | default: 'Secure your pre-order' }}</h2>
+    {%- if section.settings.intro != blank -%}
+      <p class="pham-pre-order__intro">{{ section.settings.intro }}</p>
+    {%- endif -%}
+  </div>
   <div class="pham-product-main__grid pham-container">
 
     {%- comment -%} ============= LEFT: MEDIA STACK ============= {%- endcomment -%}
@@ -339,6 +372,61 @@
     {{ product.variants | json }}
   </script>
 </section>
+{%- endif -%}
+
+<style>
+  .pham-pre-order__gateway {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    max-width: 880px;
+    padding-block: clamp(48px, 7vw, 96px) clamp(24px, 4vw, 48px);
+  }
+  .pham-pre-order__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-tech);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.05;
+    color: var(--color-bone);
+    margin: 0;
+  }
+  .pham-pre-order__intro {
+    font-family: var(--font-body);
+    font-size: var(--text-md);
+    line-height: 1.7;
+    color: var(--color-bone-80);
+    max-width: 60ch;
+    margin: 0;
+  }
+  .pham-pre-order--empty {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    background: var(--color-void);
+    color: var(--color-bone);
+  }
+  .pham-pre-order__empty {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    padding-block: clamp(64px, 10vw, 120px);
+  }
+  .pham-pre-order__empty-title {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-tech);
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    margin: 0;
+  }
+  .pham-pre-order__empty-text {
+    font-family: var(--font-body);
+    color: var(--color-bone-80);
+    max-width: 50ch;
+    margin: 0;
+  }
+</style>
 
 <style>
   .pham-product-main {
@@ -1034,10 +1122,38 @@
 
 {% schema %}
 {
-  "name": "PHAM Product Main",
+  "name": "PHAM Pre-Order",
   "tag": "section",
-  "class": "pham-product-main-section",
+  "class": "pham-pre-order-section",
   "settings": [
+    {
+      "type": "header",
+      "content": "Gateway"
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product override",
+      "info": "Leave empty to use Theme settings → PHAM Brand → Featured product."
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "PRE-ORDER · EDITION 01"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Secure your pre-order"
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro",
+      "default": "Reserve your piece before the edition closes. Sealed production — no re-issues."
+    },
     {
       "type": "header",
       "content": "Display"
@@ -1161,12 +1277,12 @@
   ],
   "presets": [
     {
-      "name": "PHAM Product Main",
+      "name": "PHAM Pre-Order",
       "category": "PHAM"
     }
   ],
   "enabled_on": {
-    "templates": ["product"]
+    "templates": ["page"]
   }
 }
 {% endschema %}

@@ -1,8 +1,11 @@
 {
   "sections": {
     "main": {
-      "type": "pham-product-main",
+      "type": "pham-pre-order",
       "settings": {
+        "eyebrow": "PRE-ORDER · EDITION 01",
+        "heading": "Secure your pre-order",
+        "intro": "Reserve your piece before the edition closes. Sealed production — no re-issues.",
         "show_vendor": true,
         "show_sku": false,
         "details_heading": "Product details",

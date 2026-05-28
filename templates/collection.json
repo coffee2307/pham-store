@@ -1,14 +1,14 @@
 {
   "sections": {
     "main": {
-      "type": "pham-collection-grid",
+      "type": "pham-product-focus",
       "settings": {
-        "eyebrow": "ATELIER · EDITION",
-        "products_per_page": 12,
-        "desktop_columns": 4,
-        "mobile_columns": 2,
-        "enable_filtering": true,
-        "enable_sorting": true
+        "eyebrow": "PHAM · SINGLE EDITION",
+        "heading": "One garment. Made slowly.",
+        "intro": "PHAM produces a single, sealed edition each season. No catalogue. No repeats. Only this.",
+        "spec_origin": "Atelier · Vietnam",
+        "spec_construction": "Hand-finished · Slow-made",
+        "spec_edition": "Single · Sealed"
       }
     }
   },

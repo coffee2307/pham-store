@@ -1,0 +1,66 @@
+{%- comment -%}
+  DO NOT EDIT — managed by PHAM theme architecture.
+  Outputs a single clean, uppercase page label for use inside <title>.
+  IMPORTANT: never use HTML comments here — they are captured into <title>.
+{%- endcomment -%}
+{%- liquid
+  assign raw_title = page_title | default: shop.name
+  assign t_lower   = raw_title | downcase | strip
+
+  case request.page_type
+    when 'index'
+      assign pham_seo = 'HOME'
+    when 'product'
+      assign pham_seo = product.title
+    when 'collection'
+      assign coll_lower = collection.title | downcase | strip
+      if coll_lower == 'sản phẩm' or coll_lower == 'san pham' or coll_lower == 'all' or coll_lower == 'tất cả' or coll_lower == 'tat ca' or collection.handle == 'all' or collection.handle == 'frontpage'
+        assign pham_seo = 'SHOP'
+      elsif coll_lower contains 'cửa hàng' or coll_lower contains 'cua hang'
+        assign pham_seo = 'SHOP'
+      else
+        assign pham_seo = collection.title
+      endif
+    when 'list-collections'
+      assign pham_seo = 'SHOP'
+    when 'search'
+      assign pham_seo = 'SEARCH'
+    when 'cart'
+      assign pham_seo = 'CART'
+    when 'blog'
+      assign pham_seo = blog.title | default: 'JOURNAL'
+    when 'article'
+      assign pham_seo = article.title
+    when '404'
+      assign pham_seo = 'NOT FOUND'
+    when 'password'
+      assign pham_seo = 'COMING SOON'
+    when 'customers/login'
+      assign pham_seo = 'SIGN IN'
+    when 'customers/register'
+      assign pham_seo = 'REGISTER'
+    when 'customers/account'
+      assign pham_seo = 'ACCOUNT'
+    when 'customers/order'
+      assign pham_seo = 'ORDER'
+    when 'customers/addresses'
+      assign pham_seo = 'ADDRESSES'
+    when 'page'
+      if page.handle == 'contact' or t_lower contains 'liên hệ' or t_lower contains 'lien he' or t_lower == 'contact'
+        assign pham_seo = 'CONTACT'
+      elsif t_lower contains 'trang chủ' or t_lower contains 'trang chu' or t_lower == 'home'
+        assign pham_seo = 'HOME'
+      elsif t_lower contains 'giới thiệu' or t_lower contains 'gioi thieu' or t_lower == 'about'
+        assign pham_seo = 'ABOUT'
+      elsif t_lower contains 'chính sách' or t_lower contains 'chinh sach' or t_lower contains 'policy'
+        assign pham_seo = page.title
+      else
+        assign pham_seo = page.title
+      endif
+    else
+      assign pham_seo = raw_title
+  endcase
+
+  assign pham_seo_clean = pham_seo | strip_html | strip | upcase
+-%}
+{{- pham_seo_clean | escape -}}

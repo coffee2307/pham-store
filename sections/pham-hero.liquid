@@ -79,14 +79,24 @@
               {{ block.settings.text }}
             </p>
           {%- when 'button' -%}
+            {%- assign cta_link = block.settings.link -%}
+            {%- if cta_link == blank or cta_link == '#' -%}
+              {%- capture cta_link -%}{%- render 'pham-featured-product-url' -%}{%- endcapture -%}
+              {%- assign cta_link = cta_link | strip -%}
+            {%- endif -%}
             <div class="pham-hero__cta-wrap" {{ block.shopify_attributes }}>
-              <a href="{{ block.settings.link | default: '#' }}"
-                 class="pham-hero__cta"
+              <a href="{{ cta_link }}"
+                 class="pham-hero__cta pham-hero__cta--preorder"
+                 data-pham-preorder-cta
                  {% if block.settings.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
                 <span class="pham-hero__cta-fill" aria-hidden="true"></span>
-                <span class="pham-hero__cta-label">{{ block.settings.label }}</span>
+                <span class="pham-hero__cta-rune" aria-hidden="true">◢</span>
+                <span class="pham-hero__cta-label">{{ block.settings.label | default: 'SECURE YOUR PRE-ORDER' }}</span>
                 <span class="pham-hero__cta-arrow" aria-hidden="true">&rarr;</span>
               </a>
+              {%- if block.settings.sub_label != blank -%}
+                <p class="pham-hero__cta-sub">{{ block.settings.sub_label }}</p>
+              {%- endif -%}
             </div>
         {%- endcase -%}
       {%- endfor -%}
@@ -201,38 +211,82 @@
   }
 
   /* CTA — outline button with clip-path left-to-right sweep on hover */
-  .pham-hero__cta-wrap { margin-top: var(--space-sm); }
+  .pham-hero__cta-wrap {
+    margin-top: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    align-items: inherit;
+    gap: 12px;
+  }
   .pham-hero__cta {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: var(--space-xs);
-    padding: var(--space-sm) var(--space-md);
+    gap: 14px;
+    padding: 18px 28px;
     font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-luxury);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    letter-spacing: var(--tracking-tech);
     text-transform: uppercase;
-    color: var(--color-bone);
+    color: var(--color-white);
     background: transparent;
-    border: 1px solid var(--color-bone);
+    border: 1px solid var(--color-white);
     text-decoration: none;
     overflow: hidden;
     isolation: isolate;
-    transition: color var(--duration-base) var(--ease-luxury),
-                gap var(--duration-base) var(--ease-luxury);
+    min-width: 280px;
+    justify-content: space-between;
   }
-  .pham-hero__cta-label,
-  .pham-hero__cta-arrow { position: relative; z-index: 2; }
+  .pham-hero__cta--preorder {
+    padding: 20px 28px;
+    font-size: var(--text-md);
+    min-width: 340px;
+    border-width: 1px;
+    box-shadow:
+      0 0 0 1px var(--color-white) inset,
+      0 0 0 0 transparent;
+    transition:
+      color var(--duration-base) var(--ease-tech),
+      box-shadow var(--duration-base) var(--ease-tech);
+  }
   .pham-hero__cta-fill {
     position: absolute;
     inset: 0;
-    background-color: var(--color-bone);
+    background-color: var(--color-white);
     clip-path: inset(0 100% 0 0);
-    transition: clip-path var(--duration-base) var(--ease-luxury);
+    transition: clip-path 500ms var(--ease-tech);
     z-index: 1;
   }
-  .pham-hero__cta:hover { color: var(--color-void); gap: var(--space-sm); }
+  .pham-hero__cta-label,
+  .pham-hero__cta-arrow,
+  .pham-hero__cta-rune {
+    position: relative;
+    z-index: 2;
+  }
+  .pham-hero__cta-rune {
+    color: var(--color-white);
+    font-size: 12px;
+    transform: translateY(-1px);
+    transition: transform var(--duration-base) var(--ease-tech), color var(--duration-base) var(--ease-tech);
+  }
+  .pham-hero__cta:hover { color: var(--color-void); }
   .pham-hero__cta:hover .pham-hero__cta-fill { clip-path: inset(0 0 0 0); }
+  .pham-hero__cta:hover .pham-hero__cta-rune { color: var(--color-void); transform: translateY(-1px) rotate(180deg); }
+  .pham-hero__cta--preorder:hover {
+    box-shadow:
+      0 0 0 1px var(--color-white) inset,
+      0 0 32px rgba(255, 255, 255, 0.18);
+  }
+  .pham-hero__cta-sub {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-placeholder);
+  }
+
   .pham-hero__cta:focus-visible { outline-offset: 4px; }
 
   /* Scroll indicator */
@@ -440,12 +494,19 @@
           "type": "text",
           "id": "label",
           "label": "Label",
-          "default": "Discover the Collection"
+          "default": "SECURE YOUR PRE-ORDER"
         },
         {
           "type": "url",
           "id": "link",
-          "label": "Link"
+          "label": "Link",
+          "info": "Leave empty to auto-link to the featured product."
+        },
+        {
+          "type": "text",
+          "id": "sub_label",
+          "label": "Sub-label (below CTA)",
+          "default": "EDITION 01 // RESERVE BEFORE PHASE CLOSE"
         },
         {
           "type": "checkbox",

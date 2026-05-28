@@ -2,7 +2,7 @@
 {%- liquid
   assign products_per_page = section.settings.products_per_page | default: 12
   assign desktop_cols      = section.settings.desktop_columns | default: 4
-  assign mobile_cols       = section.settings.mobile_columns | default: 2
+  assign mobile_cols       = section.settings.mobile_columns | default: '2'
   assign enable_filtering  = section.settings.enable_filtering
   assign enable_sorting    = section.settings.enable_sorting
 -%}
@@ -16,9 +16,18 @@
   <div class="pham-container">
 
     {%- comment -%} ============= HEADER ============= {%- endcomment -%}
+    {%- liquid
+      assign coll_title_raw   = collection.title | default: 'All Products'
+      assign coll_title_lower = coll_title_raw | downcase | strip
+      if coll_title_lower == 'sản phẩm' or coll_title_lower == 'san pham' or coll_title_lower == 'cửa hàng' or coll_title_lower == 'cua hang' or coll_title_lower == 'all' or coll_title_lower == 'tất cả' or coll_title_lower == 'tat ca' or collection.handle == 'all' or collection.handle == 'frontpage'
+        assign coll_display_title = 'SHOP'
+      else
+        assign coll_display_title = coll_title_raw | upcase
+      endif
+    -%}
     <header class="pham-collection-grid__head reveal-up">
       <p class="pham-eyebrow pham-collection-grid__eyebrow">{{ section.settings.eyebrow }}</p>
-      <h1 class="pham-collection-grid__title">{{ collection.title | default: 'All products' }}</h1>
+      <h1 class="pham-collection-grid__title">{{ coll_display_title }}</h1>
       {%- if collection.description != blank -%}
         <div class="pham-collection-grid__desc rte">{{ collection.description }}</div>
       {%- endif -%}
@@ -129,8 +138,23 @@
               <span class="pham-collection-sort__label">Sort</span>
               <select name="sort_by" class="pham-collection-sort__select" data-pham-collection-sort>
                 {%- assign current_sort = collection.sort_by | default: collection.default_sort_by -%}
+                {%- assign pham_seen_sort_labels = '' -%}
                 {%- for option in collection.sort_options -%}
-                  <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>{{ option.name }}</option>
+                  {%- capture sort_label_raw -%}
+                    {%- render 'pham-sort-label', value: option.value, name: option.name -%}
+                  {%- endcapture -%}
+                  {%- assign sort_label = sort_label_raw | strip -%}
+                  {%- assign sort_label_key = sort_label | append: '||' -%}
+                  {%- assign is_duplicate_label = false -%}
+                  {%- if pham_seen_sort_labels contains sort_label_key -%}
+                    {%- assign is_duplicate_label = true -%}
+                  {%- endif -%}
+                  {%- if is_duplicate_label == false or option.value == current_sort -%}
+                    {%- unless is_duplicate_label -%}
+                      {%- assign pham_seen_sort_labels = pham_seen_sort_labels | append: sort_label_key -%}
+                    {%- endunless -%}
+                    <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>{{ sort_label }}</option>
+                  {%- endif -%}
                 {%- endfor -%}
               </select>
               <span class="pham-collection-sort__caret" aria-hidden="true">&darr;</span>
@@ -663,13 +687,20 @@
       "default": 4
     },
     {
-      "type": "range",
+      "type": "select",
       "id": "mobile_columns",
       "label": "Mobile columns",
-      "min": 1,
-      "max": 2,
-      "step": 1,
-      "default": 2
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        }
+      ],
+      "default": "2"
     },
     {
       "type": "header",

@@ -1,4 +1,6 @@
 <!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- capture cart_product_url -%}{%- render 'pham-featured-product-url' -%}{%- endcapture -%}
+{%- assign cart_product_url = cart_product_url | strip -%}
 <section class="pham-cart-page" data-pham-cart-page data-section-id="{{ section.id }}" role="region" aria-label="Shopping cart">
   <div class="pham-container">
     <header class="pham-cart-page__head reveal-up">
@@ -120,7 +122,7 @@
           </div>
           <p class="pham-cart-page__taxnote">Taxes and shipping calculated at checkout.</p>
           <div class="pham-cart-page__actions">
-            <a href="{{ routes.all_products_collection_url }}" class="pham-cart-page__continue">Continue shopping</a>
+            <a href="{{ cart_product_url }}" class="pham-cart-page__continue">View the Edition</a>
             <button type="submit" name="checkout" class="pham-cart-page__checkout">
               <span class="pham-cart-page__checkout-fill" aria-hidden="true"></span>
               <span class="pham-cart-page__checkout-label">Proceed to Checkout</span>
@@ -134,8 +136,8 @@
         <p class="pham-cart-page__empty-mark">∅</p>
         <p class="pham-cart-page__empty-text">Your atelier is silent.</p>
         <p class="pham-cart-page__empty-sub">Begin the edition.</p>
-        <a href="{{ routes.all_products_collection_url }}" class="pham-cart-page__empty-cta">
-          <span>Discover the Collection</span>
+        <a href="{{ cart_product_url }}" class="pham-cart-page__empty-cta">
+          <span>View the Edition</span>
           <span aria-hidden="true">&rarr;</span>
         </a>
       </div>

@@ -1,0 +1,42 @@
+{%- comment -%}
+  DO NOT EDIT — managed by PHAM theme architecture.
+  Maps Shopify Admin link titles (Vietnamese or otherwise) onto a
+  clean, uppercase English label. Use only Liquid comments here so the
+  output is pure text — no HTML comments will leak into <a> or <title>.
+{%- endcomment -%}
+{%- liquid
+  assign raw_title = title | default: '' | strip
+  assign normalized_title = raw_title | downcase
+  assign path = url | default: '' | split: '?' | first | split: '#' | first
+
+  assign english_label = blank
+
+  if path == routes.root_url or path == '/' or normalized_title == 'trang chủ' or normalized_title == 'trang chu' or normalized_title == 'home'
+    assign english_label = 'HOME'
+  elsif path contains '/products/' or normalized_title == 'product' or normalized_title == 'sản phẩm' or normalized_title == 'san pham'
+    assign english_label = 'PRODUCT'
+  elsif path contains '/collections/all' or path contains '/collections/' or normalized_title == 'shop' or normalized_title == 'cửa hàng' or normalized_title == 'cua hang'
+    assign english_label = 'PRODUCT'
+  elsif normalized_title == 'danh mục' or normalized_title == 'danh muc' or normalized_title == 'catalog' or normalized_title == 'catalogue'
+    assign english_label = 'PRODUCT'
+  elsif path contains '/pages/contact' or normalized_title == 'liên hệ' or normalized_title == 'lien he' or normalized_title == 'contact'
+    assign english_label = 'CONTACT'
+  elsif path contains '/pages/about' or normalized_title == 'giới thiệu' or normalized_title == 'gioi thieu' or normalized_title == 'about'
+    assign english_label = 'ABOUT'
+  elsif path contains '/search' or normalized_title == 'tìm kiếm' or normalized_title == 'tim kiem' or normalized_title == 'search'
+    assign english_label = 'SEARCH'
+  elsif path contains '/account' or normalized_title == 'tài khoản' or normalized_title == 'tai khoan' or normalized_title == 'account'
+    assign english_label = 'ACCOUNT'
+  elsif path contains '/cart' or normalized_title == 'giỏ hàng' or normalized_title == 'gio hang' or normalized_title == 'cart'
+    assign english_label = 'CART'
+  elsif path contains '/blogs' or normalized_title == 'journal' or normalized_title == 'blog' or normalized_title == 'nhật ký' or normalized_title == 'nhat ky'
+    assign english_label = 'JOURNAL'
+  elsif path contains '/policies' or normalized_title == 'chính sách' or normalized_title == 'chinh sach' or normalized_title == 'policies'
+    assign english_label = 'POLICIES'
+  endif
+
+  if english_label == blank
+    assign english_label = raw_title | upcase
+  endif
+-%}
+{{- english_label | escape -}}

@@ -1,0 +1,463 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+<section class="pham-story"
+         data-pham-story
+         data-section-id="{{ section.id }}"
+         role="region"
+         aria-label="{{ section.settings.title | default: 'Brand story' | escape }}">
+  <div class="pham-container">
+
+    {%- comment -%} HEADER {%- endcomment -%}
+    <header class="pham-story__head reveal-up">
+      <p class="pham-eyebrow">{{ section.settings.eyebrow | default: 'PHAM · MANIFESTO' }}</p>
+      <h2 class="pham-story__title">
+        <span class="pham-split" data-pham-split>{{ section.settings.title | default: 'Silence is luxury. Restraint is power.' }}</span>
+      </h2>
+    </header>
+
+    {%- comment -%} TWO-COLUMN INTRO {%- endcomment -%}
+    {%- if section.settings.intro_left != blank or section.settings.intro_right != blank -%}
+      <div class="pham-story__intro">
+        {%- if section.settings.intro_left != blank -%}
+          <div class="pham-story__intro-col reveal-up">
+            {{ section.settings.intro_left }}
+          </div>
+        {%- endif -%}
+        {%- if section.settings.intro_right != blank -%}
+          <div class="pham-story__intro-col reveal-up" data-pham-delay="120">
+            {{ section.settings.intro_right }}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} STATS COUNTERS {%- endcomment -%}
+    {%- assign stat_blocks = section.blocks | where: 'type', 'stat' -%}
+    {%- if stat_blocks.size > 0 -%}
+      <ul class="pham-story__stats stagger-children" role="list" data-pham-stats>
+        {%- for block in stat_blocks -%}
+          <li class="pham-story__stat" {{ block.shopify_attributes }}>
+            <span class="pham-story__stat-value"
+                  data-pham-counter
+                  data-pham-counter-to="{{ block.settings.value | default: 0 }}"
+                  data-pham-counter-suffix="{{ block.settings.suffix }}"
+                  data-pham-counter-prefix="{{ block.settings.prefix }}">{{ block.settings.prefix }}0{{ block.settings.suffix }}</span>
+            <span class="pham-eyebrow pham-story__stat-label">{{ block.settings.label }}</span>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+    {%- comment -%} TIMELINE / CHAPTERS {%- endcomment -%}
+    {%- assign chapter_blocks = section.blocks | where: 'type', 'chapter' -%}
+    {%- if chapter_blocks.size > 0 -%}
+      <ol class="pham-story__timeline" role="list">
+        {%- for block in chapter_blocks -%}
+          <li class="pham-story__chapter reveal-up" data-pham-delay="{{ forloop.index0 | times: 80 }}" {{ block.shopify_attributes }}>
+            <div class="pham-story__chapter-mark">
+              <span class="pham-story__chapter-index">{{ forloop.index | prepend: '00' | slice: -2, 2 }}</span>
+              <span class="pham-story__chapter-line" aria-hidden="true"></span>
+            </div>
+            <div class="pham-story__chapter-body">
+              {%- if block.settings.year != blank -%}
+                <p class="pham-eyebrow pham-story__chapter-year">{{ block.settings.year }}</p>
+              {%- endif -%}
+              <h3 class="pham-story__chapter-title">{{ block.settings.title }}</h3>
+              {%- if block.settings.body != blank -%}
+                <div class="pham-story__chapter-copy rte">{{ block.settings.body }}</div>
+              {%- endif -%}
+              {%- if block.settings.image != blank -%}
+                <div class="pham-story__chapter-img-wrap reveal-mask">
+                  {{ block.settings.image
+                      | image_url: width: 1400
+                      | image_tag:
+                        loading: 'lazy',
+                        widths: '480, 768, 1080, 1400',
+                        sizes: '(max-width: 900px) 100vw, 50vw',
+                        class: 'pham-story__chapter-img',
+                        alt: block.settings.image.alt | default: block.settings.title
+                  }}
+                </div>
+              {%- endif -%}
+            </div>
+          </li>
+        {%- endfor -%}
+      </ol>
+    {%- endif -%}
+
+    {%- comment -%} PULL QUOTE {%- endcomment -%}
+    {%- if section.settings.pull_quote != blank -%}
+      <figure class="pham-story__pullquote reveal-up">
+        <blockquote class="pham-story__pullquote-body">
+          <span class="pham-story__pullquote-mark" aria-hidden="true">"</span>
+          {{ section.settings.pull_quote }}
+        </blockquote>
+        {%- if section.settings.pull_quote_attr != blank -%}
+          <figcaption class="pham-story__pullquote-cite pham-eyebrow">{{ section.settings.pull_quote_attr }}</figcaption>
+        {%- endif -%}
+      </figure>
+    {%- endif -%}
+
+    {%- if section.settings.cta_label != blank -%}
+      {%- assign story_cta_link = section.settings.cta_link -%}
+      {%- if story_cta_link == blank or story_cta_link == '#' -%}
+        {%- capture story_cta_link -%}{%- render 'pham-featured-product-url' -%}{%- endcapture -%}
+        {%- assign story_cta_link = story_cta_link | strip -%}
+      {%- endif -%}
+      <div class="pham-story__cta-wrap reveal-up">
+        <a href="{{ story_cta_link }}" class="pham-btn pham-story__cta">
+          <span>{{ section.settings.cta_label }}</span>
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+<style>
+  .pham-story {
+    background-color: var(--color-void);
+    color: var(--color-bone);
+    padding-block: clamp(64px, 10vw, 144px);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .pham-story::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right,  rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, #000 0%, transparent 80%);
+  }
+  .pham-story__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-bottom: clamp(40px, 6vw, 72px);
+    max-width: 1080px;
+  }
+  .pham-story__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-tech);
+    font-size: clamp(2rem, 6vw, 5rem);
+    line-height: 1.02;
+    color: var(--color-bone);
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .pham-story__intro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(24px, 5vw, 80px);
+    margin-bottom: clamp(40px, 6vw, 96px);
+    font-family: var(--font-body);
+    font-size: clamp(var(--text-md), 1.05vw, var(--text-lg));
+    line-height: 1.75;
+    color: var(--color-bone-80);
+  }
+  .pham-story__intro p { margin: 0 0 var(--space-sm); }
+  .pham-story__intro strong { color: var(--color-white); font-weight: 700; }
+
+  .pham-story__stats {
+    list-style: none;
+    margin: 0 0 clamp(40px, 6vw, 96px);
+    padding: clamp(24px, 4vw, 56px) 0;
+    border-top: 1px solid var(--color-ash);
+    border-bottom: 1px solid var(--color-ash);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: clamp(24px, 4vw, 56px);
+  }
+  .pham-story__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pham-story__stat-value {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.25rem, 5vw, 4rem);
+    letter-spacing: var(--tracking-tech);
+    color: var(--color-white);
+    line-height: 1;
+    font-feature-settings: 'tnum' 1;
+  }
+  .pham-story__stat-label { color: var(--color-placeholder); }
+
+  .pham-story__timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: pham-chapter;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(40px, 5vw, 80px);
+  }
+  .pham-story__chapter {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: clamp(16px, 3vw, 40px);
+    position: relative;
+  }
+  .pham-story__chapter-mark {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .pham-story__chapter-index {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: var(--text-sm);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-white);
+    border: 1px solid var(--color-ash);
+    padding: 8px 12px;
+    background-color: var(--color-charcoal);
+  }
+  .pham-story__chapter-line {
+    flex: 1;
+    width: 1px;
+    background: linear-gradient(180deg, var(--color-white) 0%, transparent 100%);
+    min-height: 60px;
+  }
+  .pham-story__chapter-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    max-width: 60ch;
+  }
+  .pham-story__chapter-year { margin: 0; color: var(--color-placeholder); }
+  .pham-story__chapter-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-tech);
+    font-size: clamp(1.375rem, 2vw, 1.875rem);
+    line-height: 1.15;
+    color: var(--color-bone);
+    margin: 0;
+  }
+  .pham-story__chapter-copy {
+    font-family: var(--font-body);
+    font-size: var(--text-md);
+    line-height: 1.7;
+    color: var(--color-bone-80);
+  }
+  .pham-story__chapter-img-wrap {
+    margin-top: var(--space-sm);
+    border: 1px solid var(--color-ash);
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 16/9;
+  }
+  .pham-story__chapter-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .pham-story__pullquote {
+    margin: clamp(48px, 7vw, 112px) auto;
+    max-width: 920px;
+    text-align: center;
+    padding-block: clamp(32px, 5vw, 64px);
+    border-top: 1px solid var(--color-ash);
+    border-bottom: 1px solid var(--color-ash);
+  }
+  .pham-story__pullquote-body {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-tech);
+    font-size: clamp(1.5rem, 3.5vw, 2.75rem);
+    line-height: 1.18;
+    color: var(--color-white);
+    margin: 0;
+    position: relative;
+  }
+  .pham-story__pullquote-mark {
+    color: var(--color-placeholder);
+    margin-right: 0.25em;
+  }
+  .pham-story__pullquote-cite {
+    margin-top: var(--space-sm);
+    color: var(--color-placeholder);
+  }
+
+  .pham-story__cta-wrap {
+    display: flex;
+    justify-content: flex-start;
+  }
+  .pham-story__cta {
+    padding-block: 18px;
+    min-width: 240px;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 760px) {
+    .pham-story__intro { grid-template-columns: 1fr; }
+    .pham-story__chapter { grid-template-columns: 56px 1fr; }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Brand Story",
+  "tag": "section",
+  "class": "pham-story-section",
+  "max_blocks": 18,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Header"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "PHAM · MANIFESTO"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Silence is luxury. Restraint is power."
+    },
+    {
+      "type": "header",
+      "content": "Two-column intro"
+    },
+    {
+      "type": "richtext",
+      "id": "intro_left",
+      "label": "Left column",
+      "default": "<p>PHAM is an atelier of considered restraint. We design and produce a <strong>single garment</strong> each season — slowly, deliberately, and without repetition.</p><p>What survives is the work itself: cut by hand, sewn in small batches, finished one piece at a time.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "intro_right",
+      "label": "Right column",
+      "default": "<p>We reject seasonal velocity, trend cycles, and the noise of the modern catalogue. Each edition is sealed when complete — never re-issued.</p><p>Quiet, technical, permanent.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Pull quote"
+    },
+    {
+      "type": "textarea",
+      "id": "pull_quote",
+      "label": "Pull quote",
+      "default": "We refuse to scale. The atelier exists to make one thing at a time."
+    },
+    {
+      "type": "text",
+      "id": "pull_quote_attr",
+      "label": "Attribution",
+      "default": "PHAM · BRAND MANIFESTO"
+    },
+    {
+      "type": "header",
+      "content": "CTA"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA label",
+      "default": "VIEW THE EDITION"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA link"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "Stat counter",
+      "settings": [
+        {
+          "type": "number",
+          "id": "value",
+          "label": "Number",
+          "default": 100
+        },
+        {
+          "type": "text",
+          "id": "prefix",
+          "label": "Prefix"
+        },
+        {
+          "type": "text",
+          "id": "suffix",
+          "label": "Suffix"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "HOURS PER GARMENT"
+        }
+      ]
+    },
+    {
+      "type": "chapter",
+      "name": "Chapter (timeline)",
+      "settings": [
+        {
+          "type": "text",
+          "id": "year",
+          "label": "Year / marker",
+          "default": "2024"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Chapter title",
+          "default": "Founded · Atelier 01"
+        },
+        {
+          "type": "richtext",
+          "id": "body",
+          "label": "Body",
+          "default": "<p>PHAM was founded as a quiet refusal of seasonal velocity. The first atelier opened with a single workbench, a single cutter, and a single garment in mind.</p>"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image (optional)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Brand Story",
+      "category": "PHAM",
+      "blocks": [
+        { "type": "stat", "settings": { "value": 1, "label": "GARMENT PER EDITION" } },
+        { "type": "stat", "settings": { "value": 42, "suffix": "h", "label": "HOURS PER PIECE" } },
+        { "type": "stat", "settings": { "value": 100, "suffix": "%", "label": "HAND-FINISHED" } },
+        { "type": "stat", "settings": { "value": 0, "label": "RE-ISSUES" } },
+        { "type": "chapter", "settings": { "year": "2024", "title": "Founded · Atelier 01" } },
+        { "type": "chapter", "settings": { "year": "2025", "title": "First sealed edition" } },
+        { "type": "chapter", "settings": { "year": "2026", "title": "Edition · 01 / Spring" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page"]
+  }
+}
+{% endschema %}

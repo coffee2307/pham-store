@@ -6,27 +6,27 @@
         "eyebrow": {
           "type": "eyebrow",
           "settings": {
-            "text": "NEW EDITION · SS26"
+            "text": "PHAM · SINGLE EDITION"
           }
         },
         "heading": {
           "type": "heading",
           "settings": {
-            "text": "Silence is luxury.",
+            "text": "One garment. Made slowly.",
             "font_size": 112
           }
         },
         "subheading": {
           "type": "subheading",
           "settings": {
-            "text": "Restraint is power. An atelier of considered, slow-made garments."
+            "text": "An atelier of considered restraint. PHAM produces a single, sealed edition — quietly engineered, never re-issued."
           }
         },
         "button": {
           "type": "button",
           "settings": {
-            "label": "Discover the Collection",
-            "link": "shopify://collections/all",
+            "label": "SECURE YOUR PRE-ORDER",
+            "link": "",
             "open_new_tab": false
           }
         }
@@ -55,35 +55,9 @@
         "speed": 40,
         "font_style": "mono",
         "font_size": 14,
-        "background": "#0D0D0D",
-        "text_color": "#EAE6DF",
-        "accent_color": "#C5A880"
-      }
-    },
-    "pham-capsule-grid": {
-      "type": "pham-capsule-grid",
-      "settings": {
-        "eyebrow": "EDITION 01",
-        "title": "The Capsule",
-        "subtitle": "Eight pieces. One season. Slow-made in limited editions.",
-        "collection": "all",
-        "products_limit": 8,
-        "desktop_columns": 4,
-        "mobile_columns": 2,
-        "show_view_all": true,
-        "view_all_label": "View all"
-      }
-    },
-    "pham-lookbook": {
-      "type": "pham-lookbook",
-      "settings": {
-        "caption": "PHAM SS26 · Look 04",
-        "enable_parallax": true,
-        "eyebrow": "EDITORIAL · 01",
-        "title": "The Architecture of Restraint",
-        "body": "<p>Slow-made in limited editions. Each piece is constructed in our atelier from Italian wool, Japanese silk, and Portuguese cotton — quietly, deliberately, and without season.</p>",
-        "cta_label": "Read the editorial",
-        "media_position": "left"
+        "background": "#0A0A0C",
+        "text_color": "#E8E8EA",
+        "accent_color": "#FFFFFF"
       }
     },
     "pham-product-spotlight": {
@@ -95,13 +69,136 @@
         "show_view_pdp": true,
         "media_position": "left"
       }
+    },
+    "pham-story": {
+      "type": "pham-story",
+      "blocks": {
+        "stat_1": { "type": "stat", "settings": { "value": 1,  "label": "GARMENT PER EDITION" } },
+        "stat_2": { "type": "stat", "settings": { "value": 42, "suffix": "h", "label": "HOURS PER PIECE" } },
+        "stat_3": { "type": "stat", "settings": { "value": 100, "suffix": "%", "label": "HAND-FINISHED" } },
+        "stat_4": { "type": "stat", "settings": { "value": 0,  "label": "RE-ISSUES" } },
+        "chapter_1": {
+          "type": "chapter",
+          "settings": {
+            "year": "2024",
+            "title": "Founded · Atelier 01",
+            "body": "<p>PHAM was founded as a quiet refusal of seasonal velocity. The first atelier opened with a single workbench, a single cutter, and a single garment in mind.</p>"
+          }
+        },
+        "chapter_2": {
+          "type": "chapter",
+          "settings": {
+            "year": "2025",
+            "title": "First sealed edition",
+            "body": "<p>The inaugural edition closed at twenty pieces — each numbered, each hand-finished, each retired the moment the run ended.</p>"
+          }
+        },
+        "chapter_3": {
+          "type": "chapter",
+          "settings": {
+            "year": "2026",
+            "title": "Edition · 01 / Spring",
+            "body": "<p>The current edition is in production. When the seal closes, it will not reopen.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "stat_1", "stat_2", "stat_3", "stat_4",
+        "chapter_1", "chapter_2", "chapter_3"
+      ],
+      "settings": {
+        "eyebrow": "PHAM · MANIFESTO",
+        "title": "Silence is luxury. Restraint is power.",
+        "intro_left": "<p>PHAM is an atelier of considered restraint. We design and produce a <strong>single garment</strong> each season — slowly, deliberately, and without repetition.</p><p>What survives is the work itself: cut by hand, sewn in small batches, finished one piece at a time.</p>",
+        "intro_right": "<p>We reject seasonal velocity, trend cycles, and the noise of the modern catalogue. Each edition is sealed when complete — never re-issued.</p><p>Quiet, technical, permanent.</p>",
+        "pull_quote": "We refuse to scale. The atelier exists to make one thing at a time.",
+        "pull_quote_attr": "PHAM · BRAND MANIFESTO",
+        "cta_label": "VIEW THE EDITION",
+        "cta_link": ""
+      }
+    },
+    "pham-lookbook": {
+      "type": "pham-lookbook",
+      "blocks": {
+        "look_1": {
+          "type": "image",
+          "settings": {
+            "size": "lg",
+            "aspect": "4-5",
+            "overlay_eyebrow": "LOOK · 01",
+            "overlay_text": "The Silhouette",
+            "caption": "PHAM SS26 · FRAME 01",
+            "parallax_speed": 0.18
+          }
+        },
+        "look_2": {
+          "type": "image",
+          "settings": {
+            "size": "sm",
+            "aspect": "1-1",
+            "caption": "DETAIL · STITCH 04",
+            "parallax_speed": 0.1
+          }
+        },
+        "spec_1": { "type": "spec" },
+        "quote_1": { "type": "quote", "settings": { "size": "md" } },
+        "look_3": {
+          "type": "image",
+          "settings": {
+            "size": "md",
+            "aspect": "16-9",
+            "caption": "ATELIER · IN-PROCESS",
+            "parallax_speed": 0.2
+          }
+        },
+        "look_4": {
+          "type": "image",
+          "settings": {
+            "size": "sm",
+            "aspect": "3-4",
+            "caption": "FABRIC · CLOSE STUDY",
+            "parallax_speed": 0.12
+          }
+        },
+        "look_5": {
+          "type": "image",
+          "settings": {
+            "size": "md",
+            "aspect": "4-5",
+            "overlay_eyebrow": "LOOK · 02",
+            "overlay_text": "The Drape",
+            "parallax_speed": 0.18
+          }
+        },
+        "editorial_1": {
+          "type": "editorial",
+          "settings": {
+            "size": "md",
+            "eyebrow": "PROCESS",
+            "heading": "Cut by hand.",
+            "body": "<p>The pattern is drawn on a single bolt of wool. There is no second attempt. The cutter works once, sews once, and seals the edition.</p>",
+            "cta_label": "READ THE PROCESS"
+          }
+        }
+      },
+      "block_order": [
+        "look_1", "look_2", "spec_1", "quote_1",
+        "look_3", "look_4", "look_5", "editorial_1"
+      ],
+      "settings": {
+        "eyebrow": "EDITORIAL · PHAM",
+        "title": "The Architecture of Restraint",
+        "intro": "A visual study of a single garment — its silhouette, fabric, and the slow process behind it.",
+        "enable_parallax": true,
+        "columns": 12
+      }
     }
   },
   "order": [
     "pham-hero",
     "pham-marquee",
-    "pham-capsule-grid",
-    "pham-lookbook",
-    "pham-product-spotlight"
+    "pham-product-spotlight",
+    "pham-story",
+    "pham-lookbook"
   ]
 }

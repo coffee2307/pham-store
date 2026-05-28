@@ -1,4 +1,6 @@
 <!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- capture sr_product_url -%}{%- render 'pham-featured-product-url' -%}{%- endcapture -%}
+{%- assign sr_product_url = sr_product_url | strip -%}
 {%- liquid
   assign per_page = section.settings.products_per_page | default: 12
   assign terms    = search.terms | escape
@@ -28,7 +30,7 @@
                type="search"
                name="q"
                value="{{ terms }}"
-               placeholder="Search products, editorials, journal…"
+               placeholder="SEARCH..."
                class="pham-search__input"
                autocomplete="off"
                spellcheck="false"
@@ -103,8 +105,8 @@
       {%- else -%}
         <div class="pham-search__empty">
           <p class="pham-search__empty-text">No pieces match this search.</p>
-          <a href="{{ routes.all_products_collection_url }}" class="pham-search__empty-cta">
-            <span>Browse the collection</span>
+          <a href="{{ sr_product_url }}" class="pham-search__empty-cta">
+            <span>View the Edition</span>
             <span aria-hidden="true">&rarr;</span>
           </a>
         </div>
@@ -112,164 +114,6 @@
     {%- endif -%}
   </div>
 </section>
-
-<style>
-  .pham-search {
-    background-color: var(--color-void);
-    color: var(--color-bone);
-    padding-block: var(--space-2xl);
-    min-height: 60vh;
-  }
-  .pham-search__head {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-xl);
-    max-width: 720px;
-  }
-  .pham-search__title {
-    font-family: var(--font-display);
-    font-weight: 300;
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    line-height: 1.05;
-    letter-spacing: var(--tracking-tight);
-    color: var(--color-bone);
-    margin: 0;
-  }
-  .pham-search__form {
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid var(--color-ash);
-    transition: border-color var(--duration-base) var(--ease-luxury);
-  }
-  .pham-search__form:focus-within { border-color: var(--color-accent); }
-  .pham-search__input {
-    flex: 1;
-    background: transparent;
-    border: 0;
-    padding: var(--space-sm) 0;
-    color: var(--color-bone);
-    font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 300;
-    font-size: var(--text-lg);
-  }
-  .pham-search__input:focus { outline: none; }
-  .pham-search__input::placeholder { color: var(--color-smoke); }
-  .pham-search__submit {
-    background: transparent;
-    border: 0;
-    color: var(--color-bone);
-    cursor: pointer;
-    padding: var(--space-sm);
-    display: inline-flex;
-    align-items: center;
-  }
-  .pham-search__submit:hover { color: var(--color-accent); }
-  .pham-search__count {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-luxury);
-    text-transform: uppercase;
-    color: var(--color-smoke);
-    margin: 0;
-  }
-
-  .pham-search__list {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background-color: var(--color-ash);
-    border: 1px solid var(--color-ash);
-  }
-  .pham-search__cell {
-    background-color: var(--color-void);
-    padding: var(--space-sm);
-    display: flex;
-  }
-  .pham-search__cell .pham-product-card { width: 100%; }
-
-  .pham-search__article,
-  .pham-search__page {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
-    text-decoration: none;
-    color: inherit;
-    width: 100%;
-  }
-  .pham-search__article-img {
-    width: 100%;
-    aspect-ratio: 3/4;
-    object-fit: cover;
-    display: block;
-  }
-  .pham-search__article-title,
-  .pham-search__page-title {
-    font-family: var(--font-display);
-    font-weight: 300;
-    font-size: var(--text-lg);
-    color: var(--color-bone);
-    margin: 0;
-  }
-  .pham-search__article:hover .pham-search__article-title,
-  .pham-search__page:hover .pham-search__page-title { color: var(--color-accent); }
-
-  .pham-search__pagination {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-md);
-    margin-top: var(--space-xl);
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-luxury);
-    text-transform: uppercase;
-  }
-  .pham-search__page-link {
-    color: var(--color-bone);
-    text-decoration: none;
-    padding-bottom: 2px;
-    border-bottom: 1px solid var(--color-ash);
-  }
-  .pham-search__page-link:hover { color: var(--color-accent); border-color: var(--color-accent); }
-  .pham-search__page-info { color: var(--color-smoke); }
-
-  .pham-search__empty {
-    text-align: center;
-    padding-block: var(--space-2xl);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
-    align-items: center;
-  }
-  .pham-search__empty-text {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-size: var(--text-xl);
-    color: var(--color-bone-80);
-    margin: 0;
-  }
-  .pham-search__empty-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: var(--space-sm) var(--space-md);
-    border: 1px solid var(--color-bone);
-    color: var(--color-bone);
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-luxury);
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: background-color var(--duration-base) var(--ease-luxury), color var(--duration-base) var(--ease-luxury);
-  }
-  .pham-search__empty-cta:hover { background-color: var(--color-accent); border-color: var(--color-accent); color: var(--color-void); }
-
-  @media (max-width: 768px) {
-    .pham-search__list { grid-template-columns: repeat(2, 1fr); }
-  }
-</style>
 
 {% schema %}
 {

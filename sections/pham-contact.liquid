@@ -1,0 +1,144 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+<section class="pham-contact" data-pham-contact data-section-id="{{ section.id }}" role="region" aria-label="Contact">
+  <div class="pham-container pham-contact__inner">
+    <header class="pham-contact__head reveal-up">
+      <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
+      <h1 class="pham-contact__title">{{ section.settings.heading }}</h1>
+      {%- if section.settings.intro != blank -%}
+        <p class="pham-contact__intro">{{ section.settings.intro }}</p>
+      {%- endif -%}
+    </header>
+
+    {%- form 'contact', id: 'pham-contact-form', class: 'pham-contact__form reveal-up' -%}
+      {%- if form.posted_successfully? -%}
+        <p class="pham-contact__msg pham-contact__msg--success" role="status">
+          {{ section.settings.success_message }}
+        </p>
+      {%- endif -%}
+
+      {%- if form.errors -%}
+        <div class="pham-contact__msg pham-contact__msg--error" role="alert">
+          <p class="pham-contact__msg-heading">Please correct the following:</p>
+          {{ form.errors | default_errors }}
+        </div>
+      {%- endif -%}
+
+      <div class="pham-contact__fields">
+        <div class="pham-contact__field">
+          <label for="pham-contact-name-{{ section.id }}" class="pham-contact__label">Your Name</label>
+          <input id="pham-contact-name-{{ section.id }}"
+                 type="text"
+                 name="contact[name]"
+                 class="pham-contact__input"
+                 placeholder="YOUR NAME"
+                 value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
+                 autocomplete="name"
+                 required>
+        </div>
+
+        <div class="pham-contact__field">
+          <label for="pham-contact-email-{{ section.id }}" class="pham-contact__label">Email</label>
+          <input id="pham-contact-email-{{ section.id }}"
+                 type="email"
+                 name="contact[email]"
+                 class="pham-contact__input"
+                 placeholder="EMAIL ADDRESS"
+                 value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+                 autocomplete="email"
+                 spellcheck="false"
+                 autocapitalize="off"
+                 required>
+        </div>
+
+        <div class="pham-contact__field">
+          <label for="pham-contact-phone-{{ section.id }}" class="pham-contact__label">Phone</label>
+          <input id="pham-contact-phone-{{ section.id }}"
+                 type="tel"
+                 name="contact[phone]"
+                 class="pham-contact__input"
+                 placeholder="PHONE NUMBER"
+                 value="{% if form.phone %}{{ form.phone }}{% endif %}"
+                 autocomplete="tel">
+        </div>
+
+        <div class="pham-contact__field pham-contact__field--full">
+          <label for="pham-contact-body-{{ section.id }}" class="pham-contact__label">Message</label>
+          <textarea id="pham-contact-body-{{ section.id }}"
+                    name="contact[body]"
+                    class="pham-contact__textarea"
+                    placeholder="MESSAGE"
+                    rows="6"
+                    required>{% if form.body %}{{ form.body }}{% endif %}</textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="pham-btn pham-contact__submit">
+        {{ section.settings.submit_label }}
+      </button>
+    {%- endform -%}
+
+    {%- if section.settings.show_back_link -%}
+      <p class="pham-contact__back">
+        <a href="{{ routes.root_url }}" class="pham-back-link pham-contact__back-link">
+          <span class="pham-back-link__arrow" aria-hidden="true">&larr;</span>
+          <span class="pham-back-link__label">RETURN TO ATELIER</span>
+        </a>
+      </p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "PHAM Contact",
+  "tag": "section",
+  "class": "pham-contact-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "PHAM · CONTACT HUB"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Contact Hub"
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Introduction",
+      "default": "Direct line to the atelier. All inquiries are reviewed manually."
+    },
+    {
+      "type": "text",
+      "id": "submit_label",
+      "label": "Submit button label",
+      "default": "Send Message"
+    },
+    {
+      "type": "text",
+      "id": "success_message",
+      "label": "Success message",
+      "default": "Message received. The atelier will respond when ready."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_back_link",
+      "label": "Show return-to-home link",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Contact",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

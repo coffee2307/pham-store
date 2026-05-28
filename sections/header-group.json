@@ -5,6 +5,14 @@
     "pham-header": {
       "type": "pham-header",
       "settings": {
+        "single_product_mode": true,
+        "show_home": true,
+        "home_label": "HOME",
+        "show_product": true,
+        "product_label": "PRODUCT",
+        "show_contact": true,
+        "contact_label": "CONTACT",
+        "contact_url": "/pages/contact",
         "menu": "main-menu",
         "show_search": true,
         "show_account": true,

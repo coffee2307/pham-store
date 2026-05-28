@@ -18,7 +18,10 @@
 
     {%- if section.settings.show_back_link -%}
       <p class="pham-page__back">
-        <a href="{{ routes.root_url }}" class="pham-page__back-link">&larr; Return to atelier</a>
+        <a href="{{ routes.root_url }}" class="pham-back-link pham-page__back-link">
+          <span class="pham-back-link__arrow" aria-hidden="true">&larr;</span>
+          <span class="pham-back-link__label">RETURN TO ATELIER</span>
+        </a>
       </p>
     {%- endif -%}
   </div>
@@ -74,16 +77,6 @@
     padding-top: var(--space-md);
     border-top: 1px solid var(--color-ash);
   }
-  .pham-page__back-link {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-luxury);
-    text-transform: uppercase;
-    color: var(--color-smoke);
-    text-decoration: none;
-    transition: color var(--duration-fast) var(--ease-luxury);
-  }
-  .pham-page__back-link:hover { color: var(--color-accent); }
 </style>
 
 {% schema %}

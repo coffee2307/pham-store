@@ -1,0 +1,406 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- capture pham_feat_handle -%}{%- render 'pham-featured-product-handle', product_ref: section.settings.product -%}{%- endcapture -%}
+{%- assign pham_feat_handle = pham_feat_handle | strip -%}
+{%- if pham_feat_handle != blank -%}
+  {%- assign focus_product = all_products[pham_feat_handle] -%}
+{%- endif -%}
+{%- if focus_product == blank or focus_product == nil -%}
+  {%- for pham_item in collections.all.products limit: 1 -%}
+    {%- assign focus_product = pham_item -%}
+  {%- endfor -%}
+{%- endif -%}
+{%- liquid
+
+  assign focus_variant = focus_product.selected_or_first_available_variant
+  assign hero_image    = section.settings.hero_image
+  if hero_image == blank
+    assign hero_image = focus_product.featured_image
+  endif
+-%}
+
+<section class="pham-product-focus"
+         data-pham-product-focus
+         data-section-id="{{ section.id }}"
+         role="region"
+         aria-label="{{ focus_product.title | default: 'Featured product' | escape }}">
+  <div class="pham-container">
+
+    {%- comment -%} EDITORIAL HEADER {%- endcomment -%}
+    <header class="pham-product-focus__head reveal-up">
+      <p class="pham-eyebrow">{{ section.settings.eyebrow | default: 'PHAM · SINGLE EDITION' }}</p>
+      <h1 class="pham-product-focus__title">
+        <span class="pham-split" data-pham-split>{{ section.settings.heading | default: 'One garment. Made slowly.' }}</span>
+      </h1>
+      {%- if section.settings.intro != blank -%}
+        <p class="pham-product-focus__intro">{{ section.settings.intro }}</p>
+      {%- endif -%}
+      <p class="pham-product-focus__meta pham-eyebrow">
+        <span>EDITION · 01</span>
+        <span aria-hidden="true">/</span>
+        <span>SEALED RELEASE</span>
+      </p>
+    </header>
+
+    {%- if focus_product != blank and focus_product != nil -%}
+      <div class="pham-product-focus__grid">
+
+        {%- comment -%} VISUAL — large hero image with clip-mask reveal {%- endcomment -%}
+        <figure class="pham-product-focus__visual reveal-mask">
+          <div class="pham-product-focus__visual-frame" data-pham-parallax data-pham-parallax-speed="0.18">
+            {%- if hero_image != blank -%}
+              {{ hero_image
+                  | image_url: width: 1800
+                  | image_tag:
+                    loading: 'eager',
+                    fetchpriority: 'high',
+                    widths: '480, 768, 1080, 1440, 1800',
+                    sizes: '(max-width: 900px) 100vw, 60vw',
+                    class: 'pham-product-focus__img',
+                    alt: focus_product.title | escape
+              }}
+            {%- else -%}
+              <div class="pham-product-focus__img pham-skeleton" aria-hidden="true"></div>
+            {%- endif -%}
+          </div>
+          <figcaption class="pham-product-focus__caption">
+            <span class="pham-product-focus__caption-mark" aria-hidden="true">▢</span>
+            <span>{{ section.settings.caption | default: focus_product.title }}</span>
+          </figcaption>
+        </figure>
+
+        {%- comment -%} PANEL — product detail capsule {%- endcomment -%}
+        <aside class="pham-product-focus__panel reveal-up">
+          <div class="pham-product-focus__panel-inner">
+
+            {%- if focus_product.vendor != blank -%}
+              <p class="pham-eyebrow pham-product-focus__vendor">{{ focus_product.vendor }}</p>
+            {%- endif -%}
+
+            <h2 class="pham-product-focus__product-title">{{ focus_product.title }}</h2>
+
+            <div class="pham-product-focus__price-row">
+              <span class="pham-eyebrow pham-product-focus__price-label">Price</span>
+              <span class="pham-product-focus__price">
+                {%- if focus_product.compare_at_price > focus_product.price -%}
+                  <s class="pham-product-focus__price-compare">{{ focus_product.compare_at_price | money }}</s>
+                  <span class="pham-product-focus__price-sale">{{ focus_variant.price | money }}</span>
+                {%- else -%}
+                  {{ focus_variant.price | money }}
+                {%- endif -%}
+              </span>
+            </div>
+
+            {%- if focus_variant.inventory_management != blank and focus_variant.inventory_quantity > 0 and focus_variant.inventory_quantity <= 5 -%}
+              <p class="pham-product-focus__scarcity">
+                EDITION OF {{ focus_variant.inventory_quantity }} AVAILABLE
+              </p>
+            {%- endif -%}
+
+            {%- if focus_product.description != blank -%}
+              <div class="pham-product-focus__desc rte">
+                {{ focus_product.description | strip_html | truncatewords: 45 }}
+              </div>
+            {%- endif -%}
+
+            <a href="{{ focus_product.url }}" class="pham-btn pham-product-focus__cta pham-product-focus__cta--preorder">
+              <span>SECURE PRE-ORDER</span>
+              <span class="pham-product-focus__cta-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <ul class="pham-product-focus__specs" role="list">
+              <li>
+                <span class="pham-eyebrow">Origin</span>
+                <span>{{ section.settings.spec_origin | default: 'Atelier · Vietnam' }}</span>
+              </li>
+              <li>
+                <span class="pham-eyebrow">Construction</span>
+                <span>{{ section.settings.spec_construction | default: 'Hand-finished · Slow-made' }}</span>
+              </li>
+              <li>
+                <span class="pham-eyebrow">Edition</span>
+                <span>{{ section.settings.spec_edition | default: 'Single · Sealed' }}</span>
+              </li>
+            </ul>
+
+          </div>
+        </aside>
+      </div>
+    {%- else -%}
+      <div class="pham-product-focus__empty">
+        <p class="pham-eyebrow">No edition published.</p>
+        <p>Select a featured product in <strong>Theme settings → PHAM Brand → Featured product</strong>.</p>
+      </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+<style>
+  .pham-product-focus {
+    background-color: var(--color-void);
+    color: var(--color-bone);
+    padding-block: clamp(64px, 9vw, 128px);
+  }
+  .pham-product-focus__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    max-width: 880px;
+    margin-bottom: clamp(40px, 6vw, 72px);
+  }
+  .pham-product-focus__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-tech);
+    font-size: clamp(2.25rem, 6vw, 4.5rem);
+    line-height: 1.02;
+    color: var(--color-bone);
+    margin: 0;
+    overflow: hidden;
+  }
+  .pham-product-focus__intro {
+    font-family: var(--font-body);
+    font-size: clamp(var(--text-md), 1.2vw, var(--text-lg));
+    line-height: 1.7;
+    color: var(--color-bone-80);
+    max-width: 60ch;
+    margin: 0;
+  }
+  .pham-product-focus__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--color-placeholder);
+    margin: 0;
+  }
+  .pham-product-focus__grid {
+    display: grid;
+    grid-template-columns: 6fr 4fr;
+    gap: clamp(24px, 4vw, 80px);
+    align-items: start;
+  }
+  .pham-product-focus__visual {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    position: relative;
+  }
+  .pham-product-focus__visual-frame {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background-color: var(--color-obsidian);
+    border: 1px solid var(--color-ash);
+    isolation: isolate;
+  }
+  .pham-product-focus__img {
+    position: absolute;
+    inset: -8% -2%;
+    width: 104%;
+    height: 116%;
+    object-fit: cover;
+    display: block;
+    will-change: transform;
+    transform: translate3d(0, var(--pham-parallax-y, 0), 0);
+    transition: none;
+  }
+  .pham-product-focus__caption {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-placeholder);
+  }
+  .pham-product-focus__caption-mark { color: var(--color-white); }
+
+  .pham-product-focus__panel {
+    position: sticky;
+    top: 120px;
+    align-self: start;
+  }
+  .pham-product-focus__panel-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    border: 1px solid var(--color-ash);
+    padding: clamp(20px, 2.5vw, 36px);
+    background-color: rgba(20, 20, 26, 0.65);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  .pham-product-focus__vendor { margin: 0; color: var(--color-placeholder); }
+  .pham-product-focus__product-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-tech);
+    font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+    line-height: 1.1;
+    color: var(--color-bone);
+    margin: 0;
+  }
+  .pham-product-focus__price-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-top: 1px solid var(--color-ash);
+    border-bottom: 1px solid var(--color-ash);
+    padding-block: var(--space-sm);
+  }
+  .pham-product-focus__price-label { color: var(--color-placeholder); }
+  .pham-product-focus__price {
+    font-family: var(--font-mono);
+    font-size: var(--text-lg);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-white);
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+  }
+  .pham-product-focus__price-compare { color: var(--color-placeholder); }
+  .pham-product-focus__price-sale    { color: var(--color-warning); }
+  .pham-product-focus__scarcity {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-warning);
+    margin: 0;
+    padding: 6px 10px;
+    border: 1px solid var(--color-warning);
+    align-self: flex-start;
+  }
+  .pham-product-focus__desc {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: 1.7;
+    color: var(--color-bone-80);
+    margin: 0;
+  }
+  .pham-product-focus__cta {
+    align-self: stretch;
+    padding-block: 18px;
+    justify-content: space-between;
+  }
+  .pham-product-focus__cta-arrow {
+    transition: transform var(--duration-base) var(--ease-tech);
+  }
+  .pham-product-focus__cta:hover .pham-product-focus__cta-arrow {
+    transform: translateX(6px);
+  }
+
+  .pham-product-focus__specs {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-sm) 0 0;
+    border-top: 1px solid var(--color-ash);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+  }
+  .pham-product-focus__specs li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-transform: uppercase;
+    color: var(--color-bone);
+  }
+
+  .pham-product-focus__empty {
+    border: 1px dashed var(--color-ash);
+    padding: var(--space-2xl);
+    text-align: center;
+    color: var(--color-bone-80);
+    font-family: var(--font-mono);
+  }
+  .pham-product-focus__empty strong { color: var(--color-white); }
+
+  @media (max-width: 960px) {
+    .pham-product-focus__grid { grid-template-columns: 1fr; gap: var(--space-xl); }
+    .pham-product-focus__panel { position: static; }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Product Focus",
+  "tag": "section",
+  "class": "pham-product-focus-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "PHAM · SINGLE EDITION"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "One garment. Made slowly."
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Introduction",
+      "default": "PHAM produces a single, sealed edition each season. No catalogue. No repeats. Only this."
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Featured product (override)",
+      "info": "Optional. Defaults to PHAM Brand → Featured product."
+    },
+    {
+      "type": "image_picker",
+      "id": "hero_image",
+      "label": "Hero image (override)",
+      "info": "Optional. Defaults to the product's first image."
+    },
+    {
+      "type": "text",
+      "id": "caption",
+      "label": "Image caption"
+    },
+    {
+      "type": "header",
+      "content": "Specifications"
+    },
+    {
+      "type": "text",
+      "id": "spec_origin",
+      "label": "Origin",
+      "default": "Atelier · Vietnam"
+    },
+    {
+      "type": "text",
+      "id": "spec_construction",
+      "label": "Construction",
+      "default": "Hand-finished · Slow-made"
+    },
+    {
+      "type": "text",
+      "id": "spec_edition",
+      "label": "Edition",
+      "default": "Single · Sealed"
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Product Focus",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["collection", "list-collections", "page"]
+  }
+}
+{% endschema %}

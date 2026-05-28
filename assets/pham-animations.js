@@ -69,7 +69,7 @@
 
     _revealAllNow() {
       const nodes = document.querySelectorAll(
-        '.reveal-up:not(.is-visible), .stagger-children:not(.is-visible)'
+        '.reveal-up:not(.is-visible), .stagger-children:not(.is-visible), .reveal-mask:not(.is-visible), .reveal-mask--up:not(.is-visible), .reveal-mask--down:not(.is-visible), .reveal-left:not(.is-visible), .reveal-right:not(.is-visible), .reveal-fade:not(.is-visible)'
       );
       nodes.forEach((n) => n.classList.add('is-visible'));
     }
@@ -77,7 +77,7 @@
     observe() {
       if (!this.observer) return;
       const nodes = document.querySelectorAll(
-        '.reveal-up:not(.is-visible), .stagger-children:not(.is-visible)'
+        '.reveal-up:not(.is-visible), .stagger-children:not(.is-visible), .reveal-mask:not(.is-visible), .reveal-mask--up:not(.is-visible), .reveal-mask--down:not(.is-visible), .reveal-left:not(.is-visible), .reveal-right:not(.is-visible), .reveal-fade:not(.is-visible)'
       );
       nodes.forEach((el) => {
         if (this.observed.has(el)) return;
@@ -90,6 +90,10 @@
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
         const target = entry.target;
+        const delayAttr = parseInt(target.getAttribute('data-pham-delay') || '0', 10);
+        if (delayAttr > 0) {
+          target.style.transitionDelay = delayAttr + 'ms';
+        }
         if (target.classList.contains('stagger-children')) {
           this._applyStagger(target);
         }
@@ -130,6 +134,10 @@
     }
 
     _init() {
+      // v2.0 (techwear) — body fade-in/out is intentionally disabled to
+      // eliminate flash-of-unstyled-content (FOUC). Body stays opaque.
+      // We keep the class for compatibility with downstream consumers but
+      // no opacity transition is applied (see pham-theme.css §2).
       requestAnimationFrame(() => {
         document.body.classList.add('pham-page-ready');
       });
@@ -142,10 +150,10 @@
         }
       }
 
-      if (!this._horizonOwnsTransitions()) {
-        document.addEventListener('click', this.boundClick, true);
-      }
-
+      // Link interception is disabled in techwear v2.0 — Shopify's native
+      // navigation is preferred for a snappier industrial feel.
+      // (Original logic kept inside _onClick for future opt-in via
+      // [data-pham-transition="true"] on a parent element.)
       window.addEventListener('pageshow', this.boundPageShow);
     }
 
@@ -311,6 +319,195 @@
   }
 
   /* ====================================================================
+     MODULE 4 — Scroll Parallax (data-pham-parallax)
+     ==================================================================== */
+  class PhamParallax {
+    constructor() {
+      this.targets = [];
+      this.ticking = false;
+      this.io = null;
+      this.activeSet = new Set();
+      this._init();
+    }
+
+    _init() {
+      if (prefersReducedMotion) return;
+      this.collect();
+      this.io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) this.activeSet.add(entry.target);
+          else this.activeSet.delete(entry.target);
+        });
+        if (this.activeSet.size > 0) this._requestUpdate();
+      }, { rootMargin: '20% 0px 20% 0px', threshold: 0 });
+      this.targets.forEach((t) => this.io.observe(t));
+      window.addEventListener('scroll', () => this._requestUpdate(), { passive: true });
+      window.addEventListener('resize', () => this._requestUpdate(), { passive: true });
+      document.addEventListener('shopify:section:load', () => this.refresh());
+    }
+
+    collect() {
+      const nodes = document.querySelectorAll('[data-pham-parallax]');
+      nodes.forEach((n) => {
+        if (this.targets.indexOf(n) === -1) this.targets.push(n);
+      });
+    }
+
+    _requestUpdate() {
+      if (this.ticking) return;
+      this.ticking = true;
+      requestAnimationFrame(() => {
+        this._update();
+        this.ticking = false;
+      });
+    }
+
+    _update() {
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      this.activeSet.forEach((el) => {
+        const speed = parseFloat(el.getAttribute('data-pham-parallax-speed') || '0.15');
+        if (speed === 0) return;
+        const rect = el.getBoundingClientRect();
+        const progress = (rect.top + rect.height / 2 - vh / 2) / vh;
+        const y = -progress * 100 * speed;
+        el.style.setProperty('--pham-parallax-y', y.toFixed(2) + 'px');
+      });
+    }
+
+    refresh() {
+      this.collect();
+      if (this.io) this.targets.forEach((t) => this.io.observe(t));
+      this._requestUpdate();
+    }
+  }
+
+  /* ====================================================================
+     MODULE 5 — Counter (data-pham-counter, data-pham-counter-to)
+     ==================================================================== */
+  class PhamCounter {
+    constructor() {
+      this.bound = new WeakSet();
+      this._init();
+    }
+
+    _init() {
+      if (!('IntersectionObserver' in window)) {
+        document.querySelectorAll('[data-pham-counter]').forEach((el) => this._render(el, this._target(el)));
+        return;
+      }
+      this.io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const el = entry.target;
+          if (this.bound.has(el)) return;
+          this.bound.add(el);
+          this._animate(el);
+          this.io.unobserve(el);
+        });
+      }, { threshold: 0.4 });
+      document.querySelectorAll('[data-pham-counter]').forEach((el) => this.io.observe(el));
+      document.addEventListener('shopify:section:load', () => this.refresh());
+    }
+
+    _target(el) {
+      return parseFloat(el.getAttribute('data-pham-counter-to') || '0') || 0;
+    }
+
+    _render(el, value) {
+      const prefix = el.getAttribute('data-pham-counter-prefix') || '';
+      const suffix = el.getAttribute('data-pham-counter-suffix') || '';
+      const decimals = Number.isInteger(value) ? 0 : 1;
+      el.textContent = prefix + value.toFixed(decimals) + suffix;
+    }
+
+    _animate(el) {
+      if (prefersReducedMotion) {
+        this._render(el, this._target(el));
+        return;
+      }
+      const target = this._target(el);
+      const duration = 1400;
+      const start = performance.now();
+      const tick = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const current = target * eased;
+        this._render(el, Number.isInteger(target) ? Math.round(current) : current);
+        if (t < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    refresh() {
+      document.querySelectorAll('[data-pham-counter]').forEach((el) => {
+        if (this.bound.has(el)) return;
+        if (this.io) this.io.observe(el);
+      });
+    }
+  }
+
+  /* ====================================================================
+     MODULE 6 — Split Text (data-pham-split)
+     ==================================================================== */
+  class PhamSplitText {
+    constructor() {
+      this.bound = new WeakSet();
+      this._init();
+    }
+
+    _init() {
+      this._splitAll();
+      if ('IntersectionObserver' in window) {
+        this.io = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-revealed');
+              this.io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.25 });
+        document.querySelectorAll('[data-pham-split]').forEach((el) => this.io.observe(el));
+      } else {
+        document.querySelectorAll('[data-pham-split]').forEach((el) => el.classList.add('is-revealed'));
+      }
+      document.addEventListener('shopify:section:load', () => this.refresh());
+    }
+
+    _splitAll() {
+      const nodes = document.querySelectorAll('[data-pham-split]');
+      nodes.forEach((el) => this._split(el));
+    }
+
+    _split(el) {
+      if (!el || this.bound.has(el)) return;
+      this.bound.add(el);
+      const text = el.textContent;
+      const words = text.split(/(\s+)/);
+      const frag = document.createDocumentFragment();
+      let wordIdx = 0;
+      words.forEach((part) => {
+        if (/^\s+$/.test(part)) {
+          frag.appendChild(document.createTextNode(part));
+        } else {
+          const wrap = document.createElement('span');
+          wrap.className = 'pham-split__word';
+          wrap.style.setProperty('--pham-split-delay', (wordIdx * 60) + 'ms');
+          wrap.textContent = part;
+          frag.appendChild(wrap);
+          wordIdx++;
+        }
+      });
+      el.textContent = '';
+      el.appendChild(frag);
+    }
+
+    refresh() {
+      this._splitAll();
+      if (this.io) document.querySelectorAll('[data-pham-split]:not(.is-revealed)').forEach((el) => this.io.observe(el));
+    }
+  }
+
+  /* ====================================================================
      CONTROLLER — Boot orchestration
      ==================================================================== */
   class PhamAnimationsController {
@@ -324,6 +521,9 @@
         try { this.modules.scrollReveal     = new PhamScrollReveal();     } catch (e) { console.error('[PHAM] ScrollReveal failed:', e); }
         try { this.modules.pageTransition   = new PhamPageTransition();   } catch (e) { console.error('[PHAM] PageTransition failed:', e); }
         try { this.modules.productCardHover = new PhamProductCardHover(); } catch (e) { console.error('[PHAM] ProductCardHover failed:', e); }
+        try { this.modules.parallax         = new PhamParallax();         } catch (e) { console.error('[PHAM] Parallax failed:', e); }
+        try { this.modules.counter          = new PhamCounter();          } catch (e) { console.error('[PHAM] Counter failed:', e); }
+        try { this.modules.splitText        = new PhamSplitText();        } catch (e) { console.error('[PHAM] SplitText failed:', e); }
 
         document.addEventListener('shopify:section:load',    () => this.refresh());
         document.addEventListener('shopify:section:reorder', () => this.refresh());
@@ -340,6 +540,9 @@
     refresh() {
       if (this.modules.scrollReveal)     this.modules.scrollReveal.refresh();
       if (this.modules.productCardHover) this.modules.productCardHover.refresh();
+      if (this.modules.parallax)         this.modules.parallax.refresh();
+      if (this.modules.counter)          this.modules.counter.refresh();
+      if (this.modules.splitText)        this.modules.splitText.refresh();
     }
   }
 

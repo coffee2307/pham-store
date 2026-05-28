@@ -40,16 +40,36 @@
     {% # theme-check-enable RemoteAsset %}
 
     {% comment %}CUSTOM_PHAM_THEME_START{% endcomment %}
+    {% # theme-check-disable RemoteAsset, AssetPreload %}
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    {{ 'pham-theme.css' | asset_url | stylesheet_tag }}
+    {%- comment -%} Pre-paint critical styles — eliminates white flash before pham-theme loads {%- endcomment -%}
+    <style>
+      html { background-color: #0A0A0C !important; }
+      html, body, #MainContent, .content-for-layout, main { background-color: #0A0A0C !important; color: #E8E8EA; }
+      html.pham-js body,
+      html.pham-js body.pham-page-ready,
+      html.pham-js body.pham-page-exiting,
+      body.pham-page-ready,
+      body.pham-page-exiting {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transition: none !important;
+        animation: none !important;
+      }
+      body { opacity: 1 !important; transition: none !important; animation: none !important; }
+      @view-transition { navigation: none; }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Montserrat:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    {{ 'pham-theme.css' | asset_url | stylesheet_tag }}
+    {% # theme-check-enable RemoteAsset, AssetPreload %}
     {% comment %}CUSTOM_PHAM_THEME_END{% endcomment %}
   </head>
 
   <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
-    {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
+    {% render 'skip-to-content-link', href: '#MainContent', text: 'Skip to main content', literal: true %}
     <div id="header-group">
       {% sections 'header-group' %}
     </div>
@@ -136,8 +156,6 @@
     <footer>
       {% sections 'footer-group' %}
     </footer>
-
-    {% render 'search-modal' %}
 
     {% if settings.quick_add or settings.mobile_quick_add %}
       {% render 'quick-add-modal' %}

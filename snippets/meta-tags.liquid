@@ -13,17 +13,19 @@
   name="viewport"
   content="width=device-width,initial-scale=1"
 >
-<meta
-  name="view-transition"
-  content="same-origin"
->
+
 <meta
   name="theme-color"
-  content=""
+  content="#0A0A0C"
 >
 
+{%- comment -%} PHAM: view transitions disabled — prevents white flash between pages {%- endcomment -%}
+
 {%- liquid
-  assign og_title = page_title | default: shop.name
+  capture pham_seo_title_raw
+    render 'pham-seo-title'
+  endcapture
+  assign pham_seo_title = pham_seo_title_raw | strip_html | strip
   assign og_url = canonical_url | default: request.origin
   assign og_type = 'website'
   assign og_description = page_description | default: shop.description | default: shop.name
@@ -47,7 +49,7 @@
 >
 <meta
   property="og:title"
-  content="{{ og_title | escape }}"
+  content="{{ pham_seo_title | escape }}"
 >
 <meta
   property="og:type"
@@ -100,19 +102,14 @@
 >
 <meta
   name="twitter:title"
-  content="{{ og_title | escape }}"
+  content="{{ pham_seo_title | escape }}"
 >
 <meta
   name="twitter:description"
   content="{{ og_description | escape }}"
 >
 
-<title>
-  {{ page_title }}
-  {%- if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif -%}
-  {%- if current_page != 1 %} &ndash; Page {{ current_page }}{% endif -%}
-  {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
-</title>
+<title>{{ pham_seo_title }}{% if current_page != 1 %} — PAGE {{ current_page }}{% endif %} | {{ shop.name | upcase | escape }}</title>
 
 <link
   rel="canonical"

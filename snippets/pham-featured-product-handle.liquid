@@ -1,0 +1,46 @@
+{%- comment -%}
+  DO NOT EDIT — managed by PHAM theme architecture.
+  Resolves the single featured product handle for the PHAM storefront.
+  Render this snippet and capture the output to obtain the handle string.
+
+  Optional param: product_ref — section-level product override
+{%- endcomment -%}
+{%- liquid
+  assign pham_product = blank
+
+  if product_ref != blank
+    if product_ref.id != blank
+      assign pham_product = product_ref
+    else
+      assign pham_product = all_products[product_ref]
+    endif
+  endif
+
+  if pham_product == blank or pham_product == nil
+    assign pham_global = settings.pham_featured_product
+    if pham_global != blank
+      if pham_global.id != blank
+        assign pham_product = pham_global
+      else
+        assign pham_product = all_products[pham_global]
+      endif
+    endif
+  endif
+
+  if pham_product == blank or pham_product == nil
+    for pham_item in collections.all.products limit: 1
+      assign pham_product = pham_item
+    endfor
+  endif
+
+  if pham_product == blank or pham_product == nil
+    for pham_coll in collections
+      if pham_product == blank and pham_coll.products_count > 0
+        assign pham_product = pham_coll.products.first
+      endif
+    endfor
+  endif
+-%}
+{%- if pham_product != blank and pham_product != nil -%}
+  {{- pham_product.handle -}}
+{%- endif -%}

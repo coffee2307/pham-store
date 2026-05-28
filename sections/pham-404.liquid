@@ -1,4 +1,12 @@
 <!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- capture nf_product_url -%}{%- render 'pham-featured-product-url' -%}{%- endcapture -%}
+{%- assign nf_product_url = nf_product_url | strip -%}
+{%- liquid
+  assign nf_secondary_link = section.settings.secondary_link
+  if nf_secondary_link == blank
+    assign nf_secondary_link = nf_product_url
+  endif
+-%}
 <section class="pham-404" data-pham-404 data-section-id="{{ section.id }}" role="region" aria-label="Page not found">
   <div class="pham-container pham-404__inner reveal-up">
     <p class="pham-eyebrow pham-404__eyebrow">{{ section.settings.eyebrow }}</p>
@@ -14,7 +22,7 @@
         <span class="pham-404__cta-arrow" aria-hidden="true">&rarr;</span>
       </a>
       {%- if section.settings.secondary_label != blank -%}
-        <a href="{{ section.settings.secondary_link | default: routes.all_products_collection_url }}" class="pham-404__secondary">
+        <a href="{{ nf_secondary_link }}" class="pham-404__secondary">
           {{ section.settings.secondary_label }}
         </a>
       {%- endif -%}

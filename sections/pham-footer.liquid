@@ -1,4 +1,6 @@
 <!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- capture footer_product_url -%}{%- render 'pham-featured-product-url' -%}{%- endcapture -%}
+{%- assign footer_product_url = footer_product_url | strip -%}
 {%- liquid
   assign menu_handle = section.settings.menu | default: 'footer'
   assign menu        = linklists[menu_handle]
@@ -48,15 +50,15 @@
           <ul class="pham-footer__menu" role="list">
             {%- for link in menu.links -%}
               <li class="pham-footer__menu-item">
-                <a href="{{ link.url }}" class="pham-footer__link">{{ link.title | escape }}</a>
+                <a href="{{ link.url }}" class="pham-footer__link">{% render 'pham-nav-label', title: link.title, url: link.url %}</a>
               </li>
             {%- endfor -%}
           </ul>
         {%- else -%}
           <ul class="pham-footer__menu" role="list">
-            <li><a href="{{ routes.all_products_collection_url }}" class="pham-footer__link">Shop</a></li>
-            <li><a href="{{ routes.search_url }}" class="pham-footer__link">Search</a></li>
-            <li><a href="{{ routes.account_url }}" class="pham-footer__link">Account</a></li>
+            <li><a href="{{ footer_product_url }}" class="pham-footer__link">PRODUCT</a></li>
+            <li><a href="/pages/contact" class="pham-footer__link">CONTACT</a></li>
+            <li><a href="{{ routes.account_url }}" class="pham-footer__link">ACCOUNT</a></li>
           </ul>
         {%- endif -%}
       </div>

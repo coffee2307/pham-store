@@ -1,0 +1,26 @@
+# PHAM theme — theme-check configuration
+#
+# Silences a handful of warnings that originate in Horizon base files
+# (predictive-search, slideshow, product-information, cart-summary,
+# media-with-content, search-modal) that PHAM does not render directly
+# but cannot delete because Horizon's blocks/assets still import them.
+#
+# PHAM-authored code (sections/pham-*, snippets/pham-*, assets/pham-*)
+# remains fully checked.
+
+ValidScopedCSSClass:
+  ignore:
+    - "sections/predictive-search.liquid"
+    - "sections/media-with-content.liquid"
+    - "sections/product-information.liquid"
+    - "sections/slideshow.liquid"
+    - "snippets/cart-summary.liquid"
+    - "snippets/predictive-search-empty-state.liquid"
+    - "snippets/predictive-search-products-list.liquid"
+    - "snippets/predictive-search-resource-carousel.liquid"
+    - "snippets/search-modal.liquid"
+
+OrphanedSnippet:
+  ignore:
+    - "snippets/search-modal.liquid"
+    - "snippets/pham-featured-product-handle.liquid"

@@ -1,7 +1,15 @@
 <!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- capture pham_feat_handle -%}{%- render 'pham-featured-product-handle', product_ref: section.settings.product -%}{%- endcapture -%}
+{%- assign pham_feat_handle = pham_feat_handle | strip -%}
+{%- if pham_feat_handle != blank -%}
+  {%- assign product = all_products[pham_feat_handle] -%}
+{%- endif -%}
+{%- if product == blank or product == nil -%}
+  {%- for pham_item in collections.all.products limit: 1 -%}
+    {%- assign product = pham_item -%}
+  {%- endfor -%}
+{%- endif -%}
 {%- liquid
-  assign product_handle = section.settings.product
-  assign product        = all_products[product_handle]
   assign media_position = section.settings.media_position | default: 'left'
   assign show_view_pdp  = section.settings.show_view_pdp
   assign current_variant = product.selected_or_first_available_variant
@@ -135,7 +143,7 @@
               <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
               <span class="pham-product-spotlight__add-text">
                 <span class="pham-product-spotlight__add-label" data-pham-spotlight-btn-label>
-                  {% if current_variant.available %}Add to Cart{% else %}Sold out{% endif %}
+                  {% if current_variant.available %}ADD TO CART{% else %}SOLD OUT{% endif %}
                 </span>
                 <span class="pham-product-spotlight__add-price" data-pham-spotlight-btn-price>
                   {{ current_variant.price | money }}
@@ -535,11 +543,11 @@
         if (!variant.available) {
           btn.setAttribute('disabled', 'disabled');
           btn.setAttribute('aria-disabled', 'true');
-          if (btnLabel) btnLabel.textContent = 'Sold out';
+          if (btnLabel) btnLabel.textContent = 'SOLD OUT';
         } else {
           btn.removeAttribute('disabled');
           btn.removeAttribute('aria-disabled');
-          if (btnLabel) btnLabel.textContent = 'Add to Cart';
+          if (btnLabel) btnLabel.textContent = 'ADD TO CART';
         }
       }
     }
@@ -599,7 +607,7 @@
     {
       "type": "checkbox",
       "id": "show_inventory",
-      "label": "Show low-inventory line (EDITION OF X AVAILABLE) when stock ≤ 5",
+      "label": "Show low-inventory line when stock ≤ 5",
       "default": true
     },
     {

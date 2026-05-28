@@ -1,4 +1,6 @@
 <!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- capture drawer_product_url -%}{%- render 'pham-featured-product-url' -%}{%- endcapture -%}
+{%- assign drawer_product_url = drawer_product_url | strip -%}
 {%- comment -%}
   PHAM — Cart Drawer snippet
 
@@ -176,8 +178,8 @@
           <p class="pham-cart-drawer__empty-mark">∅</p>
           <p class="pham-cart-drawer__empty-text">Your atelier is silent.</p>
           <p class="pham-cart-drawer__empty-sub">Begin the edition.</p>
-          <a href="{{ routes.all_products_collection_url }}" class="pham-cart-drawer__empty-cta" data-pham-cart-close>
-            <span>Discover the Collection</span>
+          <a href="{{ drawer_product_url }}" class="pham-cart-drawer__empty-cta" data-pham-cart-close>
+            <span>View the Edition</span>
             <span aria-hidden="true">&rarr;</span>
           </a>
         </div>

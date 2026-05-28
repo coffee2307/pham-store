@@ -1,0 +1,57 @@
+{%- comment -%}
+  Maps a Shopify collection.sort_options entry to a clean English label.
+  Accepts: option.value, option.name
+{%- endcomment -%}
+{%- liquid
+  assign sort_value = value | default: '' | strip
+  assign sort_name  = name | default: '' | strip
+  assign name_lower = sort_name | downcase
+
+  assign sort_label = blank
+
+  case sort_value
+    when 'manual'
+      assign sort_label = 'FEATURED'
+    when 'best-selling'
+      assign sort_label = 'BEST SELLING'
+    when 'title-ascending'
+      assign sort_label = 'ALPHABETICAL · A–Z'
+    when 'title-descending'
+      assign sort_label = 'ALPHABETICAL · Z–A'
+    when 'price-ascending'
+      assign sort_label = 'PRICE · LOW TO HIGH'
+    when 'price-descending'
+      assign sort_label = 'PRICE · HIGH TO LOW'
+    when 'created-ascending'
+      assign sort_label = 'DATE · OLDEST'
+    when 'created-descending'
+      assign sort_label = 'DATE · NEWEST'
+    when 'relevance'
+      assign sort_label = 'MOST RELEVANT'
+  endcase
+
+  if sort_label == blank
+    if name_lower contains 'phù hợp' or name_lower contains 'phu hop' or name_lower contains 'nổi bật' or name_lower contains 'noi bat' or name_lower contains 'featured' or name_lower contains 'đề xuất' or name_lower contains 'de xuat'
+      assign sort_label = 'FEATURED'
+    elsif name_lower contains 'bán chạy' or name_lower contains 'ban chay' or name_lower contains 'best selling' or name_lower contains 'best-selling'
+      assign sort_label = 'BEST SELLING'
+    elsif name_lower contains 'a-z' or name_lower contains 'a–z' or name_lower contains 'tăng dần' or name_lower contains 'tang dan'
+      assign sort_label = 'ALPHABETICAL · A–Z'
+    elsif name_lower contains 'z-a' or name_lower contains 'z–a' or name_lower contains 'giảm dần' or name_lower contains 'giam dan'
+      assign sort_label = 'ALPHABETICAL · Z–A'
+    elsif name_lower contains 'thấp' or name_lower contains 'thap' or name_lower contains 'low to high' or name_lower contains 'low-to-high'
+      assign sort_label = 'PRICE · LOW TO HIGH'
+    elsif name_lower contains 'cao' or name_lower contains 'high to low' or name_lower contains 'high-to-low'
+      assign sort_label = 'PRICE · HIGH TO LOW'
+    elsif name_lower contains 'cũ nhất' or name_lower contains 'cu nhat' or name_lower contains 'oldest'
+      assign sort_label = 'DATE · OLDEST'
+    elsif name_lower contains 'mới nhất' or name_lower contains 'moi nhat' or name_lower contains 'newest'
+      assign sort_label = 'DATE · NEWEST'
+    elsif name_lower contains 'sắp xếp' or name_lower contains 'sap xep' or name_lower contains 'sort'
+      assign sort_label = 'SORT'
+    else
+      assign sort_label = sort_name | upcase
+    endif
+  endif
+-%}
+{{- sort_label | escape -}}
