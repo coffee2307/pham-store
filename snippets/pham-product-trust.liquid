@@ -1,0 +1,25 @@
+{% comment %}
+  Trust micro-copy for product / waitlist pages.
+
+  @param {object} [section] — section settings source
+{% endcomment %}
+<ul class="pham-trust" role="list">
+  {%- if section.settings.trust_shipping != blank -%}
+    <li class="pham-trust__item">
+      <span class="pham-trust__label">Shipping</span>
+      <span class="pham-trust__text">{{ section.settings.trust_shipping }}</span>
+    </li>
+  {%- endif -%}
+  {%- if section.settings.trust_returns != blank -%}
+    <li class="pham-trust__item">
+      <span class="pham-trust__label">Returns</span>
+      <span class="pham-trust__text">{{ section.settings.trust_returns }}</span>
+    </li>
+  {%- endif -%}
+  {%- if section.settings.trust_authenticity != blank -%}
+    <li class="pham-trust__item">
+      <span class="pham-trust__label">Edition</span>
+      <span class="pham-trust__text">{{ section.settings.trust_authenticity }}</span>
+    </li>
+  {%- endif -%}
+</ul>

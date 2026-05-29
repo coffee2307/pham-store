@@ -1,0 +1,25 @@
+{% comment %}
+  Shared thank-you content for waitlist signup.
+
+  @param {string} [eyebrow]
+  @param {string} [heading]
+  @param {string} [message]
+  @param {string} [followup]
+  @param {string} [product_url]
+{% endcomment %}
+<div class="pham-waitlist-thank-you reveal-up">
+  {%- if eyebrow != blank -%}
+    <p class="pham-eyebrow">{{ eyebrow }}</p>
+  {%- endif -%}
+  <h1 class="pham-waitlist-thank-you__title">{{ heading | default: 'Thank you' }}</h1>
+  <p class="pham-waitlist-thank-you__message">{{ message | default: 'You are on the waitlist.' }}</p>
+  {%- if followup != blank -%}
+    <p class="pham-waitlist-thank-you__followup">{{ followup }}</p>
+  {%- endif -%}
+  <div class="pham-waitlist-thank-you__actions">
+    {%- if product_url != blank -%}
+      <a href="{{ product_url }}" class="pham-waitlist-thank-you__link">View edition</a>
+    {%- endif -%}
+    <a href="{{ routes.root_url }}" class="pham-back-link">Return to atelier</a>
+  </div>
+</div>

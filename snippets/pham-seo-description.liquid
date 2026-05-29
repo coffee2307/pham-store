@@ -1,0 +1,59 @@
+{% comment %}
+  Page-specific meta description for PHAM storefront.
+  Outputs plain text only — used inside meta name="description".
+{% endcomment %}
+{%- liquid
+  assign desc = page_description | strip
+
+  if desc == blank
+    case request.page_type
+      when 'index'
+        assign desc = settings.pham_seo_home_description
+      when 'product'
+        assign desc = product.description | strip_html | truncate: 155
+        if desc == blank
+          assign desc = settings.pham_seo_product_description
+        endif
+      when 'collection'
+        assign desc = collection.description | strip_html | truncate: 155
+        if desc == blank
+          assign desc = settings.pham_seo_shop_description
+        endif
+      when 'page'
+        if page.handle == 'contact'
+          assign desc = settings.pham_seo_contact_description
+        elsif page.handle == 'pre-order' or page.handle == 'waitlist-thank-you'
+          assign desc = settings.pham_seo_waitlist_description
+        elsif page.handle == 'faq'
+          assign desc = settings.pham_seo_faq_description
+        elsif page.handle == 'size-guide'
+          assign desc = settings.pham_seo_size_guide_description
+        else
+          assign desc = page.content | strip_html | truncate: 155
+        endif
+      when 'cart'
+        assign desc = 'Review your PHAM edition selection and proceed to secure checkout.'
+      when 'search'
+        assign desc = 'Search the PHAM atelier.'
+      when '404'
+        assign desc = 'This page could not be found. Return to the PHAM atelier.'
+      when 'customers/login'
+        assign desc = settings.pham_seo_login_description
+      when 'customers/register'
+        assign desc = settings.pham_seo_register_description
+      else
+        assign desc = shop.description
+    endcase
+  endif
+
+  if desc == blank
+    assign desc = settings.pham_seo_default_description
+  endif
+
+  if desc == blank
+    assign desc = shop.description | default: shop.name
+  endif
+
+  assign desc = desc | strip_html | strip | truncate: 160
+-%}
+{{- desc | escape -}}

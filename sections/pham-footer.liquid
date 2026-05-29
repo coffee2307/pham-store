@@ -5,6 +5,10 @@
   assign menu_handle = section.settings.menu | default: 'footer'
   assign menu        = linklists[menu_handle]
   assign year        = 'now' | date: '%Y'
+  assign faq_handle = section.settings.faq_handle | default: 'faq'
+  assign size_handle = section.settings.size_guide_handle | default: 'size-guide'
+  assign faq_page = pages[faq_handle]
+  assign size_page = pages[size_handle]
 -%}
 
 <footer class="pham-footer"
@@ -57,6 +61,16 @@
         {%- else -%}
           <ul class="pham-footer__menu" role="list">
             <li><a href="{{ footer_product_url }}" class="pham-footer__link">PRODUCT</a></li>
+            {%- if faq_page != blank -%}
+              <li><a href="{{ faq_page.url }}" class="pham-footer__link">FAQ</a></li>
+            {%- else -%}
+              <li><a href="/pages/faq" class="pham-footer__link">FAQ</a></li>
+            {%- endif -%}
+            {%- if size_page != blank -%}
+              <li><a href="{{ size_page.url }}" class="pham-footer__link">SIZE GUIDE</a></li>
+            {%- else -%}
+              <li><a href="/pages/size-guide" class="pham-footer__link">SIZE GUIDE</a></li>
+            {%- endif -%}
             <li><a href="/pages/contact" class="pham-footer__link">CONTACT</a></li>
             <li><a href="{{ routes.account_url }}" class="pham-footer__link">ACCOUNT</a></li>
           </ul>
@@ -104,6 +118,10 @@
 
     {%- comment -%} ============== BOTTOM ROW ============== {%- endcomment -%}
     <hr class="pham-footer__divider pham-rule" aria-hidden="true">
+
+    {%- if section.settings.show_policy_links -%}
+      {% render 'pham-policy-links' %}
+    {%- endif -%}
 
     <div class="pham-footer__bottom">
       <p class="pham-footer__copyright">
@@ -175,7 +193,31 @@
     },
     {
       "type": "header",
+      "content": "Help pages"
+    },
+    {
+      "type": "text",
+      "id": "faq_handle",
+      "label": "FAQ page handle",
+      "default": "faq",
+      "info": "Used in the fallback menu when no footer menu is assigned."
+    },
+    {
+      "type": "text",
+      "id": "size_guide_handle",
+      "label": "Size guide page handle",
+      "default": "size-guide"
+    },
+    {
+      "type": "header",
       "content": "Bottom row"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_policy_links",
+      "label": "Show policy links",
+      "default": true,
+      "info": "Shipping, Return, Privacy, and Terms of Service."
     },
     {
       "type": "text",

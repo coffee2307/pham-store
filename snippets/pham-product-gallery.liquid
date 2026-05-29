@@ -1,0 +1,166 @@
+{% comment %}
+  E-commerce style product gallery — main image + prev/next + thumbnails.
+
+  @param {product} product
+  @param {string} section_id
+{% endcomment %}
+{%- liquid
+  assign media_count = product.media.size
+-%}
+
+<div class="pham-pdp-gallery"
+     data-pham-product-gallery
+     data-media-count="{{ media_count }}">
+  {%- if media_count > 0 -%}
+    <div class="pham-pdp-gallery__viewer">
+      {%- if media_count > 1 -%}
+        <button type="button"
+                class="pham-pdp-gallery__nav pham-pdp-gallery__nav--prev"
+                data-pham-gallery-prev
+                aria-label="Previous image">
+          <span aria-hidden="true">&lsaquo;</span>
+        </button>
+      {%- endif -%}
+
+      <div class="pham-pdp-gallery__stage" data-pham-gallery-stage>
+        {%- for media in product.media -%}
+          <div class="pham-pdp-gallery__slide{% if forloop.first %} is-active{% endif %}"
+               data-pham-gallery-slide
+               data-slide-index="{{ forloop.index0 }}"
+               role="tabpanel"
+               aria-label="Product image {{ forloop.index }} of {{ media_count }}">
+            {%- case media.media_type -%}
+              {%- when 'image' -%}
+                {%- liquid
+                  if forloop.first
+                    assign pm_img_loading = 'eager'
+                    assign pm_img_priority = 'high'
+                  else
+                    assign pm_img_loading = 'lazy'
+                    assign pm_img_priority = 'auto'
+                  endif
+                -%}
+                <button type="button"
+                        class="pham-pdp-gallery__zoom-trigger"
+                        data-pham-zoom-trigger
+                        data-pham-zoom-src="{{ media | image_url: width: 2400 }}"
+                        data-pham-zoom-srcset="{{ media | image_url: width: 1200 }} 1200w, {{ media | image_url: width: 2000 }} 2000w, {{ media | image_url: width: 2400 }} 2400w"
+                        data-pham-zoom-alt="{{ media.alt | default: product.title | escape }}"
+                        aria-label="Zoom image {{ forloop.index }}">
+                  {{ media
+                      | image_url: width: 1600
+                      | image_tag:
+                        loading: pm_img_loading,
+                        fetchpriority: pm_img_priority,
+                        widths: '480, 768, 1080, 1440, 1600',
+                        sizes: '(max-width: 749px) 100vw, 50vw',
+                        class: 'pham-pdp-gallery__img',
+                        alt: media.alt | default: product.title,
+                        width: media.width,
+                        height: media.height
+                  }}
+                </button>
+              {%- when 'external_video' -%}
+                <div class="pham-pdp-gallery__video">
+                  {{ media | external_video_tag: class: 'pham-pdp-gallery__video-frame' }}
+                </div>
+              {%- when 'video' -%}
+                <video class="pham-pdp-gallery__video-frame" controls preload="metadata" playsinline {% if media.preview_image %}poster="{{ media.preview_image | image_url: width: 1200 }}"{% endif %}>
+                  {%- for source in media.sources -%}
+                    <source src="{{ source.url }}" type="{{ source.mime_type }}">
+                  {%- endfor -%}
+                </video>
+              {%- when 'model' -%}
+                <div class="pham-pdp-gallery__model">
+                  {{ media | model_viewer_tag: class: 'pham-pdp-gallery__model-viewer', reveal: 'interaction' }}
+                </div>
+              {%- else -%}
+                {%- if media.preview_image -%}
+                  <button type="button"
+                          class="pham-pdp-gallery__zoom-trigger"
+                          data-pham-zoom-trigger
+                          data-pham-zoom-src="{{ media.preview_image | image_url: width: 2400 }}"
+                          data-pham-zoom-alt="{{ media.alt | default: product.title | escape }}"
+                          aria-label="Zoom image {{ forloop.index }}">
+                    {{ media.preview_image
+                        | image_url: width: 1600
+                        | image_tag:
+                          loading: 'lazy',
+                          class: 'pham-pdp-gallery__img',
+                          alt: media.alt | default: product.title
+                    }}
+                  </button>
+                {%- endif -%}
+            {%- endcase -%}
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {%- if media_count > 1 -%}
+        <button type="button"
+                class="pham-pdp-gallery__nav pham-pdp-gallery__nav--next"
+                data-pham-gallery-next
+                aria-label="Next image">
+          <span aria-hidden="true">&rsaquo;</span>
+        </button>
+        <p class="pham-pdp-gallery__counter" data-pham-gallery-counter aria-live="polite">
+          <span data-pham-gallery-current>1</span> / {{ media_count }}
+        </p>
+      {%- endif -%}
+    </div>
+
+    {%- if media_count > 1 -%}
+      <div class="pham-pdp-gallery__thumbs-wrap">
+        <button type="button"
+                class="pham-pdp-gallery__thumb-nav pham-pdp-gallery__thumb-nav--prev"
+                data-pham-thumb-prev
+                aria-label="Scroll thumbnails left"
+                hidden>
+          <span aria-hidden="true">&lsaquo;</span>
+        </button>
+        <div class="pham-pdp-gallery__thumbs" data-pham-gallery-thumbs role="tablist" aria-label="Product thumbnails">
+          {%- for media in product.media -%}
+            {%- liquid
+              assign thumb_image = media.preview_image | default: media
+              if media.media_type == 'image'
+                assign thumb_image = media
+              endif
+            -%}
+            <button type="button"
+                    class="pham-pdp-gallery__thumb{% if forloop.first %} is-active{% endif %}"
+                    data-pham-gallery-thumb
+                    data-slide-index="{{ forloop.index0 }}"
+                    role="tab"
+                    aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                    aria-label="Show image {{ forloop.index }}">
+              {%- if thumb_image -%}
+                {{ thumb_image
+                    | image_url: width: 160
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '80, 120, 160',
+                      sizes: '72px',
+                      class: 'pham-pdp-gallery__thumb-img',
+                      alt: ''
+                }}
+              {%- else -%}
+                <span class="pham-pdp-gallery__thumb-placeholder" aria-hidden="true"></span>
+              {%- endif -%}
+            </button>
+          {%- endfor -%}
+        </div>
+        <button type="button"
+                class="pham-pdp-gallery__thumb-nav pham-pdp-gallery__thumb-nav--next"
+                data-pham-thumb-next
+                aria-label="Scroll thumbnails right"
+                hidden>
+          <span aria-hidden="true">&rsaquo;</span>
+        </button>
+      </div>
+    {%- endif -%}
+  {%- else -%}
+    <div class="pham-pdp-gallery__viewer pham-pdp-gallery__viewer--empty">
+      <div class="pham-pdp-gallery__img pham-skeleton" aria-hidden="true"></div>
+    </div>
+  {%- endif -%}
+</div>

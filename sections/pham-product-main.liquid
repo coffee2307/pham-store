@@ -1,4 +1,10 @@
 <!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- capture pham_preorder_open_raw -%}{%- render 'pham-preorder-open', section: section -%}{%- endcapture -%}
+{%- assign pham_preorder_open_raw = pham_preorder_open_raw | strip -%}
+{%- assign pham_preorder_open = true -%}
+{%- if pham_preorder_open_raw == 'false' -%}{%- assign pham_preorder_open = false -%}{%- endif -%}
+{%- capture pham_waitlist_page_url -%}{%- render 'pham-waitlist-page-url' -%}{%- endcapture -%}
+{%- assign pham_waitlist_page_url = pham_waitlist_page_url | strip -%}
 {%- liquid
   assign current_variant = product.selected_or_first_available_variant
   assign on_sale = false
@@ -13,105 +19,24 @@
   assign care_heading      = section.settings.care_heading | default: 'Composition & Care'
   assign shipping_content  = section.settings.shipping_content
   assign care_content      = section.settings.care_content
+  assign size_handle       = section.settings.size_guide_handle | default: 'size-guide'
+  assign faq_handle        = section.settings.faq_handle | default: 'faq'
+  assign size_guide_page   = pages[size_handle]
+  assign faq_page          = pages[faq_handle]
 -%}
 
 <section class="pham-product-main"
          data-pham-product-main
          data-section-id="{{ section.id }}"
          data-product-id="{{ product.id }}"
+         data-pham-preorder-open="{% if pham_preorder_open %}true{% else %}false{% endif %}"
          role="region"
          aria-label="{{ product.title | escape }}">
   <div class="pham-product-main__grid pham-container">
 
-    {%- comment -%} ============= LEFT: MEDIA STACK ============= {%- endcomment -%}
+    {%- comment -%} ============= LEFT: GALLERY (e-commerce layout) ============= {%- endcomment -%}
     <div class="pham-product-main__media">
-      {%- if product.media.size > 0 -%}
-        <div class="pham-product-main__gallery pham-product-scroll-gallery" role="list">
-          {%- for media in product.media -%}
-            {%- liquid
-              case forloop.index0
-                when 0
-                  assign pm_parallax_speed = '0.08'
-                when 1
-                  assign pm_parallax_speed = '0.12'
-                when 2
-                  assign pm_parallax_speed = '0.10'
-                else
-                  assign pm_parallax_speed = '0.14'
-              endcase
-              assign pm_reveal_delay = forloop.index0 | times: 90
-            -%}
-            {%- if forloop.first -%}
-              {%- assign pm_loading = 'eager' -%}
-              {%- assign pm_fetchpriority = 'high' -%}
-            {%- else -%}
-              {%- assign pm_loading = 'lazy' -%}
-              {%- assign pm_fetchpriority = 'auto' -%}
-            {%- endif -%}
-            <div class="pham-product-main__media-item reveal-up{% if forloop.first %} is-visible{% endif %}"
-                 role="listitem"
-                 data-pham-delay="{{ pm_reveal_delay }}">
-              {%- case media.media_type -%}
-                {%- when 'image' -%}
-                  <button type="button"
-                          class="pham-product-main__media-trigger"
-                          data-pham-zoom-trigger
-                          data-pham-zoom-src="{{ media | image_url: width: 2400 }}"
-                          data-pham-zoom-srcset="{{ media | image_url: width: 1200 }} 1200w, {{ media | image_url: width: 2000 }} 2000w, {{ media | image_url: width: 2400 }} 2400w"
-                          data-pham-zoom-alt="{{ media.alt | default: product.title | escape }}"
-                          aria-label="Zoom image {{ forloop.index }}">
-                    <span class="pham-product-main__media-frame"
-                          data-pham-parallax
-                          data-pham-parallax-speed="{{ pm_parallax_speed }}">
-                    {{ media
-                        | image_url: width: 1600
-                        | image_tag:
-                          loading: pm_loading,
-                          fetchpriority: pm_fetchpriority,
-                          widths: '480, 768, 1080, 1440, 1600',
-                          sizes: '(max-width: 749px) calc(100vw - (var(--gutter) * 2) - 48px), (max-width: 900px) 100vw, 55vw',
-                          class: 'pham-product-main__media-img',
-                          alt: media.alt | default: product.title,
-                          width: media.width,
-                          height: media.height
-                    }}
-                    </span>
-                  </button>
-                {%- when 'external_video' -%}
-                  <div class="pham-product-main__media-video">
-                    {{ media | external_video_tag: class: 'pham-product-main__media-video-frame' }}
-                  </div>
-                {%- when 'video' -%}
-                  <video class="pham-product-main__media-img" controls preload="metadata" playsinline {% if media.preview_image %}poster="{{ media.preview_image | image_url: width: 1600 }}"{% endif %} width="{{ media.width }}" height="{{ media.height }}">
-                    {%- for source in media.sources -%}
-                      <source src="{{ source.url }}" type="{{ source.mime_type }}">
-                    {%- endfor -%}
-                  </video>
-                {%- when 'model' -%}
-                  <div class="pham-product-main__media-model">
-                    {{ media | model_viewer_tag: class: 'pham-product-main__media-model-viewer', reveal: 'interaction' }}
-                  </div>
-                {%- else -%}
-                  {%- if media.preview_image -%}
-                    {{ media.preview_image
-                        | image_url: width: 1600
-                        | image_tag:
-                          loading: 'lazy',
-                          widths: '480, 768, 1080, 1440, 1600',
-                          sizes: '(max-width: 749px) calc(100vw - (var(--gutter) * 2) - 48px), (max-width: 900px) 100vw, 55vw',
-                          class: 'pham-product-main__media-img',
-                          alt: media.alt | default: product.title
-                    }}
-                  {%- endif -%}
-              {%- endcase -%}
-            </div>
-          {%- endfor -%}
-        </div>
-      {%- else -%}
-        <div class="pham-product-main__media-item">
-          <div class="pham-product-main__media-img pham-skeleton" aria-hidden="true" style="aspect-ratio:3/4"></div>
-        </div>
-      {%- endif -%}
+      {% render 'pham-product-gallery', product: product, section_id: section.id %}
     </div>
 
     {%- comment -%} ============= RIGHT: STICKY PANEL ============= {%- endcomment -%}
@@ -153,15 +78,9 @@
           {%- endif -%}
         </p>
 
-        <form action="{{ routes.cart_add_url }}"
-              method="post"
-              enctype="multipart/form-data"
-              class="pham-product-main__form"
-              data-pham-product-form
-              data-action="add-to-cart"
-              novalidate>
-          <input type="hidden" name="form_type" value="product">
-          <input type="hidden" name="utf8" value="✓">
+        <div class="pham-product-main__form"
+             data-pham-product-form
+             data-pham-waitlist-base="{{ pham_waitlist_page_url | escape }}">
 
           {%- unless product.has_only_default_variant -%}
             <div class="pham-product-main__options">
@@ -210,34 +129,43 @@
                    class="pham-product-main__qty-input">
           </div>
 
-          <button type="submit"
-                  class="pham-product-main__cta pham-product-main__cta--preorder{% unless current_variant.available %} pham-product-main__cta--closed{% endunless %}"
-                  data-pham-product-submit
-                  data-pham-preorder-cta
-                  data-pham-preorder-label="{{ section.settings.preorder_label | default: 'PRE-ORDER NOW' | escape }}"
-                  data-pham-preorder-closed-label="{{ section.settings.preorder_closed_label | default: 'PRE-ORDER CLOSED' | escape }}"
-                  {% unless current_variant.available %}disabled aria-disabled="true"{% endunless %}>
-            <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
-            <span class="pham-product-main__cta-inner">
-              <span class="pham-product-main__cta-label" data-pham-product-cta-label>
-                {%- if current_variant.available -%}
+          {%- if pham_preorder_open -%}
+            <a href="{{ pham_waitlist_page_url }}?variant={{ current_variant.id }}&amp;quantity=1"
+               class="pham-product-main__cta pham-product-main__cta--preorder"
+               data-pham-waitlist-cta
+               data-pham-preorder-label="{{ section.settings.preorder_label | default: 'PRE-ORDER NOW' | escape }}">
+              <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
+              <span class="pham-product-main__cta-inner">
+                <span class="pham-product-main__cta-label" data-pham-product-cta-label>
                   {{ section.settings.preorder_label | default: 'PRE-ORDER NOW' }}
-                {%- else -%}
-                  {{ section.settings.preorder_closed_label | default: 'PRE-ORDER CLOSED' }}
-                {%- endif -%}
+                </span>
+                <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
               </span>
-              <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
-            </span>
-          </button>
-
-          {%- unless current_variant.available -%}
-            <p class="pham-product-main__closed-note">{{ section.settings.preorder_closed_note | default: 'Pre-order is currently closed for this edition.' }}</p>
-          {%- endunless -%}
+            </a>
+          {%- else -%}
+            <button type="button"
+                    class="pham-product-main__cta pham-product-main__cta--preorder pham-product-main__cta--closed"
+                    disabled
+                    aria-disabled="true">
+              <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
+              <span class="pham-product-main__cta-inner">
+                <span class="pham-product-main__cta-label">
+                  {{ section.settings.preorder_closed_label | default: 'PRE-ORDER CLOSED' }}
+                </span>
+                <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
+              </span>
+            </button>
+            <p class="pham-product-main__closed-note">{{ section.settings.preorder_closed_note | default: 'The waitlist is closed. Invoice links are sent by email after July 1.' }}</p>
+          {%- endif -%}
 
           {%- if section.settings.preorder_note != blank -%}
             <p class="pham-product-main__preorder-note">{{ section.settings.preorder_note }}</p>
           {%- endif -%}
-        </form>
+
+          {%- if section.settings.show_trust_strip -%}
+            {% render 'pham-product-trust', section: section %}
+          {%- endif -%}
+        </div>
 
         <div class="pham-product-main__accordions">
           {%- assign phase_blocks = section.blocks | where: 'type', 'phase' -%}
@@ -259,6 +187,22 @@
           {%- if care_content != blank -%}
             {%- assign care_id = section.id | append: '-care' -%}
             {% render 'pham-accordion', heading: care_heading, content: care_content, id: care_id %}
+          {%- endif -%}
+
+          {%- if section.settings.show_size_guide_link and size_guide_page != blank -%}
+            {%- capture size_guide_content -%}
+              <p><a href="{{ size_guide_page.url }}" class="pham-product-main__guide-link">View full size guide &rarr;</a></p>
+            {%- endcapture -%}
+            {%- assign size_id = section.id | append: '-size' -%}
+            {% render 'pham-accordion', heading: section.settings.size_guide_heading, content: size_guide_content, id: size_id %}
+          {%- endif -%}
+
+          {%- if section.settings.show_faq_link and faq_page != blank -%}
+            {%- capture faq_content -%}
+              <p><a href="{{ faq_page.url }}" class="pham-product-main__guide-link">Read frequently asked questions &rarr;</a></p>
+            {%- endcapture -%}
+            {%- assign faq_id = section.id | append: '-faq' -%}
+            {% render 'pham-accordion', heading: section.settings.faq_heading, content: faq_content, id: faq_id %}
           {%- endif -%}
         </div>
       </div>
@@ -298,6 +242,10 @@
   <script type="application/json" data-pham-product-variants>
     {{ product.variants | json }}
   </script>
+
+  <script type="application/ld+json">
+    {{ product | structured_data }}
+  </script>
 </section>
 
 <style>
@@ -308,48 +256,176 @@
   }
   .pham-product-main__grid {
     display: grid;
-    grid-template-columns: 55fr 45fr;
-    gap: var(--gutter);
-    align-items: flex-start;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(var(--space-lg), 4vw, var(--space-2xl));
+    align-items: start;
   }
   .pham-product-main__media {
+    align-self: start;
+  }
+
+  /* E-commerce gallery (Shopee-style) */
+  .pham-pdp-gallery {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-sm);
+    width: 100%;
   }
-  .pham-product-main__gallery {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .pham-product-main__media-item {
+  .pham-pdp-gallery__viewer {
     position: relative;
-    background-color: var(--color-obsidian);
+    display: flex;
+    flex-direction: column;
+    background: var(--color-obsidian);
+    border: 1px solid var(--color-ash);
+    aspect-ratio: 1 / 1;
     overflow: hidden;
   }
-  .pham-product-main__media-trigger {
-    display: block;
+  .pham-pdp-gallery__stage {
+    position: relative;
+    flex: 1;
     width: 100%;
+    min-height: 0;
+  }
+  .pham-pdp-gallery__slide {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+  }
+  .pham-pdp-gallery__slide.is-active {
+    display: flex;
+    position: relative;
+  }
+  .pham-pdp-gallery__zoom-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: var(--space-md);
+    box-sizing: border-box;
     background: transparent;
     border: 0;
-    padding: 0;
     cursor: zoom-in;
-    color: inherit;
   }
-  .pham-product-main__media-frame {
+  .pham-pdp-gallery__img,
+  .pham-pdp-gallery__video-frame,
+  .pham-pdp-gallery__model-viewer {
     display: block;
-    width: 100%;
-    overflow: hidden;
-  }
-  .pham-product-main__media-img,
-  .pham-product-main__media-video-frame,
-  .pham-product-main__media-model-viewer {
-    display: block;
-    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
     height: auto;
-    object-fit: cover;
+    object-fit: contain;
   }
-  .pham-product-main__media-img { aspect-ratio: 3 / 4; }
+  .pham-pdp-gallery__video,
+  .pham-pdp-gallery__model {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pham-pdp-gallery__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 5, 5, 0.72);
+    border: 1px solid var(--color-ash);
+    color: var(--color-bone);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-luxury), border-color var(--duration-fast) var(--ease-luxury);
+  }
+  .pham-pdp-gallery__nav:hover {
+    background: rgba(5, 5, 5, 0.92);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  .pham-pdp-gallery__nav--prev { left: var(--space-sm); }
+  .pham-pdp-gallery__nav--next { right: var(--space-sm); }
+  .pham-pdp-gallery__counter {
+    position: absolute;
+    bottom: var(--space-sm);
+    right: var(--space-sm);
+    margin: 0;
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--color-bone);
+    background: rgba(5, 5, 5, 0.72);
+    border: 1px solid var(--color-ash);
+    z-index: 2;
+  }
+  .pham-pdp-gallery__thumbs-wrap {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .pham-pdp-gallery__thumb-nav {
+    flex-shrink: 0;
+    width: 28px;
+    height: 72px;
+    background: transparent;
+    border: 1px solid var(--color-ash);
+    color: var(--color-smoke);
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: color var(--duration-fast) var(--ease-luxury), border-color var(--duration-fast) var(--ease-luxury);
+  }
+  .pham-pdp-gallery__thumb-nav:hover:not([hidden]) {
+    color: var(--color-bone);
+    border-color: var(--color-bone);
+  }
+  .pham-pdp-gallery__thumb-nav[hidden] { display: none; }
+  .pham-pdp-gallery__thumbs {
+    display: flex;
+    gap: var(--space-xs);
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    padding-block: 2px;
+  }
+  .pham-pdp-gallery__thumbs::-webkit-scrollbar { display: none; }
+  .pham-pdp-gallery__thumb {
+    flex: 0 0 72px;
+    width: 72px;
+    height: 72px;
+    padding: 0;
+    background: var(--color-obsidian);
+    border: 1px solid var(--color-ash);
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color var(--duration-fast) var(--ease-luxury);
+  }
+  .pham-pdp-gallery__thumb.is-active,
+  .pham-pdp-gallery__thumb:hover {
+    border-color: var(--color-accent);
+  }
+  .pham-pdp-gallery__thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .pham-pdp-gallery__thumb-placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--color-ash);
+  }
 
   .pham-product-main__panel {
     position: sticky;
@@ -361,7 +437,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
-    max-width: 480px;
+    max-width: none;
   }
   .pham-product-main__head {
     display: flex;
@@ -507,6 +583,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-sm);
+    margin-bottom: var(--space-md);
   }
   .pham-product-main__qty-label {
     font-family: var(--font-mono);
@@ -540,7 +617,7 @@
     display: block;
     width: 100%;
     padding: 0;
-    margin-top: var(--space-xs);
+    margin-top: var(--space-md);
     background: transparent;
     color: var(--color-white);
     border: 1px solid var(--color-white);
@@ -552,6 +629,13 @@
   }
   .pham-product-main__cta--preorder:hover:not([disabled]):not([aria-disabled="true"]) {
     box-shadow: 0 0 32px rgba(255, 255, 255, 0.14);
+  }
+  a.pham-product-main__cta {
+    text-decoration: none;
+    color: var(--color-white);
+  }
+  a.pham-product-main__cta:hover {
+    color: var(--color-white);
   }
   .pham-product-main__cta--closed,
   .pham-product-main__cta[disabled],
@@ -619,6 +703,38 @@
     color: var(--color-smoke);
     max-width: 52ch;
   }
+
+  .pham-trust {
+    list-style: none;
+    margin: var(--space-md) 0 0;
+    padding: var(--space-md) 0 0;
+    border-top: 1px solid var(--color-ash);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .pham-trust__item {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: var(--tracking-tech);
+    text-transform: uppercase;
+    line-height: 1.5;
+  }
+  .pham-trust__label { color: var(--color-smoke); }
+  .pham-trust__text { color: var(--color-bone); }
+  .pham-product-main__guide-link {
+    color: var(--color-white);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-white);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+  }
+  .pham-product-main__guide-link:hover { opacity: 0.75; }
 
   /* ===== PRODUCTION PHASES (inside accordion) ===== */
   .pham-phases__inner {
@@ -803,6 +919,7 @@
       grid-template-columns: 1fr;
       gap: var(--space-xl);
     }
+    .pham-product-main__media,
     .pham-product-main__panel {
       position: static;
       top: auto;
@@ -810,21 +927,21 @@
   }
 
   @media (max-width: 749px) {
-    .pham-product-main__gallery {
-      gap: var(--space-sm);
-      padding-inline: var(--space-xs);
+    .pham-pdp-gallery__viewer {
+      aspect-ratio: 1 / 1;
+      border-left: 0;
+      border-right: 0;
     }
-    .pham-product-main__media-item {
-      border: 1px solid var(--color-ash);
-    }
-    .pham-product-main__media-trigger {
+    .pham-pdp-gallery__zoom-trigger {
       padding: var(--space-sm);
-      box-sizing: border-box;
     }
-    .pham-product-main__media-img,
-    .pham-product-main__media-video-frame,
-    .pham-product-main__media-model-viewer {
-      object-fit: contain;
+    .pham-pdp-gallery__thumb {
+      flex: 0 0 64px;
+      width: 64px;
+      height: 64px;
+    }
+    .pham-pdp-gallery__thumb-nav {
+      height: 64px;
     }
   }
 </style>
@@ -836,6 +953,29 @@
     var root = document.querySelector('[data-pham-product-main][data-section-id="' + sectionId + '"]');
     if (!root) return;
 
+    (function redirectAfterWaitlistCaptcha() {
+      try {
+        if (sessionStorage.getItem('pham-waitlist-submitted') !== '1') return;
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('view') === 'waitlist' || params.get('submitted') === '1') return;
+
+        var formEl = root.querySelector('[data-pham-product-form]');
+        var waitlistBase = formEl ? (formEl.getAttribute('data-pham-waitlist-base') || '') : '';
+        if (!waitlistBase) return;
+
+        sessionStorage.removeItem('pham-waitlist-submitted');
+
+        var target;
+        if (waitlistBase.indexOf('/products/') >= 0 && waitlistBase.indexOf('view=waitlist') < 0) {
+          target = waitlistBase.split('?')[0] + '?view=waitlist&submitted=1';
+        } else {
+          var sep = waitlistBase.indexOf('?') >= 0 ? '&' : '?';
+          target = waitlistBase + sep + 'submitted=1';
+        }
+        window.location.replace(target);
+      } catch (e) { /* ignore */ }
+    })();
+
     var dataScript = root.querySelector('[data-pham-product-variants]');
     var variants = [];
     if (dataScript) {
@@ -844,10 +984,13 @@
 
     var form           = root.querySelector('[data-pham-product-form]');
     var variantIdInput = form ? form.querySelector('[data-pham-variant-id]') : null;
+    var qtyInput       = form ? form.querySelector('.pham-product-main__qty-input') : null;
+    var waitlistCta    = form ? form.querySelector('[data-pham-waitlist-cta]') : null;
+    var waitlistBase   = form ? (form.getAttribute('data-pham-waitlist-base') || '') : '';
     var priceEl        = root.querySelector('[data-pham-product-price]');
     var scarcityEl     = root.querySelector('[data-pham-product-scarcity]');
-    var submitBtn      = form ? form.querySelector('[data-pham-product-submit]') : null;
-    var ctaLabel       = submitBtn ? submitBtn.querySelector('[data-pham-product-cta-label]') : null;
+    var submitBtn      = null;
+    var ctaLabel       = waitlistCta ? waitlistCta.querySelector('[data-pham-product-cta-label]') : null;
     var ctaPrice       = null;
     var skuEl          = root.querySelector('[data-pham-product-sku]');
     var legendValueEls = root.querySelectorAll('[data-pham-option-value]');
@@ -876,6 +1019,10 @@
     }
 
     function findVariant(opts) {
+      var hasOptionRadios = root.querySelectorAll('input[type="radio"][data-pham-option]').length > 0;
+      if (!hasOptionRadios && variants.length > 0) {
+        return variants[0];
+      }
       for (var i = 0; i < variants.length; i++) {
         var v = variants[i];
         if (!v || !v.options) continue;
@@ -942,23 +1089,12 @@
       }
     }
 
-    function updateSubmit(variant) {
-      if (!submitBtn) return;
-      var closedLabel = submitBtn.getAttribute('data-pham-preorder-closed-label') || 'PRE-ORDER CLOSED';
-      if (!variant || !variant.available) {
-        submitBtn.setAttribute('disabled', '');
-        submitBtn.setAttribute('aria-disabled', 'true');
-        submitBtn.classList.add('pham-product-main__cta--closed');
-        if (ctaLabel) ctaLabel.textContent = closedLabel;
-      } else {
-        submitBtn.removeAttribute('disabled');
-        submitBtn.removeAttribute('aria-disabled');
-        submitBtn.classList.remove('pham-product-main__cta--closed');
-        if (ctaLabel) {
-          var preorderLabel = submitBtn.getAttribute('data-pham-preorder-label') || 'PRE-ORDER NOW';
-          ctaLabel.textContent = preorderLabel;
-        }
-      }
+    function updateWaitlistLink(variant) {
+      if (!waitlistCta || !waitlistBase || !variant) return;
+      var qty = 1;
+      if (qtyInput) qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
+      var sep = waitlistBase.indexOf('?') >= 0 ? '&' : '?';
+      waitlistCta.href = waitlistBase + sep + 'variant=' + encodeURIComponent(String(variant.id)) + '&quantity=' + encodeURIComponent(String(qty));
     }
 
     function updateSku(variant) {
@@ -974,9 +1110,99 @@
       if (variantIdInput && variant) variantIdInput.value = String(variant.id);
       updatePrice(variant);
       updateScarcity(variant);
-      updateSubmit(variant);
+      updateWaitlistLink(variant);
       updateSku(variant);
       if (variant) updateUrl(variant);
+    }
+
+    if (qtyInput) qtyInput.addEventListener('input', update);
+    if (qtyInput) qtyInput.addEventListener('change', update);
+
+    /* ====== Product gallery (Shopee-style) ====== */
+    var gallery = root.querySelector('[data-pham-product-gallery]');
+    if (gallery) {
+      var slides = gallery.querySelectorAll('[data-pham-gallery-slide]');
+      var thumbs = gallery.querySelectorAll('[data-pham-gallery-thumb]');
+      var prevBtn = gallery.querySelector('[data-pham-gallery-prev]');
+      var nextBtn = gallery.querySelector('[data-pham-gallery-next]');
+      var currentEl = gallery.querySelector('[data-pham-gallery-current]');
+      var thumbStrip = gallery.querySelector('[data-pham-gallery-thumbs]');
+      var thumbPrev = gallery.querySelector('[data-pham-thumb-prev]');
+      var thumbNext = gallery.querySelector('[data-pham-thumb-next]');
+      var activeIndex = 0;
+      var total = slides.length;
+
+      function pauseSlideMedia(slide) {
+        if (!slide) return;
+        var vids = slide.querySelectorAll('video');
+        for (var vi = 0; vi < vids.length; vi++) {
+          try { vids[vi].pause(); } catch (e) { /* */ }
+        }
+      }
+
+      function goTo(index) {
+        if (!total) return;
+        if (index < 0) index = total - 1;
+        if (index >= total) index = 0;
+        activeIndex = index;
+
+        for (var si = 0; si < slides.length; si++) {
+          var on = si === activeIndex;
+          slides[si].classList.toggle('is-active', on);
+          if (!on) pauseSlideMedia(slides[si]);
+        }
+        for (var ti = 0; ti < thumbs.length; ti++) {
+          var active = ti === activeIndex;
+          thumbs[ti].classList.toggle('is-active', active);
+          thumbs[ti].setAttribute('aria-selected', active ? 'true' : 'false');
+          if (active && thumbStrip) {
+            try {
+              thumbs[ti].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } catch (e) { /* */ }
+          }
+        }
+        if (currentEl) currentEl.textContent = String(activeIndex + 1);
+      }
+
+      function updateThumbNav() {
+        if (!thumbStrip || !thumbPrev || !thumbNext) return;
+        var overflow = thumbStrip.scrollWidth > thumbStrip.clientWidth + 2;
+        thumbPrev.hidden = !overflow;
+        thumbNext.hidden = !overflow;
+      }
+
+      if (prevBtn) prevBtn.addEventListener('click', function () { goTo(activeIndex - 1); });
+      if (nextBtn) nextBtn.addEventListener('click', function () { goTo(activeIndex + 1); });
+
+      for (var t = 0; t < thumbs.length; t++) {
+        (function (thumb) {
+          thumb.addEventListener('click', function () {
+            var idx = parseInt(thumb.getAttribute('data-slide-index'), 10);
+            if (!isNaN(idx)) goTo(idx);
+          });
+        })(thumbs[t]);
+      }
+
+      if (thumbPrev && thumbStrip) {
+        thumbPrev.addEventListener('click', function () {
+          thumbStrip.scrollBy({ left: -160, behavior: 'smooth' });
+        });
+      }
+      if (thumbNext && thumbStrip) {
+        thumbNext.addEventListener('click', function () {
+          thumbStrip.scrollBy({ left: 160, behavior: 'smooth' });
+        });
+      }
+
+      gallery.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(activeIndex - 1); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); goTo(activeIndex + 1); }
+      });
+
+      if (thumbStrip) {
+        updateThumbNav();
+        window.addEventListener('resize', updateThumbNav);
+      }
     }
 
     var radios = root.querySelectorAll('input[type="radio"][data-pham-option]');
@@ -1111,7 +1337,78 @@
     },
     {
       "type": "header",
+      "content": "Trust & help"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_trust_strip",
+      "label": "Show trust strip under CTA",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "trust_shipping",
+      "label": "Trust — shipping",
+      "default": "Complimentary worldwide express shipping"
+    },
+    {
+      "type": "text",
+      "id": "trust_returns",
+      "label": "Trust — returns",
+      "default": "14-day returns on unworn items"
+    },
+    {
+      "type": "text",
+      "id": "trust_authenticity",
+      "label": "Trust — edition",
+      "default": "Limited atelier edition · invoice after waitlist closes"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_size_guide_link",
+      "label": "Link to size guide page",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "size_guide_handle",
+      "label": "Size guide page handle",
+      "default": "size-guide"
+    },
+    {
+      "type": "text",
+      "id": "size_guide_heading",
+      "label": "Size guide accordion heading",
+      "default": "Size guide"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_faq_link",
+      "label": "Link to FAQ page",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "faq_handle",
+      "label": "FAQ page handle",
+      "default": "faq"
+    },
+    {
+      "type": "text",
+      "id": "faq_heading",
+      "label": "FAQ accordion heading",
+      "default": "FAQ"
+    },
+    {
+      "type": "header",
       "content": "Pre-order CTA"
+    },
+    {
+      "type": "checkbox",
+      "id": "preorder_open",
+      "label": "Accept pre-orders",
+      "default": true,
+      "info": "Pre-order stays open even when inventory is 0. Uncheck to show PRE-ORDER CLOSED."
     },
     {
       "type": "text",
@@ -1130,13 +1427,13 @@
       "id": "preorder_closed_note",
       "label": "Closed state note",
       "default": "Pre-order is currently closed for this edition.",
-      "info": "Shown when the variant is unavailable. In Shopify Admin → Products → PHAM-01 → Inventory, enable Continue selling when out of stock to open pre-orders."
+      "info": "Shown when Accept pre-orders is turned off in this section."
     },
     {
       "type": "textarea",
       "id": "preorder_note",
       "label": "Pre-order note (under CTA)",
-      "default": "Sealed pre-order. The edition ships once production closes. No re-issues."
+      "default": "No payment today. Tap PRE-ORDER NOW to leave your contact details — we email your invoice when the waitlist closes."
     },
     {
       "type": "header",

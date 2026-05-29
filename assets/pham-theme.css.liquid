@@ -88,6 +88,25 @@
   --tracking-luxury:  0.25em;
   --tracking-tech:    0.25em;
 
+  /* Policy pages — single source of truth (title + section h2) */
+  --pham-policy-title-size:   clamp(1.75rem, 4.5vw, 2.75rem);
+  --pham-policy-title-weight: 300;
+  --pham-policy-title-color:  var(--color-bone);
+  --pham-policy-title-font:   var(--font-display);
+  --pham-policy-h2-font:      var(--font-display);
+  --pham-policy-h2-size:      clamp(0.9375rem, 2.2vw, 1.125rem);
+  --pham-policy-h2-weight:    700;
+  --pham-policy-h2-color:     var(--color-white);
+  --pham-policy-h2-tracking:  var(--tracking-tech);
+  --pham-policy-h2-lh:        1.3;
+  --pham-policy-h2-mt:        var(--space-xl);
+  --pham-policy-h2-mb:        var(--space-sm);
+  --pham-policy-h2-pt:        var(--space-md);
+  --pham-policy-h2-divider:   1px solid var(--color-ash);
+  --pham-policy-body-size:    var(--text-md);
+  --pham-policy-body-color:   var(--color-bone-80);
+  --pham-policy-body-lh:      1.75;
+
   /* Z-index */
   --z-base:       1;
   --z-sticky:     50;
@@ -1215,6 +1234,48 @@ input[type="search"]::-webkit-search-decoration {
 }
 
 /* ==========================================================================
+   15c2. CUSTOMER AUTH (login / register)
+   ========================================================================== */
+.pham-auth__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-xs);
+}
+.pham-auth__text-btn {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-smoke);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.pham-auth__text-btn:hover { color: var(--color-white); }
+.pham-auth__switch {
+  margin: var(--space-lg) 0 0;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-ash);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-base);
+  color: var(--color-smoke);
+  line-height: 1.6;
+}
+.pham-auth__link {
+  color: var(--color-white);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-white);
+  margin-left: var(--space-xs);
+}
+.pham-auth__link:hover { opacity: 0.75; }
+
+/* ==========================================================================
    15d. BACK LINK SYSTEM  (high-contrast white, arrow shift on hover)
    ========================================================================== */
 .pham-back-link {
@@ -1985,6 +2046,32 @@ input[type="search"]::-webkit-search-decoration {
 
 .pham-footer__divider { margin: var(--space-xl) 0 var(--space-md); }
 
+.pham-footer__policies { margin-bottom: var(--space-md); }
+.pham-footer__policies-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-lg);
+}
+.pham-footer__policy-link {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-luxury);
+  text-transform: uppercase;
+  color: var(--color-white);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  padding-bottom: 2px;
+  transition: color var(--duration-base) var(--ease-tech), border-color var(--duration-base) var(--ease-tech);
+}
+.pham-footer__policy-link:hover {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
 .pham-footer__bottom {
   display: flex;
   align-items: center;
@@ -2595,6 +2682,7 @@ select option,
    ========================================================================== */
 .pham-page,
 .pham-contact,
+.pham-waitlist,
 .pham-search,
 .pham-collection-grid,
 .pham-cart-page,
@@ -2607,6 +2695,7 @@ select option,
 .pham-product-main .pham-container,
 .pham-page .pham-container,
 .pham-contact .pham-container,
+.pham-waitlist.pham-container,
 .pham-search .pham-container,
 .pham-collection-grid .pham-container,
 .pham-cart-page .pham-container,
@@ -2614,7 +2703,59 @@ select option,
 .pham-blog .pham-container,
 .pham-404 .pham-container {
   padding-inline: var(--gutter);
+  box-sizing: border-box;
 }
+
+/* Waitlist — legal / consent block centered on form axis */
+.pham-waitlist__meta {
+  width: 100%;
+  margin-top: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  text-align: center;
+}
+.pham-waitlist__consent-label {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  width: auto;
+  max-width: 34rem;
+  margin: 0;
+  text-align: left;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-bone);
+  cursor: pointer;
+}
+.pham-waitlist__consent-label input {
+  flex: 0 0 1rem;
+  width: 1rem;
+  height: 1rem;
+  margin: 0.15rem 0 0;
+  accent-color: var(--color-accent);
+}
+.pham-waitlist__consent-label span {
+  flex: 1;
+  min-width: 0;
+}
+.pham-waitlist__privacy,
+.pham-waitlist__note {
+  width: 100%;
+  max-width: 34rem;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--color-smoke);
+}
+.pham-waitlist__note {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+.pham-waitlist__privacy a { color: var(--color-white); }
 
 /* Product PDP — mobile gallery inset (avoid edge-to-edge product shots) */
 @media (max-width: 749px) {
@@ -2832,10 +2973,309 @@ select option,
 
 
 /* ==========================================================================
+   22. SHOPIFY CHALLENGE / hCaptcha — PHAM security gate
+   ========================================================================== */
+body.pham-challenge-page,
+body:has(.shopify-challenge__container) {
+  background-color: var(--color-void) !important;
+}
+
+body.pham-challenge-page main#MainContent,
+body:has(.shopify-challenge__container) main#MainContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--header-group-height, 88px) - 4rem);
+  padding-block: var(--space-2xl);
+}
+
+.shopify-challenge__container,
+.shopify-challenge__container.pham-challenge__shell {
+  width: min(100%, 480px);
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 3rem);
+  text-align: center;
+  border: 1px solid var(--color-ash);
+  background: linear-gradient(180deg, rgba(20, 20, 26, 0.96) 0%, rgba(10, 10, 12, 0.98) 100%);
+  box-shadow: var(--shadow-soft);
+}
+
+.pham-challenge__eyebrow {
+  margin: 0 0 var(--space-md);
+  color: var(--color-smoke);
+}
+
+.pham-challenge__title {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: 1.15;
+  color: var(--color-bone);
+}
+
+.pham-challenge__lead {
+  margin: 0 0 var(--space-xl);
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  color: var(--color-smoke);
+}
+
+.shopify-challenge__message.pham-challenge__platform-message {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.pham-challenge__captcha {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 78px;
+  margin: 0 auto var(--space-lg);
+  padding: var(--space-md);
+  border: 1px solid var(--color-ash);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pham-challenge__captcha .h-captcha {
+  display: inline-block;
+}
+
+.pham-challenge__form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-md);
+}
+
+.shopify-challenge__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  background: transparent !important;
+  background-image: none !important;
+  border: 1px solid var(--color-white) !important;
+  border-radius: 0 !important;
+  color: var(--color-white) !important;
+  font-family: var(--font-mono) !important;
+  font-size: var(--text-xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: var(--tracking-luxury) !important;
+  text-transform: uppercase !important;
+  cursor: pointer;
+  transition: box-shadow var(--duration-base) var(--ease-tech), background-color var(--duration-base) var(--ease-tech);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.shopify-challenge__button:hover,
+.shopify-challenge__button:focus-visible {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 0 32px rgba(255, 255, 255, 0.12);
+  outline: none;
+}
+
+.shopify-challenge__error {
+  margin-top: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-base);
+  color: #ff8a8a;
+}
+
+body.pham-challenge-page .shopify-section-group-footer-group {
+  margin-top: auto;
+}
+
+@media (max-width: 749px) {
+  .shopify-challenge__container,
+  .shopify-challenge__container.pham-challenge__shell {
+    margin-inline: var(--gutter);
+    padding: var(--space-xl) var(--space-md);
+  }
+}
+
+
+/* ==========================================================================
    21. PRINT
    ========================================================================== */
 @media print {
   body { background: #fff !important; color: #000 !important; }
   html { background-image: none !important; }
   #pham-preloader, .pham-header, .pham-header__spacer, .pham-cart-drawer, .pham-header__drawer { display: none !important; }
+}
+
+/* ==========================================================================
+   22. POLICY PAGES — mobile-safe content (privacy, shipping, returns, terms)
+   ========================================================================== */
+.pham-policy-page #MainContent,
+.pham-policy-page .content-for-layout {
+  overflow-x: clip;
+  max-width: 100%;
+}
+.pham-policy-page .shopify-policy__container {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: min(760px, 100%);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  padding-block: clamp(48px, 8vw, 96px);
+  overflow-x: clip;
+  background-color: var(--color-void);
+  color: var(--color-bone);
+}
+.pham-policy-page .shopify-policy__title {
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-ash);
+}
+.pham-policy-page .shopify-policy__title h1 {
+  font-family: var(--pham-policy-title-font) !important;
+  font-weight: var(--pham-policy-title-weight) !important;
+  font-size: var(--pham-policy-title-size) !important;
+  line-height: 1.12 !important;
+  color: var(--pham-policy-title-color) !important;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide) !important;
+  margin: 0 !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Section headings — override Horizon h2/h3 preset; works with or without JS */
+.pham-policy-page .shopify-policy__body :is(h2, h3, .pham-policy-h2) {
+  display: block;
+  font-family: var(--pham-policy-h2-font) !important;
+  font-size: var(--pham-policy-h2-size) !important;
+  font-weight: var(--pham-policy-h2-weight) !important;
+  line-height: var(--pham-policy-h2-lh) !important;
+  letter-spacing: var(--pham-policy-h2-tracking) !important;
+  text-transform: uppercase !important;
+  color: var(--pham-policy-h2-color) !important;
+  font-style: normal !important;
+  margin: var(--pham-policy-h2-mt) 0 var(--pham-policy-h2-mb) !important;
+  padding-top: var(--pham-policy-h2-pt);
+  border-top: var(--pham-policy-h2-divider);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.pham-policy-page .shopify-policy__body p {
+  margin: 0 0 var(--space-md);
+  font-family: var(--font-body);
+  font-size: var(--pham-policy-body-size);
+  line-height: var(--pham-policy-body-lh);
+  color: var(--pham-policy-body-color);
+}
+.pham-policy-page .shopify-policy__body ul,
+.pham-policy-page .shopify-policy__body ol {
+  margin: 0 0 var(--space-md);
+  padding-left: var(--space-md);
+  font-family: var(--font-body);
+  font-size: var(--pham-policy-body-size);
+  line-height: var(--pham-policy-body-lh);
+  color: var(--pham-policy-body-color);
+}
+.pham-policy-page .shopify-policy__body p strong,
+.pham-policy-page .shopify-policy__body p b,
+.pham-policy-page .shopify-policy__body li strong,
+.pham-policy-page .shopify-policy__body li b {
+  display: inline;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  letter-spacing: inherit;
+  text-transform: none;
+  color: var(--color-white);
+}
+.pham-policy-page .shopify-policy__body,
+.shopify-policy__body {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  color: var(--pham-policy-body-color);
+  line-height: var(--pham-policy-body-lh);
+  font-family: var(--font-body);
+  font-size: var(--pham-policy-body-size);
+}
+.pham-policy-page .shopify-policy__body > *,
+.shopify-policy__body > * {
+  max-width: 100%;
+}
+.pham-policy-page .shopify-policy__body img,
+.shopify-policy__body img,
+.pham-policy-page .shopify-policy__body video,
+.shopify-policy__body video,
+.pham-policy-page .shopify-policy__body iframe,
+.shopify-policy__body iframe {
+  max-width: 100%;
+  height: auto;
+}
+.pham-policy-page .shopify-policy__body pre,
+.shopify-policy__body pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.pham-policy-page .shopify-policy__body .rte-table-wrapper,
+.shopify-policy__body .rte-table-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.pham-policy-page .shopify-policy__body table,
+.shopify-policy__body table {
+  width: 100% !important;
+  max-width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.pham-policy-page .shopify-policy__body th,
+.pham-policy-page .shopify-policy__body td,
+.shopify-policy__body th,
+.shopify-policy__body td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  padding: var(--space-xs) var(--space-sm);
+}
+.pham-policy-page .shopify-policy__body a,
+.shopify-policy__body a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: var(--color-accent);
+}
+
+@media (max-width: 749px) {
+  .pham-policy-page {
+    --pham-policy-title-size: clamp(1.35rem, 5.5vw, 1.85rem);
+    --pham-policy-h2-size: 0.8125rem;
+    --pham-policy-body-size: var(--text-sm);
+    --pham-policy-body-lh: 1.65;
+  }
+  .pham-policy-page .shopify-policy__container {
+    padding-inline: max(var(--gutter), 16px);
+  }
+  .pham-footer__policies-list {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
 }

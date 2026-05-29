@@ -1,0 +1,22 @@
+mutation CreateWaitlistThankYouPage {
+  pageCreate(
+    page: {
+      title: "Waitlist Thank You"
+      handle: "waitlist-thank-you"
+      body: ""
+      isPublished: true
+      templateSuffix: "waitlist-thank-you"
+    }
+  ) {
+    page {
+      id
+      handle
+      title
+      onlineStoreUrl
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}

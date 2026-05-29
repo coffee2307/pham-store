@@ -36,6 +36,8 @@
   }
   .pham-page__inner {
     max-width: 760px;
+    width: 100%;
+    min-width: 0;
   }
   .pham-page__head {
     display: flex;
@@ -57,6 +59,10 @@
     font-size: var(--text-md);
     line-height: 1.8;
     color: var(--color-bone-80);
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
   .pham-page__content > * + * { margin-top: var(--space-md); }
   .pham-page__content h2 { font-family: var(--font-display); font-weight: 300; font-size: 1.75rem; color: var(--color-bone); margin-top: var(--space-xl); }

@@ -9,16 +9,25 @@
     {%- assign product = pham_item -%}
   {%- endfor -%}
 {%- endif -%}
+{%- capture pham_preorder_open_raw -%}{%- render 'pham-preorder-open', section: section -%}{%- endcapture -%}
+{%- assign pham_preorder_open_raw = pham_preorder_open_raw | strip -%}
+{%- assign pham_preorder_open = true -%}
+{%- if pham_preorder_open_raw == 'false' -%}{%- assign pham_preorder_open = false -%}{%- endif -%}
+{%- capture pham_waitlist_page_url -%}{%- render 'pham-waitlist-page-url' -%}{%- endcapture -%}
+{%- assign pham_waitlist_page_url = pham_waitlist_page_url | strip -%}
 {%- liquid
   assign media_position = section.settings.media_position | default: 'left'
   assign show_view_pdp  = section.settings.show_view_pdp
   assign current_variant = product.selected_or_first_available_variant
+  assign spotlight_preorder_label = section.settings.preorder_label | default: 'PRE-ORDER NOW'
+  assign spotlight_closed_label = section.settings.preorder_closed_label | default: 'PRE-ORDER CLOSED'
 -%}
 
 <section class="pham-product-spotlight pham-product-spotlight--media-{{ media_position }}"
          data-pham-spotlight="{{ section.id }}"
          data-pham-product-spotlight
          data-section-id="{{ section.id }}"
+         data-pham-preorder-open="{% if pham_preorder_open %}true{% else %}false{% endif %}"
          role="region"
          aria-label="{{ product.title | default: 'Featured product' | escape }}">
 
@@ -92,19 +101,13 @@
             <div class="pham-product-spotlight__desc rte">{{ section.settings.description }}</div>
           {%- elsif product.description != blank -%}
             <div class="pham-product-spotlight__desc rte">
-              {{ product.description | strip_html | truncatewords: 60 }}
+              {{ product.description | strip_html | strip | truncatewords: 60 }}
             </div>
           {%- endif -%}
 
-          <form action="{{ routes.cart_add_url }}"
-                method="post"
-                enctype="multipart/form-data"
-                class="pham-product-spotlight__form"
-                data-pham-spotlight-form
-                data-action="add-to-cart"
-                novalidate>
-            <input type="hidden" name="form_type" value="product">
-            <input type="hidden" name="utf8" value="✓">
+          <div class="pham-product-spotlight__form"
+               data-pham-spotlight-form
+               data-pham-waitlist-base="{{ pham_waitlist_page_url | escape }}">
 
             {%- unless product.has_only_default_variant -%}
               <div class="pham-product-spotlight__options">
@@ -155,21 +158,29 @@
                      class="pham-product-spotlight__qty-input">
             </div>
 
-            <button type="submit"
-                    class="pham-product-spotlight__add"
-                    data-pham-spotlight-submit
-                    {% unless current_variant.available %}disabled aria-disabled="true"{% endunless %}>
-              <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
-              <span class="pham-product-spotlight__add-text">
-                <span class="pham-product-spotlight__add-label" data-pham-spotlight-btn-label>
-                  {% if current_variant.available %}ADD TO CART{% else %}SOLD OUT{% endif %}
+            {%- if pham_preorder_open -%}
+              <a href="{{ pham_waitlist_page_url }}?variant={{ current_variant.id }}&amp;quantity=1"
+                 class="pham-product-spotlight__add"
+                 data-pham-waitlist-cta>
+                <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
+                <span class="pham-product-spotlight__add-text">
+                  <span class="pham-product-spotlight__add-label" data-pham-spotlight-btn-label>{{ spotlight_preorder_label }}</span>
+                  <span class="pham-product-spotlight__add-price" data-pham-spotlight-btn-price>{{ current_variant.price | money }}</span>
                 </span>
-                <span class="pham-product-spotlight__add-price" data-pham-spotlight-btn-price>
-                  {{ current_variant.price | money }}
+              </a>
+            {%- else -%}
+              <button type="button"
+                      class="pham-product-spotlight__add pham-product-spotlight__add--closed"
+                      disabled
+                      aria-disabled="true">
+                <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
+                <span class="pham-product-spotlight__add-text">
+                  <span class="pham-product-spotlight__add-label">{{ spotlight_closed_label }}</span>
+                  <span class="pham-product-spotlight__add-price">{{ current_variant.price | money }}</span>
                 </span>
-              </span>
-            </button>
-          </form>
+              </button>
+            {%- endif -%}
+          </div>
 
           {%- if show_view_pdp -%}
             <a href="{{ product.url }}" class="pham-product-spotlight__pdp-link">
@@ -365,6 +376,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-sm);
+    margin-bottom: var(--space-md);
   }
   .pham-product-spotlight__qty-label {
     font-family: var(--font-mono);
@@ -397,6 +409,7 @@
     display: block;
     width: 100%;
     padding: 0;
+    margin-top: var(--space-md);
     background: transparent;
     color: var(--color-bone);
     border: 1px solid var(--color-bone);
@@ -404,10 +417,15 @@
     isolation: isolate;
     cursor: pointer;
     font: inherit;
+    text-decoration: none;
     transition: color var(--duration-base) var(--ease-luxury);
   }
+  a.pham-product-spotlight__add:hover {
+    color: var(--color-bone);
+  }
   .pham-product-spotlight__add[disabled],
-  .pham-product-spotlight__add[aria-disabled="true"] {
+  .pham-product-spotlight__add[aria-disabled="true"],
+  .pham-product-spotlight__add--closed {
     border-color: var(--color-ash);
     color: var(--color-smoke);
     cursor: not-allowed;
@@ -515,10 +533,11 @@
     var form = root.querySelector('[data-pham-spotlight-form]');
     if (!form) return;
     var variantIdInput = form.querySelector('[data-pham-spotlight-id]');
+    var qtyInput = form.querySelector('.pham-product-spotlight__qty-input');
+    var waitlistCta = form.querySelector('[data-pham-waitlist-cta]');
+    var waitlistBase = form.getAttribute('data-pham-waitlist-base') || '';
     var priceEl = root.querySelector('[data-pham-spotlight-price]');
-    var btn = form.querySelector('[data-pham-spotlight-submit]');
-    var btnLabel = btn ? btn.querySelector('[data-pham-spotlight-btn-label]') : null;
-    var btnPrice = btn ? btn.querySelector('[data-pham-spotlight-btn-price]') : null;
+    var btnPrice = waitlistCta ? waitlistCta.querySelector('[data-pham-spotlight-btn-price]') : null;
     var legendValueEls = root.querySelectorAll('[data-pham-spotlight-option-value]');
     var currency = (window.Shopify && window.Shopify.currency && window.Shopify.currency.active) || 'USD';
 
@@ -551,6 +570,10 @@
     }
 
     function findVariant(opts) {
+      var hasOptionRadios = root.querySelectorAll('input[type="radio"][data-pham-option]').length > 0;
+      if (!hasOptionRadios && variants.length > 0) {
+        return variants[0];
+      }
       for (var i = 0; i < variants.length; i++) {
         var v = variants[i];
         if (!v.options) continue;
@@ -572,6 +595,14 @@
       }
     }
 
+    function updateWaitlistLink(variant) {
+      if (!waitlistCta || !waitlistBase || !variant) return;
+      var qty = 1;
+      if (qtyInput) qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
+      var sep = waitlistBase.indexOf('?') >= 0 ? '&' : '?';
+      waitlistCta.href = waitlistBase + sep + 'variant=' + encodeURIComponent(String(variant.id)) + '&quantity=' + encodeURIComponent(String(qty));
+    }
+
     function update() {
       var opts = getSelectedOptions();
       updateLegendValues(opts);
@@ -582,19 +613,11 @@
       var formatted = formatMoney(variant.price);
       if (priceEl)  priceEl.textContent  = formatted;
       if (btnPrice) btnPrice.textContent = formatted;
-
-      if (btn) {
-        if (!variant.available) {
-          btn.setAttribute('disabled', 'disabled');
-          btn.setAttribute('aria-disabled', 'true');
-          if (btnLabel) btnLabel.textContent = 'SOLD OUT';
-        } else {
-          btn.removeAttribute('disabled');
-          btn.removeAttribute('aria-disabled');
-          if (btnLabel) btnLabel.textContent = 'ADD TO CART';
-        }
-      }
+      updateWaitlistLink(variant);
     }
+
+    if (qtyInput) qtyInput.addEventListener('input', update);
+    if (qtyInput) qtyInput.addEventListener('change', update);
 
     var radios = root.querySelectorAll('input[type="radio"][data-pham-option]');
     for (var k = 0; k < radios.length; k++) {
@@ -643,6 +666,29 @@
       "id": "description",
       "label": "Description override",
       "info": "Leave blank to use the product's description."
+    },
+    {
+      "type": "header",
+      "content": "Pre-order"
+    },
+    {
+      "type": "checkbox",
+      "id": "preorder_open",
+      "label": "Accept pre-orders",
+      "default": true,
+      "info": "Pre-order stays open even when inventory is 0. Uncheck to show PRE-ORDER CLOSED."
+    },
+    {
+      "type": "text",
+      "id": "preorder_label",
+      "label": "Pre-order button label",
+      "default": "PRE-ORDER NOW"
+    },
+    {
+      "type": "text",
+      "id": "preorder_closed_label",
+      "label": "Closed button label",
+      "default": "PRE-ORDER CLOSED"
     },
     {
       "type": "header",

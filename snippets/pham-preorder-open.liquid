@@ -1,0 +1,28 @@
+{% comment %}
+  Single source of truth for waitlist / pre-order signup open state.
+  Open by default. Closed only when explicitly disabled.
+
+  @param {object} section
+  Outputs: true | false (capture in parent, then strip)
+{% endcomment %}
+{%- liquid
+  assign pham_signup_open = true
+
+  if settings.pham_waitlist_enabled == false
+    assign pham_signup_open = false
+  endif
+
+  if section.settings.preorder_open == false
+    assign pham_signup_open = false
+  endif
+
+  if settings.pham_waitlist_use_schedule
+    assign today = 'now' | date: '%Y-%m-%d'
+    assign opens = settings.pham_waitlist_opens | default: '2026-06-01'
+    assign closes = settings.pham_waitlist_closes | default: '2026-07-01'
+    unless today >= opens and today <= closes
+      assign pham_signup_open = false
+    endunless
+  endif
+-%}
+{%- if pham_signup_open -%}true{%- else -%}false{%- endif -%}

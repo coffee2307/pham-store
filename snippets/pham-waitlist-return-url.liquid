@@ -1,0 +1,29 @@
+{% comment %}
+  Canonical post-submit redirect URL for waitlist contact forms.
+  Outputs a relative path only.
+{% endcomment %}
+{%- liquid
+  assign thank_you_handle = settings.pham_waitlist_thank_you_handle | default: 'waitlist-thank-you'
+  assign thank_you_page = pages[thank_you_handle]
+
+  if thank_you_page != blank
+    echo thank_you_page.url
+    echo '?submitted=1'
+  elsif request.page_type == 'product' and product != blank
+    echo product.url
+    echo '?view=waitlist&submitted=1'
+  elsif request.page_type == 'page'
+    echo request.path
+    if request.search != blank
+      echo request.search
+      echo '&submitted=1'
+    else
+      echo '?submitted=1'
+    endif
+  elsif product != blank
+    echo product.url
+    echo '?view=waitlist&submitted=1'
+  else
+    echo '/pages/pre-order?submitted=1'
+  endif
+-%}

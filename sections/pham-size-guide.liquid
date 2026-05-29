@@ -1,0 +1,151 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+<section class="pham-size-guide pham-container"
+         data-pham-size-guide
+         role="region"
+         aria-labelledby="pham-size-guide-heading-{{ section.id }}">
+  <header class="pham-size-guide__head reveal-up">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
+    {%- endif -%}
+    <h1 id="pham-size-guide-heading-{{ section.id }}" class="pham-size-guide__title">
+      {{ section.settings.heading | default: 'Size guide' }}
+    </h1>
+    {%- if section.settings.intro != blank -%}
+      <div class="pham-size-guide__intro">{{ section.settings.intro }}</div>
+    {%- endif -%}
+  </header>
+
+  <div class="pham-size-guide__table-wrap reveal-up" tabindex="0" role="region" aria-label="Size chart">
+    <table class="pham-size-guide__table">
+      <thead>
+        <tr>
+          <th scope="col">Size</th>
+          <th scope="col">Chest (cm)</th>
+          <th scope="col">Waist (cm)</th>
+          <th scope="col">Hip (cm)</th>
+          <th scope="col">Length (cm)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'size_row' -%}
+            <tr {{ block.shopify_attributes }}>
+              <th scope="row">{{ block.settings.size_label }}</th>
+              <td>{{ block.settings.chest }}</td>
+              <td>{{ block.settings.waist }}</td>
+              <td>{{ block.settings.hip }}</td>
+              <td>{{ block.settings.length }}</td>
+            </tr>
+          {%- endif -%}
+        {%- endfor -%}
+      </tbody>
+    </table>
+  </div>
+
+  {%- if section.settings.note != blank -%}
+    <div class="pham-size-guide__note reveal-up">{{ section.settings.note }}</div>
+  {%- endif -%}
+</section>
+
+<style>
+  .pham-size-guide { padding-block: var(--space-2xl) var(--space-3xl); max-width: 880px; }
+  .pham-size-guide__title {
+    margin: 0 0 var(--space-sm);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+  .pham-size-guide__intro,
+  .pham-size-guide__note {
+    color: var(--color-smoke);
+    line-height: 1.65;
+  }
+  .pham-size-guide__intro { margin-top: var(--space-sm); }
+  .pham-size-guide__table-wrap {
+    margin-top: var(--space-xl);
+    overflow-x: auto;
+    border: 1px solid var(--color-ash);
+  }
+  .pham-size-guide__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+  }
+  .pham-size-guide__table th,
+  .pham-size-guide__table td {
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--color-ash);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .pham-size-guide__table thead th {
+    color: var(--color-smoke);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .pham-size-guide__table tbody th { color: var(--color-white); }
+  .pham-size-guide__table tbody tr:last-child th,
+  .pham-size-guide__table tbody tr:last-child td { border-bottom: none; }
+  .pham-size-guide__note { margin-top: var(--space-lg); font-size: var(--text-sm); }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Size Guide",
+  "tag": "section",
+  "class": "pham-size-guide-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "FIT"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Size guide"
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "Intro",
+      "default": "<p>Measurements are body references in centimetres. For a relaxed fit, choose your usual size. Between sizes — size up.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "note",
+      "label": "Note below table",
+      "default": "<p>Need help? Include your height, weight, and preferred fit in the waitlist form under Other requests.</p>"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "size_row",
+      "name": "Size row",
+      "settings": [
+        { "type": "text", "id": "size_label", "label": "Size", "default": "M" },
+        { "type": "text", "id": "chest", "label": "Chest (cm)", "default": "96–100" },
+        { "type": "text", "id": "waist", "label": "Waist (cm)", "default": "78–82" },
+        { "type": "text", "id": "hip", "label": "Hip (cm)", "default": "96–100" },
+        { "type": "text", "id": "length", "label": "Length (cm)", "default": "72" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Size Guide",
+      "blocks": [
+        { "type": "size_row", "settings": { "size_label": "XS", "chest": "84–88", "waist": "66–70", "hip": "84–88", "length": "68" } },
+        { "type": "size_row", "settings": { "size_label": "S", "chest": "88–92", "waist": "70–74", "hip": "88–92", "length": "70" } },
+        { "type": "size_row", "settings": { "size_label": "M", "chest": "96–100", "waist": "78–82", "hip": "96–100", "length": "72" } },
+        { "type": "size_row", "settings": { "size_label": "L", "chest": "104–108", "waist": "86–90", "hip": "104–108", "length": "74" } },
+        { "type": "size_row", "settings": { "size_label": "XL", "chest": "112–116", "waist": "94–98", "hip": "112–116", "length": "76" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

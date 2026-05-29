@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-waitlist-thank-you",
+      "settings": {
+        "eyebrow": "WAITLIST CONFIRMED",
+        "heading": "Thank you",
+        "message": "You are on the pre-order waitlist. We will send you an email with updates as soon as possible.",
+        "followup": "No payment is required today. When the edition closes, we will email your invoice with next steps."
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

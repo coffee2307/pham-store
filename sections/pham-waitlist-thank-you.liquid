@@ -1,0 +1,142 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- capture pham_feat_handle -%}{%- render 'pham-featured-product-handle', product_ref: section.settings.product -%}{%- endcapture -%}
+{%- assign pham_feat_handle = pham_feat_handle | strip -%}
+{%- if pham_feat_handle != blank -%}
+  {%- assign product = all_products[pham_feat_handle] -%}
+{%- endif -%}
+{%- if product == blank or product == nil -%}
+  {%- for pham_item in collections.all.products limit: 1 -%}
+    {%- assign product = pham_item -%}
+  {%- endfor -%}
+{%- endif -%}
+
+<section class="pham-waitlist pham-container pham-waitlist--thank-you"
+         role="region"
+         aria-label="Waitlist confirmation">
+
+  {%- form 'contact', id: 'PhamWaitlistThankYouForm', class: 'pham-waitlist-thank-you__form' -%}
+    {%- assign show_waitlist_thank_you = false -%}
+    {%- if form.posted_successfully? or request.search contains 'submitted=1' -%}
+      {%- assign show_waitlist_thank_you = true -%}
+    {%- endif -%}
+
+    {%- if show_waitlist_thank_you -%}
+      {%- render 'pham-waitlist-thank-you-content',
+        eyebrow: section.settings.eyebrow,
+        heading: section.settings.heading,
+        message: section.settings.message,
+        followup: section.settings.followup,
+        product_url: product.url
+      -%}
+    {%- else -%}
+      <div class="pham-waitlist-thank-you pham-waitlist-thank-you--fallback reveal-up">
+        <p class="pham-waitlist-thank-you__message">{{ section.settings.fallback_message }}</p>
+        {%- capture pham_waitlist_url -%}{%- render 'pham-waitlist-page-url' -%}{%- endcapture -%}
+        <div class="pham-waitlist-thank-you__actions">
+          <a href="{{ pham_waitlist_url | strip }}" class="pham-waitlist-thank-you__link">Join the waitlist</a>
+          <a href="{{ routes.root_url }}" class="pham-back-link">Return to atelier</a>
+        </div>
+      </div>
+    {%- endif -%}
+  {%- endform -%}
+</section>
+
+<style>
+  .pham-waitlist--thank-you {
+    max-width: 560px;
+    min-height: 60vh;
+  }
+  .pham-waitlist-thank-you__form { width: 100%; }
+  .pham-waitlist-thank-you__title {
+    margin: 0 0 var(--space-md);
+    font-size: clamp(2rem, 5vw, 3rem);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+  .pham-waitlist-thank-you__message,
+  .pham-waitlist-thank-you__followup {
+    color: var(--color-smoke);
+    line-height: 1.65;
+    margin: 0;
+  }
+  .pham-waitlist-thank-you__message {
+    font-size: var(--text-md, 1.05rem);
+    color: var(--color-bone);
+  }
+  .pham-waitlist-thank-you__followup {
+    margin-top: var(--space-md);
+    font-size: var(--text-sm);
+  }
+  .pham-waitlist-thank-you__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg);
+    align-items: center;
+    margin-top: var(--space-xl);
+    padding-top: var(--space-xl);
+    border-top: 1px solid var(--color-ash);
+  }
+  .pham-waitlist-thank-you__link {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-luxury);
+    text-transform: uppercase;
+    color: var(--color-white);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-white);
+    padding-bottom: 2px;
+  }
+  .pham-waitlist-thank-you__link:hover { opacity: 0.75; }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Waitlist Thank You",
+  "tag": "section",
+  "class": "pham-waitlist-thank-you-section",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product",
+      "info": "Link for “View edition”."
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "WAITLIST CONFIRMED"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Thank you"
+    },
+    {
+      "type": "textarea",
+      "id": "message",
+      "label": "Main message",
+      "default": "You are on the pre-order waitlist. We will send you an email with updates as soon as possible."
+    },
+    {
+      "type": "textarea",
+      "id": "followup",
+      "label": "Follow-up note",
+      "default": "No payment is required today. When the edition closes, we will email your invoice with next steps."
+    },
+    {
+      "type": "textarea",
+      "id": "fallback_message",
+      "label": "Direct visit message",
+      "default": "Join the waitlist to reserve your place for the next PHAM edition."
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Waitlist Thank You"
+    }
+  ]
+}
+{% endschema %}

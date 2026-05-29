@@ -9,6 +9,10 @@
     {%- assign product = pham_item -%}
   {%- endfor -%}
 {%- endif -%}
+{%- capture pham_preorder_open_raw -%}{%- render 'pham-preorder-open', section: section -%}{%- endcapture -%}
+{%- assign pham_preorder_open_raw = pham_preorder_open_raw | strip -%}
+{%- assign pham_preorder_open = true -%}
+{%- if pham_preorder_open_raw == 'false' -%}{%- assign pham_preorder_open = false -%}{%- endif -%}
 {%- liquid
   assign current_variant = product.selected_or_first_available_variant
   assign on_sale = false
@@ -45,6 +49,7 @@
          data-pham-pre-order
          data-section-id="{{ section.id }}"
          data-product-id="{{ product.id }}"
+         data-pham-preorder-open="{% if pham_preorder_open %}true{% else %}false{% endif %}"
          role="region"
          aria-label="{{ product.title | escape }}">
   <div class="pham-container pham-pre-order__gateway reveal-up">
@@ -244,16 +249,16 @@
           </div>
 
           <button type="submit"
-                  class="pham-product-main__cta pham-product-main__cta--preorder{% unless current_variant.available %} pham-product-main__cta--closed{% endunless %}"
+                  class="pham-product-main__cta pham-product-main__cta--preorder{% unless pham_preorder_open %} pham-product-main__cta--closed{% endunless %}"
                   data-pham-product-submit
                   data-pham-preorder-cta
                   data-pham-preorder-label="{{ section.settings.preorder_label | default: 'PRE-ORDER NOW' | escape }}"
                   data-pham-preorder-closed-label="{{ section.settings.preorder_closed_label | default: 'PRE-ORDER CLOSED' | escape }}"
-                  {% unless current_variant.available %}disabled aria-disabled="true"{% endunless %}>
+                  {% unless pham_preorder_open %}disabled aria-disabled="true"{% endunless %}>
             <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
             <span class="pham-product-main__cta-inner">
               <span class="pham-product-main__cta-label" data-pham-product-cta-label>
-                {%- if current_variant.available -%}
+                {%- if pham_preorder_open -%}
                   {{ section.settings.preorder_label | default: 'PRE-ORDER NOW' }}
                 {%- else -%}
                   {{ section.settings.preorder_closed_label | default: 'PRE-ORDER CLOSED' }}
@@ -263,7 +268,7 @@
             </span>
           </button>
 
-          {%- unless current_variant.available -%}
+          {%- unless pham_preorder_open -%}
             <p class="pham-product-main__closed-note">{{ section.settings.preorder_closed_note | default: 'Pre-order is currently closed for this edition.' }}</p>
           {%- endunless -%}
 
@@ -590,6 +595,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-sm);
+    margin-bottom: var(--space-md);
   }
   .pham-product-main__qty-label {
     font-family: var(--font-mono);
@@ -623,7 +629,7 @@
     display: block;
     width: 100%;
     padding: 0;
-    margin-top: var(--space-xs);
+    margin-top: var(--space-md);
     background: transparent;
     color: var(--color-white);
     border: 1px solid var(--color-white);
@@ -959,6 +965,10 @@
     }
 
     function findVariant(opts) {
+      var hasOptionRadios = root.querySelectorAll('input[type="radio"][data-pham-option]').length > 0;
+      if (!hasOptionRadios && variants.length > 0) {
+        return variants[0];
+      }
       for (var i = 0; i < variants.length; i++) {
         var v = variants[i];
         if (!v || !v.options) continue;
@@ -1025,10 +1035,14 @@
       }
     }
 
+    function isPreorderOpen() {
+      return root.getAttribute('data-pham-preorder-open') !== 'false';
+    }
+
     function updateSubmit(variant) {
       if (!submitBtn) return;
       var closedLabel = submitBtn.getAttribute('data-pham-preorder-closed-label') || 'PRE-ORDER CLOSED';
-      if (!variant || !variant.available) {
+      if (!isPreorderOpen()) {
         submitBtn.setAttribute('disabled', '');
         submitBtn.setAttribute('aria-disabled', 'true');
         submitBtn.classList.add('pham-product-main__cta--closed');
@@ -1225,6 +1239,13 @@
       "content": "Pre-order CTA"
     },
     {
+      "type": "checkbox",
+      "id": "preorder_open",
+      "label": "Accept pre-orders",
+      "default": true,
+      "info": "Pre-order stays open even when inventory is 0. Uncheck to show PRE-ORDER CLOSED."
+    },
+    {
       "type": "text",
       "id": "preorder_label",
       "label": "Pre-order button label",
@@ -1241,7 +1262,7 @@
       "id": "preorder_closed_note",
       "label": "Closed state note",
       "default": "Pre-order is currently closed for this edition.",
-      "info": "Shown when the variant is unavailable. In Shopify Admin → Products → PHAM-01 → Inventory, enable Continue selling when out of stock to open pre-orders."
+      "info": "Shown when Accept pre-orders is turned off in this section."
     },
     {
       "type": "textarea",

@@ -2329,6 +2329,147 @@
       },
       {
         "type": "header",
+        "content": "Pre-order waitlist"
+      },
+      {
+        "type": "checkbox",
+        "id": "pham_waitlist_enabled",
+        "label": "Enable waitlist signups",
+        "default": true,
+        "info": "When off, pre-order buttons and the signup form show CLOSED."
+      },
+      {
+        "type": "checkbox",
+        "id": "pham_waitlist_use_schedule",
+        "label": "Use waitlist schedule (June 1 – July 1)",
+        "default": false,
+        "info": "When off, waitlist stays open until you disable signups above. When on, only accepts signups between the dates below."
+      },
+      {
+        "type": "text",
+        "id": "pham_waitlist_opens",
+        "label": "Waitlist opens (YYYY-MM-DD)",
+        "default": "2026-06-01"
+      },
+      {
+        "type": "text",
+        "id": "pham_waitlist_closes",
+        "label": "Waitlist closes (YYYY-MM-DD)",
+        "default": "2026-07-01"
+      },
+      {
+        "type": "text",
+        "id": "pham_waitlist_page_handle",
+        "label": "Waitlist page handle",
+        "default": "pre-order",
+        "info": "Shopify page handle for the signup form, e.g. pre-order → /pages/pre-order"
+      },
+      {
+        "type": "text",
+        "id": "pham_waitlist_thank_you_handle",
+        "label": "Waitlist thank-you page handle",
+        "default": "waitlist-thank-you",
+        "info": "After signup, customers are redirected here. Create a page with this handle and assign the “waitlist-thank-you” template."
+      },
+      {
+        "type": "text",
+        "id": "pham_waitlist_api_path",
+        "label": "Waitlist app proxy path",
+        "default": "/apps/preorder-waitlist",
+        "info": "POST endpoint for the PHAM Pre-order Waitlist app. Install the app and deploy its theme extension."
+      },
+      {
+        "type": "paragraph",
+        "content": "Waitlist merchant checklist: (1) Create pages pre-order and waitlist-thank-you with matching templates. (2) Fill Shipping, Returns, Privacy, and Terms policies in Admin → Settings → Policies. (3) Signups arrive as contact form emails tagged preorder-waitlist — filter Inbox or use Shopify Email segments. (4) Optional: install the PHAM Pre-order Waitlist app for a database + invoice workflow."
+      },
+      {
+        "type": "header",
+        "content": "SEO"
+      },
+      {
+        "type": "textarea",
+        "id": "pham_seo_default_description",
+        "label": "Default meta description",
+        "default": "PHAM — silence is luxury. A single-edition atelier of considered, slow-made garments."
+      },
+      {
+        "type": "textarea",
+        "id": "pham_seo_home_description",
+        "label": "Homepage meta description",
+        "default": "PHAM atelier — limited editions, worldwide shipping, pre-order waitlist now open."
+      },
+      {
+        "type": "textarea",
+        "id": "pham_seo_product_description",
+        "label": "Product fallback meta description",
+        "default": "Explore the PHAM edition — slow-made luxury with complimentary worldwide express shipping."
+      },
+      {
+        "type": "textarea",
+        "id": "pham_seo_waitlist_description",
+        "label": "Waitlist pages meta description",
+        "default": "Join the PHAM pre-order waitlist. No payment today — invoice emailed when the edition closes."
+      },
+      {
+        "type": "textarea",
+        "id": "pham_seo_faq_description",
+        "label": "FAQ meta description",
+        "default": "Pre-order, sizing, shipping, and returns — frequently asked questions from the PHAM atelier."
+      },
+      {
+        "type": "textarea",
+        "id": "pham_seo_size_guide_description",
+        "label": "Size guide meta description",
+        "default": "PHAM size guide — body measurements in centimetres for a precise, relaxed fit."
+      },
+      {
+        "type": "textarea",
+        "id": "pham_seo_contact_description",
+        "label": "Contact meta description",
+        "default": "Contact the PHAM atelier — private enquiries, sizing help, and order support."
+      },
+      {
+        "type": "textarea",
+        "id": "pham_seo_login_description",
+        "label": "Sign in meta description",
+        "default": "Sign in to your PHAM account — orders, addresses, and edition updates."
+      },
+      {
+        "type": "textarea",
+        "id": "pham_seo_register_description",
+        "label": "Register meta description",
+        "default": "Create your PHAM account — one registry for orders and future atelier editions."
+      },
+      {
+        "type": "textarea",
+        "id": "pham_seo_shop_description",
+        "label": "Collection fallback meta description",
+        "default": "Browse the PHAM atelier collection — limited editions and considered luxury."
+      },
+      {
+        "type": "header",
+        "content": "Analytics"
+      },
+      {
+        "type": "text",
+        "id": "pham_ga4_id",
+        "label": "Google Analytics 4 measurement ID",
+        "info": "Example: G-XXXXXXXXXX. Leave blank to disable."
+      },
+      {
+        "type": "text",
+        "id": "pham_meta_pixel_id",
+        "label": "Meta Pixel ID",
+        "info": "Numeric pixel ID only. Leave blank to disable."
+      },
+      {
+        "type": "text",
+        "id": "pham_gsc_verification",
+        "label": "Google Search Console verification",
+        "info": "Content value from the HTML meta tag verification method."
+      },
+      {
+        "type": "header",
         "content": "Marquee"
       },
       {

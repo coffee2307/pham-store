@@ -78,6 +78,8 @@
       this.busy = false;
       this.lastFocused = null;
       this.boundKeydown = this._onKeydown.bind(this);
+      this._qtyTimers = new Map();
+      this._pendingQty = new Map();
       this._init();
     }
 
@@ -140,7 +142,7 @@
         evt.preventDefault();
         const line = parseInt(inc.dataset.line, 10);
         const qty  = (parseInt(inc.dataset.quantity, 10) || 0) + 1;
-        this.changeLine(line, qty);
+        this.queueLineChange(line, qty);
         return;
       }
 
@@ -149,7 +151,7 @@
         evt.preventDefault();
         const line = parseInt(dec.dataset.line, 10);
         const qty  = Math.max(0, (parseInt(dec.dataset.quantity, 10) || 0) - 1);
-        this.changeLine(line, qty);
+        this.queueLineChange(line, qty);
         return;
       }
 
@@ -170,7 +172,83 @@
       if (!input) return;
       const line = parseInt(input.dataset.line, 10);
       const qty  = Math.max(0, parseInt(input.value, 10) || 0);
-      this.changeLine(line, qty);
+      this.queueLineChange(line, qty);
+    }
+
+    queueLineChange(line, quantity) {
+      if (!Number.isFinite(line) || line < 1) return;
+
+      this._patchLineOptimistic(line, quantity);
+
+      if (quantity === 0) {
+        clearTimeout(this._qtyTimers.get(line));
+        this._qtyTimers.delete(line);
+        this._pendingQty.delete(line);
+        this.changeLine(line, 0);
+        return;
+      }
+
+      this._pendingQty.set(line, quantity);
+      clearTimeout(this._qtyTimers.get(line));
+      this._qtyTimers.set(line, setTimeout(() => {
+        const qty = this._pendingQty.get(line);
+        this._pendingQty.delete(line);
+        this._qtyTimers.delete(line);
+        if (qty != null) this.changeLine(line, qty);
+      }, 320));
+    }
+
+    _patchLineOptimistic(line, quantity) {
+      this._refreshDrawerRef();
+      if (!this.drawer) return;
+      const row = this.drawer.querySelector('[data-line="' + line + '"]');
+      if (!row) return;
+
+      const input = row.querySelector('[data-pham-qty-input]');
+      const inc = row.querySelector('[data-pham-qty-increase]');
+      const dec = row.querySelector('[data-pham-qty-decrease]');
+      const qtyStr = String(Math.max(0, quantity));
+
+      if (input) input.value = qtyStr;
+      if (inc) inc.dataset.quantity = qtyStr;
+      if (dec) dec.dataset.quantity = qtyStr;
+    }
+
+    _patchDrawerFromCart(cart) {
+      this._refreshDrawerRef();
+      if (!this.drawer || !cart) return;
+
+      this._updateBubble(cart.item_count);
+
+      if (!cart.items || cart.items.length === 0) {
+        return this.refresh();
+      }
+
+      cart.items.forEach((item, index) => {
+        const line = index + 1;
+        const row = this.drawer.querySelector('[data-line="' + line + '"]');
+        if (!row) return;
+
+        const input = row.querySelector('[data-pham-qty-input]');
+        const inc = row.querySelector('[data-pham-qty-increase]');
+        const dec = row.querySelector('[data-pham-qty-decrease]');
+        const qtyStr = String(item.quantity);
+
+        if (input) {
+          input.value = qtyStr;
+          input.defaultValue = qtyStr;
+        }
+        if (inc) inc.dataset.quantity = qtyStr;
+        if (dec) dec.dataset.quantity = qtyStr;
+
+        const price = row.querySelector('.pham-cart-drawer__item-price');
+        if (price) price.textContent = formatMoney(item.final_line_price);
+      });
+
+      const subtotal = this.drawer.querySelector('.pham-cart-drawer__subtotal-value');
+      if (subtotal) subtotal.textContent = formatMoney(cart.total_price);
+
+      document.dispatchEvent(new CustomEvent('pham:cart:updated', { detail: cart }));
     }
 
     /* ---- Escape key handler (bound while open) ---- */
@@ -238,9 +316,7 @@
     }
 
     async changeLine(line, quantity) {
-      if (this.busy) return;
       if (!Number.isFinite(line) || line < 1) return;
-      this.busy = true;
 
       try {
         const res = await fetch(CART_CHANGE_URL, {
@@ -248,7 +324,7 @@
           credentials: 'same-origin',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/javascript',
+            'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest'
           },
           body: JSON.stringify({ line: line, quantity: quantity })
@@ -258,14 +334,20 @@
         if (!res.ok) {
           const msg = data && (data.description || data.message) || 'Could not update cart';
           this._notifyError(msg, data);
+          await this.refresh();
           return;
         }
-        await this.refresh();
+
+        if (quantity === 0 || !data.items || data.items.length === 0) {
+          await this.refresh();
+          return;
+        }
+
+        this._patchDrawerFromCart(data);
       } catch (err) {
         console.error('[PHAM cart] change error:', err);
         this._notifyError('Network error', err);
-      } finally {
-        this.busy = false;
+        await this.refresh();
       }
     }
 

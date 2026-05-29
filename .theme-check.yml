@@ -8,6 +8,11 @@
 # PHAM-authored code (sections/pham-*, snippets/pham-*, assets/pham-*)
 # remains fully checked.
 
+ignore:
+  - scripts/**
+  - .pham-check.json
+  - theme-check-out.json
+
 ValidScopedCSSClass:
   ignore:
     - "sections/predictive-search.liquid"

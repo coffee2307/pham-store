@@ -1,0 +1,27 @@
+{% comment %}
+  Waitlist signup URL: Shopify page if it exists, else product alternate template.
+{% endcomment %}
+{%- liquid
+  assign page_handle = settings.pham_waitlist_page_handle | default: 'pre-order'
+  assign waitlist_page = pages[page_handle]
+
+  if waitlist_page != blank
+    echo waitlist_page.url
+  else
+    capture pham_handle_raw
+      render 'pham-featured-product-handle'
+    endcapture
+    assign pham_handle = pham_handle_raw | strip
+    if pham_handle != blank
+      assign pham_product = all_products[pham_handle]
+      if pham_product != blank
+        echo pham_product.url
+        echo '?view=waitlist'
+      else
+        echo '/pages/pre-order'
+      endif
+    else
+      echo '/pages/pre-order'
+    endif
+  endif
+-%}

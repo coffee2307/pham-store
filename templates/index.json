@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "pham-hero": {
@@ -65,6 +74,8 @@
       "settings": {
         "image_limit": 3,
         "eyebrow": "PHAM EDITION · SPOTLIGHT",
+        "preorder_open": true,
+        "preorder_label": "PRE-ORDER NOW",
         "show_inventory": true,
         "show_view_pdp": true,
         "media_position": "left"
@@ -73,10 +84,36 @@
     "pham-story": {
       "type": "pham-story",
       "blocks": {
-        "stat_1": { "type": "stat", "settings": { "value": 1,  "label": "GARMENT PER EDITION" } },
-        "stat_2": { "type": "stat", "settings": { "value": 42, "suffix": "h", "label": "HOURS PER PIECE" } },
-        "stat_3": { "type": "stat", "settings": { "value": 100, "suffix": "%", "label": "HAND-FINISHED" } },
-        "stat_4": { "type": "stat", "settings": { "value": 0,  "label": "RE-ISSUES" } },
+        "stat_1": {
+          "type": "stat",
+          "settings": {
+            "value": 1,
+            "label": "GARMENT PER EDITION"
+          }
+        },
+        "stat_2": {
+          "type": "stat",
+          "settings": {
+            "value": 42,
+            "suffix": "h",
+            "label": "HOURS PER PIECE"
+          }
+        },
+        "stat_3": {
+          "type": "stat",
+          "settings": {
+            "value": 100,
+            "suffix": "%",
+            "label": "HAND-FINISHED"
+          }
+        },
+        "stat_4": {
+          "type": "stat",
+          "settings": {
+            "value": 0,
+            "label": "RE-ISSUES"
+          }
+        },
         "chapter_1": {
           "type": "chapter",
           "settings": {
@@ -103,8 +140,13 @@
         }
       },
       "block_order": [
-        "stat_1", "stat_2", "stat_3", "stat_4",
-        "chapter_1", "chapter_2", "chapter_3"
+        "stat_1",
+        "stat_2",
+        "stat_3",
+        "stat_4",
+        "chapter_1",
+        "chapter_2",
+        "chapter_3"
       ],
       "settings": {
         "eyebrow": "PHAM · MANIFESTO",
@@ -125,10 +167,10 @@
           "settings": {
             "size": "lg",
             "aspect": "4-5",
-            "overlay_eyebrow": "LOOK · 01",
-            "overlay_text": "The Silhouette",
+            "parallax_speed": 0.18,
             "caption": "PHAM SS26 · FRAME 01",
-            "parallax_speed": 0.18
+            "overlay_eyebrow": "LOOK · 01",
+            "overlay_text": "The Silhouette"
           }
         },
         "look_2": {
@@ -136,19 +178,27 @@
           "settings": {
             "size": "sm",
             "aspect": "1-1",
-            "caption": "DETAIL · STITCH 04",
-            "parallax_speed": 0.1
+            "parallax_speed": 0.1,
+            "caption": "DETAIL · STITCH 04"
           }
         },
-        "spec_1": { "type": "spec" },
-        "quote_1": { "type": "quote", "settings": { "size": "md" } },
+        "spec_1": {
+          "type": "spec",
+          "settings": {}
+        },
+        "quote_1": {
+          "type": "quote",
+          "settings": {
+            "size": "md"
+          }
+        },
         "look_3": {
           "type": "image",
           "settings": {
             "size": "md",
             "aspect": "16-9",
-            "caption": "ATELIER · IN-PROCESS",
-            "parallax_speed": 0.2
+            "parallax_speed": 0.2,
+            "caption": "ATELIER · IN-PROCESS"
           }
         },
         "look_4": {
@@ -156,8 +206,8 @@
           "settings": {
             "size": "sm",
             "aspect": "3-4",
-            "caption": "FABRIC · CLOSE STUDY",
-            "parallax_speed": 0.12
+            "parallax_speed": 0.12,
+            "caption": "FABRIC · CLOSE STUDY"
           }
         },
         "look_5": {
@@ -165,25 +215,31 @@
           "settings": {
             "size": "md",
             "aspect": "4-5",
+            "parallax_speed": 0.18,
             "overlay_eyebrow": "LOOK · 02",
-            "overlay_text": "The Drape",
-            "parallax_speed": 0.18
+            "overlay_text": "The Drape"
           }
         },
         "editorial_1": {
           "type": "editorial",
           "settings": {
-            "size": "md",
             "eyebrow": "PROCESS",
             "heading": "Cut by hand.",
             "body": "<p>The pattern is drawn on a single bolt of wool. There is no second attempt. The cutter works once, sews once, and seals the edition.</p>",
-            "cta_label": "READ THE PROCESS"
+            "cta_label": "READ THE PROCESS",
+            "size": "md"
           }
         }
       },
       "block_order": [
-        "look_1", "look_2", "spec_1", "quote_1",
-        "look_3", "look_4", "look_5", "editorial_1"
+        "look_1",
+        "look_2",
+        "spec_1",
+        "quote_1",
+        "look_3",
+        "look_4",
+        "look_5",
+        "editorial_1"
       ],
       "settings": {
         "eyebrow": "EDITORIAL · PHAM",

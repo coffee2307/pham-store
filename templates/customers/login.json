@@ -1,0 +1,18 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-customer-auth",
+      "settings": {
+        "auth_mode": "login",
+        "eyebrow": "ATELIER · ACCOUNT",
+        "heading": "Sign in",
+        "intro": "Access your PHAM account — orders, addresses, and edition updates.",
+        "submit_label": "SIGN IN",
+        "show_back_link": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

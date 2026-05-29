@@ -1,0 +1,440 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- liquid
+  assign auth_mode = section.settings.auth_mode | default: 'login'
+  assign show_back = section.settings.show_back_link
+-%}
+
+<section class="pham-auth pham-contact"
+         data-pham-customer-auth
+         data-auth-mode="{{ auth_mode | escape }}"
+         role="region"
+         aria-label="{{ section.settings.heading | escape }}">
+  <div class="pham-container pham-contact__inner reveal-up">
+
+    <header class="pham-contact__head">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      <h1 class="pham-contact__title">{{ section.settings.heading }}</h1>
+      {%- if section.settings.intro != blank -%}
+        <p class="pham-contact__intro">{{ section.settings.intro }}</p>
+      {%- endif -%}
+    </header>
+
+    {%- case auth_mode -%}
+
+      {%- when 'login' -%}
+        <div class="pham-auth__panel" data-pham-auth-panel="login">
+          {%- form 'customer_login', id: 'PhamCustomerLogin', class: 'pham-contact__form' -%}
+            {%- if form.errors -%}
+              <div class="pham-contact__msg pham-contact__msg--error" role="alert">
+                <p class="pham-contact__msg-heading">Please correct the following:</p>
+                {{ form.errors | default_errors }}
+              </div>
+            {%- endif -%}
+
+            <div class="pham-contact__fields">
+              <div class="pham-contact__field pham-contact__field--full">
+                <label for="PhamLoginEmail-{{ section.id }}" class="pham-contact__label">Email</label>
+                <input id="PhamLoginEmail-{{ section.id }}"
+                       type="email"
+                       name="customer[email]"
+                       class="pham-contact__input"
+                       placeholder="EMAIL ADDRESS"
+                       autocomplete="email"
+                       spellcheck="false"
+                       autocapitalize="off"
+                       required
+                       value="{% if form.email %}{{ form.email }}{% endif %}">
+              </div>
+
+              <div class="pham-contact__field pham-contact__field--full">
+                <label for="PhamLoginPassword-{{ section.id }}" class="pham-contact__label">Password</label>
+                <input id="PhamLoginPassword-{{ section.id }}"
+                       type="password"
+                       name="customer[password]"
+                       class="pham-contact__input"
+                       placeholder="PASSWORD"
+                       autocomplete="current-password"
+                       required>
+              </div>
+            </div>
+
+            <div class="pham-auth__actions">
+              <button type="submit" class="pham-btn pham-contact__submit">
+                {{ section.settings.submit_label | default: 'SIGN IN' }}
+              </button>
+              <button type="button"
+                      class="pham-auth__text-btn"
+                      data-pham-auth-show="recover">
+                {{ section.settings.forgot_label | default: 'Forgot password?' }}
+              </button>
+            </div>
+          {%- endform -%}
+
+          <p class="pham-auth__switch">
+            {{ section.settings.register_prompt | default: 'New to PHAM?' }}
+            <a href="{{ routes.account_register_url }}" class="pham-auth__link">
+              {{ section.settings.register_link_label | default: 'Create account' }}
+            </a>
+          </p>
+        </div>
+
+        <div class="pham-auth__panel" data-pham-auth-panel="recover" hidden>
+          {%- form 'recover_customer_password', id: 'PhamCustomerRecover', class: 'pham-contact__form' -%}
+            {%- if form.posted_successfully? -%}
+              <p class="pham-contact__msg pham-contact__msg--success" role="status">
+                {{ section.settings.recover_success | default: 'We sent you an email with a link to reset your password.' }}
+              </p>
+            {%- endif -%}
+
+            {%- if form.errors -%}
+              <div class="pham-contact__msg pham-contact__msg--error" role="alert">
+                <p class="pham-contact__msg-heading">Please correct the following:</p>
+                {{ form.errors | default_errors }}
+              </div>
+            {%- endif -%}
+
+            <div class="pham-contact__fields">
+              <div class="pham-contact__field pham-contact__field--full">
+                <label for="PhamRecoverEmail-{{ section.id }}" class="pham-contact__label">Email</label>
+                <input id="PhamRecoverEmail-{{ section.id }}"
+                       type="email"
+                       name="email"
+                       class="pham-contact__input"
+                       placeholder="EMAIL ADDRESS"
+                       autocomplete="email"
+                       spellcheck="false"
+                       autocapitalize="off"
+                       required
+                       value="{% if form.email %}{{ form.email }}{% endif %}">
+              </div>
+            </div>
+
+            <div class="pham-auth__actions">
+              <button type="submit" class="pham-btn pham-contact__submit">
+                {{ section.settings.recover_submit_label | default: 'SEND RESET LINK' }}
+              </button>
+              <button type="button"
+                      class="pham-auth__text-btn"
+                      data-pham-auth-show="login">
+                {{ section.settings.back_to_login_label | default: 'Back to sign in' }}
+              </button>
+            </div>
+          {%- endform -%}
+        </div>
+
+      {%- when 'register' -%}
+        {%- form 'create_customer', id: 'PhamCustomerRegister', class: 'pham-contact__form' -%}
+          {%- if form.errors -%}
+            <div class="pham-contact__msg pham-contact__msg--error" role="alert">
+              <p class="pham-contact__msg-heading">Please correct the following:</p>
+              {{ form.errors | default_errors }}
+            </div>
+          {%- endif -%}
+
+          <div class="pham-contact__fields">
+            <div class="pham-contact__field">
+              <label for="PhamRegisterFirstName-{{ section.id }}" class="pham-contact__label">First name</label>
+              <input id="PhamRegisterFirstName-{{ section.id }}"
+                     type="text"
+                     name="customer[first_name]"
+                     class="pham-contact__input"
+                     placeholder="FIRST NAME"
+                     autocomplete="given-name"
+                     required
+                     value="{% if form.first_name %}{{ form.first_name }}{% endif %}">
+            </div>
+
+            <div class="pham-contact__field">
+              <label for="PhamRegisterLastName-{{ section.id }}" class="pham-contact__label">Last name</label>
+              <input id="PhamRegisterLastName-{{ section.id }}"
+                     type="text"
+                     name="customer[last_name]"
+                     class="pham-contact__input"
+                     placeholder="LAST NAME"
+                     autocomplete="family-name"
+                     required
+                     value="{% if form.last_name %}{{ form.last_name }}{% endif %}">
+            </div>
+
+            <div class="pham-contact__field pham-contact__field--full">
+              <label for="PhamRegisterEmail-{{ section.id }}" class="pham-contact__label">Email</label>
+              <input id="PhamRegisterEmail-{{ section.id }}"
+                     type="email"
+                     name="customer[email]"
+                     class="pham-contact__input"
+                     placeholder="EMAIL ADDRESS"
+                     autocomplete="email"
+                     spellcheck="false"
+                     autocapitalize="off"
+                     required
+                     value="{% if form.email %}{{ form.email }}{% endif %}">
+            </div>
+
+            <div class="pham-contact__field pham-contact__field--full">
+              <label for="PhamRegisterPassword-{{ section.id }}" class="pham-contact__label">Password</label>
+              <input id="PhamRegisterPassword-{{ section.id }}"
+                     type="password"
+                     name="customer[password]"
+                     class="pham-contact__input"
+                     placeholder="PASSWORD"
+                     autocomplete="new-password"
+                     required>
+            </div>
+          </div>
+
+          <button type="submit" class="pham-btn pham-contact__submit">
+            {{ section.settings.submit_label | default: 'CREATE ACCOUNT' }}
+          </button>
+        {%- endform -%}
+
+        <p class="pham-auth__switch">
+          {{ section.settings.login_prompt | default: 'Already have an account?' }}
+          <a href="{{ routes.account_login_url }}" class="pham-auth__link">
+            {{ section.settings.login_link_label | default: 'Sign in' }}
+          </a>
+        </p>
+
+      {%- when 'reset_password' -%}
+        {%- form 'reset_customer_password', id: 'PhamCustomerReset', class: 'pham-contact__form' -%}
+          {%- if form.errors -%}
+            <div class="pham-contact__msg pham-contact__msg--error" role="alert">
+              <p class="pham-contact__msg-heading">Please correct the following:</p>
+              {{ form.errors | default_errors }}
+            </div>
+          {%- endif -%}
+
+          <div class="pham-contact__fields">
+            <div class="pham-contact__field pham-contact__field--full">
+              <label for="PhamResetPassword-{{ section.id }}" class="pham-contact__label">New password</label>
+              <input id="PhamResetPassword-{{ section.id }}"
+                     type="password"
+                     name="customer[password]"
+                     class="pham-contact__input"
+                     placeholder="NEW PASSWORD"
+                     autocomplete="new-password"
+                     required>
+            </div>
+
+            <div class="pham-contact__field pham-contact__field--full">
+              <label for="PhamResetPasswordConfirm-{{ section.id }}" class="pham-contact__label">Confirm password</label>
+              <input id="PhamResetPasswordConfirm-{{ section.id }}"
+                     type="password"
+                     name="customer[password_confirmation]"
+                     class="pham-contact__input"
+                     placeholder="CONFIRM PASSWORD"
+                     autocomplete="new-password"
+                     required>
+            </div>
+          </div>
+
+          <button type="submit" class="pham-btn pham-contact__submit">
+            {{ section.settings.submit_label | default: 'RESET PASSWORD' }}
+          </button>
+        {%- endform -%}
+
+      {%- when 'activate_account' -%}
+        {%- form 'activate_customer_password', id: 'PhamCustomerActivate', class: 'pham-contact__form' -%}
+          {%- if form.errors -%}
+            <div class="pham-contact__msg pham-contact__msg--error" role="alert">
+              <p class="pham-contact__msg-heading">Please correct the following:</p>
+              {{ form.errors | default_errors }}
+            </div>
+          {%- endif -%}
+
+          <div class="pham-contact__fields">
+            <div class="pham-contact__field pham-contact__field--full">
+              <label for="PhamActivatePassword-{{ section.id }}" class="pham-contact__label">Password</label>
+              <input id="PhamActivatePassword-{{ section.id }}"
+                     type="password"
+                     name="customer[password]"
+                     class="pham-contact__input"
+                     placeholder="PASSWORD"
+                     autocomplete="new-password"
+                     required>
+            </div>
+
+            <div class="pham-contact__field pham-contact__field--full">
+              <label for="PhamActivatePasswordConfirm-{{ section.id }}" class="pham-contact__label">Confirm password</label>
+              <input id="PhamActivatePasswordConfirm-{{ section.id }}"
+                     type="password"
+                     name="customer[password_confirmation]"
+                     class="pham-contact__input"
+                     placeholder="CONFIRM PASSWORD"
+                     autocomplete="new-password"
+                     required>
+            </div>
+          </div>
+
+          <button type="submit" class="pham-btn pham-contact__submit">
+            {{ section.settings.submit_label | default: 'ACTIVATE ACCOUNT' }}
+          </button>
+        {%- endform -%}
+
+    {%- endcase -%}
+
+    {%- if show_back -%}
+      <p class="pham-contact__back">
+        <a href="{{ routes.root_url }}" class="pham-back-link pham-contact__back-link">
+          <span class="pham-back-link__arrow" aria-hidden="true">&larr;</span>
+          <span class="pham-back-link__label">RETURN TO ATELIER</span>
+        </a>
+      </p>
+    {%- endif -%}
+  </div>
+</section>
+
+<script>
+(function () {
+  'use strict';
+  var root = document.querySelector('[data-pham-customer-auth][data-auth-mode="login"]');
+  if (!root) return;
+
+  var panels = root.querySelectorAll('[data-pham-auth-panel]');
+  var toggles = root.querySelectorAll('[data-pham-auth-show]');
+
+  function showPanel(name) {
+    panels.forEach(function (panel) {
+      var active = panel.getAttribute('data-pham-auth-panel') === name;
+      panel.hidden = !active;
+    });
+  }
+
+  toggles.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      showPanel(btn.getAttribute('data-pham-auth-show'));
+    });
+  });
+
+  if (window.location.hash === '#recover') {
+    showPanel('recover');
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "PHAM Customer Auth",
+  "tag": "section",
+  "class": "pham-customer-auth-section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "auth_mode",
+      "label": "Auth mode",
+      "default": "login",
+      "options": [
+        { "value": "login", "label": "Sign in" },
+        { "value": "register", "label": "Create account" },
+        { "value": "reset_password", "label": "Reset password" },
+        { "value": "activate_account", "label": "Activate account" }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "ATELIER · ACCOUNT"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Sign in"
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro",
+      "default": "Access your PHAM account — orders, addresses, and edition updates."
+    },
+    {
+      "type": "text",
+      "id": "submit_label",
+      "label": "Submit button",
+      "default": "SIGN IN"
+    },
+    {
+      "type": "header",
+      "content": "Sign in extras"
+    },
+    {
+      "type": "text",
+      "id": "forgot_label",
+      "label": "Forgot password label",
+      "default": "Forgot password?"
+    },
+    {
+      "type": "text",
+      "id": "recover_submit_label",
+      "label": "Recover submit label",
+      "default": "SEND RESET LINK"
+    },
+    {
+      "type": "textarea",
+      "id": "recover_success",
+      "label": "Recover success message",
+      "default": "We sent you an email with a link to reset your password."
+    },
+    {
+      "type": "text",
+      "id": "back_to_login_label",
+      "label": "Back to sign in label",
+      "default": "Back to sign in"
+    },
+    {
+      "type": "text",
+      "id": "register_prompt",
+      "label": "Register prompt (login page)",
+      "default": "New to PHAM?"
+    },
+    {
+      "type": "text",
+      "id": "register_link_label",
+      "label": "Register link label",
+      "default": "Create account"
+    },
+    {
+      "type": "header",
+      "content": "Register extras"
+    },
+    {
+      "type": "text",
+      "id": "login_prompt",
+      "label": "Sign in prompt (register page)",
+      "default": "Already have an account?"
+    },
+    {
+      "type": "text",
+      "id": "login_link_label",
+      "label": "Sign in link label",
+      "default": "Sign in"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_back_link",
+      "label": "Show return-to-home link",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Customer Auth",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": [
+      "customers/login",
+      "customers/register",
+      "customers/reset_password",
+      "customers/activate_account"
+    ]
+  }
+}
+{% endschema %}

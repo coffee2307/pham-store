@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-waitlist-signup",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

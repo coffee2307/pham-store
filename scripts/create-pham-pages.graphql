@@ -1,0 +1,56 @@
+# Create PHAM storefront pages (run via Shopify Admin GraphQL or `shopify store execute`).
+# Assign each page the matching theme template after creation.
+
+mutation CreatePhamPages {
+  page1: pageCreate(
+    page: {
+      title: "Pre-order"
+      handle: "pre-order"
+      templateSuffix: "pre-order"
+      body: ""
+      isPublished: true
+    }
+  ) {
+    page { id handle }
+    userErrors { field message }
+  }
+
+  page2: pageCreate(
+    page: {
+      title: "Waitlist thank you"
+      handle: "waitlist-thank-you"
+      templateSuffix: "waitlist-thank-you"
+      body: ""
+      isPublished: true
+    }
+  ) {
+    page { id handle }
+    userErrors { field message }
+  }
+
+  page3: pageCreate(
+    page: {
+      title: "FAQ"
+      handle: "faq"
+      templateSuffix: "faq"
+      body: ""
+      isPublished: true
+    }
+  ) {
+    page { id handle }
+    userErrors { field message }
+  }
+
+  page4: pageCreate(
+    page: {
+      title: "Size guide"
+      handle: "size-guide"
+      templateSuffix: "size-guide"
+      body: ""
+      isPublished: true
+    }
+  ) {
+    page { id handle }
+    userErrors { field message }
+  }
+}

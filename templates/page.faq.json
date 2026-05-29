@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-faq",
+      "settings": {
+        "eyebrow": "ATELIER",
+        "heading": "Frequently asked questions",
+        "intro": "Answers about pre-order, sizing, shipping, and returns."
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

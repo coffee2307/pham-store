@@ -1,0 +1,40 @@
+{% comment %}
+  Renders Shopify policy links for footer / trust areas.
+  Only links to policies that exist in Admin (avoids 404).
+
+  @param {string} [class_prefix] — CSS class prefix, default pham-footer
+{% endcomment %}
+{%- liquid
+  assign prefix = class_prefix | default: 'pham-footer'
+  assign has_policy = false
+
+  if shop.shipping_policy.body != blank or shop.refund_policy.body != blank or shop.privacy_policy.body != blank or shop.terms_of_service.body != blank
+    assign has_policy = true
+  endif
+-%}
+{%- if has_policy -%}
+  <nav class="{{ prefix }}__policies" aria-label="Store policies">
+    <ul class="{{ prefix }}__policies-list" role="list">
+      {%- if shop.shipping_policy.body != blank -%}
+        <li>
+          <a href="{{ shop.shipping_policy.url }}" class="{{ prefix }}__policy-link">Shipping Policy</a>
+        </li>
+      {%- endif -%}
+      {%- if shop.refund_policy.body != blank -%}
+        <li>
+          <a href="{{ shop.refund_policy.url }}" class="{{ prefix }}__policy-link">Return Policy</a>
+        </li>
+      {%- endif -%}
+      {%- if shop.privacy_policy.body != blank -%}
+        <li>
+          <a href="{{ shop.privacy_policy.url }}" class="{{ prefix }}__policy-link">Privacy Policy</a>
+        </li>
+      {%- endif -%}
+      {%- if shop.terms_of_service.body != blank -%}
+        <li>
+          <a href="{{ shop.terms_of_service.url }}" class="{{ prefix }}__policy-link">Terms of Service</a>
+        </li>
+      {%- endif -%}
+    </ul>
+  </nav>
+{%- endif -%}

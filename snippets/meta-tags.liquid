@@ -21,14 +21,20 @@
 
 {%- comment -%} PHAM: view transitions disabled — prevents white flash between pages {%- endcomment -%}
 
+{%- capture pham_seo_title_raw -%}
+  {%- render 'pham-seo-title' -%}
+{%- endcapture -%}
+{%- assign pham_seo_title = pham_seo_title_raw | strip_html | strip -%}
+
+{%- capture pham_seo_description_raw -%}
+  {%- render 'pham-seo-description' -%}
+{%- endcapture -%}
+{%- assign pham_seo_description = pham_seo_description_raw | strip -%}
+
 {%- liquid
-  capture pham_seo_title_raw
-    render 'pham-seo-title'
-  endcapture
-  assign pham_seo_title = pham_seo_title_raw | strip_html | strip
   assign og_url = canonical_url | default: request.origin
   assign og_type = 'website'
-  assign og_description = page_description | default: shop.description | default: shop.name
+  assign og_description = pham_seo_description | default: shop.description | default: shop.name
 
   if request.page_type == 'product'
     assign og_type = 'product'
@@ -116,9 +122,9 @@
   href="{{ canonical_url }}"
 >
 
-{% if page_description %}
+{%- if pham_seo_description != blank -%}
   <meta
     name="description"
-    content="{{ page_description | escape }}"
+    content="{{ pham_seo_description | escape }}"
   >
-{% endif %}
+{%- endif -%}

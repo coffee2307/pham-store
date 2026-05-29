@@ -1,0 +1,44 @@
+# Create / update PHAM store policies (run after `shopify store auth`).
+# Admin → Settings → Policies must show content for footer links to appear.
+
+mutation UpdatePhamShopPolicies {
+  shipping: shopPolicyUpdate(
+    shopPolicy: {
+      type: SHIPPING_POLICY
+      body: "<h2>Shipping Policy</h2><p>PHAM offers complimentary worldwide express shipping on all orders. Orders are dispatched in production sequence after pre-order invoices are paid.</p><p>Tracking is issued by email once your edition ships. Delivery times vary by destination; typical express transit is 3–10 business days after dispatch.</p><p>Duties, taxes, and import fees may apply depending on your country and are the responsibility of the recipient unless stated otherwise at checkout.</p>"
+    }
+  ) {
+    shopPolicy { title url }
+    userErrors { field message }
+  }
+
+  refund: shopPolicyUpdate(
+    shopPolicy: {
+      type: REFUND_POLICY
+      body: "<h2>Return Policy</h2><p>Returns are accepted within 14 days of delivery for unworn items in original condition with tags attached.</p><p>Pre-order and limited-edition pieces are final sale unless the item arrives damaged or defective. Contact the atelier before returning any order.</p><p>Refunds are processed to the original payment method once the return is received and inspected.</p>"
+    }
+  ) {
+    shopPolicy { title url }
+    userErrors { field message }
+  }
+
+  privacy: shopPolicyUpdate(
+    shopPolicy: {
+      type: PRIVACY_POLICY
+      body: "<h2>Privacy Policy</h2><p>PHAM collects information you provide when joining the waitlist, creating an account, or contacting the atelier — including name, email, phone, and order details.</p><p>We use this information to manage pre-orders, fulfil orders, and communicate about your edition. We do not sell your personal data.</p><p>For privacy requests, contact us through the atelier contact page.</p>"
+    }
+  ) {
+    shopPolicy { title url }
+    userErrors { field message }
+  }
+
+  terms: shopPolicyUpdate(
+    shopPolicy: {
+      type: TERMS_OF_SERVICE
+      body: "<h2>Terms of Service</h2><p>By using pham-9867.myshopify.com you agree to these terms. PHAM sells limited-edition goods; availability, pricing, and production timelines may change.</p><p>Pre-order waitlist signups do not guarantee allocation. Invoices are issued at PHAM's discretion when an edition closes. Payment must be completed within the stated window.</p><p>These terms are governed by applicable law. Contact the atelier for questions.</p>"
+    }
+  ) {
+    shopPolicy { title url }
+    userErrors { field message }
+  }
+}

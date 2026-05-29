@@ -1,0 +1,14 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-size-guide",
+      "settings": {
+        "eyebrow": "FIT",
+        "heading": "Size guide"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

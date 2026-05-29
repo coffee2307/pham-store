@@ -1,0 +1,143 @@
+# PHAM — Sign-in / Checkout / Customer Accounts branding
+# Run in Shopify Admin → Settings → Apps and sales channels → Develop apps
+#   (Custom app with read/write checkout settings scopes)
+# Or via Admin GraphQL API when authenticated.
+#
+# NOTE: The hosted sign-in page (shopify.com/authentication/... or account.yourdomain.com)
+# is NOT theme Liquid. Theme file sections/pham-customer-auth.liquid only applies to
+# LEGACY customer accounts at /account/login on the storefront domain.
+#
+# For new customer accounts, use this mutation OR the visual editor:
+#   Admin → Settings → Checkout → Customize → Sign in page
+
+# Step 1 — get your published checkout profile ID
+query PhamCheckoutProfiles {
+  checkoutProfiles(first: 5) {
+    nodes {
+      id
+      name
+      isPublished
+    }
+  }
+}
+
+# Step 2 — apply PHAM void/bone palette (replace CHECKOUT_PROFILE_ID)
+mutation PhamBrandingUpsert($checkoutProfileId: ID!) {
+  checkoutBrandingUpsert(
+    checkoutProfileId: $checkoutProfileId
+    checkoutBrandingInput: {
+      designSystem: {
+        colors: {
+          global: {
+            accent: "#FFFFFF"
+            brand: "#E8E8EA"
+            critical: "#FF3D00"
+            decorative: "#6B6B70"
+            info: "#4DD0E1"
+            success: "#E8E8EA"
+            warning: "#FF3D00"
+          }
+          schemes: {
+            scheme1: {
+              base: {
+                background: "#0A0A0C"
+                text: "#E8E8EA"
+                border: "#222226"
+                icon: "#E8E8EA"
+                accent: "#FFFFFF"
+                decorative: "#6B6B70"
+              }
+              control: {
+                background: "#14141A"
+                text: "#E8E8EA"
+                border: "#222226"
+                accent: "#FFFFFF"
+                decorative: "#6B6B70"
+                selected: {
+                  background: "#18181E"
+                  text: "#FFFFFF"
+                  border: "#FFFFFF"
+                  accent: "#FFFFFF"
+                  decorative: "#6B6B70"
+                }
+              }
+              primaryButton: {
+                background: "#FFFFFF"
+                text: "#0A0A0C"
+                border: "#FFFFFF"
+                accent: "#0A0A0C"
+                decorative: "#6B6B70"
+                hover: {
+                  background: "#E8E8EA"
+                  text: "#0A0A0C"
+                  border: "#E8E8EA"
+                  accent: "#0A0A0C"
+                  decorative: "#6B6B70"
+                }
+              }
+              secondaryButton: {
+                background: "#14141A"
+                text: "#E8E8EA"
+                border: "#222226"
+                accent: "#FFFFFF"
+                decorative: "#6B6B70"
+                hover: {
+                  background: "#18181E"
+                  text: "#FFFFFF"
+                  border: "#FFFFFF"
+                  accent: "#FFFFFF"
+                  decorative: "#6B6B70"
+                }
+              }
+            }
+          }
+        }
+        typography: {
+          size: {
+            base: 16.0
+            ratio: 1.125
+          }
+          primary: {
+            name: "Space Grotesk"
+            base: { weight: 400 }
+            bold: { weight: 700 }
+          }
+          secondary: {
+            name: "Space Mono"
+            base: { weight: 400 }
+            bold: { weight: 700 }
+          }
+        }
+        cornerRadius: {
+          small: 0
+          base: 0
+          large: 0
+        }
+      }
+    }
+  ) {
+    checkoutBranding {
+      designSystem {
+        colors {
+          schemes {
+            scheme1 {
+              base {
+                background
+                text
+              }
+            }
+          }
+        }
+      }
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+
+# Variables example:
+# {
+#   "checkoutProfileId": "gid://shopify/CheckoutProfile/XXXXXXXX"
+# }

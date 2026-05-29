@@ -20,6 +20,7 @@
     {% endif %}
 
     {%- render 'meta-tags' -%}
+    {%- render 'pham-analytics' -%}
     {%- render 'stylesheets' -%}
     {%- render 'fonts' -%}
     {%- render 'scripts' -%}
@@ -35,7 +36,6 @@
 
     {% comment %}CUSTOM_PHAM_THEME_START{% endcomment %}
     {% # theme-check-disable RemoteAsset, AssetPreload %}
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     {%- comment -%} Pre-paint critical styles — eliminates white flash before pham-theme loads {%- endcomment -%}
     <style>
       html { background-color: #0A0A0C !important; }
@@ -58,11 +58,12 @@
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     {{ 'pham-theme.css' | asset_url | stylesheet_tag }}
+    <script src="{{ 'pham-challenge.js' | asset_url }}" defer></script>
     {% # theme-check-enable RemoteAsset, AssetPreload %}
     {% comment %}CUSTOM_PHAM_THEME_END{% endcomment %}
   </head>
 
-  <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
+  <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}{% if request.path contains '/challenge' %} pham-challenge-page{% endif %}{% if request.path contains '/policies/' %} pham-policy-page{% endif %}">
     {% render 'skip-to-content-link', href: '#MainContent', text: 'Skip to main content', literal: true %}
     <div id="header-group">
       {% sections 'header-group' %}
@@ -156,6 +157,11 @@
     {% endif %}
 
     {% comment %}CUSTOM_PHAM_SCRIPTS_START{% endcomment %}
+    {% if request.path contains '/policies/' %}
+      {% # theme-check-disable ParserBlockingScript %}
+      <script src="{{ 'pham-policy.js' | asset_url }}" defer></script>
+      {% # theme-check-enable ParserBlockingScript %}
+    {% endif %}
     <script src="{{ 'pham-animations.js' | asset_url }}" defer></script>
     <script src="{{ 'pham-header.js' | asset_url }}" defer></script>
     <script src="{{ 'pham-cart.js' | asset_url }}" defer></script>

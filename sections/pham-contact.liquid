@@ -50,17 +50,6 @@
                  required>
         </div>
 
-        <div class="pham-contact__field">
-          <label for="pham-contact-phone-{{ section.id }}" class="pham-contact__label">Phone</label>
-          <input id="pham-contact-phone-{{ section.id }}"
-                 type="tel"
-                 name="contact[phone]"
-                 class="pham-contact__input"
-                 placeholder="PHONE NUMBER"
-                 value="{% if form.phone %}{{ form.phone }}{% endif %}"
-                 autocomplete="tel">
-        </div>
-
         <div class="pham-contact__field pham-contact__field--full">
           <label for="pham-contact-body-{{ section.id }}" class="pham-contact__label">Message</label>
           <textarea id="pham-contact-body-{{ section.id }}"
