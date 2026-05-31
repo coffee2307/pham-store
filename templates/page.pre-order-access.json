@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-pre-order-access",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

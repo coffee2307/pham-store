@@ -107,6 +107,16 @@
   --pham-policy-body-color:   var(--color-bone-80);
   --pham-policy-body-lh:      1.75;
 
+  /* Form inputs — waitlist email field is the reference */
+  --pham-input-font-family: var(--font-body);
+  --pham-input-font-size: var(--text-md);
+  --pham-input-font-weight: 400;
+  --pham-input-line-height: 1.5;
+  --pham-input-letter-spacing: var(--tracking-base);
+  --pham-input-color: var(--color-bone);
+  --pham-input-padding-block: 0.85rem;
+  --pham-input-padding-inline: 1rem;
+
   /* Z-index */
   --z-base:       1;
   --z-sticky:     50;
@@ -313,6 +323,148 @@ summary:focus-visible,
   outline: 1px solid var(--color-white);
   outline-offset: 2px;
   box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
+}
+
+/* Tap on mobile must not show browser focus ring — keyboard keeps :focus-visible above */
+button:focus:not(:focus-visible),
+input[type="button"]:focus:not(:focus-visible),
+input[type="submit"]:focus:not(:focus-visible),
+input[type="reset"]:focus:not(:focus-visible),
+input[type="checkbox"]:focus:not(:focus-visible),
+input[type="radio"]:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible),
+summary:focus:not(:focus-visible),
+.pham-btn:focus:not(:focus-visible),
+.pham-header a:focus:not(:focus-visible),
+.pham-header button:focus:not(:focus-visible),
+.pham-footer a:focus:not(:focus-visible),
+.pham-footer button:focus:not(:focus-visible),
+.pham-cart-drawer button:focus:not(:focus-visible),
+.pham-cart-drawer a:focus:not(:focus-visible),
+.pham-waitlist button:focus:not(:focus-visible),
+.pham-waitlist a:focus:not(:focus-visible),
+.pham-contact button:focus:not(:focus-visible),
+.pham-back-link:focus:not(:focus-visible),
+[class*="__cta"]:focus:not(:focus-visible),
+[class*="__submit"]:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+
+/* ==========================================================================
+   6b. MOBILE TAP — no blue flash / accidental text selection on controls
+   ========================================================================== */
+html {
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+}
+
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+select,
+summary,
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+label,
+.pham-btn,
+.pham-system-activator,
+.pham-back-link,
+.pham-header a,
+.pham-header button,
+.pham-footer a,
+.pham-footer button,
+.pham-cart-drawer button,
+.pham-cart-drawer a,
+.pham-cart-page button,
+.pham-waitlist button,
+.pham-waitlist label,
+.pham-contact button,
+.pham-turnstile__wrap,
+.pham-pdp-gallery__nav,
+.pham-pdp-gallery__thumb-nav,
+.pham-collection-grid__more-btn,
+.pham-hero__cta,
+.pham-product-main__cta,
+.pham-product-spotlight__add,
+.pham-product-spotlight__pdp-link,
+.pham-waitlist-thank-you__link,
+.iti__country,
+.iti__selected-country {
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button *,
+[role="button"] *,
+.pham-btn *,
+.pham-hero__cta *,
+.pham-product-main__cta *,
+.pham-product-spotlight__add *,
+.pham-waitlist__submit *,
+.pham-footer__submit *,
+.pham-cart-drawer__checkout *,
+.pham-header__menu-link *,
+.pham-header__drawer-link * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button::selection,
+[role="button"]::selection,
+label::selection,
+.pham-btn::selection,
+.pham-header a::selection,
+.pham-footer a::selection,
+.pham-back-link::selection,
+[class*="__cta"]::selection,
+[class*="__submit"]::selection {
+  background: transparent;
+  color: inherit;
+}
+
+button::-moz-selection,
+[role="button"]::-moz-selection,
+.pham-btn::-moz-selection {
+  background: transparent;
+  color: inherit;
+}
+
+/* Subtle press feedback instead of OS selection flash */
+button:active:not(:disabled),
+input[type="submit"]:active:not(:disabled),
+input[type="button"]:active:not(:disabled),
+[role="button"]:active,
+.pham-btn:active:not([disabled]):not([aria-disabled="true"]),
+.pham-hero__cta:active,
+.pham-product-main__cta:active,
+.pham-product-spotlight__add:active:not(:disabled),
+.pham-waitlist__submit:active:not(:disabled),
+.pham-cart-drawer__checkout:active,
+.pham-header__menu-link:active,
+.pham-header__drawer-link:active,
+.pham-footer__link:active,
+.pham-back-link:active {
+  opacity: 0.82;
+  transition: opacity 80ms var(--ease-tech);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]),
+textarea,
+[contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+  touch-action: auto;
 }
 
 .pham-skip-link {
@@ -581,6 +733,77 @@ html:not(.pham-js) .pham-product-spotlight__media-item.reveal-up {
   color: var(--color-bone);
   text-transform: uppercase;
   font-weight: 700;
+}
+
+
+/* ==========================================================================
+   10b. WAITLIST CHECKOUT OVERLAY
+   ========================================================================== */
+.pham-waitlist-checkout-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-modal) + 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  background-color: var(--color-void-95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity var(--duration-base) var(--ease-tech),
+    visibility var(--duration-base) var(--ease-tech);
+}
+.pham-waitlist-checkout-overlay.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.pham-waitlist-checkout-overlay__panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  width: min(100%, 320px);
+  padding: var(--space-xl) var(--space-lg);
+  border: 1px solid var(--color-ash);
+  background: rgb(10 10 12 / 0.88);
+  text-align: center;
+}
+.pham-waitlist-checkout-overlay__spinner {
+  width: 28px;
+  height: 28px;
+  margin-bottom: var(--space-xs);
+  border: 1px solid var(--color-ash);
+  border-top-color: var(--color-white);
+  animation: pham-waitlist-checkout-spin 0.75s linear infinite;
+}
+@keyframes pham-waitlist-checkout-spin {
+  to { transform: rotate(360deg); }
+}
+.pham-waitlist-checkout-overlay__eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-tech);
+  text-transform: uppercase;
+  color: var(--color-smoke);
+}
+.pham-waitlist-checkout-overlay__text {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--color-bone);
+  letter-spacing: var(--tracking-base);
+  text-transform: none;
+}
+body.pham-waitlist-checkout-active {
+  overflow: hidden !important;
+  touch-action: none;
 }
 
 
@@ -881,13 +1104,15 @@ section[data-pham-lookbook] .pham-lookbook__grid::after {
 
 
 /* ==========================================================================
-   15. UNIVERSAL INPUT SYSTEM  (transparent, hairline, zero radius)
+   15. UNIVERSAL INPUT SYSTEM  (waitlist email field = reference)
    ========================================================================== */
 input[type="search"],
 input[type="text"]:not([class*="pham-cart-page__qty"]):not([class*="pham-cart-drawer__qty"]):not([class*="pham-product-main__qty"]):not([class*="pham-product-spotlight__qty"]),
 input[type="email"],
 input[type="tel"],
 input[type="password"],
+input[type="url"],
+input[type="number"]:not([class*="pham-cart-page__qty"]):not([class*="pham-cart-drawer__qty"]):not([class*="pham-product-main__qty"]):not([class*="pham-product-spotlight__qty"]),
 textarea,
 .pham-search__input,
 .pham-footer__input,
@@ -898,18 +1123,23 @@ textarea,
 .pham-article__form-row textarea,
 .pham-cart-page__note-input,
 .pham-contact__input,
-.pham-contact__textarea {
+.pham-contact__textarea,
+.pham-waitlist__field input:not(.iti__search-input),
+.pham-waitlist__field textarea,
+.pham-waitlist__field--phone .iti__tel-input,
+.pham-waitlist__field--phone .iti__search-input {
   width: 100%;
   background: transparent !important;
   background-color: transparent !important;
   border: 1px solid var(--color-ash);
-  color: var(--color-white);
-  padding: 14px 16px;
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  font-weight: 400;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
+  color: var(--pham-input-color);
+  padding: var(--pham-input-padding-block) var(--pham-input-padding-inline);
+  font-family: var(--pham-input-font-family);
+  font-size: var(--pham-input-font-size);
+  font-weight: var(--pham-input-font-weight);
+  line-height: var(--pham-input-line-height);
+  letter-spacing: var(--pham-input-letter-spacing);
+  text-transform: none;
   outline: none;
   -webkit-appearance: none;
   appearance: none;
@@ -924,17 +1154,23 @@ input[type="text"]::placeholder,
 input[type="email"]::placeholder,
 input[type="tel"]::placeholder,
 input[type="password"]::placeholder,
+input[type="url"]::placeholder,
+input[type="number"]::placeholder,
 textarea::placeholder,
 .pham-search__input::placeholder,
 .pham-footer__input::placeholder,
 .pham-password__input::placeholder,
 .pham-password__newsletter-input::placeholder,
 .pham-contact__input::placeholder,
-.pham-contact__textarea::placeholder {
+.pham-contact__textarea::placeholder,
+.pham-waitlist__field input:not(.iti__search-input)::placeholder,
+.pham-waitlist__field textarea::placeholder,
+.pham-waitlist__field--phone .iti__tel-input::placeholder {
   color: var(--color-placeholder);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wide);
-  font-family: var(--font-mono);
+  text-transform: none;
+  letter-spacing: var(--pham-input-letter-spacing);
+  font-family: var(--pham-input-font-family);
+  font-size: var(--pham-input-font-size);
   opacity: 1;
 }
 
@@ -943,6 +1179,8 @@ input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="tel"]:focus,
 input[type="password"]:focus,
+input[type="url"]:focus,
+input[type="number"]:focus,
 textarea:focus,
 .pham-search__input:focus,
 .pham-footer__input:focus,
@@ -953,10 +1191,13 @@ textarea:focus,
 .pham-article__form-row textarea:focus,
 .pham-cart-page__note-input:focus,
 .pham-contact__input:focus,
-.pham-contact__textarea:focus {
+.pham-contact__textarea:focus,
+.pham-waitlist__field input:not(.iti__search-input):focus,
+.pham-waitlist__field textarea:focus,
+.pham-waitlist__field--phone .iti__tel-input:focus {
   outline: none !important;
-  border-color: var(--color-white) !important;
-  box-shadow: 0 0 0 1px var(--color-white), 0 0 10px rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--color-accent) !important;
+  box-shadow: none !important;
 }
 
 input[type="search"]::-webkit-search-cancel-button,
@@ -965,13 +1206,15 @@ input[type="search"]::-webkit-search-decoration {
   appearance: none;
 }
 
+.pham-contact__textarea,
+.pham-waitlist__field textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
 .pham-contact__textarea {
   min-height: 160px;
-  resize: vertical;
-  line-height: 1.6;
-  text-transform: none;
 }
-.pham-contact__textarea::placeholder { text-transform: uppercase; }
 
 
 /* ==========================================================================
@@ -1023,15 +1266,21 @@ input[type="search"]::-webkit-search-decoration {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  padding: 16px 0 !important;
+  padding: var(--pham-input-padding-block) 0 !important;
   padding-left: 0 !important;
-  color: var(--color-white) !important;
-  font-family: var(--font-mono) !important;
-  font-style: normal !important;
-  font-weight: 400 !important;
-  font-size: clamp(var(--text-sm), 2.5vw, var(--text-md)) !important;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
+  color: var(--pham-input-color) !important;
+  font-family: var(--pham-input-font-family) !important;
+  font-size: var(--pham-input-font-size) !important;
+  font-weight: var(--pham-input-font-weight) !important;
+  line-height: var(--pham-input-line-height) !important;
+  letter-spacing: var(--pham-input-letter-spacing) !important;
+  text-transform: none !important;
+}
+.pham-search__form .pham-search__input::placeholder {
+  font-family: var(--pham-input-font-family) !important;
+  font-size: var(--pham-input-font-size) !important;
+  text-transform: none !important;
+  letter-spacing: var(--pham-input-letter-spacing) !important;
 }
 .pham-search__form .pham-search__input:focus {
   outline: none !important;
@@ -1153,7 +1402,6 @@ input[type="search"]::-webkit-search-decoration {
 
 @media (max-width: 768px) {
   .pham-search__list { grid-template-columns: repeat(2, 1fr); }
-  .pham-search__form .pham-search__input { font-size: var(--text-sm) !important; }
 }
 
 
@@ -1220,6 +1468,12 @@ input[type="search"]::-webkit-search-decoration {
   border: 1px solid var(--color-ash);
 }
 .pham-contact__msg--success { color: var(--color-bone); border-color: var(--color-white); }
+.pham-contact__success-actions {
+  margin-top: var(--space-lg);
+}
+.pham-contact__success-cta {
+  display: inline-flex;
+}
 .pham-contact__msg--error { color: var(--color-warning); border-color: var(--color-warning); }
 .pham-contact__msg-heading {
   font-weight: 700;
@@ -2007,15 +2261,22 @@ input[type="search"]::-webkit-search-decoration {
   flex: 1;
   background: transparent !important;
   border: 0 !important;
-  padding: 12px 14px !important;
-  color: var(--color-bone);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  letter-spacing: var(--tracking-tech);
-  text-transform: uppercase;
+  padding: var(--pham-input-padding-block) var(--pham-input-padding-inline) !important;
+  color: var(--pham-input-color);
+  font-family: var(--pham-input-font-family);
+  font-size: var(--pham-input-font-size);
+  font-weight: var(--pham-input-font-weight);
+  line-height: var(--pham-input-line-height);
+  letter-spacing: var(--pham-input-letter-spacing);
+  text-transform: none;
   box-shadow: none !important;
 }
-.pham-footer__input::placeholder { color: var(--color-smoke); }
+.pham-footer__input::placeholder {
+  color: var(--color-placeholder);
+  font-family: var(--pham-input-font-family);
+  font-size: var(--pham-input-font-size);
+  text-transform: none;
+}
 .pham-footer__input:focus { outline: none !important; box-shadow: none !important; border-color: transparent !important; }
 .pham-footer__submit {
   display: inline-flex;
@@ -2420,6 +2681,15 @@ summary.pham-product-card__quick-btn::-webkit-details-marker { display: none; }
   margin-top: var(--space-xs);
 }
 .pham-cart-drawer__qty { display: inline-flex; align-items: center; border: 1px solid var(--color-ash); }
+.pham-cart-drawer__qty-fixed,
+.pham-cart-page__qty-fixed {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-luxury);
+  text-transform: uppercase;
+  color: var(--color-smoke);
+}
 .pham-cart-drawer__qty-btn {
   width: 28px;
   height: 28px;
@@ -2682,6 +2952,7 @@ select option,
    ========================================================================== */
 .pham-page,
 .pham-contact,
+.pham-about,
 .pham-waitlist,
 .pham-search,
 .pham-collection-grid,
@@ -2695,6 +2966,7 @@ select option,
 .pham-product-main .pham-container,
 .pham-page .pham-container,
 .pham-contact .pham-container,
+.pham-about .pham-container,
 .pham-waitlist.pham-container,
 .pham-search .pham-container,
 .pham-collection-grid .pham-container,
@@ -2706,56 +2978,258 @@ select option,
   box-sizing: border-box;
 }
 
-/* Waitlist — legal / consent block centered on form axis */
-.pham-waitlist__meta {
+/* Waitlist — footer choices + visible checkboxes */
+.pham-waitlist__footer {
   width: 100%;
   margin-top: var(--space-md);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-sm);
-  text-align: center;
-}
-.pham-waitlist__consent-label {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: var(--space-sm);
-  width: auto;
-  max-width: 34rem;
-  margin: 0;
-  text-align: left;
-  font-size: var(--text-sm);
-  line-height: 1.5;
-  color: var(--color-bone);
-  cursor: pointer;
-}
-.pham-waitlist__consent-label input {
-  flex: 0 0 1rem;
-  width: 1rem;
-  height: 1rem;
-  margin: 0.15rem 0 0;
-  accent-color: var(--color-accent);
-}
-.pham-waitlist__consent-label span {
-  flex: 1;
-  min-width: 0;
-}
-.pham-waitlist__privacy,
-.pham-waitlist__note {
-  width: 100%;
-  max-width: 34rem;
-  margin: 0;
-  padding: 0;
-  text-align: center;
-  font-size: var(--text-xs);
-  line-height: 1.55;
-  color: var(--color-smoke);
+  gap: var(--space-md);
 }
 .pham-waitlist__note {
+  margin: 0;
   font-size: var(--text-sm);
   line-height: 1.6;
+  color: var(--color-smoke);
+  text-align: center;
 }
-.pham-waitlist__privacy a { color: var(--color-white); }
+.pham-waitlist__choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  width: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+.pham-waitlist__choice-copy {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.55;
+}
+.pham-waitlist__marketing {
+  margin: 0;
+  text-align: center;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-smoke);
+}
+.pham-waitlist__yn {
+  display: inline;
+  white-space: nowrap;
+  margin-left: 0.35em;
+}
+.pham-waitlist__yn-sep {
+  text-decoration: none;
+  color: var(--color-smoke);
+}
+.pham-waitlist__yn-option {
+  display: inline;
+  margin: 0;
+  cursor: pointer;
+}
+.pham-waitlist__yn-option input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.pham-waitlist__yn-option span {
+  font-family: var(--font-mono);
+  font-size: inherit;
+  letter-spacing: var(--tracking-wide);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: var(--color-smoke);
+  cursor: pointer;
+  user-select: none;
+}
+.pham-waitlist__yn-option input:checked + span {
+  color: var(--color-white);
+}
+.pham-waitlist__yn-option input:focus-visible + span {
+  outline: 2px solid var(--color-white);
+  outline-offset: 2px;
+}
+.pham-waitlist__choice--legal {
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-ash);
+  font-size: var(--text-base);
+  color: var(--color-bone);
+  align-items: flex-start;
+}
+.pham-waitlist__choice--legal .pham-waitlist__choice-copy a {
+  color: var(--color-white);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.pham-waitlist__checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.pham-waitlist__checkbox-box {
+  flex: 0 0 1em;
+  width: 1em;
+  height: 1em;
+  min-width: 1em;
+  margin-top: 0.2em;
+  border: 1.5px solid #FFFFFF;
+  background: #0A0A0C;
+  position: relative;
+  box-sizing: border-box;
+}
+.pham-waitlist__checkbox-input:checked + .pham-waitlist__checkbox-box {
+  background: #FFFFFF;
+  border-color: #FFFFFF;
+}
+.pham-waitlist__checkbox-input:checked + .pham-waitlist__checkbox-box::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 0.25em;
+  height: 0.45em;
+  border: solid #0A0A0C;
+  border-width: 0 1.5px 1.5px 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.pham-waitlist__checkbox-input:focus-visible + .pham-waitlist__checkbox-box {
+  outline: 2px solid #FFFFFF;
+  outline-offset: 2px;
+}
+.pham-waitlist__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.pham-waitlist__hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.pham-turnstile__wrap {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-md);
+  margin-left: 0;
+  padding: var(--space-md);
+  padding-left: var(--space-md);
+  border: 1px solid var(--color-ash);
+  background: rgb(255 255 255 / 0.02);
+  transition: border-color var(--duration-base) var(--ease-tech), box-shadow var(--duration-base) var(--ease-tech);
+}
+.pham-turnstile__wrap.is-ready {
+  border-color: rgb(143 214 148 / 0.45);
+  box-shadow: 0 0 0 1px rgb(143 214 148 / 0.12);
+}
+.pham-turnstile__wrap.is-error {
+  border-color: rgb(255 138 138 / 0.55);
+}
+.pham-turnstile__wrap.is-interactive {
+  border-color: rgb(255 255 255 / 0.35);
+}
+.pham-turnstile__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-luxury);
+  text-transform: uppercase;
+  color: var(--color-bone);
+}
+.pham-turnstile__shield {
+  display: inline-flex;
+  color: var(--color-white);
+  flex: 0 0 auto;
+}
+.pham-turnstile__stage {
+  position: relative;
+  min-height: 65px;
+}
+.pham-turnstile__skeleton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  max-width: 302px;
+  pointer-events: none;
+}
+.pham-turnstile__skeleton[hidden] {
+  display: none;
+}
+.pham-turnstile__skeleton-bar {
+  display: block;
+  width: 100%;
+  height: 65px;
+  border: 1px solid var(--color-ash);
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0.03) 0%,
+    rgb(255 255 255 / 0.08) 50%,
+    rgb(255 255 255 / 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: pham-turnstile-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes pham-turnstile-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.pham-turnstile__widget {
+  width: 100%;
+  max-width: 100%;
+  line-height: 0;
+  min-height: 65px;
+}
+.pham-turnstile__widget > div,
+.pham-turnstile__widget iframe {
+  display: block !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+  max-width: 100%;
+}
+.pham-turnstile__status {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--color-smoke);
+  text-align: left;
+}
+.pham-turnstile__status[hidden] {
+  display: none !important;
+}
+.pham-turnstile__error {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--text-xs);
+  color: #ff8a8a;
+  text-align: left;
+}
+.pham-turnstile__privacy {
+  margin: var(--space-sm) 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-smoke);
+  text-align: left;
+}
+.pham-contact__submit.is-verifying,
+.pham-waitlist__submit.is-verifying {
+  opacity: 0.65;
+  pointer-events: none;
+}
 
 /* Product PDP — mobile gallery inset (avoid edge-to-edge product shots) */
 @media (max-width: 749px) {

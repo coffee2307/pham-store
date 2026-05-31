@@ -24,6 +24,8 @@
           assign desc = settings.pham_seo_contact_description
         elsif page.handle == 'pre-order' or page.handle == 'waitlist-thank-you'
           assign desc = settings.pham_seo_waitlist_description
+        elsif page.handle == 'about'
+          assign desc = settings.pham_seo_about_description
         elsif page.handle == 'faq'
           assign desc = settings.pham_seo_faq_description
         elsif page.handle == 'size-guide'

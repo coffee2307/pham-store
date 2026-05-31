@@ -157,6 +157,7 @@
     {% endif %}
 
     {% comment %}CUSTOM_PHAM_SCRIPTS_START{% endcomment %}
+    {%- render 'pham-post-login-redirect' -%}
     {% if request.path contains '/policies/' %}
       {% # theme-check-disable ParserBlockingScript %}
       <script src="{{ 'pham-policy.js' | asset_url }}" defer></script>
@@ -165,6 +166,7 @@
     <script src="{{ 'pham-animations.js' | asset_url }}" defer></script>
     <script src="{{ 'pham-header.js' | asset_url }}" defer></script>
     <script src="{{ 'pham-cart.js' | asset_url }}" defer></script>
+    <script src="{{ 'pham-limited-qty.js' | asset_url }}" defer></script>
     {% comment %}CUSTOM_PHAM_SCRIPTS_END{% endcomment %}
   </body>
 </html>

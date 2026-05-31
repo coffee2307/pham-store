@@ -74,6 +74,9 @@
     "variant_button_border_width": 1,
     "variant_button_radius": 14,
     "variant_button_width": "equal-width-buttons",
+    "pham_waitlist_turnstile_enabled": true,
+    "pham_waitlist_turnstile_site_key": "0x4AAAAAADbDNIw-HnYSFAg2",
+    "pham_waitlist_captcha_verify_url": "https://script.google.com/macros/s/AKfycbx8Ug7u5hmd3XNPGB1h33xRwX3SjLgnEB6LsR4-lmlPu9m1r7yhf9bUgKaInbnCnvCj/exec",
     "color_schemes": {
       "scheme-1": {
         "settings": {

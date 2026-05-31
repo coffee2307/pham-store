@@ -1,0 +1,23 @@
+# PHAM Phase 2 — generate a silent-login email link for Klaviyo
+# Requires custom app token: read_customers, write_customers
+# Replace CUSTOMER_ID with gid from DigitalAccessPasses sheet / customer search
+
+mutation GenerateAccessPassActivationUrl($customerId: ID!) {
+  customerGenerateAccountActivationUrl(customerId: $customerId) {
+    accountActivationUrl
+    userErrors {
+      field
+      message
+    }
+  }
+}
+
+# Variables example:
+# { "customerId": "gid://shopify/Customer/1234567890" }
+#
+# Wrap for Klaviyo email CTA (encode activation URL once per recipient):
+# https://YOUR-STORE.com/pages/pre-order-access?return_to=/checkout&activation_url=URL_ENCODED_ACCOUNT_ACTIVATION_URL
+#
+# Shopify Plus alternative (true Multipass — no password step):
+# Redirect to https://YOUR-STORE.com/account/login/multipass/{TOKEN}?return_to=/checkout
+# Generate token server-side with Multipass secret (see pham-waitlist-backend.gs).

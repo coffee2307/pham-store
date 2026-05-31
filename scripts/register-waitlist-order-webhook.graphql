@@ -1,0 +1,31 @@
+# Register Shopify order webhook → Google Apps Script backend
+# Replace YOUR_GAS_WEB_APP_URL with the deployed /exec URL (same project as Turnstile, or a new deployment).
+# Replace YOUR_ACCESS_TOKEN with a custom app Admin API token (write_orders scope not required; read is enough for webhook create).
+
+mutation RegisterWaitlistOrderWebhook {
+  webhookSubscriptionCreate(
+    topic: ORDERS_PAID
+    webhookSubscription: {
+      callbackUrl: "YOUR_GAS_WEB_APP_URL"
+      format: JSON
+    }
+  ) {
+    webhookSubscription {
+      id
+      topic
+      endpoint {
+        __typename
+        ... on WebhookHttpEndpoint {
+          callbackUrl
+        }
+      }
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+
+# Optional: also capture pending / authorized payments
+# topic: ORDERS_CREATE

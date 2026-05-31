@@ -6,9 +6,9 @@
         "preorder_open": true,
         "eyebrow": "PRE-ORDER · WAITLIST",
         "heading": "",
-        "intro": "Leave your details to join the waitlist. No payment today — we will email your invoice when the edition closes.",
-        "form_note": "No payment now. We will email your invoice when the waitlist closes on July 1.",
-        "submit_label": "JOIN WAITLIST"
+        "intro": "Complete your details below. You will proceed to secure checkout for your Digital Access Pass.",
+        "form_note": "Your pass is reserved after payment is confirmed.",
+        "submit_label": "PROCEED TO CHECKOUT"
       }
     }
   },

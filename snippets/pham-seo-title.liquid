@@ -48,10 +48,10 @@
     when 'page'
       if page.handle == 'contact' or t_lower contains 'liên hệ' or t_lower contains 'lien he' or t_lower == 'contact'
         assign pham_seo = 'CONTACT'
+      elsif page.handle == 'about' or t_lower contains 'giới thiệu' or t_lower contains 'gioi thieu' or t_lower == 'about'
+        assign pham_seo = 'ABOUT'
       elsif t_lower contains 'trang chủ' or t_lower contains 'trang chu' or t_lower == 'home'
         assign pham_seo = 'HOME'
-      elsif t_lower contains 'giới thiệu' or t_lower contains 'gioi thieu' or t_lower == 'about'
-        assign pham_seo = 'ABOUT'
       elsif t_lower contains 'chính sách' or t_lower contains 'chinh sach' or t_lower contains 'policy'
         assign pham_seo = page.title
       else

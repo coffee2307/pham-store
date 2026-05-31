@@ -1,0 +1,162 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- liquid
+  assign return_to = request.params.return_to | default: '/checkout' | strip
+  if return_to == blank
+    assign return_to = '/checkout'
+  endif
+  unless return_to contains '/'
+    assign return_to = '/' | append: return_to
+  endunless
+-%}
+
+<section class="pham-pre-order-access pham-container"
+         data-pham-pre-order-access
+         role="region"
+         aria-label="Access verification"
+         aria-busy="true">
+  <div class="pham-pre-order-access__panel reveal-up">
+    <p class="pham-eyebrow">PHAM · PRIORITY ACCESS</p>
+    <h1 class="pham-pre-order-access__title">Verifying your pass</h1>
+    <p class="pham-pre-order-access__intro" data-pham-access-status>
+      One moment — we are securely matching your email to your Digital Access Pass.
+    </p>
+    <p class="pham-pre-order-access__error" data-pham-access-error hidden role="alert"></p>
+  </div>
+</section>
+
+<style>
+  .pham-pre-order-access {
+    min-height: 55vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: var(--space-2xl);
+  }
+  .pham-pre-order-access__panel {
+    max-width: 520px;
+    text-align: center;
+  }
+  .pham-pre-order-access__title {
+    margin: 0 0 var(--space-sm);
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    line-height: 1.15;
+  }
+  .pham-pre-order-access__intro {
+    margin: 0;
+    color: var(--color-smoke);
+    line-height: 1.65;
+  }
+  .pham-pre-order-access__error {
+    margin: var(--space-md) 0 0;
+    color: #ff8a8a;
+    font-size: var(--text-sm);
+    line-height: 1.55;
+  }
+</style>
+
+<script>
+  (function () {
+    'use strict';
+
+    var root = document.querySelector('[data-pham-pre-order-access]');
+    if (!root) return;
+
+    var statusEl = root.querySelector('[data-pham-access-status]');
+    var errorEl = root.querySelector('[data-pham-access-error]');
+    var params = new URLSearchParams(window.location.search);
+    var returnTo = {{ return_to | json }};
+    var activationUrl = params.get('activation_url') || params.get('url') || '';
+
+    function showError(message) {
+      root.setAttribute('aria-busy', 'false');
+      if (statusEl) statusEl.hidden = true;
+      if (errorEl) {
+        errorEl.hidden = false;
+        errorEl.textContent = message;
+      }
+    }
+
+    function randomPassword() {
+      var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$';
+      var out = '';
+      for (var i = 0; i < 24; i++) {
+        out += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return out;
+    }
+
+    function parseActivationUrl(url) {
+      try {
+        var parsed = new URL(url, window.location.origin);
+        var match = parsed.pathname.match(/\/account\/activate\/(\d+)\/([^/]+)/);
+        if (!match) return null;
+        return { id: match[1], token: match[2] };
+      } catch (e) {
+        return null;
+      }
+    }
+
+    {%- if customer -%}
+      try {
+        sessionStorage.removeItem('pham_return_after_login');
+      } catch (e) { /* ignore */ }
+      window.location.replace(returnTo);
+      return;
+    {%- endif -%}
+
+    if (!activationUrl) {
+      showError('This access link is invalid or has expired. Please use the link from your PHAM email.');
+      return;
+    }
+
+    var parts = parseActivationUrl(activationUrl);
+    if (!parts) {
+      showError('This access link is invalid or has expired. Please use the link from your PHAM email.');
+      return;
+    }
+
+    try {
+      sessionStorage.setItem('pham_return_after_login', returnTo);
+    } catch (e) { /* ignore */ }
+
+    var password = randomPassword();
+    var form = document.createElement('form');
+    form.method = 'post';
+    form.action = '/account/activate/' + encodeURIComponent(parts.id) + '/' + encodeURIComponent(parts.token);
+    form.style.display = 'none';
+
+    var fields = {
+      'form_type': 'activate_customer_password',
+      'utf8': '✓',
+      'customer[password]': password,
+      'customer[password_confirmation]': password
+    };
+
+    Object.keys(fields).forEach(function (name) {
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = fields[name];
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "PHAM Pre-order Access",
+  "tag": "section",
+  "class": "pham-pre-order-access-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Silent login bridge for Phase 2 priority access emails. Klaviyo should link here with ?activation_url=…&return_to=/checkout"
+    }
+  ]
+}
+{% endschema %}

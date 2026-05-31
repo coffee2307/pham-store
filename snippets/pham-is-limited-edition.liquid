@@ -1,0 +1,18 @@
+{%- comment -%}
+  Outputs "true" or "false" — whether this product is the single limited edition.
+  Usage:
+    {%- capture pham_item_limited -%}{%- render 'pham-is-limited-edition', product: item.product -%}{%- endcapture -%}
+{%- endcomment -%}
+{%- liquid
+  assign pham_limited = false
+
+  capture pham_feat_handle
+    render 'pham-featured-product-handle'
+  endcapture
+  assign pham_feat_handle = pham_feat_handle | strip
+
+  if product != blank and pham_feat_handle != blank and product.handle == pham_feat_handle
+    assign pham_limited = true
+  endif
+-%}
+{%- if pham_limited -%}true{%- else -%}false{%- endif -%}

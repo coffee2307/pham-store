@@ -1,0 +1,50 @@
+{%- comment -%}
+  Limited-edition quantity stepper (max 1). Params:
+    section_id — required
+    style — "main" (default) | "spotlight"
+{%- endcomment -%}
+{%- liquid
+  assign qty_style = style | default: 'main'
+  if qty_style == 'spotlight'
+    assign qty_prefix = 'pham-product-spotlight'
+  else
+    assign qty_prefix = 'pham-product-main'
+  endif
+  assign qty_message = message | default: 'This edition is limited to one per customer.'
+-%}
+<div class="{{ qty_prefix }}__qty pham-edition-qty"
+     data-pham-edition-qty
+     data-pham-edition-qty-message="{{ qty_message | escape }}"
+     role="group"
+     aria-label="Quantity">
+  <span class="{{ qty_prefix }}__qty-label">Quantity</span>
+  <div class="{{ qty_prefix }}__qty-stepper pham-edition-qty__stepper">
+    <button type="button"
+            class="{{ qty_prefix }}__qty-btn pham-edition-qty__btn"
+            data-pham-edition-qty-dec
+            aria-label="Decrease quantity">
+      <span aria-hidden="true">−</span>
+    </button>
+    <input id="pham-edition-qty-{{ section_id }}"
+           type="number"
+           class="{{ qty_prefix }}__qty-input pham-edition-qty__input"
+           data-pham-edition-qty-input
+           value="1"
+           min="1"
+           max="1"
+           inputmode="numeric"
+           pattern="[0-9]*"
+           aria-label="Quantity"
+           readonly>
+    <button type="button"
+            class="{{ qty_prefix }}__qty-btn pham-edition-qty__btn"
+            data-pham-edition-qty-inc
+            aria-label="Increase quantity">
+      <span aria-hidden="true">+</span>
+    </button>
+  </div>
+  <p class="{{ qty_prefix }}__qty-notice pham-edition-qty__notice"
+     data-pham-edition-qty-notice
+     hidden
+     role="alert">{{ qty_message }}</p>
+</div>

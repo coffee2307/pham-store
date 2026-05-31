@@ -2341,7 +2341,7 @@
       {
         "type": "checkbox",
         "id": "pham_waitlist_use_schedule",
-        "label": "Use waitlist schedule (June 1 – July 1)",
+        "label": "Use waitlist open/close dates",
         "default": false,
         "info": "When off, waitlist stays open until you disable signups above. When on, only accepts signups between the dates below."
       },
@@ -2379,6 +2379,45 @@
         "info": "POST endpoint for the PHAM Pre-order Waitlist app. Install the app and deploy its theme extension."
       },
       {
+        "type": "header",
+        "content": "Waitlist spam protection"
+      },
+      {
+        "type": "checkbox",
+        "id": "pham_waitlist_honeypot_enabled",
+        "label": "Enable honeypot field",
+        "default": true,
+        "info": "Hidden field that blocks basic bots."
+      },
+      {
+        "type": "header",
+        "content": "Contact security"
+      },
+      {
+        "type": "checkbox",
+        "id": "pham_waitlist_turnstile_enabled",
+        "label": "Enable Cloudflare Turnstile on contact + waitlist",
+        "default": true,
+        "info": "Turnstile appears on the Contact page and Join waitlist form before submit/checkout."
+      },
+      {
+        "type": "text",
+        "id": "pham_waitlist_turnstile_site_key",
+        "label": "Turnstile site key (public)",
+        "default": "0x4AAAAAADbDNIw-HnYSFAg2"
+      },
+      {
+        "type": "text",
+        "id": "pham_waitlist_captcha_verify_url",
+        "label": "Turnstile verify URL",
+        "default": "https://script.google.com/macros/s/AKfycbx8Ug7u5hmd3XNPGB1h33xRwX3SjLgnEB6LsR4-lmlPu9m1r7yhf9bUgKaInbnCnvCj/exec",
+        "info": "HTTPS Google Apps Script /exec URL only. Set TURNSTILE_SECRET_KEY in Script properties. Redeploy GAS after updating pham-waitlist-backend.gs."
+      },
+      {
+        "type": "paragraph",
+        "content": "Database: merge scripts/pham-waitlist-backend.gs into your Apps Script project, run setupDatabase(), set SHOPIFY_WEBHOOK_SECRET, then register ORDERS_PAID webhook (scripts/register-waitlist-order-webhook.graphql) to the same /exec URL. Sheet columns: order_id, full_name, email, phone, registered_at, payment_status."
+      },
+      {
         "type": "paragraph",
         "content": "Waitlist merchant checklist: (1) Create pages pre-order and waitlist-thank-you with matching templates. (2) Fill Shipping, Returns, Privacy, and Terms policies in Admin → Settings → Policies. (3) Signups arrive as contact form emails tagged preorder-waitlist — filter Inbox or use Shopify Email segments. (4) Optional: install the PHAM Pre-order Waitlist app for a database + invoice workflow."
       },
@@ -2408,7 +2447,13 @@
         "type": "textarea",
         "id": "pham_seo_waitlist_description",
         "label": "Waitlist pages meta description",
-        "default": "Join the PHAM pre-order waitlist. No payment today — invoice emailed when the edition closes."
+        "default": "Join the PHAM pre-order waitlist. Register interest while the next edition is in development."
+      },
+      {
+        "type": "textarea",
+        "id": "pham_seo_about_description",
+        "label": "About meta description",
+        "default": "PHAM manifesto — a solo-led design label founded in 2026. Pure design, absolute devotion, one singular aesthetic vision."
       },
       {
         "type": "textarea",

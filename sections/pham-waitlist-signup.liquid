@@ -15,15 +15,32 @@
 {%- assign pham_preorder_open = true -%}
 {%- if pham_preorder_open_raw == 'false' -%}{%- assign pham_preorder_open = false -%}{%- endif -%}
 {%- assign current_variant = product.selected_or_first_available_variant -%}
-{%- assign default_qty = 1 -%}
 {%- assign privacy_policy = shop.privacy_policy -%}
-{%- capture waitlist_return_url_raw -%}{%- render 'pham-waitlist-return-url' -%}{%- endcapture -%}
-{%- assign waitlist_return_url = waitlist_return_url_raw | strip -%}
+{%- assign terms_policy = shop.terms_of_service_policy -%}
+
+{%- liquid
+  assign pham_turnstile_on = false
+  assign pham_turnstile_site_key = settings.pham_waitlist_turnstile_site_key | default: '0x4AAAAAADbDNIw-HnYSFAg2' | strip
+  assign pham_turnstile_verify_url = settings.pham_waitlist_captcha_verify_url | default: 'https://script.google.com/macros/s/AKfycbx8Ug7u5hmd3XNPGB1h33xRwX3SjLgnEB6LsR4-lmlPu9m1r7yhf9bUgKaInbnCnvCj/exec' | strip
+
+  if settings.pham_waitlist_turnstile_enabled and pham_turnstile_site_key != blank and pham_turnstile_verify_url contains 'https://'
+    assign pham_turnstile_on = true
+  endif
+
+  assign pham_honeypot_on = settings.pham_waitlist_honeypot_enabled
+  if pham_honeypot_on == nil
+    assign pham_honeypot_on = true
+  endif
+-%}
 
 <section class="pham-waitlist pham-container{% if pham_preorder_open %} pham-waitlist--signup{% endif %}"
          data-pham-waitlist-signup
          data-product-title="{{ product.title | escape }}"
          data-variant-id="{{ current_variant.id }}"
+         data-pham-turnstile-enabled="{% if pham_turnstile_on %}true{% else %}false{% endif %}"
+         data-pham-turnstile-site-key="{{ pham_turnstile_site_key | escape }}"
+         data-pham-turnstile-verify-url="{{ pham_turnstile_verify_url | escape }}"
+         data-pham-turnstile-action="waitlist_signup"
          role="region"
          aria-label="{{ section.settings.heading | default: 'Pre-order waitlist' | escape }}">
 
@@ -41,23 +58,12 @@
       <a href="{{ routes.root_url }}" class="pham-back-link">Return to atelier</a>
     </div>
   {%- else -%}
-    {%- form 'contact', id: 'PhamWaitlistForm', class: 'pham-waitlist__form reveal-up' -%}
-      {%- assign waitlist_submitted = false -%}
-      {%- if form.posted_successfully? or request.search contains 'submitted=1' -%}
-        {%- assign waitlist_submitted = true -%}
-      {%- endif -%}
+    <form id="PhamWaitlistForm"
+          class="pham-waitlist__form reveal-up"
+          data-pham-waitlist-form
+          novalidate>
 
-      <div data-pham-waitlist-success {% unless waitlist_submitted %}hidden{% endunless %}>
-        {%- render 'pham-waitlist-thank-you-content',
-          eyebrow: section.settings.success_eyebrow,
-          heading: section.settings.success_heading,
-          message: section.settings.success_message,
-          followup: section.settings.success_followup,
-          product_url: product.url
-        -%}
-      </div>
-
-      <div data-pham-waitlist-form-panel {% if waitlist_submitted %}hidden{% endif %}>
+      <div data-pham-waitlist-form-panel>
         <header class="pham-waitlist__head">
           {%- if section.settings.eyebrow != blank -%}
             <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
@@ -69,59 +75,68 @@
               Join the <span class="pham-waitlist__title-phrase">pre-order</span> waitlist
             {%- endif -%}
           </h1>
-          {%- if section.settings.intro != blank -%}
-            <p class="pham-waitlist__intro">{{ section.settings.intro }}</p>
-          {%- endif -%}
-          {%- if product != blank -%}
-            <p class="pham-waitlist__product">
-              <span class="pham-waitlist__product-label">Edition</span>
-              <span class="pham-waitlist__product-name">{{ product.title }}</span>
-              {%- if current_variant -%}
-                <span class="pham-waitlist__product-price">{{ current_variant.price | money }}</span>
-              {%- endif -%}
-            </p>
-          {%- endif -%}
+        {%- if section.settings.intro != blank -%}
+          <p class="pham-waitlist__intro">{{ section.settings.intro }}</p>
+        {%- endif -%}
+        {%- if product != blank -%}
+          <p class="pham-waitlist__product">
+            <span class="pham-waitlist__product-label">Edition</span>
+            <span class="pham-waitlist__product-name">{{ product.title }}</span>
+            {%- if current_variant -%}
+              <span class="pham-waitlist__product-price">{{ current_variant.price | money }}</span>
+            {%- endif -%}
+          </p>
+        {%- endif -%}
         </header>
 
-        {%- if form.errors -%}
-          <div class="pham-waitlist__status is-error" role="alert">
-            <p class="pham-waitlist__errors-heading">Please correct the following:</p>
-            {{ form.errors | default_errors }}
+        <div class="pham-waitlist__status is-error" data-pham-waitlist-error hidden role="alert"></div>
+
+        {%- if pham_honeypot_on -%}
+          <div class="pham-waitlist__hp" aria-hidden="true">
+            <label for="PhamWaitlistHp-{{ section.id }}">Company website</label>
+            <input id="PhamWaitlistHp-{{ section.id }}"
+                   type="text"
+                   name="company"
+                   tabindex="-1"
+                   autocomplete="off"
+                   data-pham-waitlist-honeypot>
           </div>
         {%- endif -%}
-
-        {%- if waitlist_return_url != blank -%}
-          <input type="hidden" name="return_to" value="{{ waitlist_return_url | escape }}">
-        {%- endif -%}
-        <input type="hidden" name="contact[tags]" value="preorder-waitlist" data-pham-waitlist-tags>
-        <input type="hidden"
-               name="contact[body]"
-               value="Pre-order waitlist signup"
-               data-pham-waitlist-body>
 
         <div class="pham-waitlist__grid">
           <div class="pham-waitlist__field pham-waitlist__field--full">
             <label for="PhamWaitlistName-{{ section.id }}">Full name</label>
             <input id="PhamWaitlistName-{{ section.id }}"
-                   name="contact[name]"
+                   data-pham-waitlist-name
                    type="text"
                    autocomplete="name"
                    required
                    placeholder="Your name"
-                   value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}">
+                   value="{% if customer %}{{ customer.name }}{% endif %}">
           </div>
 
-          <div class="pham-waitlist__field">
+          <div class="pham-waitlist__field pham-waitlist__field--full">
             <label for="PhamWaitlistEmail-{{ section.id }}">Email</label>
             <input id="PhamWaitlistEmail-{{ section.id }}"
-                   name="contact[email]"
+                   data-pham-waitlist-email
                    type="email"
                    autocomplete="email"
                    spellcheck="false"
                    autocapitalize="off"
                    required
                    placeholder="you@example.com"
-                   value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}">
+                   value="{% if customer %}{{ customer.email }}{% endif %}">
+          </div>
+
+          <div class="pham-waitlist__field pham-waitlist__field--full pham-waitlist__field--phone">
+            <label for="PhamWaitlistPhone-{{ section.id }}">Phone</label>
+            <input id="PhamWaitlistPhone-{{ section.id }}"
+                   data-pham-waitlist-phone
+                   type="tel"
+                   autocomplete="tel"
+                   required
+                   placeholder="Phone number"
+                   value="{% if customer and customer.phone != blank %}{{ customer.phone }}{% endif %}">
           </div>
 
           <div class="pham-waitlist__field pham-waitlist__field--full">
@@ -133,17 +148,6 @@
                    placeholder="WhatsApp, Telegram, Line, WeChat, etc.">
           </div>
 
-          <div class="pham-waitlist__field">
-            <label for="PhamWaitlistQty-{{ section.id }}">Quantity</label>
-            <input id="PhamWaitlistQty-{{ section.id }}"
-                   data-pham-waitlist-qty
-                   type="number"
-                   min="1"
-                   max="99"
-                   value="{{ default_qty }}"
-                   required>
-          </div>
-
           <div class="pham-waitlist__field pham-waitlist__field--full">
             <label for="PhamWaitlistNotes-{{ section.id }}">Other requests <span class="pham-waitlist__optional">(optional)</span></label>
             <textarea id="PhamWaitlistNotes-{{ section.id }}"
@@ -153,30 +157,67 @@
           </div>
         </div>
 
-        <div class="pham-waitlist__meta">
-          <label class="pham-waitlist__consent-label">
-            <input type="checkbox"
-                   value="true"
-                   data-pham-waitlist-marketing
-                   {% if section.settings.marketing_checked %}checked{% endif %}>
-            <span>{{ section.settings.marketing_label | default: 'Email me about this edition and future PHAM releases.' }}</span>
-          </label>
-          <p class="pham-waitlist__privacy">
-            {%- if privacy_policy.body != blank -%}
-              By joining, you agree to our <a href="{{ privacy_policy.url }}">Privacy policy</a>. Your details are used only to manage this pre-order.
-            {%- else -%}
-              By joining, you agree that we may contact you about this pre-order. Your details are kept private.
-            {%- endif -%}
-          </p>
-          <p class="pham-waitlist__note">{{ section.settings.form_note | default: 'No payment now. We will email your invoice when the waitlist closes on July 1.' }}</p>
-        </div>
+        <div class="pham-waitlist__footer">
+          <p class="pham-waitlist__note">{{ section.settings.form_note | default: 'Your pass is reserved after payment is confirmed.' }}</p>
 
-        <button type="submit" class="pham-waitlist__submit">
-          <span class="pham-waitlist__submit-label">{{ section.settings.submit_label | default: 'JOIN WAITLIST' }}</span>
-          <span aria-hidden="true">&rarr;</span>
-        </button>
+          <p class="pham-waitlist__marketing">
+            {{ section.settings.marketing_label | default: 'Send me email updates about this edition and future PHAM releases.' }}
+            <span class="pham-waitlist__yn" role="radiogroup" aria-label="Email updates">
+              <label class="pham-waitlist__yn-option">
+                <input type="radio"
+                       name="pham-waitlist-marketing-{{ section.id }}"
+                       value="yes"
+                       data-pham-waitlist-marketing
+                       {% if section.settings.marketing_checked %}checked{% endif %}>
+                <span>YES</span>
+              </label><span class="pham-waitlist__yn-sep" aria-hidden="true">/</span><label class="pham-waitlist__yn-option">
+                <input type="radio"
+                       name="pham-waitlist-marketing-{{ section.id }}"
+                       value="no"
+                       data-pham-waitlist-marketing
+                       {% unless section.settings.marketing_checked %}checked{% endunless %}>
+                <span>NO</span>
+              </label>
+            </span>
+          </p>
+
+          <label class="pham-waitlist__choice pham-waitlist__choice--legal">
+            <input id="PhamWaitlistLegal-{{ section.id }}"
+                   class="pham-waitlist__checkbox-input"
+                   type="checkbox"
+                   value="true"
+                   data-pham-waitlist-legal
+                   required
+                   aria-required="true">
+            <span class="pham-waitlist__checkbox-box" aria-hidden="true"></span>
+            <span class="pham-waitlist__choice-copy">
+              {%- if section.settings.legal_label != blank -%}
+                {{ section.settings.legal_label }}
+              {%- elsif privacy_policy.body != blank and terms_policy.body != blank -%}
+                I agree to the <a href="{{ privacy_policy.url }}">Privacy policy</a> and <a href="{{ terms_policy.url }}">Terms of service</a>.
+              {%- elsif privacy_policy.body != blank -%}
+                I agree to the <a href="{{ privacy_policy.url }}">Privacy policy</a> and pre-order terms.
+              {%- else -%}
+                I agree to the pre-order terms and understand my details will be used to manage this waitlist.
+              {%- endif -%}
+            </span>
+          </label>
+
+          {%- render 'pham-turnstile-captcha',
+              pham_turnstile_on: pham_turnstile_on,
+              pham_turnstile_privacy_note: 'Your details are submitted to Shopify secure checkout. This HTTPS check verifies you are not a bot — no personal data is sent to the verification service.' -%}
+
+          <button type="submit"
+                  class="pham-waitlist__submit"
+                  data-pham-waitlist-submit
+                  disabled
+                  aria-disabled="true">
+            <span class="pham-waitlist__submit-label">{{ section.settings.submit_label | default: 'PROCEED TO CHECKOUT' }}</span>
+            <span aria-hidden="true">&rarr;</span>
+          </button>
+        </div>
       </div>
-    {%- endform -%}
+    </form>
   {%- endunless -%}
 </section>
 
@@ -215,7 +256,12 @@
     text-transform: uppercase;
   }
   .pham-waitlist__product-name { color: var(--color-bone); }
-  .pham-waitlist__product-price { color: var(--color-accent); margin-left: auto; }
+  .pham-waitlist__product-price {
+    color: var(--color-accent);
+    margin-left: auto;
+    font-size: clamp(1.35rem, 3.5vw, 1.85rem);
+    letter-spacing: 0.04em;
+  }
   .pham-waitlist__grid {
     display: grid;
     gap: var(--space-md);
@@ -229,10 +275,11 @@
     display: block;
     margin-bottom: var(--space-xs);
     font-family: var(--font-mono);
-    font-size: var(--text-xs);
+    font-size: var(--text-sm);
+    font-weight: 500;
     letter-spacing: var(--tracking-luxury);
     text-transform: uppercase;
-    color: var(--color-smoke);
+    color: var(--color-white);
   }
   .pham-waitlist__optional {
     text-transform: none;
@@ -240,80 +287,203 @@
     font-family: var(--font-body, inherit);
     opacity: 0.65;
   }
-  .pham-waitlist__field input,
-  .pham-waitlist__field textarea {
-    width: 100%;
-    padding: 0.85rem 1rem;
-    background: transparent;
-    border: 1px solid var(--color-ash);
-    color: var(--color-bone);
-    font: inherit;
-  }
   .pham-waitlist__field textarea {
     resize: vertical;
     min-height: 6rem;
-    line-height: 1.5;
   }
-  .pham-waitlist__field input:focus,
-  .pham-waitlist__field textarea:focus {
+  .pham-waitlist__field--phone .iti {
+    width: 100%;
+    display: block;
+  }
+  .pham-waitlist__field--phone .iti__tel-input {
+    width: 100%;
+    padding-left: 3.25rem;
+  }
+  .pham-waitlist__field--phone .iti__tel-input:focus {
+    outline: none;
+  }
+  .pham-waitlist__field--phone .iti__country-container {
+    border-right: 1px solid var(--color-ash);
+  }
+  .pham-waitlist__field--phone .iti__selected-country {
+    background: transparent;
+    padding: 0 0.5rem;
+  }
+  .pham-waitlist__field--phone .iti__selected-country-primary {
+    padding: 0.85rem 0.35rem;
+  }
+  .pham-waitlist__field--phone .iti__selected-dial-code {
+    color: var(--color-bone);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+  .pham-waitlist__field--phone .iti__arrow {
+    border-top-color: var(--color-bone);
+  }
+  .pham-waitlist__field--phone .iti__dropdown-content {
+    background: #0A0A0C;
+    border: 1px solid var(--color-ash);
+    color: var(--color-bone);
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .pham-waitlist__field--phone .iti__search-input-wrapper {
+    box-sizing: border-box;
+    padding: 0.5rem;
+  }
+  .pham-waitlist__field--phone .iti__search-input {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+  .pham-waitlist__field--phone .iti__search-input:focus {
     outline: none;
     border-color: var(--color-accent);
   }
-  .pham-waitlist__meta {
+  .pham-waitlist__field--phone .iti__country {
+    padding: 0.5rem 0.75rem;
+  }
+  .pham-waitlist__field--phone .iti__country.iti__highlight {
+    background: rgb(255 255 255 / 0.08);
+  }
+  .pham-waitlist__field--phone .iti__country-name,
+  .pham-waitlist__field--phone .iti__dial-code {
+    color: var(--color-bone);
+  }
+  .pham-waitlist__footer {
     width: 100%;
     margin-top: var(--space-md);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: var(--space-sm);
-    text-align: center;
-  }
-  .pham-waitlist__consent-label {
-    display: inline-flex;
-    align-items: flex-start;
-    gap: var(--space-sm);
-    width: auto;
-    max-width: 34rem;
-    margin: 0;
-    text-align: left;
-    font-size: var(--text-sm);
-    line-height: 1.5;
-    color: var(--color-bone);
-    cursor: pointer;
-  }
-  .pham-waitlist__consent-label input {
-    flex: 0 0 1rem;
-    width: 1rem;
-    height: 1rem;
-    margin: 0.15rem 0 0;
-    accent-color: var(--color-accent);
-  }
-  .pham-waitlist__consent-label span {
-    flex: 1;
-    min-width: 0;
-  }
-  .pham-waitlist__privacy,
-  .pham-waitlist__note {
-    width: 100%;
-    max-width: 34rem;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-    font-size: var(--text-xs);
-    line-height: 1.55;
-    color: var(--color-smoke);
+    gap: var(--space-md);
   }
   .pham-waitlist__note {
+    margin: 0;
     font-size: var(--text-sm);
     line-height: 1.6;
+    color: var(--color-smoke);
+    text-align: center;
   }
-  .pham-waitlist__privacy a { color: var(--color-white); }
+  .pham-waitlist__choice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    width: 100%;
+    margin: 0;
+    cursor: pointer;
+  }
+  .pham-waitlist__choice-copy {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.55;
+  }
+  .pham-waitlist__marketing {
+    margin: 0;
+    text-align: center;
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    color: var(--color-smoke);
+  }
+  .pham-waitlist__yn {
+    display: inline;
+    white-space: nowrap;
+    margin-left: 0.35em;
+  }
+  .pham-waitlist__yn-sep {
+    text-decoration: none;
+    color: var(--color-smoke);
+  }
+  .pham-waitlist__yn-option {
+    display: inline;
+    margin: 0;
+    cursor: pointer;
+  }
+  .pham-waitlist__yn-option input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+  .pham-waitlist__yn-option span {
+    font-family: var(--font-mono);
+    font-size: inherit;
+    letter-spacing: var(--tracking-wide);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    color: var(--color-smoke);
+    cursor: pointer;
+    user-select: none;
+  }
+  .pham-waitlist__yn-option input:checked + span {
+    color: var(--color-white);
+  }
+  .pham-waitlist__yn-option input:focus-visible + span {
+    outline: 2px solid var(--color-white);
+    outline-offset: 2px;
+  }
+  .pham-waitlist__choice--legal {
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-ash);
+    font-size: var(--text-base);
+    color: var(--color-bone);
+    align-items: flex-start;
+  }
+  .pham-waitlist__choice--legal .pham-waitlist__choice-copy a {
+    color: var(--color-white);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .pham-waitlist__checkbox-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .pham-waitlist__checkbox-box {
+    flex: 0 0 1em;
+    width: 1em;
+    height: 1em;
+    min-width: 1em;
+    margin-top: 0.2em;
+    border: 1.5px solid #FFFFFF;
+    background: #0A0A0C;
+    position: relative;
+    box-sizing: border-box;
+  }
+  .pham-waitlist__checkbox-input:checked + .pham-waitlist__checkbox-box {
+    background: #FFFFFF;
+    border-color: #FFFFFF;
+  }
+  .pham-waitlist__checkbox-input:checked + .pham-waitlist__checkbox-box::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: 0.25em;
+    height: 0.45em;
+    border: solid #0A0A0C;
+    border-width: 0 1.5px 1.5px 0;
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  .pham-waitlist__checkbox-input:focus-visible + .pham-waitlist__checkbox-box {
+    outline: 2px solid #FFFFFF;
+    outline-offset: 2px;
+  }
   .pham-waitlist__submit {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    margin-top: var(--space-lg);
+    margin-top: 0;
     padding: var(--space-sm) var(--space-md);
     background: transparent;
     border: 1px solid var(--color-white);
@@ -327,15 +497,30 @@
   .pham-waitlist__submit:hover:not(:disabled) {
     box-shadow: 0 0 32px rgba(255, 255, 255, 0.12);
   }
-  .pham-waitlist__submit:disabled { opacity: 0.5; cursor: not-allowed; }
+  .pham-waitlist__submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
   .pham-waitlist__status { margin-top: var(--space-md); min-height: 1.25rem; }
   .pham-waitlist__status.is-success { color: #8fd694; }
   .pham-waitlist__status.is-error { color: #ff8a8a; }
   .pham-waitlist__errors-heading { margin: 0 0 var(--space-xs); font-size: var(--text-sm); }
   .pham-waitlist__closed { margin-top: var(--space-xl); }
-  [data-pham-waitlist-body] { display: none !important; }
-  .pham-waitlist.is-waitlist-success [data-pham-waitlist-form-panel] { display: none !important; }
-  .pham-waitlist.is-waitlist-success [data-pham-waitlist-success] { display: block !important; }
+  [data-pham-waitlist-error][hidden] { display: none !important; }
+  .pham-waitlist__hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .pham-waitlist__submit.is-verifying {
+    opacity: 0.65;
+    pointer-events: none;
+  }
   .pham-waitlist-thank-you__title {
     margin: 0 0 var(--space-md);
     font-size: clamp(2rem, 5vw, 3rem);
@@ -379,108 +564,18 @@
   .pham-waitlist-thank-you__link:hover { opacity: 0.75; }
 </style>
 
-<script>
-(function () {
-  'use strict';
+{%- if pham_turnstile_on -%}
+  {%- render 'pham-turnstile-scripts', form_script_asset: 'pham-waitlist-form.js' -%}
+{%- else -%}
+<script src="{{ 'pham-waitlist-form.js' | asset_url }}" defer></script>
+{%- endif -%}
 
-  var root = document.querySelector('[data-pham-waitlist-signup]');
-  if (!root) return;
-
-  function activateThankYou() {
-    var success = root.querySelector('[data-pham-waitlist-success]');
-    var panel = root.querySelector('[data-pham-waitlist-form-panel]');
-    if (success) success.hidden = false;
-    if (panel) panel.hidden = true;
-    root.classList.add('is-waitlist-success');
-
-    if (typeof gtag === 'function') {
-      gtag('event', 'waitlist_signup', { event_category: 'waitlist', event_label: productTitle || 'PHAM' });
-    }
-    if (typeof fbq === 'function') {
-      fbq('track', 'Lead', { content_name: productTitle || 'PHAM waitlist' });
-    }
-
-    try {
-      var url = new URL(window.location.href);
-      url.hash = '';
-      if (!url.searchParams.has('submitted')) {
-        url.searchParams.set('submitted', '1');
-      }
-      history.replaceState({}, '', url.pathname + url.search);
-    } catch (e) { /* ignore */ }
-  }
-
-  function hasFormErrors() {
-    return !!root.querySelector('.pham-waitlist__status.is-error');
-  }
-
-  function shouldShowThankYou() {
-    if (hasFormErrors()) return false;
-    if (root.querySelector('[data-pham-waitlist-success]:not([hidden])')) return false;
-
-    var url = new URL(window.location.href);
-    if (url.searchParams.get('submitted') === '1') return true;
-
-    var hash = url.hash.replace('#', '');
-    if (hash === 'PhamWaitlistForm' || hash === 'contact_form') return true;
-
-    try {
-      if (sessionStorage.getItem('pham-waitlist-submitted') === '1') return true;
-    } catch (e) { /* ignore */ }
-
-    return false;
-  }
-
-  if (shouldShowThankYou()) {
-    try { sessionStorage.removeItem('pham-waitlist-submitted'); } catch (e) { /* ignore */ }
-    activateThankYou();
-  }
-
-  var form = root.querySelector('.pham-waitlist__form');
-  if (!form) return;
-
-  var bodyInput = form.querySelector('[data-pham-waitlist-body]');
-  var qtyInput = form.querySelector('[data-pham-waitlist-qty]');
-  var altInput = form.querySelector('[data-pham-waitlist-alt]');
-  var notesInput = form.querySelector('[data-pham-waitlist-notes]');
-  var tagsInput = form.querySelector('[data-pham-waitlist-tags]');
-  var marketingInput = form.querySelector('[data-pham-waitlist-marketing]');
-  var productTitle = root.getAttribute('data-product-title') || '';
-
-  var params = new URLSearchParams(window.location.search);
-  var variantFromUrl = params.get('variant');
-  var qtyFromUrl = params.get('quantity');
-  if (variantFromUrl) root.setAttribute('data-variant-id', variantFromUrl);
-  if (qtyFromUrl && qtyInput) qtyInput.value = Math.max(1, parseInt(qtyFromUrl, 10) || 1);
-
-  form.addEventListener('submit', function () {
-    try { sessionStorage.setItem('pham-waitlist-submitted', '1'); } catch (e) { /* ignore */ }
-    if (!bodyInput) return;
-
-    var lines = ['Pre-order waitlist signup'];
-    lines.push('Submitted: ' + new Date().toISOString());
-    lines.push('Source: ' + window.location.href);
-    if (productTitle) lines.push('Edition: ' + productTitle);
-    if (qtyInput) lines.push('Quantity: ' + (qtyInput.value || '1'));
-
-    var variantId = root.getAttribute('data-variant-id');
-    if (variantId) lines.push('Variant ID: ' + variantId);
-
-    if (altInput && altInput.value.trim()) {
-      lines.push('Alternative contact: ' + altInput.value.trim());
-    }
-    if (notesInput && notesInput.value.trim()) {
-      lines.push('Other requests: ' + notesInput.value.trim());
-    }
-    if (marketingInput && marketingInput.checked) {
-      lines.push('Marketing opt-in: yes');
-      if (tagsInput) tagsInput.value = 'preorder-waitlist, marketing';
-    }
-
-    bodyInput.value = lines.join('\n');
-  }, { capture: true });
-})();
-</script>
+{% # theme-check-disable RemoteAsset %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/css/intlTelInput.css">
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/js/intlTelInput.min.js" defer></script>
+{% # theme-check-enable RemoteAsset %}
+<script src="{{ 'pham-waitlist-phone.js' | asset_url }}" defer></script>
+<script src="{{ 'pham-waitlist-checkout.js' | asset_url }}" defer></script>
 
 {% schema %}
 {
@@ -526,35 +621,41 @@
       "type": "textarea",
       "id": "intro",
       "label": "Intro",
-      "default": "Leave your details to join the waitlist. No payment today — we will email your invoice when the edition closes."
+      "default": "Complete your details below. You will proceed to secure checkout for your Digital Access Pass."
     },
     {
       "type": "textarea",
       "id": "form_note",
       "label": "Note under fields",
-      "default": "No payment now. We will email your invoice when the waitlist closes on July 1."
+      "default": "Your pass is reserved after payment is confirmed."
     },
     {
       "type": "text",
       "id": "submit_label",
       "label": "Submit button",
-      "default": "JOIN WAITLIST"
+      "default": "PROCEED TO CHECKOUT"
     },
     {
       "type": "header",
-      "content": "Marketing & privacy"
+      "content": "Legal & marketing"
+    },
+    {
+      "type": "html",
+      "id": "legal_label",
+      "label": "Legal consent label (HTML allowed)",
+      "info": "Leave blank to auto-link Privacy policy and Terms of service when configured in Admin."
     },
     {
       "type": "text",
       "id": "marketing_label",
-      "label": "Marketing checkbox label",
-      "default": "Email me about this edition and future PHAM releases."
+      "label": "Marketing opt-in label",
+      "default": "Send me email updates about this edition and future PHAM releases."
     },
     {
       "type": "checkbox",
       "id": "marketing_checked",
-      "label": "Marketing checkbox checked by default",
-      "default": false
+      "label": "Default to Yes for email updates",
+      "default": true
     },
     {
       "type": "header",
@@ -582,7 +683,7 @@
       "type": "textarea",
       "id": "success_followup",
       "label": "Success follow-up",
-      "default": "No payment is required today. When the edition closes, we will email your invoice with next steps."
+      "default": "Nothing is required from you right now. We will keep you posted by email as the project develops."
     },
     {
       "type": "textarea",

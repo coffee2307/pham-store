@@ -1,10 +1,21 @@
 {%- comment -%}
   DO NOT EDIT — managed by PHAM theme architecture.
-  PHAM favicon + PWA icon set (theme assets).
+  Browser tabs: small white mark (16/32/ico).
+  Google Search SERP: round-logo.png (white P on dark — visible in search results).
+  Header / in-site logo: unchanged (theme settings).
 {%- endcomment -%}
-<link rel="icon" href="{{ 'favicon.ico' | asset_url }}" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="{{ 'favicon-32x32.png' | asset_url }}">
+
+{%- comment -%} Browser tab icons — keep existing white mark {%- endcomment -%}
 <link rel="icon" type="image/png" sizes="16x16" href="{{ 'favicon-16x16.png' | asset_url }}">
-<link rel="apple-touch-icon" sizes="180x180" href="{{ 'apple-touch-icon.png' | asset_url }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ 'favicon-32x32.png' | asset_url }}">
+
+{%- comment -%} Google Search + mobile SERP (≥48px; Google ignores 16px for results) {%- endcomment -%}
+<link rel="icon" type="image/png" sizes="48x48" href="{{ 'round-logo.png' | asset_url }}">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ 'round-logo.png' | asset_url }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ 'round-logo.png' | asset_url }}">
+
+{%- comment -%} Legacy fallback — listed last so Google prefers PNG above {%- endcomment -%}
+<link rel="icon" href="{{ 'favicon.ico' | asset_url }}" sizes="any">
+
 <link rel="manifest" href="{{ 'site.webmanifest.liquid' | asset_url }}">
 <meta name="theme-color" content="#0A0A0C">

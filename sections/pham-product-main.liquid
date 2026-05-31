@@ -117,20 +117,14 @@
 
           <input type="hidden" name="id" value="{{ current_variant.id }}" data-pham-variant-id>
 
-          <div class="pham-product-main__qty">
-            <label for="pham-pm-qty-{{ section.id }}" class="pham-product-main__qty-label">Quantity</label>
-            <input id="pham-pm-qty-{{ section.id }}"
-                   type="number"
-                   name="quantity"
-                   value="1"
-                   min="1"
-                   inputmode="numeric"
-                   pattern="[0-9]*"
-                   class="pham-product-main__qty-input">
-          </div>
+          {%- capture pham_show_limited_qty -%}{%- render 'pham-is-limited-edition', product: product -%}{%- endcapture -%}
+          {%- assign pham_show_limited_qty = pham_show_limited_qty | strip -%}
+          {%- if pham_show_limited_qty == 'true' -%}
+            {%- render 'pham-edition-qty', section_id: section.id, style: 'main' -%}
+          {%- endif -%}
 
           {%- if pham_preorder_open -%}
-            <a href="{{ pham_waitlist_page_url }}?variant={{ current_variant.id }}&amp;quantity=1"
+            <a href="{{ pham_waitlist_page_url }}?variant={{ current_variant.id }}"
                class="pham-product-main__cta pham-product-main__cta--preorder"
                data-pham-waitlist-cta
                data-pham-preorder-label="{{ section.settings.preorder_label | default: 'PRE-ORDER NOW' | escape }}">
@@ -155,7 +149,7 @@
                 <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
               </span>
             </button>
-            <p class="pham-product-main__closed-note">{{ section.settings.preorder_closed_note | default: 'The waitlist is closed. Invoice links are sent by email after July 1.' }}</p>
+            <p class="pham-product-main__closed-note">{{ section.settings.preorder_closed_note | default: 'The waitlist is currently closed. We will announce the next window by email.' }}</p>
           {%- endif -%}
 
           {%- if section.settings.preorder_note != blank -%}
@@ -581,8 +575,9 @@
   /* Quantity */
   .pham-product-main__qty {
     display: flex;
-    align-items: center;
-    gap: var(--space-sm);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
     margin-bottom: var(--space-md);
   }
   .pham-product-main__qty-label {
@@ -592,12 +587,32 @@
     text-transform: uppercase;
     color: var(--color-smoke);
   }
-  .pham-product-main__qty-input {
-    width: 64px;
+  .pham-product-main__qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--color-ash);
+  }
+  .pham-product-main__qty-btn {
+    width: 40px;
     height: 40px;
     background: transparent;
+    border: 0;
+    cursor: pointer;
     color: var(--color-bone);
-    border: 1px solid var(--color-ash);
+    font-size: var(--text-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pham-product-main__qty-btn:hover { color: var(--color-accent); background-color: var(--color-charcoal); }
+  .pham-product-main__qty-input {
+    width: 48px;
+    height: 40px;
+    background: transparent;
+    border: 0;
+    border-left: 1px solid var(--color-ash);
+    border-right: 1px solid var(--color-ash);
+    color: var(--color-bone);
     text-align: center;
     font-family: var(--font-mono);
     font-size: var(--text-sm);
@@ -609,6 +624,12 @@
     -webkit-appearance: none;
     appearance: none;
     margin: 0;
+  }
+  .pham-product-main__qty-notice {
+    margin: 0;
+    font-size: var(--text-xs);
+    line-height: 1.5;
+    color: #ff8a8a;
   }
 
   /* CTA — pre-order */
@@ -984,7 +1005,6 @@
 
     var form           = root.querySelector('[data-pham-product-form]');
     var variantIdInput = form ? form.querySelector('[data-pham-variant-id]') : null;
-    var qtyInput       = form ? form.querySelector('.pham-product-main__qty-input') : null;
     var waitlistCta    = form ? form.querySelector('[data-pham-waitlist-cta]') : null;
     var waitlistBase   = form ? (form.getAttribute('data-pham-waitlist-base') || '') : '';
     var priceEl        = root.querySelector('[data-pham-product-price]');
@@ -1091,10 +1111,8 @@
 
     function updateWaitlistLink(variant) {
       if (!waitlistCta || !waitlistBase || !variant) return;
-      var qty = 1;
-      if (qtyInput) qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
       var sep = waitlistBase.indexOf('?') >= 0 ? '&' : '?';
-      waitlistCta.href = waitlistBase + sep + 'variant=' + encodeURIComponent(String(variant.id)) + '&quantity=' + encodeURIComponent(String(qty));
+      waitlistCta.href = waitlistBase + sep + 'variant=' + encodeURIComponent(String(variant.id));
     }
 
     function updateSku(variant) {
@@ -1114,9 +1132,6 @@
       updateSku(variant);
       if (variant) updateUrl(variant);
     }
-
-    if (qtyInput) qtyInput.addEventListener('input', update);
-    if (qtyInput) qtyInput.addEventListener('change', update);
 
     /* ====== Product gallery (Shopee-style) ====== */
     var gallery = root.querySelector('[data-pham-product-gallery]');
@@ -1361,7 +1376,7 @@
       "type": "text",
       "id": "trust_authenticity",
       "label": "Trust — edition",
-      "default": "Limited atelier edition · invoice after waitlist closes"
+      "default": "Limited atelier edition · waitlist open during development"
     },
     {
       "type": "checkbox",
@@ -1433,7 +1448,7 @@
       "type": "textarea",
       "id": "preorder_note",
       "label": "Pre-order note (under CTA)",
-      "default": "No payment today. Tap PRE-ORDER NOW to leave your contact details — we email your invoice when the waitlist closes."
+      "default": "Tap PRE-ORDER NOW to join the waitlist. We will email you as the next edition develops."
     },
     {
       "type": "header",
@@ -1455,7 +1470,7 @@
       "type": "textarea",
       "id": "shipping_terms",
       "label": "Shipping terms (below phases)",
-      "default": "Pre-orders ship in production order. Estimated dispatch follows phase 04 close. Tracking issued at fulfilment."
+      "default": "Shipping details will be confirmed closer to release. We will keep waitlist members informed by email."
     }
   ],
   "blocks": [

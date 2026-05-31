@@ -1,0 +1,22 @@
+mutation CreateAboutPage {
+  pageCreate(
+    page: {
+      title: "About"
+      handle: "about"
+      body: ""
+      isPublished: true
+      templateSuffix: "about"
+    }
+  ) {
+    page {
+      id
+      handle
+      title
+      onlineStoreUrl
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}

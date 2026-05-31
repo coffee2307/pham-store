@@ -1,0 +1,20 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-about",
+      "settings": {
+        "eyebrow": "PHAM · ATELIER",
+        "title_line_1": "PHAM",
+        "title_line_2": "MANIFESTO",
+        "subtitle": "THE PURE PURSUIT",
+        "paragraph_1": "Founded in 2026 by a 16-year-old creator, PHAM was established not to follow the noise of the industry, but to build a sanctuary for pure design.",
+        "paragraph_2": "We deliberately reject the concept of mass production. To us, true luxury lies in absolute devotion. Operating as a solo-led design label allows the founder to oversee every single stage of creation—from the very first sketch, the precise engineering of silhouettes, to the final execution. By holding uncompromised control over the entire process, PHAM ensures that every garment remains a flawless, untainted reflection of a singular aesthetic vision.",
+        "closing_line": "We do not create pieces to fill a wardrobe. We create garments to define an identity.",
+        "show_back_link": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

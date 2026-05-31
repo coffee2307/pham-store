@@ -12,10 +12,10 @@
         "care_content": "<p>Dry clean only. Store flat in a breathable garment bag away from direct sunlight.</p>",
         "preorder_open": true,
         "preorder_label": "PRE-ORDER NOW",
-        "preorder_note": "No payment today. Tap PRE-ORDER NOW to leave your contact details — we email your invoice when the waitlist closes.",
+        "preorder_note": "Tap PRE-ORDER NOW to join the waitlist. We will email you as the next edition develops.",
         "show_phases_default": true,
         "phases_eyebrow": "PRODUCTION SCHEDULE",
-        "shipping_terms": "Pre-orders ship in production order. Estimated dispatch follows phase 04 close. Tracking issued at fulfilment."
+        "shipping_terms": "Shipping details will be confirmed closer to release. We will keep waitlist members informed by email."
       }
     }
   },

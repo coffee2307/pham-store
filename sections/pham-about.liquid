@@ -1,0 +1,178 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+<section class="pham-about"
+         data-pham-about
+         role="region"
+         aria-labelledby="pham-about-heading-{{ section.id }}">
+  <div class="pham-container pham-about__inner">
+    <header class="pham-about__head reveal-up">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      <h1 id="pham-about-heading-{{ section.id }}" class="pham-about__title">
+        <span class="pham-about__title-line">{{ section.settings.title_line_1 | default: 'PHAM' }}</span>
+        <span class="pham-about__title-line">{{ section.settings.title_line_2 | default: 'MANIFESTO' }}</span>
+      </h1>
+      {%- if section.settings.subtitle != blank -%}
+        <p class="pham-about__subtitle">{{ section.settings.subtitle }}</p>
+      {%- endif -%}
+    </header>
+
+    <div class="pham-about__body reveal-up">
+      {%- if section.settings.paragraph_1 != blank -%}
+        <p class="pham-about__paragraph">{{ section.settings.paragraph_1 }}</p>
+      {%- endif -%}
+      {%- if section.settings.paragraph_2 != blank -%}
+        <p class="pham-about__paragraph">{{ section.settings.paragraph_2 }}</p>
+      {%- endif -%}
+      {%- if section.settings.closing_line != blank -%}
+        <p class="pham-about__closing">{{ section.settings.closing_line }}</p>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.show_back_link -%}
+      <p class="pham-about__back reveal-up">
+        <a href="{{ routes.root_url }}" class="pham-back-link pham-about__back-link">
+          <span class="pham-back-link__arrow" aria-hidden="true">&larr;</span>
+          <span class="pham-back-link__label">RETURN TO ATELIER</span>
+        </a>
+      </p>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  .pham-about {
+    background-color: var(--color-void);
+    color: var(--color-bone);
+  }
+  .pham-about__inner {
+    max-width: 680px;
+  }
+  .pham-about__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--color-ash);
+  }
+  .pham-about__title {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.08em;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: var(--tracking-tech);
+    text-transform: uppercase;
+    line-height: 1.05;
+    color: var(--color-bone);
+  }
+  .pham-about__title-line {
+    display: block;
+  }
+  .pham-about__subtitle {
+    margin: var(--space-xs) 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+  .pham-about__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    max-width: 58ch;
+  }
+  .pham-about__paragraph {
+    margin: 0;
+    font-size: var(--text-md);
+    line-height: 1.75;
+    color: var(--color-bone-80);
+  }
+  .pham-about__closing {
+    margin: var(--space-sm) 0 0;
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--color-ash);
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 2.2vw, 1.2rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.5;
+    color: var(--color-white);
+    max-width: 36ch;
+  }
+  .pham-about__back {
+    margin: var(--space-2xl) 0 0;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM About",
+  "tag": "section",
+  "class": "pham-about-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "PHAM · ATELIER"
+    },
+    {
+      "type": "text",
+      "id": "title_line_1",
+      "label": "Title line 1",
+      "default": "PHAM"
+    },
+    {
+      "type": "text",
+      "id": "title_line_2",
+      "label": "Title line 2",
+      "default": "MANIFESTO"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "THE PURE PURSUIT"
+    },
+    {
+      "type": "textarea",
+      "id": "paragraph_1",
+      "label": "Paragraph 1",
+      "default": "Founded in 2026 by a 16-year-old creator, PHAM was established not to follow the noise of the industry, but to build a sanctuary for pure design."
+    },
+    {
+      "type": "textarea",
+      "id": "paragraph_2",
+      "label": "Paragraph 2",
+      "default": "We deliberately reject the concept of mass production. To us, true luxury lies in absolute devotion. Operating as a solo-led design label allows the founder to oversee every single stage of creation—from the very first sketch, the precise engineering of silhouettes, to the final execution. By holding uncompromised control over the entire process, PHAM ensures that every garment remains a flawless, untainted reflection of a singular aesthetic vision."
+    },
+    {
+      "type": "textarea",
+      "id": "closing_line",
+      "label": "Closing line",
+      "default": "We do not create pieces to fill a wardrobe. We create garments to define an identity."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_back_link",
+      "label": "Show return-to-home link",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM About",
+      "category": "PHAM"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

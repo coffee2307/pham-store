@@ -1,0 +1,17 @@
+{%- comment -%}
+  After silent account activation, redirect logged-in pass holders to checkout or product.
+{%- endcomment -%}
+{%- if customer -%}
+<script>
+  (function () {
+    'use strict';
+    var key = 'pham_return_after_login';
+    var target;
+    try { target = sessionStorage.getItem(key); } catch (e) { return; }
+    if (!target) return;
+    try { sessionStorage.removeItem(key); } catch (e) { /* ignore */ }
+    if (target.charAt(0) !== '/') return;
+    window.location.replace(target);
+  })();
+</script>
+{%- endif -%}

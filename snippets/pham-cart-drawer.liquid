@@ -54,8 +54,10 @@
       <div class="pham-cart-drawer__body">
         <ul class="pham-cart-drawer__items" role="list">
           {%- for item in cart.items -%}
-            <li class="pham-cart-drawer__item" data-line="{{ forloop.index }}" data-key="{{ item.key }}">
-              <a href="{{ item.url }}" class="pham-cart-drawer__item-media" aria-label="{{ item.product.title | escape }}">
+            {%- capture pham_item_limited -%}{%- render 'pham-is-limited-edition', product: item.product -%}{%- endcapture -%}
+            {%- assign pham_item_limited = pham_item_limited | strip -%}
+            <li class="pham-cart-drawer__item" data-line="{{ forloop.index }}" data-key="{{ item.key }}"{% if pham_item_limited == 'true' %} data-pham-limited-qty="1"{% endif %}>
+              <a href="{{ routes.cart_url }}" class="pham-cart-drawer__item-media" aria-label="View cart — {{ item.product.title | escape }}">
                 {%- if item.image -%}
                   {{ item.image
                       | image_url: width: 240
@@ -73,7 +75,7 @@
 
               <div class="pham-cart-drawer__item-meta">
                 <div class="pham-cart-drawer__item-head">
-                  <a href="{{ item.url }}" class="pham-cart-drawer__item-title">{{ item.product.title }}</a>
+                  <a href="{{ routes.cart_url }}" class="pham-cart-drawer__item-title">{{ item.product.title }}</a>
                   <span class="pham-cart-drawer__item-price">{{ item.final_line_price | money }}</span>
                 </div>
 
@@ -114,7 +116,8 @@
                     <input type="number"
                            class="pham-cart-drawer__qty-input"
                            value="{{ item.quantity }}"
-                           min="0"
+                           min="{% if pham_item_limited == 'true' %}1{% else %}0{% endif %}"
+                           {% if pham_item_limited == 'true' %}max="1" readonly{% endif %}
                            inputmode="numeric"
                            pattern="[0-9]*"
                            aria-label="Quantity"
@@ -187,5 +190,20 @@
       </div>
 
     {%- endif -%}
+
+    <template data-pham-cart-empty-template>
+      <div class="pham-cart-drawer__body pham-cart-drawer__body--empty">
+        <div class="pham-cart-drawer__empty">
+          <p class="pham-cart-drawer__empty-mark">∅</p>
+          <p class="pham-cart-drawer__empty-text">Your atelier is silent.</p>
+          <p class="pham-cart-drawer__empty-sub">Begin the edition.</p>
+          <a href="{{ drawer_product_url }}" class="pham-cart-drawer__empty-cta" data-pham-cart-close>
+            <span>View the Edition</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+        <div class="pham-cart-drawer__recommendations" data-cart-recommendations aria-live="polite"></div>
+      </div>
+    </template>
   </div>
 </aside>

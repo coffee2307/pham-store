@@ -146,20 +146,14 @@
                    value="{{ current_variant.id }}"
                    data-pham-spotlight-id>
 
-            <div class="pham-product-spotlight__qty">
-              <label for="pham-spotlight-qty-{{ section.id }}" class="pham-product-spotlight__qty-label">Quantity</label>
-              <input id="pham-spotlight-qty-{{ section.id }}"
-                     type="number"
-                     name="quantity"
-                     value="1"
-                     min="1"
-                     inputmode="numeric"
-                     pattern="[0-9]*"
-                     class="pham-product-spotlight__qty-input">
-            </div>
+            {%- capture pham_show_limited_qty -%}{%- render 'pham-is-limited-edition', product: product -%}{%- endcapture -%}
+            {%- assign pham_show_limited_qty = pham_show_limited_qty | strip -%}
+            {%- if pham_show_limited_qty == 'true' -%}
+              {%- render 'pham-edition-qty', section_id: section.id, style: 'spotlight' -%}
+            {%- endif -%}
 
             {%- if pham_preorder_open -%}
-              <a href="{{ pham_waitlist_page_url }}?variant={{ current_variant.id }}&amp;quantity=1"
+              <a href="{{ pham_waitlist_page_url }}?variant={{ current_variant.id }}"
                  class="pham-product-spotlight__add"
                  data-pham-waitlist-cta>
                 <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
@@ -374,8 +368,9 @@
 
   .pham-product-spotlight__qty {
     display: flex;
-    align-items: center;
-    gap: var(--space-sm);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
     margin-bottom: var(--space-md);
   }
   .pham-product-spotlight__qty-label {
@@ -385,12 +380,32 @@
     text-transform: uppercase;
     color: var(--color-smoke);
   }
-  .pham-product-spotlight__qty-input {
-    width: 64px;
+  .pham-product-spotlight__qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--color-ash);
+  }
+  .pham-product-spotlight__qty-btn {
+    width: 38px;
     height: 38px;
     background: transparent;
+    border: 0;
+    cursor: pointer;
     color: var(--color-bone);
-    border: 1px solid var(--color-ash);
+    font-size: var(--text-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pham-product-spotlight__qty-btn:hover { color: var(--color-accent); background-color: var(--color-charcoal); }
+  .pham-product-spotlight__qty-input {
+    width: 48px;
+    height: 38px;
+    background: transparent;
+    border: 0;
+    border-left: 1px solid var(--color-ash);
+    border-right: 1px solid var(--color-ash);
+    color: var(--color-bone);
     text-align: center;
     font-family: var(--font-mono);
     font-size: var(--text-sm);
@@ -402,6 +417,12 @@
     -webkit-appearance: none;
     appearance: none;
     margin: 0;
+  }
+  .pham-product-spotlight__qty-notice {
+    margin: 0;
+    font-size: var(--text-xs);
+    line-height: 1.5;
+    color: #ff8a8a;
   }
 
   .pham-product-spotlight__add {
@@ -533,7 +554,6 @@
     var form = root.querySelector('[data-pham-spotlight-form]');
     if (!form) return;
     var variantIdInput = form.querySelector('[data-pham-spotlight-id]');
-    var qtyInput = form.querySelector('.pham-product-spotlight__qty-input');
     var waitlistCta = form.querySelector('[data-pham-waitlist-cta]');
     var waitlistBase = form.getAttribute('data-pham-waitlist-base') || '';
     var priceEl = root.querySelector('[data-pham-spotlight-price]');
@@ -597,10 +617,8 @@
 
     function updateWaitlistLink(variant) {
       if (!waitlistCta || !waitlistBase || !variant) return;
-      var qty = 1;
-      if (qtyInput) qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
       var sep = waitlistBase.indexOf('?') >= 0 ? '&' : '?';
-      waitlistCta.href = waitlistBase + sep + 'variant=' + encodeURIComponent(String(variant.id)) + '&quantity=' + encodeURIComponent(String(qty));
+      waitlistCta.href = waitlistBase + sep + 'variant=' + encodeURIComponent(String(variant.id));
     }
 
     function update() {
@@ -615,9 +633,6 @@
       if (btnPrice) btnPrice.textContent = formatted;
       updateWaitlistLink(variant);
     }
-
-    if (qtyInput) qtyInput.addEventListener('input', update);
-    if (qtyInput) qtyInput.addEventListener('change', update);
 
     var radios = root.querySelectorAll('input[type="radio"][data-pham-option]');
     for (var k = 0; k < radios.length; k++) {

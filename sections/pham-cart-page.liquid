@@ -20,7 +20,9 @@
           </thead>
           <tbody class="pham-cart-page__tbody">
             {%- for item in cart.items -%}
-              <tr class="pham-cart-page__row" data-line="{{ forloop.index }}">
+              {%- capture pham_item_limited -%}{%- render 'pham-is-limited-edition', product: item.product -%}{%- endcapture -%}
+              {%- assign pham_item_limited = pham_item_limited | strip -%}
+              <tr class="pham-cart-page__row" data-line="{{ forloop.index }}"{% if pham_item_limited == 'true' %} data-pham-limited-qty="1"{% endif %}>
                 <td class="pham-cart-page__cell pham-cart-page__cell--product">
                   <a href="{{ item.url }}" class="pham-cart-page__media" aria-label="{{ item.product.title | escape }}">
                     {%- if item.image -%}
@@ -75,7 +77,8 @@
                     <input type="number"
                            class="pham-cart-page__qty-input"
                            value="{{ item.quantity }}"
-                           min="0"
+                           min="{% if pham_item_limited == 'true' %}1{% else %}0{% endif %}"
+                           {% if pham_item_limited == 'true' %}max="1" readonly{% endif %}
                            inputmode="numeric"
                            pattern="[0-9]*"
                            aria-label="Quantity"

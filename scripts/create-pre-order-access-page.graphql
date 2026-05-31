@@ -1,0 +1,28 @@
+# Create Shopify page for Phase 2 silent login bridge
+# Admin → Online Store → Pages → Add page
+#   Title: Pre-order Access
+#   Handle: pre-order-access
+#   Theme template: page.pre-order-access
+#
+# Or via Admin API pageCreate (replace YOUR_ACCESS_TOKEN):
+
+mutation CreatePreOrderAccessPage {
+  pageCreate(
+    page: {
+      title: "Pre-order Access"
+      handle: "pre-order-access"
+      body: "Priority access verification for PHAM pass holders."
+      isPublished: true
+    }
+  ) {
+    page {
+      id
+      handle
+      onlineStoreUrl
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}

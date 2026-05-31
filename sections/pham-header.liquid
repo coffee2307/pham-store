@@ -30,8 +30,11 @@
   assign home_label    = section.settings.home_label    | default: 'HOME'
   assign contact_label = section.settings.contact_label | default: 'CONTACT'
   assign contact_url   = section.settings.contact_url   | default: '/pages/contact'
+  assign about_label   = section.settings.about_label   | default: 'ABOUT'
+  assign about_url     = section.settings.about_url       | default: '/pages/about'
   assign show_home     = section.settings.show_home
   assign show_product  = section.settings.show_product
+  assign show_about    = section.settings.show_about
   assign show_contact  = section.settings.show_contact
 -%}
 {%- capture product_url -%}{%- render 'pham-featured-product-url', product_ref: section.settings.featured_product -%}{%- endcapture -%}
@@ -80,6 +83,13 @@
               <li class="pham-header__menu-item {% if request.page_type == 'product' %}is-active{% endif %}">
                 <a href="{{ product_url }}" class="pham-header__menu-link">
                   <span class="pham-header__menu-label">{{ product_label | upcase | escape }}</span>
+                </a>
+              </li>
+            {%- endif -%}
+            {%- if show_about -%}
+              <li class="pham-header__menu-item {% if template.name == 'page' and page.handle == 'about' %}is-active{% endif %}">
+                <a href="{{ about_url }}" class="pham-header__menu-link">
+                  <span class="pham-header__menu-label">{{ about_label | upcase | escape }}</span>
                 </a>
               </li>
             {%- endif -%}
@@ -195,6 +205,14 @@
               <li class="pham-header__drawer-item">
                 <a href="{{ product_url }}" class="pham-header__drawer-link">
                   <span class="pham-header__drawer-link-label">{{ product_label | upcase | escape }}</span>
+                  <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
+                </a>
+              </li>
+            {%- endif -%}
+            {%- if show_about -%}
+              <li class="pham-header__drawer-item">
+                <a href="{{ about_url }}" class="pham-header__drawer-link">
+                  <span class="pham-header__drawer-link-label">{{ about_label | upcase | escape }}</span>
                   <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
                 </a>
               </li>
@@ -319,6 +337,24 @@
       "id": "product_label",
       "label": "PRODUCT label",
       "default": "PRODUCT"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_about",
+      "label": "Show ABOUT link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "about_label",
+      "label": "ABOUT label",
+      "default": "ABOUT"
+    },
+    {
+      "type": "url",
+      "id": "about_url",
+      "label": "About page URL",
+      "info": "Defaults to /pages/about"
     },
     {
       "type": "checkbox",

@@ -141,7 +141,13 @@
       if (inc) {
         evt.preventDefault();
         const line = parseInt(inc.dataset.line, 10);
-        const qty  = (parseInt(inc.dataset.quantity, 10) || 0) + 1;
+        const currentQty = parseInt(inc.dataset.quantity, 10) || 0;
+        const row = this._findCartRow(line);
+        if (row && row.hasAttribute('data-pham-limited-qty') && currentQty >= 1) {
+          this._showLimitedQtyNotice();
+          return;
+        }
+        const qty = currentQty + 1;
         this.queueLineChange(line, qty);
         return;
       }
@@ -159,7 +165,7 @@
       if (remove) {
         evt.preventDefault();
         const line = parseInt(remove.dataset.line, 10);
-        this.changeLine(line, 0);
+        this.queueLineChange(line, 0);
         return;
       }
     }
@@ -178,15 +184,22 @@
     queueLineChange(line, quantity) {
       if (!Number.isFinite(line) || line < 1) return;
 
-      this._patchLineOptimistic(line, quantity);
+      const row = this._findCartRow(line);
+      if (row && row.hasAttribute('data-pham-limited-qty') && quantity > 1) {
+        this._showLimitedQtyNotice();
+        quantity = 1;
+      }
 
       if (quantity === 0) {
         clearTimeout(this._qtyTimers.get(line));
         this._qtyTimers.delete(line);
         this._pendingQty.delete(line);
+        this._removeLineOptimistic(line);
         this.changeLine(line, 0);
         return;
       }
+
+      this._patchLineOptimistic(line, quantity);
 
       this._pendingQty.set(line, quantity);
       clearTimeout(this._qtyTimers.get(line));
@@ -198,6 +211,31 @@
       }, 320));
     }
 
+    _findCartRow(line) {
+      const drawer = document.querySelector(DRAWER_SELECTOR);
+      const page = document.querySelector('[data-pham-cart-page]');
+      const sel = '[data-line="' + line + '"]';
+      return (drawer && drawer.querySelector(sel)) || (page && page.querySelector(sel)) || null;
+    }
+
+    _showLimitedQtyNotice() {
+      const msg = 'This edition is limited to one per customer.';
+      let toast = document.querySelector('[data-pham-limited-qty-toast]');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.setAttribute('data-pham-limited-qty-toast', '');
+        toast.setAttribute('role', 'status');
+        toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;max-width:min(92vw,420px);padding:12px 16px;background:#0A0A0C;border:1px solid rgba(255,255,255,0.35);color:#fff;font:500 13px/1.45 system-ui,sans-serif;text-align:center;pointer-events:none;opacity:0;transition:opacity .2s ease';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.style.opacity = '1';
+      clearTimeout(this._limitedQtyToastTimer);
+      this._limitedQtyToastTimer = setTimeout(function () {
+        toast.style.opacity = '0';
+      }, 3200);
+    }
+
     _patchLineOptimistic(line, quantity) {
       this._refreshDrawerRef();
       if (!this.drawer) return;
@@ -207,11 +245,48 @@
       const input = row.querySelector('[data-pham-qty-input]');
       const inc = row.querySelector('[data-pham-qty-increase]');
       const dec = row.querySelector('[data-pham-qty-decrease]');
-      const qtyStr = String(Math.max(0, quantity));
+      const qtyStr = String(Math.max(1, quantity));
 
       if (input) input.value = qtyStr;
       if (inc) inc.dataset.quantity = qtyStr;
       if (dec) dec.dataset.quantity = qtyStr;
+    }
+
+    _removeLineOptimistic(line) {
+      this._refreshDrawerRef();
+      if (!this.drawer) return;
+
+      const row = this.drawer.querySelector('[data-line="' + line + '"]');
+      if (!row) return;
+
+      row.remove();
+
+      let totalQty = 0;
+      this.drawer.querySelectorAll('.pham-cart-drawer__item').forEach((itemRow) => {
+        const input = itemRow.querySelector('[data-pham-qty-input]');
+        totalQty += parseInt(input && input.value, 10) || 0;
+      });
+      this._updateBubble(totalQty);
+
+      if (totalQty === 0) {
+        this._showEmptyDrawerOptimistic();
+      }
+    }
+
+    _showEmptyDrawerOptimistic() {
+      if (!this.drawer) return;
+
+      const foot = this.drawer.querySelector('.pham-cart-drawer__foot');
+      if (foot) foot.remove();
+
+      const body = this.drawer.querySelector('.pham-cart-drawer__body:not(.pham-cart-drawer__body--empty)');
+      if (body) body.remove();
+
+      const tmpl = this.drawer.querySelector('[data-pham-cart-empty-template]');
+      const panel = this.drawer.querySelector('.pham-cart-drawer__panel');
+      if (!tmpl || !panel || !tmpl.content) return;
+
+      panel.appendChild(tmpl.content.cloneNode(true));
     }
 
     _patchDrawerFromCart(cart) {

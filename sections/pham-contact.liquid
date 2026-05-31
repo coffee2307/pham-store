@@ -1,5 +1,23 @@
 <!-- # DO NOT EDIT — managed by PHAM theme architecture -->
-<section class="pham-contact" data-pham-contact data-section-id="{{ section.id }}" role="region" aria-label="Contact">
+{%- liquid
+  assign pham_turnstile_on = false
+  assign pham_contact_success = false
+  assign pham_turnstile_site_key = settings.pham_waitlist_turnstile_site_key | default: '0x4AAAAAADbDNIw-HnYSFAg2' | strip
+  assign pham_turnstile_verify_url = settings.pham_waitlist_captcha_verify_url | default: 'https://script.google.com/macros/s/AKfycbx8Ug7u5hmd3XNPGB1h33xRwX3SjLgnEB6LsR4-lmlPu9m1r7yhf9bUgKaInbnCnvCj/exec' | strip
+
+  if settings.pham_waitlist_turnstile_enabled and pham_turnstile_site_key != blank and pham_turnstile_verify_url contains 'https://'
+    assign pham_turnstile_on = true
+  endif
+-%}
+<section class="pham-contact"
+         data-pham-contact
+         data-section-id="{{ section.id }}"
+         data-pham-turnstile-enabled="{% if pham_turnstile_on %}true{% else %}false{% endif %}"
+         data-pham-turnstile-site-key="{{ pham_turnstile_site_key | escape }}"
+         data-pham-turnstile-verify-url="{{ pham_turnstile_verify_url | escape }}"
+         data-pham-turnstile-action="contact_form"
+         role="region"
+         aria-label="Contact">
   <div class="pham-container pham-contact__inner">
     <header class="pham-contact__head reveal-up">
       <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
@@ -11,59 +29,72 @@
 
     {%- form 'contact', id: 'pham-contact-form', class: 'pham-contact__form reveal-up' -%}
       {%- if form.posted_successfully? -%}
-        <p class="pham-contact__msg pham-contact__msg--success" role="status">
-          {{ section.settings.success_message }}
-        </p>
-      {%- endif -%}
-
-      {%- if form.errors -%}
-        <div class="pham-contact__msg pham-contact__msg--error" role="alert">
-          <p class="pham-contact__msg-heading">Please correct the following:</p>
-          {{ form.errors | default_errors }}
+        {%- assign pham_contact_success = true -%}
+        <div class="pham-contact__success" data-pham-contact-success>
+          <p class="pham-contact__msg pham-contact__msg--success" role="status">
+            {{ section.settings.success_message }}
+          </p>
+          <p class="pham-contact__success-actions">
+            <a href="{{ page.url | default: routes.root_url }}" class="pham-btn pham-contact__success-cta">
+              Send another message
+            </a>
+          </p>
         </div>
-      {%- endif -%}
+      {%- else -%}
 
-      <div class="pham-contact__fields">
-        <div class="pham-contact__field">
-          <label for="pham-contact-name-{{ section.id }}" class="pham-contact__label">Your Name</label>
+        {%- if form.errors -%}
+          <div class="pham-contact__msg pham-contact__msg--error" role="alert">
+            <p class="pham-contact__msg-heading">Please correct the following:</p>
+            {{ form.errors | default_errors }}
+          </div>
+        {%- endif -%}
+
+        <div class="pham-contact__fields">
+          <div class="pham-contact__field">
+            <label for="pham-contact-name-{{ section.id }}" class="pham-contact__label">Your Name</label>
           <input id="pham-contact-name-{{ section.id }}"
                  type="text"
                  name="contact[name]"
                  class="pham-contact__input"
-                 placeholder="YOUR NAME"
-                 value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
-                 autocomplete="name"
-                 required>
+                 placeholder="Your name"
+                   value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
+                   autocomplete="name"
+                   required>
+          </div>
+
+          <div class="pham-contact__field">
+            <label for="pham-contact-email-{{ section.id }}" class="pham-contact__label">Email</label>
+            <input id="pham-contact-email-{{ section.id }}"
+                   type="email"
+                   name="contact[email]"
+                   class="pham-contact__input"
+                   placeholder="Email address"
+                   value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+                   autocomplete="email"
+                   spellcheck="false"
+                   autocapitalize="off"
+                   required>
+          </div>
+
+          <div class="pham-contact__field pham-contact__field--full">
+            <label for="pham-contact-body-{{ section.id }}" class="pham-contact__label">Message</label>
+            <textarea id="pham-contact-body-{{ section.id }}"
+                      name="contact[body]"
+                      class="pham-contact__textarea"
+                      placeholder="Message"
+                      rows="6"
+                      required>{% if form.body %}{{ form.body }}{% endif %}</textarea>
+          </div>
         </div>
 
-        <div class="pham-contact__field">
-          <label for="pham-contact-email-{{ section.id }}" class="pham-contact__label">Email</label>
-          <input id="pham-contact-email-{{ section.id }}"
-                 type="email"
-                 name="contact[email]"
-                 class="pham-contact__input"
-                 placeholder="EMAIL ADDRESS"
-                 value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
-                 autocomplete="email"
-                 spellcheck="false"
-                 autocapitalize="off"
-                 required>
-        </div>
+        {%- render 'pham-turnstile-captcha',
+            pham_turnstile_on: pham_turnstile_on,
+            pham_turnstile_privacy_note: 'Your message is sent via Shopify secure email. This HTTPS check verifies you are not a bot — message content is not shared with the verification service.' -%}
 
-        <div class="pham-contact__field pham-contact__field--full">
-          <label for="pham-contact-body-{{ section.id }}" class="pham-contact__label">Message</label>
-          <textarea id="pham-contact-body-{{ section.id }}"
-                    name="contact[body]"
-                    class="pham-contact__textarea"
-                    placeholder="MESSAGE"
-                    rows="6"
-                    required>{% if form.body %}{{ form.body }}{% endif %}</textarea>
-        </div>
-      </div>
-
-      <button type="submit" class="pham-btn pham-contact__submit">
-        {{ section.settings.submit_label }}
-      </button>
+        <button type="submit" class="pham-btn pham-contact__submit">
+          {{ section.settings.submit_label }}
+        </button>
+      {%- endif -%}
     {%- endform -%}
 
     {%- if section.settings.show_back_link -%}
@@ -76,6 +107,10 @@
     {%- endif -%}
   </div>
 </section>
+
+{%- if pham_turnstile_on and pham_contact_success == false -%}
+  {%- render 'pham-turnstile-scripts', form_script_asset: 'pham-contact-form.js' -%}
+{%- endif -%}
 
 {% schema %}
 {

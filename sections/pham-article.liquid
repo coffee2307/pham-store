@@ -262,16 +262,15 @@
   }
   .pham-article__form-row input,
   .pham-article__form-row textarea {
-    background: transparent;
     border: 0;
     border-bottom: 1px solid var(--color-ash);
-    color: var(--color-bone);
-    font-family: var(--font-body);
-    font-size: var(--text-base);
-    padding: var(--space-xs) 0;
+    padding: var(--pham-input-padding-block) 0;
+    border-radius: 0 !important;
   }
   .pham-article__form-row input:focus,
-  .pham-article__form-row textarea:focus { outline: none; border-color: var(--color-accent); }
+  .pham-article__form-row textarea:focus {
+    border-bottom-color: var(--color-accent);
+  }
   .pham-article__form-heading { font-family: var(--font-display); font-weight: 300; font-size: var(--text-lg); margin: var(--space-md) 0; color: var(--color-bone); }
   .pham-article__form-submit {
     background: transparent;
