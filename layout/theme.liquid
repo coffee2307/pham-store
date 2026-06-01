@@ -63,7 +63,7 @@
     {% comment %}CUSTOM_PHAM_THEME_END{% endcomment %}
   </head>
 
-  <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}{% if request.path contains '/challenge' %} pham-challenge-page{% endif %}{% if request.path contains '/policies/' %} pham-policy-page{% endif %}">
+  <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}{% if request.path contains '/challenge' %} pham-challenge-page{% endif %}{% if request.page_type == 'policy' or request.path contains '/policies/' %} pham-policy-page{% endif %}">
     {% render 'skip-to-content-link', href: '#MainContent', text: 'Skip to main content', literal: true %}
     <div id="header-group">
       {% sections 'header-group' %}
@@ -158,7 +158,7 @@
 
     {% comment %}CUSTOM_PHAM_SCRIPTS_START{% endcomment %}
     {%- render 'pham-post-login-redirect' -%}
-    {% if request.path contains '/policies/' %}
+    {% if request.page_type == 'policy' or request.path contains '/policies/' %}
       {% # theme-check-disable ParserBlockingScript %}
       <script src="{{ 'pham-policy.js' | asset_url }}" defer></script>
       {% # theme-check-enable ParserBlockingScript %}

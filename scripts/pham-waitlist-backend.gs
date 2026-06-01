@@ -13,6 +13,14 @@
  *   MULTIPASS_SECRET             — (Shopify Plus only) for true silent login URLs
  *
  * Run setupDatabase() once to create the DigitalAccessPasses sheet.
+ *
+ * DEPLOY CHECKLIST (backend-ops):
+ *   1. Copy this file into Apps Script → Deploy → New deployment → Web app
+ *   2. Set script properties (see header above)
+ *   3. Run setupDatabase() manually once
+ *   4. Register ORDERS_PAID webhook: scripts/register-waitlist-order-webhook.graphql
+ *   5. Test Turnstile GET: .../exec?token=TEST (expect success:false)
+ *   6. Test waitlist signup → checkout → verify sheet row + access_link column
  */
 
 var SHEET_NAME = 'DigitalAccessPasses';

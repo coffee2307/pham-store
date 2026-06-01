@@ -19,8 +19,6 @@
   assign media_position = section.settings.media_position | default: 'left'
   assign show_view_pdp  = section.settings.show_view_pdp
   assign current_variant = product.selected_or_first_available_variant
-  assign spotlight_preorder_label = section.settings.preorder_label | default: 'PRE-ORDER NOW'
-  assign spotlight_closed_label = section.settings.preorder_closed_label | default: 'PRE-ORDER CLOSED'
 -%}
 
 <section class="pham-product-spotlight pham-product-spotlight--media-{{ media_position }}"
@@ -152,28 +150,14 @@
               {%- render 'pham-edition-qty', section_id: section.id, style: 'spotlight' -%}
             {%- endif -%}
 
-            {%- if pham_preorder_open -%}
-              <a href="{{ pham_waitlist_page_url }}?variant={{ current_variant.id }}"
-                 class="pham-product-spotlight__add"
-                 data-pham-waitlist-cta>
-                <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
-                <span class="pham-product-spotlight__add-text">
-                  <span class="pham-product-spotlight__add-label" data-pham-spotlight-btn-label>{{ spotlight_preorder_label }}</span>
-                  <span class="pham-product-spotlight__add-price" data-pham-spotlight-btn-price>{{ current_variant.price | money }}</span>
-                </span>
-              </a>
-            {%- else -%}
-              <button type="button"
-                      class="pham-product-spotlight__add pham-product-spotlight__add--closed"
-                      disabled
-                      aria-disabled="true">
-                <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
-                <span class="pham-product-spotlight__add-text">
-                  <span class="pham-product-spotlight__add-label">{{ spotlight_closed_label }}</span>
-                  <span class="pham-product-spotlight__add-price">{{ current_variant.price | money }}</span>
-                </span>
-              </button>
-            {%- endif -%}
+            {%- render 'pham-product-purchase-cta',
+                product: product,
+                current_variant: current_variant,
+                pham_preorder_open: pham_preorder_open,
+                pham_waitlist_page_url: pham_waitlist_page_url,
+                section: section,
+                style: 'spotlight'
+            -%}
           </div>
 
           {%- if show_view_pdp -%}
@@ -553,11 +537,12 @@
 
     var form = root.querySelector('[data-pham-spotlight-form]');
     if (!form) return;
-    var variantIdInput = form.querySelector('[data-pham-spotlight-id]');
+    var variantIdInputs = form.querySelectorAll('[data-pham-variant-id], [data-pham-spotlight-id]');
     var waitlistCta = form.querySelector('[data-pham-waitlist-cta]');
+    var addToCartBtn = form.querySelector('[data-pham-add-to-cart]');
     var waitlistBase = form.getAttribute('data-pham-waitlist-base') || '';
     var priceEl = root.querySelector('[data-pham-spotlight-price]');
-    var btnPrice = waitlistCta ? waitlistCta.querySelector('[data-pham-spotlight-btn-price]') : null;
+    var btnPriceEl = form.querySelector('[data-pham-spotlight-btn-price]');
     var legendValueEls = root.querySelectorAll('[data-pham-spotlight-option-value]');
     var currency = (window.Shopify && window.Shopify.currency && window.Shopify.currency.active) || 'USD';
 
@@ -615,6 +600,21 @@
       }
     }
 
+    function updateVariantIds(variant) {
+      if (!variant) return;
+      var idStr = String(variant.id);
+      for (var vi = 0; vi < variantIdInputs.length; vi++) {
+        variantIdInputs[vi].value = idStr;
+      }
+    }
+
+    function updateAddToCartState(variant) {
+      if (!addToCartBtn) return;
+      var available = !!(variant && variant.available);
+      addToCartBtn.disabled = !available;
+      addToCartBtn.setAttribute('aria-disabled', available ? 'false' : 'true');
+    }
+
     function updateWaitlistLink(variant) {
       if (!waitlistCta || !waitlistBase || !variant) return;
       var sep = waitlistBase.indexOf('?') >= 0 ? '&' : '?';
@@ -627,11 +627,12 @@
       var variant = findVariant(opts);
       if (!variant) return;
 
-      if (variantIdInput) variantIdInput.value = String(variant.id);
+      updateVariantIds(variant);
       var formatted = formatMoney(variant.price);
-      if (priceEl)  priceEl.textContent  = formatted;
-      if (btnPrice) btnPrice.textContent = formatted;
+      if (priceEl) priceEl.textContent = formatted;
+      if (btnPriceEl) btnPriceEl.textContent = formatted;
       updateWaitlistLink(variant);
+      updateAddToCartState(variant);
     }
 
     var radios = root.querySelectorAll('input[type="radio"][data-pham-option]');

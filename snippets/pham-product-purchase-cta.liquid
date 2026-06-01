@@ -1,0 +1,151 @@
+{%- comment -%}
+  PHAM — Product purchase CTA (hybrid: waitlist | add-to-cart | sold out)
+
+  @param product {Product} — required
+  @param current_variant {Variant} — required
+  @param pham_preorder_open {Boolean}
+  @param pham_waitlist_page_url {String}
+  @param section {Section} — for section-level labels
+  @param style {String} — "main" (default) | "spotlight"
+{%- endcomment -%}
+{%- liquid
+  assign cta_style = style | default: 'main'
+  assign direct_purchase = settings.pham_direct_purchase_when_closed
+  if direct_purchase == nil
+    assign direct_purchase = true
+  endif
+
+  assign preorder_label = section.settings.preorder_label | default: 'PRE-ORDER NOW'
+  assign closed_label = section.settings.preorder_closed_label | default: 'PRE-ORDER CLOSED'
+  assign closed_note = section.settings.preorder_closed_note | default: 'The waitlist is currently closed. We will announce the next window by email.'
+  assign add_label = settings.pham_add_to_cart_label | default: 'ADD TO EDITION'
+  assign sold_label = settings.pham_sold_out_label | default: 'SOLD OUT'
+  assign sold_note = settings.pham_sold_out_note | default: 'This edition is sealed. Join the atelier mailing list for the next release.'
+
+  assign variant_available = current_variant.available
+  if product.available == false
+    assign variant_available = false
+  endif
+-%}
+
+{%- if pham_preorder_open -%}
+  {%- if cta_style == 'spotlight' -%}
+    <a href="{{ pham_waitlist_page_url }}?variant={{ current_variant.id }}"
+       class="pham-product-spotlight__add"
+       data-pham-waitlist-cta>
+      <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
+      <span class="pham-product-spotlight__add-text">
+        <span class="pham-product-spotlight__add-label" data-pham-spotlight-btn-label>{{ preorder_label }}</span>
+        <span class="pham-product-spotlight__add-price" data-pham-spotlight-btn-price>{{ current_variant.price | money }}</span>
+      </span>
+    </a>
+  {%- else -%}
+    <a href="{{ pham_waitlist_page_url }}?variant={{ current_variant.id }}"
+       class="pham-product-main__cta pham-product-main__cta--preorder"
+       data-pham-waitlist-cta
+       data-pham-preorder-label="{{ preorder_label | escape }}">
+      <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
+      <span class="pham-product-main__cta-inner">
+        <span class="pham-product-main__cta-label" data-pham-product-cta-label>{{ preorder_label }}</span>
+        <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
+      </span>
+    </a>
+  {%- endif -%}
+
+{%- elsif direct_purchase and variant_available -%}
+  {%- if cta_style == 'spotlight' -%}
+    <form action="{{ routes.cart_add_url }}"
+          method="post"
+          enctype="multipart/form-data"
+          class="pham-product-spotlight__cart-form"
+          data-pham-product-cart-form>
+      <input type="hidden" name="form_type" value="product">
+      <input type="hidden" name="utf8" value="✓">
+      <input type="hidden" name="id" value="{{ current_variant.id }}" data-pham-variant-id>
+      <input type="hidden" name="quantity" value="1" data-pham-cart-quantity>
+      <button type="submit"
+              class="pham-product-spotlight__add pham-product-spotlight__add--cart"
+              data-pham-add-to-cart
+              data-pham-add-label="{{ add_label | escape }}">
+        <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
+        <span class="pham-product-spotlight__add-text">
+          <span class="pham-product-spotlight__add-label" data-pham-spotlight-btn-label>{{ add_label }}</span>
+          <span class="pham-product-spotlight__add-price" data-pham-spotlight-btn-price>{{ current_variant.price | money }}</span>
+        </span>
+      </button>
+    </form>
+  {%- else -%}
+    <form action="{{ routes.cart_add_url }}"
+          method="post"
+          enctype="multipart/form-data"
+          class="pham-product-main__cart-form"
+          data-pham-product-cart-form>
+      <input type="hidden" name="form_type" value="product">
+      <input type="hidden" name="utf8" value="✓">
+      <input type="hidden" name="id" value="{{ current_variant.id }}" data-pham-variant-id>
+      <input type="hidden" name="quantity" value="1" data-pham-cart-quantity>
+      <button type="submit"
+              class="pham-product-main__cta pham-product-main__cta--preorder pham-product-main__cta--cart"
+              data-pham-add-to-cart
+              data-pham-add-label="{{ add_label | escape }}">
+        <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
+        <span class="pham-product-main__cta-inner">
+          <span class="pham-product-main__cta-label" data-pham-product-cta-label>{{ add_label }}</span>
+          <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
+        </span>
+      </button>
+    </form>
+  {%- endif -%}
+
+{%- elsif direct_purchase == false -%}
+  {%- if cta_style == 'spotlight' -%}
+    <button type="button"
+            class="pham-product-spotlight__add pham-product-spotlight__add--closed"
+            disabled
+            aria-disabled="true">
+      <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
+      <span class="pham-product-spotlight__add-text">
+        <span class="pham-product-spotlight__add-label">{{ closed_label }}</span>
+        <span class="pham-product-spotlight__add-price">{{ current_variant.price | money }}</span>
+      </span>
+    </button>
+  {%- else -%}
+    <button type="button"
+            class="pham-product-main__cta pham-product-main__cta--preorder pham-product-main__cta--closed"
+            disabled
+            aria-disabled="true">
+      <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
+      <span class="pham-product-main__cta-inner">
+        <span class="pham-product-main__cta-label">{{ closed_label }}</span>
+        <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
+      </span>
+    </button>
+    <p class="pham-product-main__closed-note">{{ closed_note }}</p>
+  {%- endif -%}
+
+{%- else -%}
+  {%- if cta_style == 'spotlight' -%}
+    <button type="button"
+            class="pham-product-spotlight__add pham-product-spotlight__add--closed pham-product-spotlight__add--sold-out"
+            disabled
+            aria-disabled="true">
+      <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
+      <span class="pham-product-spotlight__add-text">
+        <span class="pham-product-spotlight__add-label">{{ sold_label }}</span>
+        <span class="pham-product-spotlight__add-price">{{ current_variant.price | money }}</span>
+      </span>
+    </button>
+  {%- else -%}
+    <button type="button"
+            class="pham-product-main__cta pham-product-main__cta--preorder pham-product-main__cta--closed pham-product-main__cta--sold-out"
+            disabled
+            aria-disabled="true">
+      <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
+      <span class="pham-product-main__cta-inner">
+        <span class="pham-product-main__cta-label">{{ sold_label }}</span>
+        <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
+      </span>
+    </button>
+    <p class="pham-product-main__closed-note">{{ sold_note }}</p>
+  {%- endif -%}
+{%- endif -%}

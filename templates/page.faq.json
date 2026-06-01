@@ -2,10 +2,56 @@
   "sections": {
     "main": {
       "type": "pham-faq",
+      "blocks": {
+        "faq_1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How does pre-order work?",
+            "answer": "<p>Join the waitlist with your contact details. When the edition opens, you will proceed to secure checkout for your Digital Access Pass.</p>",
+            "default_open": true
+          }
+        },
+        "faq_2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can I buy directly without the waitlist?",
+            "answer": "<p>When the pre-order window closes and inventory is available, you can add the edition to cart and checkout directly on the product page.</p>"
+          }
+        },
+        "faq_3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "When will I be charged?",
+            "answer": "<p>Payment is taken at checkout when you complete your pre-order or direct purchase. You will receive an order confirmation by email.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Do you ship internationally?",
+            "answer": "<p>Yes. Complimentary worldwide express shipping on all orders. Duties and taxes may apply depending on your country.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What is your return policy?",
+            "answer": "<p>Returns are accepted within 14 days of receipt for unworn items in original condition. Limited editions may be final sale — see our Returns policy for full details.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5"
+      ],
       "settings": {
         "eyebrow": "ATELIER",
         "heading": "Frequently asked questions",
-        "intro": "Answers about pre-order, sizing, shipping, and returns."
+        "intro": "Answers about pre-order, sizing, shipping, and returns.",
+        "contact_note": "<p>Still need help? <a href=\"/pages/contact\">Contact the atelier</a>.</p>"
       }
     }
   },

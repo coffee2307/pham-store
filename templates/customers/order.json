@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-customer-portal",
+      "settings": {
+        "portal_mode": "order",
+        "eyebrow": "ATELIER · ORDER",
+        "heading": "Order details",
+        "intro": "",
+        "show_back_link": false
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-customer-portal",
+      "settings": {
+        "portal_mode": "account",
+        "eyebrow": "ATELIER · ACCOUNT",
+        "heading": "Your account",
+        "intro": "View order history and manage your addresses.",
+        "show_back_link": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

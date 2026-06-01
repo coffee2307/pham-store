@@ -376,6 +376,26 @@
 
         document.dispatchEvent(new CustomEvent('pham:cart:added', { detail: data }));
 
+        if (typeof gtag === 'function') {
+          gtag('event', 'add_to_cart', {
+            currency: (window.Shopify && window.Shopify.currency && window.Shopify.currency.active) || 'USD',
+            value: data.final_line_price ? data.final_line_price / 100 : undefined,
+            items: [{
+              item_id: String(data.variant_id || (data.id || '')),
+              item_name: data.product_title || data.title || '',
+              quantity: data.quantity || 1
+            }]
+          });
+        }
+        if (typeof fbq === 'function') {
+          fbq('track', 'AddToCart', {
+            content_ids: [String(data.variant_id || data.product_id || '')],
+            content_type: 'product',
+            value: data.final_line_price ? data.final_line_price / 100 : undefined,
+            currency: (window.Shopify && window.Shopify.currency && window.Shopify.currency.active) || 'USD'
+          });
+        }
+
         await this.refresh();
         this.open();
 

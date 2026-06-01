@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-customer-portal",
+      "settings": {
+        "portal_mode": "addresses",
+        "eyebrow": "ATELIER · ADDRESSES",
+        "heading": "Your addresses",
+        "intro": "Manage shipping addresses for your editions.",
+        "show_back_link": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

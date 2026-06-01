@@ -1,0 +1,118 @@
+# PHAM launch setup — creates required storefront pages.
+#
+# Option A — Shopify Admin (recommended, works on any plan):
+#   Online Store → Pages → Add page for each row below.
+#   Set handle + assign the matching theme template suffix.
+#
+#   | Title              | Handle              | Template suffix      |
+#   |--------------------|---------------------|----------------------|
+#   | Pre-order          | pre-order           | pre-order            |
+#   | Waitlist thank you | waitlist-thank-you  | waitlist-thank-you   |
+#   | Pre-order access   | pre-order-access    | pre-order-access     |
+#   | FAQ                | faq                 | faq                  |
+#   | Size guide         | size-guide          | size-guide           |
+#   | Contact            | contact             | contact              |
+#   | About              | about               | about                |
+#
+# Option B — Admin GraphQL (Settings → Apps → Develop apps → your app → GraphiQL):
+#   Paste this mutation and run it once. Ignore userErrors if the page already exists.
+#
+# Option C — Shopify CLI 4.x+ only (shopify upgrade if `shopify store` is missing):
+#   shopify store auth --store YOUR-STORE.myshopify.com --scopes write_content,write_online_store_pages
+#   shopify store execute --store YOUR-STORE.myshopify.com --query-file scripts/pham-launch-setup.graphql --allow-mutations
+#
+# Then: Theme settings → PHAM Brand → Featured product + Analytics IDs.
+# Policies: use scripts/create-shop-policies.graphql in GraphiQL, or Settings → Policies in Admin.
+
+mutation PhamLaunchSetup {
+  preOrder: pageCreate(
+    page: {
+      title: "Pre-order"
+      handle: "pre-order"
+      templateSuffix: "pre-order"
+      body: ""
+      isPublished: true
+    }
+  ) {
+    page { id handle }
+    userErrors { field message }
+  }
+
+  thankYou: pageCreate(
+    page: {
+      title: "Waitlist thank you"
+      handle: "waitlist-thank-you"
+      templateSuffix: "waitlist-thank-you"
+      body: ""
+      isPublished: true
+    }
+  ) {
+    page { id handle }
+    userErrors { field message }
+  }
+
+  access: pageCreate(
+    page: {
+      title: "Pre-order access"
+      handle: "pre-order-access"
+      templateSuffix: "pre-order-access"
+      body: ""
+      isPublished: true
+    }
+  ) {
+    page { id handle }
+    userErrors { field message }
+  }
+
+  faq: pageCreate(
+    page: {
+      title: "FAQ"
+      handle: "faq"
+      templateSuffix: "faq"
+      body: ""
+      isPublished: true
+    }
+  ) {
+    page { id handle }
+    userErrors { field message }
+  }
+
+  sizeGuide: pageCreate(
+    page: {
+      title: "Size guide"
+      handle: "size-guide"
+      templateSuffix: "size-guide"
+      body: ""
+      isPublished: true
+    }
+  ) {
+    page { id handle }
+    userErrors { field message }
+  }
+
+  contact: pageCreate(
+    page: {
+      title: "Contact"
+      handle: "contact"
+      templateSuffix: "contact"
+      body: ""
+      isPublished: true
+    }
+  ) {
+    page { id handle }
+    userErrors { field message }
+  }
+
+  about: pageCreate(
+    page: {
+      title: "About"
+      handle: "about"
+      templateSuffix: "about"
+      body: ""
+      isPublished: true
+    }
+  ) {
+    page { id handle }
+    userErrors { field message }
+  }
+}

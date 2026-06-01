@@ -1,5 +1,10 @@
-# Create / update PHAM store policies (run after `shopify store auth`).
-# Admin → Settings → Policies must show content for footer links to appear.
+# Create / update PHAM store policies.
+#
+# Option A — Shopify Admin (recommended):
+#   Settings → Policies → edit Shipping, Returns, Privacy, Terms (copy from body fields below).
+#
+# Option B — Admin GraphiQL: paste this mutation and run once.
+# Option C — CLI 4.x+: shopify store execute --store DOMAIN --query-file scripts/create-shop-policies.graphql --allow-mutations
 
 mutation UpdatePhamShopPolicies {
   shipping: shopPolicyUpdate(

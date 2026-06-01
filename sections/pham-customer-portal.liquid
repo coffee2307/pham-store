@@ -1,0 +1,404 @@
+<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
+{%- liquid
+  assign portal_mode = section.settings.portal_mode | default: 'account'
+  assign show_back = section.settings.show_back_link
+-%}
+
+<section class="pham-auth pham-contact pham-portal"
+         data-pham-customer-portal
+         data-portal-mode="{{ portal_mode | escape }}"
+         role="region"
+         aria-label="{{ section.settings.heading | escape }}">
+  <div class="pham-container pham-contact__inner reveal-up">
+
+    <header class="pham-contact__head">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      <h1 class="pham-contact__title">{{ section.settings.heading }}</h1>
+      {%- if section.settings.intro != blank -%}
+        <p class="pham-contact__intro">{{ section.settings.intro }}</p>
+      {%- endif -%}
+    </header>
+
+    {%- case portal_mode -%}
+
+      {%- when 'account' -%}
+        <div class="pham-portal__panel">
+          <p class="pham-portal__welcome">
+            {{ section.settings.welcome_label | default: 'Welcome' }},
+            <strong>{{ customer.first_name | default: customer.email }}</strong>
+          </p>
+
+          <nav class="pham-portal__nav" aria-label="Account navigation">
+            <a href="{{ routes.account_addresses_url }}" class="pham-portal__nav-link">{{ section.settings.addresses_label | default: 'Addresses' }}</a>
+            <a href="{{ routes.account_logout_url }}" class="pham-portal__nav-link pham-portal__nav-link--muted">{{ section.settings.logout_label | default: 'Log out' }}</a>
+          </nav>
+
+          <div class="pham-portal__orders">
+            <h2 class="pham-portal__subhead">{{ section.settings.orders_heading | default: 'Order history' }}</h2>
+
+            {%- if customer.orders.size > 0 -%}
+              <ul class="pham-portal__order-list" role="list">
+                {%- for order_item in customer.orders -%}
+                  <li class="pham-portal__order-item">
+                    <a href="{{ order_item.customer_url }}" class="pham-portal__order-link">
+                      <span class="pham-portal__order-id">{{ section.settings.order_prefix | default: 'Order' }} {{ order_item.name }}</span>
+                      <span class="pham-portal__order-meta">
+                        <time datetime="{{ order_item.created_at | date: '%Y-%m-%d' }}">{{ order_item.created_at | date: format: 'date' }}</time>
+                        · {{ order_item.financial_status_label }}
+                        · {{ order_item.total_price | money }}
+                      </span>
+                    </a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            {%- else -%}
+              <p class="pham-portal__empty">{{ section.settings.no_orders | default: 'You have not placed any orders yet.' }}</p>
+            {%- endif -%}
+          </div>
+        </div>
+
+      {%- when 'order' -%}
+        <div class="pham-portal__panel">
+          <p class="pham-portal__back">
+            <a href="{{ routes.account_url }}" class="pham-auth__link">&larr; {{ section.settings.back_to_account | default: 'Back to account' }}</a>
+          </p>
+
+          <header class="pham-portal__order-head">
+            <h2 class="pham-portal__subhead">{{ section.settings.order_prefix | default: 'Order' }} {{ order.name }}</h2>
+            <p class="pham-portal__order-meta">
+              <time datetime="{{ order.created_at | date: '%Y-%m-%d' }}">{{ order.created_at | date: format: 'date' }}</time>
+              · {{ order.financial_status_label }}
+              {%- if order.fulfillment_status_label != blank -%}
+                · {{ order.fulfillment_status_label }}
+              {%- endif -%}
+            </p>
+          </header>
+
+          <table class="pham-portal__table">
+            <thead>
+              <tr>
+                <th scope="col">Item</th>
+                <th scope="col">Qty</th>
+                <th scope="col">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {%- for line_item in order.line_items -%}
+                <tr>
+                  <td>
+                    <span class="pham-portal__line-title">{{ line_item.title }}</span>
+                    {%- unless line_item.variant.title == 'Default Title' -%}
+                      <span class="pham-portal__line-variant">{{ line_item.variant.title }}</span>
+                    {%- endunless -%}
+                  </td>
+                  <td>{{ line_item.quantity }}</td>
+                  <td>{{ line_item.final_line_price | money }}</td>
+                </tr>
+              {%- endfor -%}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row" colspan="2">Subtotal</th>
+                <td>{{ order.line_items_subtotal_price | money }}</td>
+              </tr>
+              {%- if order.shipping_price > 0 -%}
+                <tr>
+                  <th scope="row" colspan="2">Shipping</th>
+                  <td>{{ order.shipping_price | money }}</td>
+                </tr>
+              {%- endif -%}
+              {%- if order.tax_price > 0 -%}
+                <tr>
+                  <th scope="row" colspan="2">Tax</th>
+                  <td>{{ order.tax_price | money }}</td>
+                </tr>
+              {%- endif -%}
+              <tr class="pham-portal__total-row">
+                <th scope="row" colspan="2">Total</th>
+                <td>{{ order.total_price | money }}</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          {%- if order.shipping_address -%}
+            <div class="pham-portal__address-block">
+              <h3 class="pham-portal__address-title">{{ section.settings.shipping_heading | default: 'Shipping address' }}</h3>
+              {{ order.shipping_address | format_address }}
+            </div>
+          {%- endif -%}
+        </div>
+
+      {%- when 'addresses' -%}
+        <div class="pham-portal__panel">
+          <p class="pham-portal__back">
+            <a href="{{ routes.account_url }}" class="pham-auth__link">&larr; {{ section.settings.back_to_account | default: 'Back to account' }}</a>
+          </p>
+
+          {%- paginate customer.addresses by 8 -%}
+            <ul class="pham-portal__address-list" role="list">
+              {%- for address in customer.addresses -%}
+                <li class="pham-portal__address-card" id="PhamAddress-{{ address.id }}">
+                  {%- if address == customer.default_address -%}
+                    <p class="pham-portal__default-badge">{{ section.settings.default_badge | default: 'Default' }}</p>
+                  {%- endif -%}
+                  {{ address | format_address }}
+                  <div class="pham-portal__address-actions">
+                    <button type="button"
+                            class="pham-auth__text-btn"
+                            data-pham-address-edit="{{ address.id }}">
+                      {{ section.settings.edit_address | default: 'Edit' }}
+                    </button>
+                    <button type="button"
+                            class="pham-auth__text-btn pham-portal__nav-link--muted"
+                            data-pham-address-delete
+                            data-delete-url="{{ address.url }}">
+                      {{ section.settings.delete_address | default: 'Delete' }}
+                    </button>
+                  </div>
+
+                  <div class="pham-portal__address-form" data-pham-address-form="{{ address.id }}" hidden>
+                    {%- form 'customer_address', address, class: 'pham-contact__form' -%}
+                      <div class="pham-contact__fields">
+                        <div class="pham-contact__field pham-contact__field--half">
+                          <label class="pham-contact__label" for="PhamAddrFirst-{{ address.id }}">First name</label>
+                          <input id="PhamAddrFirst-{{ address.id }}" class="pham-contact__input" type="text" name="address[first_name]" value="{{ form.first_name }}" autocomplete="given-name" required>
+                        </div>
+                        <div class="pham-contact__field pham-contact__field--half">
+                          <label class="pham-contact__label" for="PhamAddrLast-{{ address.id }}">Last name</label>
+                          <input id="PhamAddrLast-{{ address.id }}" class="pham-contact__input" type="text" name="address[last_name]" value="{{ form.last_name }}" autocomplete="family-name" required>
+                        </div>
+                        <div class="pham-contact__field pham-contact__field--full">
+                          <label class="pham-contact__label" for="PhamAddrCompany-{{ address.id }}">Company</label>
+                          <input id="PhamAddrCompany-{{ address.id }}" class="pham-contact__input" type="text" name="address[company]" value="{{ form.company }}" autocomplete="organization">
+                        </div>
+                        <div class="pham-contact__field pham-contact__field--full">
+                          <label class="pham-contact__label" for="PhamAddr1-{{ address.id }}">Address</label>
+                          <input id="PhamAddr1-{{ address.id }}" class="pham-contact__input" type="text" name="address[address1]" value="{{ form.address1 }}" autocomplete="address-line1" required>
+                        </div>
+                        <div class="pham-contact__field pham-contact__field--full">
+                          <label class="pham-contact__label" for="PhamAddr2-{{ address.id }}">Apartment, suite, etc.</label>
+                          <input id="PhamAddr2-{{ address.id }}" class="pham-contact__input" type="text" name="address[address2]" value="{{ form.address2 }}" autocomplete="address-line2">
+                        </div>
+                        <div class="pham-contact__field pham-contact__field--half">
+                          <label class="pham-contact__label" for="PhamAddrCity-{{ address.id }}">City</label>
+                          <input id="PhamAddrCity-{{ address.id }}" class="pham-contact__input" type="text" name="address[city]" value="{{ form.city }}" autocomplete="address-level2" required>
+                        </div>
+                        <div class="pham-contact__field pham-contact__field--half">
+                          <label class="pham-contact__label" for="PhamAddrZip-{{ address.id }}">Postal code</label>
+                          <input id="PhamAddrZip-{{ address.id }}" class="pham-contact__input" type="text" name="address[zip]" value="{{ form.zip }}" autocomplete="postal-code" required>
+                        </div>
+                        <div class="pham-contact__field pham-contact__field--full">
+                          <label class="pham-contact__label" for="PhamAddrCountry-{{ address.id }}">Country</label>
+                          <select id="PhamAddrCountry-{{ address.id }}" class="pham-contact__input" name="address[country]" data-default="{{ form.country }}" autocomplete="country">{{ all_country_option_tags }}</select>
+                        </div>
+                        <div class="pham-contact__field pham-contact__field--full">
+                          <label class="pham-contact__label" for="PhamAddrPhone-{{ address.id }}">Phone</label>
+                          <input id="PhamAddrPhone-{{ address.id }}" class="pham-contact__input" type="tel" name="address[phone]" value="{{ form.phone }}" autocomplete="tel">
+                        </div>
+                        <div class="pham-contact__field pham-contact__field--full">
+                          <label class="pham-contact__checkbox">
+                            <input type="checkbox" name="address[default]" value="1" {% if address == customer.default_address %}checked{% endif %}>
+                            {{ section.settings.set_default | default: 'Set as default address' }}
+                          </label>
+                        </div>
+                      </div>
+                      <div class="pham-auth__actions">
+                        <button type="submit" class="pham-btn pham-contact__submit">{{ section.settings.save_address | default: 'SAVE ADDRESS' }}</button>
+                        <button type="button" class="pham-auth__text-btn" data-pham-address-cancel="{{ address.id }}">{{ section.settings.cancel | default: 'Cancel' }}</button>
+                      </div>
+                    {%- endform -%}
+                  </div>
+                </li>
+              {%- endfor -%}
+            </ul>
+
+            {%- if paginate.pages > 1 -%}
+              <nav class="pham-portal__pagination" aria-label="Addresses pagination">{{ paginate | default_pagination }}</nav>
+            {%- endif -%}
+          {%- endpaginate -%}
+
+          <div class="pham-portal__new-address">
+            <h2 class="pham-portal__subhead">{{ section.settings.add_address_heading | default: 'Add address' }}</h2>
+            {%- form 'customer_address', customer.new_address, class: 'pham-contact__form' -%}
+              <div class="pham-contact__fields">
+                <div class="pham-contact__field pham-contact__field--half">
+                  <label class="pham-contact__label" for="PhamNewFirst-{{ section.id }}">First name</label>
+                  <input id="PhamNewFirst-{{ section.id }}" class="pham-contact__input" type="text" name="address[first_name]" value="{{ form.first_name }}" autocomplete="given-name" required>
+                </div>
+                <div class="pham-contact__field pham-contact__field--half">
+                  <label class="pham-contact__label" for="PhamNewLast-{{ section.id }}">Last name</label>
+                  <input id="PhamNewLast-{{ section.id }}" class="pham-contact__input" type="text" name="address[last_name]" value="{{ form.last_name }}" autocomplete="family-name" required>
+                </div>
+                <div class="pham-contact__field pham-contact__field--full">
+                  <label class="pham-contact__label" for="PhamNewAddr1-{{ section.id }}">Address</label>
+                  <input id="PhamNewAddr1-{{ section.id }}" class="pham-contact__input" type="text" name="address[address1]" value="{{ form.address1 }}" autocomplete="address-line1" required>
+                </div>
+                <div class="pham-contact__field pham-contact__field--half">
+                  <label class="pham-contact__label" for="PhamNewCity-{{ section.id }}">City</label>
+                  <input id="PhamNewCity-{{ section.id }}" class="pham-contact__input" type="text" name="address[city]" value="{{ form.city }}" autocomplete="address-level2" required>
+                </div>
+                <div class="pham-contact__field pham-contact__field--half">
+                  <label class="pham-contact__label" for="PhamNewZip-{{ section.id }}">Postal code</label>
+                  <input id="PhamNewZip-{{ section.id }}" class="pham-contact__input" type="text" name="address[zip]" value="{{ form.zip }}" autocomplete="postal-code" required>
+                </div>
+                <div class="pham-contact__field pham-contact__field--full">
+                  <label class="pham-contact__label" for="PhamNewCountry-{{ section.id }}">Country</label>
+                  <select id="PhamNewCountry-{{ section.id }}" class="pham-contact__input" name="address[country]" data-default="{{ form.country }}" autocomplete="country">{{ all_country_option_tags }}</select>
+                </div>
+                <div class="pham-contact__field pham-contact__field--full">
+                  <label class="pham-contact__label" for="PhamNewPhone-{{ section.id }}">Phone</label>
+                  <input id="PhamNewPhone-{{ section.id }}" class="pham-contact__input" type="tel" name="address[phone]" value="{{ form.phone }}" autocomplete="tel">
+                </div>
+                <div class="pham-contact__field pham-contact__field--full">
+                  <label class="pham-contact__checkbox">
+                    <input type="checkbox" name="address[default]" value="1">
+                    {{ section.settings.set_default | default: 'Set as default address' }}
+                  </label>
+                </div>
+              </div>
+              <button type="submit" class="pham-btn pham-contact__submit">{{ section.settings.add_address | default: 'ADD ADDRESS' }}</button>
+            {%- endform -%}
+          </div>
+        </div>
+
+    {%- endcase -%}
+
+    {%- if show_back -%}
+      <p class="pham-auth__back">
+        <a href="{{ routes.root_url }}" class="pham-back-link">
+          <span class="pham-back-link__arrow" aria-hidden="true">&larr;</span>
+          <span class="pham-back-link__label">RETURN TO ATELIER</span>
+        </a>
+      </p>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  .pham-portal { padding-block: var(--space-2xl) var(--space-3xl); }
+  .pham-portal__panel { margin-top: var(--space-xl); }
+  .pham-portal__welcome { color: var(--color-smoke); margin: 0 0 var(--space-md); }
+  .pham-portal__nav { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-bottom: var(--space-xl); }
+  .pham-portal__nav-link { color: var(--color-white); text-decoration: none; font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-luxury); text-transform: uppercase; }
+  .pham-portal__nav-link--muted { color: var(--color-smoke); }
+  .pham-portal__subhead { margin: 0 0 var(--space-md); font-size: var(--text-lg); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+  .pham-portal__order-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-sm); }
+  .pham-portal__order-link { display: flex; flex-direction: column; gap: 0.25rem; padding: var(--space-md); border: 1px solid var(--color-ash); text-decoration: none; color: inherit; transition: border-color 0.2s; }
+  .pham-portal__order-link:hover { border-color: var(--color-smoke); }
+  .pham-portal__order-id { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-luxury); text-transform: uppercase; }
+  .pham-portal__order-meta, .pham-portal__empty { color: var(--color-smoke); font-size: var(--text-sm); margin: 0; }
+  .pham-portal__table { width: 100%; border-collapse: collapse; margin-top: var(--space-md); font-size: var(--text-sm); }
+  .pham-portal__table th, .pham-portal__table td { padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--color-ash); text-align: left; }
+  .pham-portal__table thead th { color: var(--color-smoke); font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-luxury); text-transform: uppercase; }
+  .pham-portal__line-variant { display: block; color: var(--color-smoke); font-size: var(--text-xs); }
+  .pham-portal__total-row th, .pham-portal__total-row td { font-weight: 600; border-bottom: none; }
+  .pham-portal__address-block { margin-top: var(--space-xl); color: var(--color-smoke); line-height: 1.65; }
+  .pham-portal__address-title { margin: 0 0 var(--space-sm); font-size: var(--text-sm); text-transform: uppercase; letter-spacing: var(--tracking-wide); }
+  .pham-portal__address-list { list-style: none; margin: 0 0 var(--space-xl); padding: 0; display: flex; flex-direction: column; gap: var(--space-md); }
+  .pham-portal__address-card { padding: var(--space-md); border: 1px solid var(--color-ash); color: var(--color-smoke); line-height: 1.65; }
+  .pham-portal__default-badge { margin: 0 0 var(--space-xs); font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-luxury); text-transform: uppercase; color: var(--color-white); }
+  .pham-portal__address-actions { display: flex; gap: var(--space-md); margin-top: var(--space-sm); }
+  .pham-portal__address-form { margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--color-ash); }
+  .pham-portal__back { margin: 0 0 var(--space-md); }
+  .pham-product-main__cart-form, .pham-product-spotlight__cart-form { margin: 0; }
+</style>
+
+<script>
+(function () {
+  'use strict';
+  var root = document.querySelector('[data-pham-customer-portal][data-portal-mode="addresses"]');
+  if (!root) return;
+
+  root.querySelectorAll('[data-pham-address-edit]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var id = btn.getAttribute('data-pham-address-edit');
+      var form = root.querySelector('[data-pham-address-form="' + id + '"]');
+      if (form) form.hidden = !form.hidden;
+    });
+  });
+
+  root.querySelectorAll('[data-pham-address-cancel]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var id = btn.getAttribute('data-pham-address-cancel');
+      var form = root.querySelector('[data-pham-address-form="' + id + '"]');
+      if (form) form.hidden = true;
+    });
+  });
+
+  root.querySelectorAll('[data-pham-address-delete]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var url = btn.getAttribute('data-delete-url');
+      if (!url || !window.confirm('Delete this address?')) return;
+      var form = document.createElement('form');
+      form.method = 'post';
+      form.action = url;
+      var method = document.createElement('input');
+      method.type = 'hidden';
+      method.name = '_method';
+      method.value = 'delete';
+      form.appendChild(method);
+      document.body.appendChild(form);
+      form.submit();
+    });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "PHAM Customer Portal",
+  "tag": "section",
+  "class": "pham-customer-portal-section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "portal_mode",
+      "label": "Portal mode",
+      "default": "account",
+      "options": [
+        { "value": "account", "label": "Account overview" },
+        { "value": "order", "label": "Order detail" },
+        { "value": "addresses", "label": "Addresses" }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "ATELIER · ACCOUNT"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Your account"
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro",
+      "default": "Orders, addresses, and edition updates."
+    },
+    {
+      "type": "text",
+      "id": "orders_heading",
+      "label": "Orders heading",
+      "default": "Order history"
+    },
+    {
+      "type": "text",
+      "id": "order_prefix",
+      "label": "Order label prefix",
+      "default": "Order"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_back_link",
+      "label": "Show return to atelier link",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

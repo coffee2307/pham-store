@@ -2329,6 +2329,43 @@
       },
       {
         "type": "header",
+        "content": "Hybrid commerce (waitlist + direct purchase)"
+      },
+      {
+        "type": "checkbox",
+        "id": "pham_direct_purchase_when_closed",
+        "label": "Enable direct purchase when pre-order is closed",
+        "default": true,
+        "info": "When pre-order/waitlist is closed and inventory is available, PDP and collection cards show Add to Cart instead of PRE-ORDER CLOSED."
+      },
+      {
+        "type": "text",
+        "id": "pham_add_to_cart_label",
+        "label": "Add to cart button label",
+        "default": "ADD TO EDITION"
+      },
+      {
+        "type": "text",
+        "id": "pham_sold_out_label",
+        "label": "Sold out button label",
+        "default": "SOLD OUT"
+      },
+      {
+        "type": "textarea",
+        "id": "pham_sold_out_note",
+        "label": "Sold out message",
+        "default": "This edition is sealed. Join the atelier mailing list for the next release."
+      },
+      {
+        "type": "header",
+        "content": "Launch checklist (Admin)"
+      },
+      {
+        "type": "paragraph",
+        "content": "Before go-live: (1) Settings → Payments + Shipping + Markets. (2) Create pages (see scripts/pham-launch-setup.graphql — Admin UI or GraphiQL). (3) Fill policies in Settings → Policies. (4) Select Featured product above. (5) Deploy scripts/pham-waitlist-backend.gs + ORDERS_PAID webhook (Admin → Notifications → Webhooks). (6) Cloudflare Turnstile: allowlist storefront domain."
+      },
+      {
+        "type": "header",
         "content": "Pre-order waitlist"
       },
       {
@@ -2512,6 +2549,20 @@
         "id": "pham_gsc_verification",
         "label": "Google Search Console verification",
         "info": "Content value from the HTML meta tag verification method."
+      },
+      {
+        "type": "header",
+        "content": "Email automation"
+      },
+      {
+        "type": "paragraph",
+        "content": "Waitlist signups: filter Shopify Inbox for tag preorder-waitlist, or sync to Klaviyo/Shopify Email. Post-purchase: GAS webhook writes access_link to DigitalAccessPasses sheet — email customers the /pages/pre-order-access link. Optional Klaviyo flow: trigger on waitlist segment when pham_waitlist_enabled turns on."
+      },
+      {
+        "type": "text",
+        "id": "pham_klaviyo_public_key",
+        "label": "Klaviyo public API key (optional)",
+        "info": "When set, loads Klaviyo onsite tracking for waitlist segments."
       },
       {
         "type": "header",

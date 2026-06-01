@@ -25,6 +25,20 @@
     assign show_quick_add = true
   endif
 
+  capture pham_preorder_open_raw
+    render 'pham-preorder-open'
+  endcapture
+  assign pham_preorder_open_raw = pham_preorder_open_raw | strip
+  assign pham_card_preorder_open = true
+  if pham_preorder_open_raw == 'false'
+    assign pham_card_preorder_open = false
+  endif
+
+  capture pham_waitlist_page_url_raw
+    render 'pham-waitlist-page-url'
+  endcapture
+  assign pham_waitlist_page_url = pham_waitlist_page_url_raw | strip
+
   assign img_loading = 'lazy'
   if eager
     assign img_loading = 'eager'
@@ -98,13 +112,24 @@
       <div class="pham-product-card__badges" aria-hidden="true">
         {%- if sold_out -%}
           <span class="pham-product-card__badge pham-product-card__badge--sold-out">SOLD OUT</span>
+        {%- elsif pham_card_preorder_open -%}
+          <span class="pham-product-card__badge pham-product-card__badge--preorder">PRE-ORDER</span>
         {%- elsif on_sale -%}
           <span class="pham-product-card__badge pham-product-card__badge--sale">SALE</span>
         {%- endif -%}
       </div>
 
-      {%- comment -%} ===== QUICK ADD PANEL ===== {%- endcomment -%}
-      {%- if show_quick_add and is_placeholder == false and sold_out == false -%}
+      {%- comment -%} ===== QUICK ADD / PRE-ORDER PANEL ===== {%- endcomment -%}
+      {%- if is_placeholder == false and sold_out == false -%}
+        {%- if pham_card_preorder_open -%}
+          <div class="pham-product-card__quick pham-product-card__quick--preorder" data-pham-preorder-link>
+            <a href="{{ pham_waitlist_page_url }}?variant={{ first_avail.id }}"
+               class="pham-product-card__quick-btn pham-product-card__quick-btn--link"
+               data-pham-waitlist-card-cta>
+              <span class="pham-product-card__quick-label">PRE-ORDER</span>
+            </a>
+          </div>
+        {%- elsif show_quick_add -%}
         <div class="pham-product-card__quick" data-pham-quick-add>
           {%- if product.has_only_default_variant or product.variants.size == 1 -%}
             <form action="{{ routes.cart_add_url }}"
@@ -151,6 +176,7 @@
             </details>
           {%- endif -%}
         </div>
+        {%- endif -%}
       {%- endif -%}
     </div>
 

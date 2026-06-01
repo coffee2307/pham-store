@@ -123,34 +123,14 @@
             {%- render 'pham-edition-qty', section_id: section.id, style: 'main' -%}
           {%- endif -%}
 
-          {%- if pham_preorder_open -%}
-            <a href="{{ pham_waitlist_page_url }}?variant={{ current_variant.id }}"
-               class="pham-product-main__cta pham-product-main__cta--preorder"
-               data-pham-waitlist-cta
-               data-pham-preorder-label="{{ section.settings.preorder_label | default: 'PRE-ORDER NOW' | escape }}">
-              <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
-              <span class="pham-product-main__cta-inner">
-                <span class="pham-product-main__cta-label" data-pham-product-cta-label>
-                  {{ section.settings.preorder_label | default: 'PRE-ORDER NOW' }}
-                </span>
-                <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
-              </span>
-            </a>
-          {%- else -%}
-            <button type="button"
-                    class="pham-product-main__cta pham-product-main__cta--preorder pham-product-main__cta--closed"
-                    disabled
-                    aria-disabled="true">
-              <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
-              <span class="pham-product-main__cta-inner">
-                <span class="pham-product-main__cta-label">
-                  {{ section.settings.preorder_closed_label | default: 'PRE-ORDER CLOSED' }}
-                </span>
-                <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
-              </span>
-            </button>
-            <p class="pham-product-main__closed-note">{{ section.settings.preorder_closed_note | default: 'The waitlist is currently closed. We will announce the next window by email.' }}</p>
-          {%- endif -%}
+          {%- render 'pham-product-purchase-cta',
+              product: product,
+              current_variant: current_variant,
+              pham_preorder_open: pham_preorder_open,
+              pham_waitlist_page_url: pham_waitlist_page_url,
+              section: section,
+              style: 'main'
+          -%}
 
           {%- if section.settings.preorder_note != blank -%}
             <p class="pham-product-main__preorder-note">{{ section.settings.preorder_note }}</p>
@@ -1004,8 +984,11 @@
     }
 
     var form           = root.querySelector('[data-pham-product-form]');
-    var variantIdInput = form ? form.querySelector('[data-pham-variant-id]') : null;
+    var variantIdInputs = root.querySelectorAll('[data-pham-variant-id]');
     var waitlistCta    = form ? form.querySelector('[data-pham-waitlist-cta]') : null;
+    var addToCartBtn   = form ? form.querySelector('[data-pham-add-to-cart]') : null;
+    var cartQtyInput   = form ? form.querySelector('[data-pham-cart-quantity]') : null;
+    var editionQtyInput = form ? form.querySelector('[data-pham-edition-qty-input]') : null;
     var waitlistBase   = form ? (form.getAttribute('data-pham-waitlist-base') || '') : '';
     var priceEl        = root.querySelector('[data-pham-product-price]');
     var scarcityEl     = root.querySelector('[data-pham-product-scarcity]');
@@ -1109,6 +1092,30 @@
       }
     }
 
+    function updateVariantIds(variant) {
+      if (!variant) return;
+      var idStr = String(variant.id);
+      for (var vi = 0; vi < variantIdInputs.length; vi++) {
+        variantIdInputs[vi].value = idStr;
+      }
+    }
+
+    function updateAddToCartState(variant) {
+      if (!addToCartBtn) return;
+      var available = !!(variant && variant.available);
+      addToCartBtn.disabled = !available;
+      addToCartBtn.setAttribute('aria-disabled', available ? 'false' : 'true');
+    }
+
+    function syncCartQuantity() {
+      if (!cartQtyInput) return;
+      var qty = 1;
+      if (editionQtyInput) {
+        var parsed = parseInt(editionQtyInput.value, 10);
+        if (!isNaN(parsed) && parsed > 0) qty = parsed;
+      }
+      cartQtyInput.value = String(qty);
+    }
     function updateWaitlistLink(variant) {
       if (!waitlistCta || !waitlistBase || !variant) return;
       var sep = waitlistBase.indexOf('?') >= 0 ? '&' : '?';
@@ -1125,10 +1132,12 @@
       var opts = getSelectedOptions();
       updateLegends(opts);
       var variant = findVariant(opts);
-      if (variantIdInput && variant) variantIdInput.value = String(variant.id);
+      updateVariantIds(variant);
       updatePrice(variant);
       updateScarcity(variant);
       updateWaitlistLink(variant);
+      updateAddToCartState(variant);
+      syncCartQuantity();
       updateSku(variant);
       if (variant) updateUrl(variant);
     }
@@ -1223,6 +1232,13 @@
     var radios = root.querySelectorAll('input[type="radio"][data-pham-option]');
     for (var i = 0; i < radios.length; i++) {
       radios[i].addEventListener('change', update);
+    }
+
+    if (form) {
+      var cartForms = form.querySelectorAll('[data-pham-product-cart-form]');
+      for (var cf = 0; cf < cartForms.length; cf++) {
+        cartForms[cf].addEventListener('submit', syncCartQuantity);
+      }
     }
 
     /* ====== Zoom modal ====== */

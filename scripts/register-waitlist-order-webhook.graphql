@@ -1,12 +1,24 @@
-# Register Shopify order webhook → Google Apps Script backend
-# Replace YOUR_GAS_WEB_APP_URL with the deployed /exec URL (same project as Turnstile, or a new deployment).
-# Replace YOUR_ACCESS_TOKEN with a custom app Admin API token (write_orders scope not required; read is enough for webhook create).
+# Register Shopify ORDERS_PAID webhook → PHAM GAS backend
+#
+# Prerequisites:
+#   1. Deploy scripts/pham-waitlist-backend.gs as web app (Execute as: Me, Anyone)
+#   2. Script properties: TURNSTILE_SECRET_KEY, SHOPIFY_WEBHOOK_SECRET,
+#      SHOPIFY_ADMIN_ACCESS_TOKEN, SHOPIFY_STORE, PHAM_STOREFRONT_URL
+#   3. Run setupDatabase() once in Apps Script editor
+#   4. Cloudflare Turnstile: add storefront domain to hostname allowlist
+#   5. Replace CALLBACK_URL below with your deployed /exec URL (same as pham_waitlist_captcha_verify_url in theme settings)
+#
+# Option A — Admin: Settings → Notifications → Webhooks → Create webhook
+#   Event: Order payment / ORDERS_PAID → URL = your GAS /exec URL
+#
+# Option B — Admin GraphiQL: paste mutation below (replace callbackUrl if needed).
+# Option C — CLI 4.x+: shopify store execute --store DOMAIN --query-file scripts/register-waitlist-order-webhook.graphql --allow-mutations
 
 mutation RegisterWaitlistOrderWebhook {
   webhookSubscriptionCreate(
     topic: ORDERS_PAID
     webhookSubscription: {
-      callbackUrl: "YOUR_GAS_WEB_APP_URL"
+      callbackUrl: "https://script.google.com/macros/s/AKfycbx8Ug7u5hmd3XNPGB1h33xRwX3SjLgnEB6LsR4-lmlPu9m1r7yhf9bUgKaInbnCnvCj/exec"
       format: JSON
     }
   ) {
@@ -26,6 +38,3 @@ mutation RegisterWaitlistOrderWebhook {
     }
   }
 }
-
-# Optional: also capture pending / authorized payments
-# topic: ORDERS_CREATE

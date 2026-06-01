@@ -1,5 +1,7 @@
-# Create PHAM storefront pages (run via Shopify Admin GraphQL or `shopify store execute`).
-# Assign each page the matching theme template after creation.
+# Create PHAM storefront pages.
+# Prefer Admin UI: Online Store → Pages (see scripts/pham-launch-setup.graphql for the full list).
+# Or run this mutation in Admin GraphiQL (Develop apps → GraphiQL).
+# CLI 4.x+: shopify store execute --store DOMAIN --query-file scripts/create-pham-pages.graphql --allow-mutations
 
 mutation CreatePhamPages {
   page1: pageCreate(

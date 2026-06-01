@@ -32,3 +32,9 @@
 {%- if settings.pham_gsc_verification != blank -%}
   <meta name="google-site-verification" content="{{ settings.pham_gsc_verification | escape }}">
 {%- endif -%}
+
+{% # theme-check-disable RemoteAsset %}
+{%- if settings.pham_klaviyo_public_key != blank -%}
+  <script async src="https://static.klaviyo.com/onsite/js/klaviyo.js?company_id={{ settings.pham_klaviyo_public_key | escape }}"></script>
+{%- endif -%}
+{% # theme-check-enable RemoteAsset %}

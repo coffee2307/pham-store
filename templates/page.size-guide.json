@@ -2,9 +2,70 @@
   "sections": {
     "main": {
       "type": "pham-size-guide",
+      "blocks": {
+        "size_xs": {
+          "type": "size_row",
+          "settings": {
+            "size_label": "XS",
+            "chest": "84–88",
+            "waist": "66–70",
+            "hip": "84–88",
+            "length": "68"
+          }
+        },
+        "size_s": {
+          "type": "size_row",
+          "settings": {
+            "size_label": "S",
+            "chest": "88–92",
+            "waist": "70–74",
+            "hip": "88–92",
+            "length": "70"
+          }
+        },
+        "size_m": {
+          "type": "size_row",
+          "settings": {
+            "size_label": "M",
+            "chest": "96–100",
+            "waist": "78–82",
+            "hip": "96–100",
+            "length": "72"
+          }
+        },
+        "size_l": {
+          "type": "size_row",
+          "settings": {
+            "size_label": "L",
+            "chest": "104–108",
+            "waist": "86–90",
+            "hip": "104–108",
+            "length": "74"
+          }
+        },
+        "size_xl": {
+          "type": "size_row",
+          "settings": {
+            "size_label": "XL",
+            "chest": "112–116",
+            "waist": "94–98",
+            "hip": "112–116",
+            "length": "76"
+          }
+        }
+      },
+      "block_order": [
+        "size_xs",
+        "size_s",
+        "size_m",
+        "size_l",
+        "size_xl"
+      ],
       "settings": {
         "eyebrow": "FIT",
-        "heading": "Size guide"
+        "heading": "Size guide",
+        "intro": "<p>Measurements are body references in centimetres. For a relaxed fit, choose your usual size. Between sizes — size up.</p>",
+        "note": "<p>Need help? Include your height, weight, and preferred fit in the waitlist form under Other requests, or <a href=\"/pages/contact\">contact the atelier</a>.</p>"
       }
     }
   },
