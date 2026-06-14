@@ -1,5 +1,8 @@
 <!-- # DO NOT EDIT — managed by PHAM theme architecture -->
-<section class="pham-story"
+{%- liquid
+  assign story_layout = section.settings.layout_mode | default: 'homepage'
+-%}
+<section class="pham-story pham-story--{{ story_layout }}"
          data-pham-story
          data-section-id="{{ section.id }}"
          role="region"
@@ -10,13 +13,17 @@
     <header class="pham-story__head reveal-up">
       <p class="pham-eyebrow">{{ section.settings.eyebrow | default: 'PHAM · MANIFESTO' }}</p>
       <h2 class="pham-story__title">
-        <span class="pham-split" data-pham-split>{{ section.settings.title | default: 'Silence is luxury. Restraint is power.' }}</span>
+        {%- if story_layout == 'about' -%}
+          {{ section.settings.title | default: 'The first months.' }}
+        {%- else -%}
+          <span class="pham-split" data-pham-split>{{ section.settings.title | default: 'Simply Being, Fully Living.' }}</span>
+        {%- endif -%}
       </h2>
     </header>
 
     {%- comment -%} TWO-COLUMN INTRO {%- endcomment -%}
     {%- if section.settings.intro_left != blank or section.settings.intro_right != blank -%}
-      <div class="pham-story__intro">
+      <div class="pham-story__intro{% if story_layout == 'about' %} pham-story__intro--single{% endif %}">
         {%- if section.settings.intro_left != blank -%}
           <div class="pham-story__intro-col reveal-up">
             {{ section.settings.intro_left }}
@@ -109,6 +116,15 @@
           <span aria-hidden="true">&rarr;</span>
         </a>
       </div>
+    {%- endif -%}
+
+    {%- if story_layout == 'about' -%}
+      <p class="pham-story__back reveal-up">
+        <a href="{{ routes.root_url }}" class="pham-back-link pham-story__back-link">
+          <span class="pham-back-link__arrow" aria-hidden="true">&larr;</span>
+          <span class="pham-back-link__label">RETURN TO ATELIER</span>
+        </a>
+      </p>
     {%- endif -%}
 
   </div>
@@ -309,6 +325,42 @@
     .pham-story__intro { grid-template-columns: 1fr; }
     .pham-story__chapter { grid-template-columns: 56px 1fr; }
   }
+
+  /* About page — left-aligned editorial, same rhythm as homepage story */
+  .pham-story--about {
+    padding-top: clamp(48px, 8vw, 80px);
+    border-top: 1px solid var(--color-ash);
+  }
+  .pham-story--about .pham-story__head {
+    max-width: 680px;
+  }
+  .pham-story--about .pham-story__title {
+    font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+    letter-spacing: var(--tracking-tech);
+  }
+  .pham-story--about .pham-story__intro--single {
+    grid-template-columns: 1fr;
+    max-width: 72ch;
+  }
+  .pham-story--about .pham-story__pullquote {
+    margin-inline: 0;
+    max-width: 720px;
+    text-align: left;
+  }
+  .pham-story--about .pham-story__pullquote-body {
+    font-size: clamp(1.25rem, 2.5vw, 2rem);
+    line-height: 1.35;
+  }
+  .pham-story--about .pham-story__pullquote-mark {
+    display: inline;
+    margin-right: 0.15em;
+  }
+  .pham-story--about .pham-story__cta-wrap {
+    justify-content: flex-start;
+  }
+  .pham-story--about .pham-story__back {
+    margin-top: clamp(40px, 6vw, 64px);
+  }
 </style>
 
 {% schema %}
@@ -318,6 +370,16 @@
   "class": "pham-story-section",
   "max_blocks": 18,
   "settings": [
+    {
+      "type": "select",
+      "id": "layout_mode",
+      "label": "Layout",
+      "default": "homepage",
+      "options": [
+        { "value": "homepage", "label": "Homepage — full width" },
+        { "value": "about", "label": "About — centered column" }
+      ]
+    },
     {
       "type": "header",
       "content": "Header"
@@ -332,7 +394,7 @@
       "type": "text",
       "id": "title",
       "label": "Title",
-      "default": "Silence is luxury. Restraint is power."
+      "default": "Simply Being, Fully Living."
     },
     {
       "type": "header",
@@ -342,13 +404,13 @@
       "type": "richtext",
       "id": "intro_left",
       "label": "Left column",
-      "default": "<p>PHAM is an atelier of considered restraint. We design and produce a <strong>single garment</strong> each season — slowly, deliberately, and without repetition.</p><p>What survives is the work itself: cut by hand, sewn in small batches, finished one piece at a time.</p>"
+      "default": "<p>PHAM is built slowly, one piece at a time. <strong>Edition 01</strong> is where we begin — limited by craft and production scale, not by intent.</p><p>What survives is the work itself: cut by hand, sewn in small batches, finished with care.</p>"
     },
     {
       "type": "richtext",
       "id": "intro_right",
       "label": "Right column",
-      "default": "<p>We reject seasonal velocity, trend cycles, and the noise of the modern catalogue. Each edition is sealed when complete — never re-issued.</p><p>Quiet, technical, permanent.</p>"
+      "default": "<p>This timeline reflects the first months of the project from 20 March 2026. It will be revised once the atelier enters public release.</p><p>Quiet, technical, deliberate.</p>"
     },
     {
       "type": "header",
@@ -358,7 +420,7 @@
       "type": "textarea",
       "id": "pull_quote",
       "label": "Pull quote",
-      "default": "We refuse to scale. The atelier exists to make one thing at a time."
+      "default": "We refuse to rush. The atelier makes one thing well — then the next."
     },
     {
       "type": "text",
@@ -419,19 +481,19 @@
           "type": "text",
           "id": "year",
           "label": "Year / marker",
-          "default": "2024"
+          "default": "20 · MAR · 2026"
         },
         {
           "type": "text",
           "id": "title",
           "label": "Chapter title",
-          "default": "Founded · Atelier 01"
+          "default": "Origin · Concept locked"
         },
         {
           "type": "richtext",
           "id": "body",
           "label": "Body",
-          "default": "<p>PHAM was founded as a quiet refusal of seasonal velocity. The first atelier opened with a single workbench, a single cutter, and a single garment in mind.</p>"
+          "default": "<p>PHAM begins — name, vision, and the first direction for Edition 01. A solo-led project starting from 20 March 2026.</p>"
         },
         {
           "type": "image_picker",
@@ -446,13 +508,13 @@
       "name": "PHAM Brand Story",
       "category": "PHAM",
       "blocks": [
-        { "type": "stat", "settings": { "value": 1, "label": "GARMENT PER EDITION" } },
-        { "type": "stat", "settings": { "value": 42, "suffix": "h", "label": "HOURS PER PIECE" } },
-        { "type": "stat", "settings": { "value": 100, "suffix": "%", "label": "HAND-FINISHED" } },
-        { "type": "stat", "settings": { "value": 0, "label": "RE-ISSUES" } },
-        { "type": "chapter", "settings": { "year": "2024", "title": "Founded · Atelier 01" } },
-        { "type": "chapter", "settings": { "year": "2025", "title": "First sealed edition" } },
-        { "type": "chapter", "settings": { "year": "2026", "title": "Edition · 01 / Spring" } }
+        { "type": "stat", "settings": { "value": 2, "label": "MONTHS IN BUILD" } },
+        { "type": "stat", "settings": { "value": 1, "label": "EDITION IN DEVELOPMENT" } },
+        { "type": "stat", "settings": { "value": 3, "label": "MILESTONES TO DATE" } },
+        { "type": "stat", "settings": { "value": 1, "label": "PRE-LAUNCH PHASE" } },
+        { "type": "chapter", "settings": { "year": "20 · MAR · 2026", "title": "Origin · Concept locked" } },
+        { "type": "chapter", "settings": { "year": "APR · 2026", "title": "Identity & first silhouette" } },
+        { "type": "chapter", "settings": { "year": "MAY · 2026", "title": "Pre-launch development" } }
       ]
     }
   ],

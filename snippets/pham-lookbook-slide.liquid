@@ -1,0 +1,59 @@
+{% comment %}
+  Lookbook carousel slide — single image inside a frame.
+
+  @param {image} image
+  @param {number} index
+  @param {string} alt_fallback
+  @param {boolean} enable_lightbox
+  @param {string} loading — eager | lazy
+{% endcomment %}
+{%- liquid
+  assign slide_alt = image.alt | default: alt_fallback | default: shop.name
+  assign slide_src = image | image_url: width: 2400
+  capture slide_srcset
+    echo image | image_url: width: 768
+    echo ' 768w, '
+    echo image | image_url: width: 1200
+    echo ' 1200w, '
+    echo image | image_url: width: 1800
+    echo ' 1800w, '
+    echo image | image_url: width: 2400
+    echo ' 2400w'
+  endcapture
+  assign slide_loading = loading | default: 'lazy'
+-%}
+<div class="pham-lookbook-v2__carousel-slide{% if index == 0 %} is-active{% endif %}"
+     data-pham-carousel-slide
+     data-slide-index="{{ index }}"
+     aria-hidden="{% if index == 0 %}false{% else %}true{% endif %}">
+  {%- if enable_lightbox -%}
+    <button type="button"
+            class="pham-lookbook-v2__carousel-open"
+            data-pham-lookbook-open
+            data-pham-index="{{ index }}"
+            data-pham-src="{{ slide_src | escape }}"
+            data-pham-srcset="{{ slide_srcset | strip | escape }}"
+            data-pham-alt="{{ slide_alt | escape }}"
+            aria-label="View image {{ index | plus: 1 }} full screen">
+      {{ image
+          | image_url: width: 1800
+          | image_tag:
+            loading: slide_loading,
+            widths: '480, 768, 1080, 1440, 1800',
+            sizes: '(max-width: 900px) 100vw, 50vw',
+            class: 'pham-lookbook-v2__img',
+            alt: slide_alt
+      }}
+    </button>
+  {%- else -%}
+    {{ image
+        | image_url: width: 1800
+        | image_tag:
+          loading: slide_loading,
+          widths: '480, 768, 1080, 1440, 1800',
+          sizes: '(max-width: 900px) 100vw, 50vw',
+          class: 'pham-lookbook-v2__img',
+          alt: slide_alt
+    }}
+  {%- endif -%}
+</div>

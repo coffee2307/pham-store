@@ -21,7 +21,7 @@
 
       {%- comment -%} ============== COLUMN 1 — BRAND PHILOSOPHY ============== {%- endcomment -%}
       <div class="pham-footer__col pham-footer__col--brand">
-        <h2 class="pham-footer__wordmark">{{ shop.name | default: 'PHAM' | upcase }}</h2>
+        {% render 'pham-brand-lockup', class: 'pham-footer__logo', image_loading: 'lazy' %}
         <p class="pham-footer__tagline">{{ section.settings.tagline }}</p>
         {%- if settings.pham_social_instagram != blank or settings.pham_social_tiktok != blank -%}
           <ul class="pham-footer__socials" role="list">
@@ -157,7 +157,7 @@
       "type": "textarea",
       "id": "tagline",
       "label": "Brand tagline",
-      "default": "Silence is luxury. Restraint is power. — An atelier of considered, slow-made garments for those who understand that elegance is what you choose not to say."
+      "default": "Simply Being, Fully Living."
     },
     {
       "type": "header",
@@ -183,7 +183,7 @@
       "type": "text",
       "id": "newsletter_heading",
       "label": "Newsletter heading",
-      "default": "The Sealed List"
+      "default": "The Atelier List"
     },
     {
       "type": "textarea",

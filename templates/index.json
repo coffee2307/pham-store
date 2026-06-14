@@ -15,20 +15,20 @@
         "eyebrow": {
           "type": "eyebrow",
           "settings": {
-            "text": "PHAM · SINGLE EDITION"
+            "text": "PHAM · EDITION 01"
           }
         },
         "heading": {
           "type": "heading",
           "settings": {
-            "text": "One garment. Made slowly.",
-            "font_size": 112
+            "text": "Simply Being, Fully Living.",
+            "font_size": 88
           }
         },
         "subheading": {
           "type": "subheading",
           "settings": {
-            "text": "An atelier of considered restraint. PHAM produces a single, sealed edition — quietly engineered, never re-issued."
+            "text": "The first piece. Made slowly."
           }
         },
         "button": {
@@ -58,7 +58,7 @@
     "pham-marquee": {
       "type": "pham-marquee",
       "settings": {
-        "text": "",
+        "text": "SIMPLY BEING · FULLY LIVING · EDITION 01",
         "separator": " · ",
         "repetitions": 6,
         "speed": 40,
@@ -81,84 +81,6 @@
         "media_position": "left"
       }
     },
-    "pham-story": {
-      "type": "pham-story",
-      "blocks": {
-        "stat_1": {
-          "type": "stat",
-          "settings": {
-            "value": 1,
-            "label": "GARMENT PER EDITION"
-          }
-        },
-        "stat_2": {
-          "type": "stat",
-          "settings": {
-            "value": 42,
-            "suffix": "h",
-            "label": "HOURS PER PIECE"
-          }
-        },
-        "stat_3": {
-          "type": "stat",
-          "settings": {
-            "value": 100,
-            "suffix": "%",
-            "label": "HAND-FINISHED"
-          }
-        },
-        "stat_4": {
-          "type": "stat",
-          "settings": {
-            "value": 0,
-            "label": "RE-ISSUES"
-          }
-        },
-        "chapter_1": {
-          "type": "chapter",
-          "settings": {
-            "year": "2024",
-            "title": "Founded · Atelier 01",
-            "body": "<p>PHAM was founded as a quiet refusal of seasonal velocity. The first atelier opened with a single workbench, a single cutter, and a single garment in mind.</p>"
-          }
-        },
-        "chapter_2": {
-          "type": "chapter",
-          "settings": {
-            "year": "2025",
-            "title": "First sealed edition",
-            "body": "<p>The inaugural edition closed at twenty pieces — each numbered, each hand-finished, each retired the moment the run ended.</p>"
-          }
-        },
-        "chapter_3": {
-          "type": "chapter",
-          "settings": {
-            "year": "2026",
-            "title": "Edition · 01 / Spring",
-            "body": "<p>The current edition is in production. When the seal closes, it will not reopen.</p>"
-          }
-        }
-      },
-      "block_order": [
-        "stat_1",
-        "stat_2",
-        "stat_3",
-        "stat_4",
-        "chapter_1",
-        "chapter_2",
-        "chapter_3"
-      ],
-      "settings": {
-        "eyebrow": "PHAM · MANIFESTO",
-        "title": "Silence is luxury. Restraint is power.",
-        "intro_left": "<p>PHAM is an atelier of considered restraint. We design and produce a <strong>single garment</strong> each season — slowly, deliberately, and without repetition.</p><p>What survives is the work itself: cut by hand, sewn in small batches, finished one piece at a time.</p>",
-        "intro_right": "<p>We reject seasonal velocity, trend cycles, and the noise of the modern catalogue. Each edition is sealed when complete — never re-issued.</p><p>Quiet, technical, permanent.</p>",
-        "pull_quote": "We refuse to scale. The atelier exists to make one thing at a time.",
-        "pull_quote_attr": "PHAM · BRAND MANIFESTO",
-        "cta_label": "VIEW THE EDITION",
-        "cta_link": ""
-      }
-    },
     "pham-lookbook": {
       "type": "pham-lookbook",
       "blocks": {
@@ -170,7 +92,10 @@
             "parallax_speed": 0.18,
             "caption": "PHAM SS26 · FRAME 01",
             "overlay_eyebrow": "LOOK · 01",
-            "overlay_text": "The Silhouette"
+            "overlay_text": "The Silhouette",
+            "enable_carousel": true,
+            "autoplay_seconds": 5,
+            "enable_lightbox": true
           }
         },
         "look_2": {
@@ -189,7 +114,7 @@
         "quote_1": {
           "type": "quote",
           "settings": {
-            "size": "md"
+            "size": "sm"
           }
         },
         "look_3": {
@@ -225,26 +150,26 @@
           "settings": {
             "eyebrow": "PROCESS",
             "heading": "Cut by hand.",
-            "body": "<p>The pattern is drawn on a single bolt of wool. There is no second attempt. The cutter works once, sews once, and seals the edition.</p>",
+            "body": "<p>The pattern is drawn on a single bolt of wool. The cutter works slowly, sews in small batches, and opens Edition 01 with the same discipline the next release will carry.</p>",
             "cta_label": "READ THE PROCESS",
-            "size": "md"
+            "size": "xl"
           }
         }
       },
       "block_order": [
         "look_1",
         "look_2",
+        "look_3",
+        "look_5",
         "spec_1",
         "quote_1",
-        "look_3",
         "look_4",
-        "look_5",
         "editorial_1"
       ],
       "settings": {
         "eyebrow": "EDITORIAL · PHAM",
         "title": "The Architecture of Restraint",
-        "intro": "A visual study of a single garment — its silhouette, fabric, and the slow process behind it.",
+        "intro": "A visual study of Edition 01 — its silhouette, fabric, and the slow process behind the first release.",
         "enable_parallax": true,
         "columns": 12
       }
@@ -254,7 +179,6 @@
     "pham-hero",
     "pham-marquee",
     "pham-product-spotlight",
-    "pham-story",
     "pham-lookbook"
   ]
 }

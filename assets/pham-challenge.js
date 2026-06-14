@@ -17,7 +17,7 @@
 
   var lead = document.createElement('p');
   lead.className = 'pham-challenge__lead';
-  lead.textContent = 'Complete this step to confirm your pre-order waitlist request.';
+  lead.textContent = 'Complete this step so we can deliver your message securely.';
 
   var message = container.querySelector('.shopify-challenge__message');
   if (message) {

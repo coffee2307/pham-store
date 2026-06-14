@@ -1,10 +1,10 @@
-# @deprecated — PHAM no longer uses Shopify webhooks via Google Apps Script.
+# Remove ORDERS_PAID webhook (no longer used — manual order handling).
+# Run via Shopify CLI after replacing Apps Script with pham-contact-backend.gs:
 #
-# Remove any ORDERS_PAID webhook pointing at the old GAS /exec URL:
 #   shopify store auth
 #   shopify store execute --query @scripts/delete-waitlist-order-webhook.graphql
 #
-# List webhooks to find the subscription ID:
+# If the callback URL differs, list webhooks first:
 #   query { webhookSubscriptions(first: 20) { nodes { id topic endpoint { __typename ... on WebhookHttpEndpoint { callbackUrl } } } } }
 
 mutation DeleteWaitlistOrderWebhook {

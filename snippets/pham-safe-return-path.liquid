@@ -1,0 +1,26 @@
+{%- comment -%}
+  Same-origin relative path only. Rejects //evil.com, https://..., etc.
+  @param {string} input_path - raw path (defaults to request.params.return_to)
+  @param {string} fallback - default when invalid (default /checkout)
+{%- endcomment -%}
+{%- liquid
+  assign raw_path = input_path | default: request.params.return_to | default: '' | strip
+  assign safe_fallback = fallback | default: '/checkout' | strip
+  if safe_fallback == blank
+    assign safe_fallback = '/checkout'
+  endif
+  assign safe_path = safe_fallback
+
+  if raw_path != blank
+    unless raw_path contains '://' or raw_path contains '\\' or raw_path contains '@' or raw_path contains ':'
+      assign path_prefix = raw_path | slice: 0, 2
+      unless path_prefix == '//'
+        if raw_path contains '/'
+          assign safe_path = raw_path
+        else
+          assign safe_path = raw_path | prepend: '/'
+        endif
+      endunless
+    endunless
+  endif
+-%}{{- safe_path -}}

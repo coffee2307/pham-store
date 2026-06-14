@@ -50,9 +50,10 @@
       this.lastFocused = null;
 
       this.toggle   = el.querySelector('[data-pham-menu-toggle]');
-      this.drawer   = el.querySelector('[data-pham-mobile-drawer]');
-      this.closeBtn = el.querySelector('[data-pham-menu-close]');
-      this.backdrop = el.querySelector('[data-pham-menu-backdrop]');
+      const sectionRoot = el.closest('.pham-header-section') || el.parentElement;
+      this.drawer   = sectionRoot ? sectionRoot.querySelector('[data-pham-mobile-drawer]') : null;
+      this.closeBtn = this.drawer ? this.drawer.querySelector('[data-pham-menu-close]') : null;
+      this.backdrop = this.drawer ? this.drawer.querySelector('[data-pham-menu-backdrop]') : null;
 
       this._onScroll   = this._onScroll.bind(this);
       this._onKeydown  = this._onKeydown.bind(this);
@@ -66,7 +67,12 @@
       window.addEventListener('scroll', this._onScroll, { passive: true });
       window.addEventListener('resize', this._onResize, { passive: true });
 
-      if (this.toggle)   this.toggle.addEventListener('click',   () => this.openMenu());
+      if (this.toggle) {
+        this.toggle.addEventListener('click', () => {
+          if (this.menuOpen) this.closeMenu();
+          else this.openMenu();
+        });
+      }
       if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.closeMenu());
       if (this.backdrop) this.backdrop.addEventListener('click', () => this.closeMenu());
 

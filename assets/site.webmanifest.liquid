@@ -1,21 +1,20 @@
-{
-  "name": "PHAM",
-  "short_name": "PHAM",
-  "icons": [
-    {
-      "src": {{ 'round-logo.png' | asset_url | json }},
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": {{ 'round-logo.png' | asset_url | json }},
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    }
-  ],
-  "theme_color": "#0A0A0C",
-  "background_color": "#0A0A0C",
-  "display": "standalone"
-}
+{%- liquid
+  if settings.favicon != blank
+    assign pham_manifest_192 = settings.favicon | image_url: width: 192, height: 192, crop: 'center'
+    assign pham_manifest_512 = settings.favicon | image_url: width: 512, height: 512, crop: 'center'
+  elsif settings.logo != blank
+    assign pham_manifest_192 = settings.logo | image_url: width: 192, height: 192, crop: 'center'
+    assign pham_manifest_512 = settings.logo | image_url: width: 512, height: 512, crop: 'center'
+  else
+    assign pham_manifest_192 = 'android-chrome-192x192.png' | asset_url
+    assign pham_manifest_512 = 'android-chrome-512x512.png' | asset_url
+  endif
+
+  unless pham_manifest_192 contains 'http'
+    assign pham_manifest_192 = pham_manifest_192 | remove_first: '//' | prepend: 'https://'
+  endunless
+  unless pham_manifest_512 contains 'http'
+    assign pham_manifest_512 = pham_manifest_512 | remove_first: '//' | prepend: 'https://'
+  endunless
+-%}
+{"name":"PHAM","short_name":"PHAM","icons":[{"src":{{ pham_manifest_192 | json }},"sizes":"192x192","type":"image/png","purpose":"any"},{"src":{{ pham_manifest_512 | json }},"sizes":"512x512","type":"image/png","purpose":"any"}],"theme_color":"#0A0A0C","background_color":"#0A0A0C","display":"standalone"}

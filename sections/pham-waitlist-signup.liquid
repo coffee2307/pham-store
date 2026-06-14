@@ -19,14 +19,6 @@
 {%- assign terms_policy = shop.terms_of_service_policy -%}
 
 {%- liquid
-  assign pham_turnstile_on = false
-  assign pham_turnstile_site_key = settings.pham_waitlist_turnstile_site_key | default: '0x4AAAAAADbDNIw-HnYSFAg2' | strip
-  assign pham_turnstile_verify_url = settings.pham_waitlist_captcha_verify_url | default: 'https://script.google.com/macros/s/AKfycbx8Ug7u5hmd3XNPGB1h33xRwX3SjLgnEB6LsR4-lmlPu9m1r7yhf9bUgKaInbnCnvCj/exec' | strip
-
-  if settings.pham_waitlist_turnstile_enabled and pham_turnstile_site_key != blank and pham_turnstile_verify_url contains 'https://'
-    assign pham_turnstile_on = true
-  endif
-
   assign pham_honeypot_on = settings.pham_waitlist_honeypot_enabled
   if pham_honeypot_on == nil
     assign pham_honeypot_on = true
@@ -37,10 +29,7 @@
          data-pham-waitlist-signup
          data-product-title="{{ product.title | escape }}"
          data-variant-id="{{ current_variant.id }}"
-         data-pham-turnstile-enabled="{% if pham_turnstile_on %}true{% else %}false{% endif %}"
-         data-pham-turnstile-site-key="{{ pham_turnstile_site_key | escape }}"
-         data-pham-turnstile-verify-url="{{ pham_turnstile_verify_url | escape }}"
-         data-pham-turnstile-action="waitlist_signup"
+         data-allowed-variant-ids="{{ product.variants | map: 'id' | join: ',' | escape }}"
          role="region"
          aria-label="{{ section.settings.heading | default: 'Pre-order waitlist' | escape }}">
 
@@ -202,10 +191,6 @@
               {%- endif -%}
             </span>
           </label>
-
-          {%- render 'pham-turnstile-captcha',
-              pham_turnstile_on: pham_turnstile_on,
-              pham_turnstile_privacy_note: 'Your details are submitted to Shopify secure checkout. This HTTPS check verifies you are not a bot — no personal data is sent to the verification service.' -%}
 
           <button type="submit"
                   class="pham-waitlist__submit"
@@ -564,11 +549,7 @@
   .pham-waitlist-thank-you__link:hover { opacity: 0.75; }
 </style>
 
-{%- if pham_turnstile_on -%}
-  {%- render 'pham-turnstile-scripts', form_script_asset: 'pham-waitlist-form.js' -%}
-{%- else -%}
 <script src="{{ 'pham-waitlist-form.js' | asset_url }}" defer></script>
-{%- endif -%}
 
 {% # theme-check-disable RemoteAsset %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/css/intlTelInput.css">

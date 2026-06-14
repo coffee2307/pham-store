@@ -60,12 +60,12 @@
         <span class="pham-header__hamburger-bar" aria-hidden="true"></span>
       </button>
 
-      {% render 'pham-brand-lockup', class: 'pham-header__logo pham-header__logo--desktop' %}
+      {% render 'pham-brand-lockup', class: 'pham-header__logo pham-header__logo--desktop', image_loading: 'eager' %}
     </div>
 
     {%- comment -%} CENTER — Mobile logo + desktop navigation {%- endcomment -%}
     <div class="pham-header__zone pham-header__zone--center">
-      {% render 'pham-brand-lockup', class: 'pham-header__logo pham-header__logo--mobile' %}
+      {% render 'pham-brand-lockup', class: 'pham-header__logo pham-header__logo--mobile', image_loading: 'lazy' %}
 
       <nav class="pham-header__nav pham-header__nav--desktop"
            role="navigation"
@@ -163,123 +163,121 @@
       </button>
     </div>
   </div>
+</header>
 
-  {%- comment -%} ============================================================
-     MOBILE DRAWER — full-screen overlay
-  ============================================================ {%- endcomment -%}
-  <div class="pham-header__drawer"
-       id="pham-mobile-drawer"
-       data-pham-mobile-drawer
-       role="dialog"
-       aria-modal="true"
-       aria-hidden="true"
-       aria-label="Site navigation">
-    <div class="pham-header__drawer-backdrop" data-pham-menu-backdrop aria-hidden="true"></div>
+{%- comment -%} Drawer lives outside <header> so fixed overlay is not clipped by header transforms/overflow {%- endcomment -%}
+<div class="pham-header__drawer"
+     id="pham-mobile-drawer"
+     data-pham-mobile-drawer
+     role="dialog"
+     aria-modal="true"
+     aria-hidden="true"
+     aria-label="Site navigation">
+  <div class="pham-header__drawer-backdrop" data-pham-menu-backdrop aria-hidden="true"></div>
 
-    <div class="pham-header__drawer-panel">
-      <div class="pham-header__drawer-head">
-        <span class="pham-eyebrow">Menu</span>
-        <button type="button"
-                class="pham-header__drawer-close"
-                data-pham-menu-close
-                aria-label="Close menu">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
-            <line x1="3" y1="3" x2="15" y2="15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-            <line x1="15" y1="3" x2="3" y2="15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-          </svg>
-        </button>
-      </div>
+  <div class="pham-header__drawer-panel">
+    <div class="pham-header__drawer-head">
+      <span class="pham-eyebrow">Menu</span>
+      <button type="button"
+              class="pham-header__drawer-close"
+              data-pham-menu-close
+              aria-label="Close menu">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
+          <line x1="3" y1="3" x2="15" y2="15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="15" y1="3" x2="3" y2="15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
 
-      <nav class="pham-header__drawer-nav" aria-label="Mobile primary navigation">
-        {%- if single_mode -%}
-          <ul class="pham-header__drawer-menu" role="list">
-            {%- if show_home -%}
-              <li class="pham-header__drawer-item">
-                <a href="{{ routes.root_url }}" class="pham-header__drawer-link">
-                  <span class="pham-header__drawer-link-label">{{ home_label | upcase | escape }}</span>
-                  <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
-                </a>
-              </li>
-            {%- endif -%}
-            {%- if show_product and feat_product != blank and feat_product != nil -%}
-              <li class="pham-header__drawer-item">
-                <a href="{{ product_url }}" class="pham-header__drawer-link">
-                  <span class="pham-header__drawer-link-label">{{ product_label | upcase | escape }}</span>
-                  <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
-                </a>
-              </li>
-            {%- endif -%}
-            {%- if show_about -%}
-              <li class="pham-header__drawer-item">
-                <a href="{{ about_url }}" class="pham-header__drawer-link">
-                  <span class="pham-header__drawer-link-label">{{ about_label | upcase | escape }}</span>
-                  <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
-                </a>
-              </li>
-            {%- endif -%}
-            {%- if show_contact -%}
-              <li class="pham-header__drawer-item">
-                <a href="{{ contact_url }}" class="pham-header__drawer-link">
-                  <span class="pham-header__drawer-link-label">{{ contact_label | upcase | escape }}</span>
-                  <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
-                </a>
-              </li>
-            {%- endif -%}
-          </ul>
-        {%- else -%}
-          {%- if menu != blank and menu.links.size > 0 -%}
-            <ul class="pham-header__drawer-menu" role="list">
-              {%- for link in menu.links -%}
-                {%- assign link_path = link.url | split: '?' | first | split: '#' | first -%}
-                {%- assign skip_link = false -%}
-                {%- if link_path contains '/collections/all' or link_path contains '/collections/' -%}
-                  {%- assign skip_link = true -%}
-                {%- endif -%}
-                {%- unless skip_link -%}
-                  <li class="pham-header__drawer-item">
-                    <a href="{{ link.url }}" class="pham-header__drawer-link">
-                      <span class="pham-header__drawer-link-label">{% render 'pham-nav-label', title: link.title, url: link.url %}</span>
-                      <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
-                    </a>
-                    {%- if link.links.size > 0 -%}
-                      <ul class="pham-header__drawer-submenu" role="list">
-                        {%- for sublink in link.links -%}
-                          <li>
-                            <a href="{{ sublink.url }}" class="pham-header__drawer-sublink">{% render 'pham-nav-label', title: sublink.title, url: sublink.url %}</a>
-                          </li>
-                        {%- endfor -%}
-                      </ul>
-                    {%- endif -%}
-                  </li>
-                {%- endunless -%}
-              {%- endfor -%}
-            </ul>
+    <nav class="pham-header__drawer-nav" aria-label="Mobile primary navigation">
+      {%- if single_mode -%}
+        <ul class="pham-header__drawer-menu" role="list">
+          {%- if show_home -%}
+            <li class="pham-header__drawer-item">
+              <a href="{{ routes.root_url }}" class="pham-header__drawer-link">
+                <span class="pham-header__drawer-link-label">{{ home_label | upcase | escape }}</span>
+                <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
+              </a>
+            </li>
           {%- endif -%}
+          {%- if show_product and feat_product != blank and feat_product != nil -%}
+            <li class="pham-header__drawer-item">
+              <a href="{{ product_url }}" class="pham-header__drawer-link">
+                <span class="pham-header__drawer-link-label">{{ product_label | upcase | escape }}</span>
+                <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
+              </a>
+            </li>
+          {%- endif -%}
+          {%- if show_about -%}
+            <li class="pham-header__drawer-item">
+              <a href="{{ about_url }}" class="pham-header__drawer-link">
+                <span class="pham-header__drawer-link-label">{{ about_label | upcase | escape }}</span>
+                <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
+              </a>
+            </li>
+          {%- endif -%}
+          {%- if show_contact -%}
+            <li class="pham-header__drawer-item">
+              <a href="{{ contact_url }}" class="pham-header__drawer-link">
+                <span class="pham-header__drawer-link-label">{{ contact_label | upcase | escape }}</span>
+                <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
+              </a>
+            </li>
+          {%- endif -%}
+        </ul>
+      {%- else -%}
+        {%- if menu != blank and menu.links.size > 0 -%}
+          <ul class="pham-header__drawer-menu" role="list">
+            {%- for link in menu.links -%}
+              {%- assign link_path = link.url | split: '?' | first | split: '#' | first -%}
+              {%- assign skip_link = false -%}
+              {%- if link_path contains '/collections/all' or link_path contains '/collections/' -%}
+                {%- assign skip_link = true -%}
+              {%- endif -%}
+              {%- unless skip_link -%}
+                <li class="pham-header__drawer-item">
+                  <a href="{{ link.url }}" class="pham-header__drawer-link">
+                    <span class="pham-header__drawer-link-label">{% render 'pham-nav-label', title: link.title, url: link.url %}</span>
+                    <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
+                  </a>
+                  {%- if link.links.size > 0 -%}
+                    <ul class="pham-header__drawer-submenu" role="list">
+                      {%- for sublink in link.links -%}
+                        <li>
+                          <a href="{{ sublink.url }}" class="pham-header__drawer-sublink">{% render 'pham-nav-label', title: sublink.title, url: sublink.url %}</a>
+                        </li>
+                      {%- endfor -%}
+                    </ul>
+                  {%- endif -%}
+                </li>
+              {%- endunless -%}
+            {%- endfor -%}
+          </ul>
         {%- endif -%}
-      </nav>
+      {%- endif -%}
+    </nav>
 
-      <div class="pham-header__drawer-footer">
-        <div class="pham-header__drawer-utility">
-          <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
-             class="pham-header__drawer-util">
-            {% if customer %}ACCOUNT{% else %}SIGN IN{% endif %}
-          </a>
-          <a href="{{ routes.search_url }}" class="pham-header__drawer-util">SEARCH</a>
-        </div>
-        {%- if settings.pham_social_instagram != blank or settings.pham_social_tiktok != blank -%}
-          <div class="pham-header__drawer-socials">
-            {%- if settings.pham_social_instagram != blank -%}
-              <a href="{{ settings.pham_social_instagram }}" target="_blank" rel="noopener noreferrer" class="pham-header__drawer-social">Instagram</a>
-            {%- endif -%}
-            {%- if settings.pham_social_tiktok != blank -%}
-              <a href="{{ settings.pham_social_tiktok }}" target="_blank" rel="noopener noreferrer" class="pham-header__drawer-social">TikTok</a>
-            {%- endif -%}
-          </div>
-        {%- endif -%}
+    <div class="pham-header__drawer-footer">
+      <div class="pham-header__drawer-utility">
+        <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
+           class="pham-header__drawer-util">
+          {% if customer %}ACCOUNT{% else %}SIGN IN{% endif %}
+        </a>
+        <a href="{{ routes.search_url }}" class="pham-header__drawer-util">SEARCH</a>
       </div>
+      {%- if settings.pham_social_instagram != blank or settings.pham_social_tiktok != blank -%}
+        <div class="pham-header__drawer-socials">
+          {%- if settings.pham_social_instagram != blank -%}
+            <a href="{{ settings.pham_social_instagram }}" target="_blank" rel="noopener noreferrer" class="pham-header__drawer-social">Instagram</a>
+          {%- endif -%}
+          {%- if settings.pham_social_tiktok != blank -%}
+            <a href="{{ settings.pham_social_tiktok }}" target="_blank" rel="noopener noreferrer" class="pham-header__drawer-social">TikTok</a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
     </div>
   </div>
-</header>
+</div>
 
 {%- comment -%} Spacer offsets the fixed header in normal flow {%- endcomment -%}
 <div class="pham-header__spacer {% if section.settings.transparent_on_top %}pham-header__spacer--transparent{% endif %}" aria-hidden="true"></div>

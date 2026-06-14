@@ -35,7 +35,7 @@
   <div class="pham-product-main__grid pham-container">
 
     {%- comment -%} ============= LEFT: GALLERY (e-commerce layout) ============= {%- endcomment -%}
-    <div class="pham-product-main__media">
+    <div class="pham-product-main__media reveal-up">
       {% render 'pham-product-gallery', product: product, section_id: section.id %}
     </div>
 
@@ -43,7 +43,7 @@
     <aside class="pham-product-main__panel">
       <div class="pham-product-main__panel-inner">
 
-        <header class="pham-product-main__head">
+        <header class="pham-product-main__head reveal-up" data-pham-delay="80">
           {%- if show_vendor and product.vendor != blank -%}
             <p class="pham-eyebrow pham-product-main__vendor">{{ product.vendor }}</p>
           {%- endif -%}
@@ -78,7 +78,8 @@
           {%- endif -%}
         </p>
 
-        <div class="pham-product-main__form"
+        <div class="pham-product-main__form reveal-up"
+             data-pham-delay="120"
              data-pham-product-form
              data-pham-waitlist-base="{{ pham_waitlist_page_url | escape }}">
 
@@ -141,7 +142,7 @@
           {%- endif -%}
         </div>
 
-        <div class="pham-product-main__accordions">
+        <div class="pham-product-main__accordions reveal-up" data-pham-delay="180">
           {%- assign phase_blocks = section.blocks | where: 'type', 'phase' -%}
           {%- if phase_blocks.size > 0 or section.settings.show_phases_default -%}
             {%- capture phases_content -%}{%- render 'pham-product-phases-content', section: section -%}{%- endcapture -%}

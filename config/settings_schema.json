@@ -52,7 +52,8 @@
       {
         "type": "image_picker",
         "id": "favicon",
-        "label": "t:settings.favicon"
+        "label": "t:settings.favicon",
+        "info": "Square PNG (192×192+). Use a dark background (#0A0A0C) with a white mark so Google Search does not show a blank white circle. Updates in Search can take several days."
       }
     ]
   },
@@ -2290,7 +2291,7 @@
     "settings": [
       {
         "type": "header",
-        "content": "PHAM — Silence is luxury. Restraint is power."
+        "content": "PHAM — Simply Being, Fully Living."
       },
       {
         "type": "paragraph",
@@ -2354,7 +2355,7 @@
         "type": "textarea",
         "id": "pham_sold_out_note",
         "label": "Sold out message",
-        "default": "This edition is sealed. Join the atelier mailing list for the next release."
+        "default": "This run is closed. Join the atelier list for the next release."
       },
       {
         "type": "header",
@@ -2428,35 +2429,11 @@
       },
       {
         "type": "header",
-        "content": "Contact security"
-      },
-      {
-        "type": "checkbox",
-        "id": "pham_waitlist_turnstile_enabled",
-        "label": "Enable Cloudflare Turnstile on contact + waitlist",
-        "default": true,
-        "info": "Turnstile appears on the Contact page and Join waitlist form before submit/checkout."
-      },
-      {
-        "type": "text",
-        "id": "pham_waitlist_turnstile_site_key",
-        "label": "Turnstile site key (public)",
-        "default": "0x4AAAAAADbDNIw-HnYSFAg2"
-      },
-      {
-        "type": "text",
-        "id": "pham_waitlist_captcha_verify_url",
-        "label": "Turnstile verify URL",
-        "default": "https://script.google.com/macros/s/AKfycbx8Ug7u5hmd3XNPGB1h33xRwX3SjLgnEB6LsR4-lmlPu9m1r7yhf9bUgKaInbnCnvCj/exec",
-        "info": "HTTPS Google Apps Script /exec URL only. Set TURNSTILE_SECRET_KEY in Script properties. Redeploy GAS after updating pham-waitlist-backend.gs."
+        "content": "Contact form"
       },
       {
         "type": "paragraph",
-        "content": "Database: merge scripts/pham-waitlist-backend.gs into your Apps Script project, run setupDatabase(), set SHOPIFY_WEBHOOK_SECRET, then register ORDERS_PAID webhook (scripts/register-waitlist-order-webhook.graphql) to the same /exec URL. Sheet columns: order_id, full_name, email, phone, registered_at, payment_status."
-      },
-      {
-        "type": "paragraph",
-        "content": "Waitlist merchant checklist: (1) Create pages pre-order and waitlist-thank-you with matching templates. (2) Fill Shipping, Returns, Privacy, and Terms policies in Admin → Settings → Policies. (3) Signups arrive as contact form emails tagged preorder-waitlist — filter Inbox or use Shopify Email segments. (4) Optional: install the PHAM Pre-order Waitlist app for a database + invoice workflow."
+        "content": "Contact uses Shopify’s built-in form and spam protection (hCaptcha when needed). Messages arrive in Shopify Admin → Inbox / customer email notifications. No Google Apps Script or Cloudflare Turnstile required."
       },
       {
         "type": "header",
@@ -2466,13 +2443,13 @@
         "type": "textarea",
         "id": "pham_seo_default_description",
         "label": "Default meta description",
-        "default": "PHAM — silence is luxury. A single-edition atelier of considered, slow-made garments."
+        "default": "PHAM — Simply Being, Fully Living. A slow-made label beginning with Edition 01."
       },
       {
         "type": "textarea",
         "id": "pham_seo_home_description",
         "label": "Homepage meta description",
-        "default": "PHAM atelier — limited editions, worldwide shipping, pre-order waitlist now open."
+        "default": "PHAM — Simply Being, Fully Living. Edition 01 is the first release; pre-order and worldwide shipping now open."
       },
       {
         "type": "textarea",
@@ -2556,7 +2533,7 @@
       },
       {
         "type": "paragraph",
-        "content": "Waitlist signups: filter Shopify Inbox for tag preorder-waitlist, or sync to Klaviyo/Shopify Email. Post-purchase: GAS webhook writes access_link to DigitalAccessPasses sheet — email customers the /pages/pre-order-access link. Optional Klaviyo flow: trigger on waitlist segment when pham_waitlist_enabled turns on."
+        "content": "Waitlist signups arrive via Shopify checkout/contact email — handle pre-order links and access manually. Optional: Klaviyo for waitlist segments."
       },
       {
         "type": "text",
@@ -2572,7 +2549,7 @@
         "type": "text",
         "id": "pham_marquee_text",
         "label": "Marquee text",
-        "default": "WORLDWIDE SHIPPING · ATELIER PHAM · SILENCE IS LUXURY · RESTRAINT IS POWER"
+        "default": "WORLDWIDE SHIPPING · ATELIER PHAM · SIMPLY BEING · FULLY LIVING · EDITION 01"
       },
       {
         "type": "range",

@@ -1,0 +1,16 @@
+{% doc %}
+  Minimal global scripts for the PHAM storefront (no Horizon module sprawl).
+{% enddoc %}
+<script>
+  window.Theme = window.Theme || {
+    routes: {
+      cart_add_url: '{{ routes.cart_add_url | append: '.js' }}',
+      cart_change_url: '{{ routes.cart_change_url }}',
+      cart_update_url: '{{ routes.cart_update_url }}',
+      cart_url: '{{ routes.cart_url }}',
+      predictive_search_url: '{{ routes.predictive_search_url }}',
+      search_url: '{{ routes.search_url }}'
+    },
+    template: { name: '{{ template }}' }
+  };
+</script>

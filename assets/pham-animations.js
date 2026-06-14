@@ -517,23 +517,46 @@
     }
 
     _boot() {
-      const start = () => {
-        try { this.modules.scrollReveal     = new PhamScrollReveal();     } catch (e) { console.error('[PHAM] ScrollReveal failed:', e); }
-        try { this.modules.pageTransition   = new PhamPageTransition();   } catch (e) { console.error('[PHAM] PageTransition failed:', e); }
-        try { this.modules.productCardHover = new PhamProductCardHover(); } catch (e) { console.error('[PHAM] ProductCardHover failed:', e); }
-        try { this.modules.parallax         = new PhamParallax();         } catch (e) { console.error('[PHAM] Parallax failed:', e); }
-        try { this.modules.counter          = new PhamCounter();          } catch (e) { console.error('[PHAM] Counter failed:', e); }
-        try { this.modules.splitText        = new PhamSplitText();        } catch (e) { console.error('[PHAM] SplitText failed:', e); }
+      const startCore = () => {
+        try { this.modules.scrollReveal = new PhamScrollReveal(); } catch (e) { console.error('[PHAM] ScrollReveal failed:', e); }
+        try { this.modules.pageTransition = new PhamPageTransition(); } catch (e) { console.error('[PHAM] PageTransition failed:', e); }
+      };
 
-        document.addEventListener('shopify:section:load',    () => this.refresh());
+      const startEnhancements = () => {
+        if (document.querySelector('.pham-product-card [data-pham-img-secondary]')) {
+          try { this.modules.productCardHover = new PhamProductCardHover(); } catch (e) { console.error('[PHAM] ProductCardHover failed:', e); }
+        }
+        if (document.querySelector('[data-pham-parallax]')) {
+          try { this.modules.parallax = new PhamParallax(); } catch (e) { console.error('[PHAM] Parallax failed:', e); }
+        }
+        if (document.querySelector('[data-pham-counter]')) {
+          try { this.modules.counter = new PhamCounter(); } catch (e) { console.error('[PHAM] Counter failed:', e); }
+        }
+        if (document.querySelector('[data-pham-split]')) {
+          try { this.modules.splitText = new PhamSplitText(); } catch (e) { console.error('[PHAM] SplitText failed:', e); }
+        }
+      };
+
+      const bindRefresh = () => {
+        document.addEventListener('shopify:section:load', () => this.refresh());
         document.addEventListener('shopify:section:reorder', () => this.refresh());
-        document.addEventListener('pham:refresh',            () => this.refresh());
+        document.addEventListener('pham:refresh', () => this.refresh());
+      };
+
+      const onReady = () => {
+        startCore();
+        bindRefresh();
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(startEnhancements, { timeout: 1200 });
+        } else {
+          startEnhancements();
+        }
       };
 
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', start, { once: true });
+        document.addEventListener('DOMContentLoaded', onReady, { once: true });
       } else {
-        start();
+        onReady();
       }
     }
 

@@ -1,5 +1,5 @@
 /**
- * PHAM waitlist form — submit handler, legal gate, Turnstile → checkout.
+ * PHAM waitlist form — legal gate + honeypot → checkout.
  */
 document.addEventListener('DOMContentLoaded', function () {
   'use strict';
@@ -15,13 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var submitLabelEl = submitBtn && submitBtn.querySelector('.pham-waitlist__submit-label');
   var submitLabel = submitLabelEl ? submitLabelEl.textContent : (submitBtn ? submitBtn.textContent : '');
   var honeypotInput = form.querySelector('[data-pham-waitlist-honeypot]');
-  var captchaError = form.querySelector('[data-pham-turnstile-error]');
   var formError = form.querySelector('[data-pham-waitlist-error]');
-  var turnstileEnabled = root.getAttribute('data-pham-turnstile-enabled') === 'true';
-  var turnstileReady = turnstileEnabled && window.PhamTurnstile
-    ? window.PhamTurnstile.init(root)
-    : Promise.resolve();
-  var verifyInFlight = false;
 
   function showFormError(message) {
     if (!formError) return;
@@ -34,18 +28,6 @@ document.addEventListener('DOMContentLoaded', function () {
     formError.textContent = message;
   }
 
-  function showCaptchaError(message) {
-    if (!captchaError) return;
-    if (!message) {
-      captchaError.hidden = true;
-      captchaError.textContent = '';
-      return;
-    }
-    captchaError.hidden = false;
-    captchaError.textContent = message;
-    if (window.PhamTurnstile) window.PhamTurnstile.scrollTo(form);
-  }
-
   function setSubmitting(isSubmitting) {
     if (!submitBtn) return;
     submitBtn.classList.toggle('is-verifying', isSubmitting);
@@ -53,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
       submitBtn.disabled = true;
       submitBtn.setAttribute('aria-disabled', 'true');
       submitBtn.setAttribute('aria-busy', 'true');
-      if (submitLabelEl) submitLabelEl.textContent = 'Verifying security…';
+      if (submitLabelEl) submitLabelEl.textContent = 'Starting checkout…';
       return;
     }
     submitBtn.removeAttribute('aria-busy');
@@ -108,26 +90,34 @@ document.addEventListener('DOMContentLoaded', function () {
     return true;
   }
 
+  function resolveVariantId() {
+    var allowed = (root.getAttribute('data-allowed-variant-ids') || '')
+      .split(',')
+      .map(function (id) { return id.trim(); })
+      .filter(Boolean);
+    var defaultId = (root.getAttribute('data-variant-id') || '').trim();
+    var params = new URLSearchParams(window.location.search);
+    var fromUrl = (params.get('variant') || '').trim();
+
+    if (fromUrl && allowed.indexOf(fromUrl) >= 0) {
+      return fromUrl;
+    }
+    return defaultId;
+  }
+
   if (legalInput && submitBtn) {
     syncWaitlistSubmitState();
     legalInput.addEventListener('change', syncWaitlistSubmitState);
   }
 
-  if (turnstileEnabled) {
-    turnstileReady.catch(function () {
-      showCaptchaError('Security check could not load. Refresh the page and try again.');
-    });
+  var resolvedVariant = resolveVariantId();
+  if (resolvedVariant) {
+    root.setAttribute('data-variant-id', resolvedVariant);
   }
 
-  var params = new URLSearchParams(window.location.search);
-  var variantFromUrl = params.get('variant');
-  if (variantFromUrl) root.setAttribute('data-variant-id', variantFromUrl);
-
   function resetWaitlistFormState() {
-    verifyInFlight = false;
     setSubmitting(false);
     showFormError('');
-    showCaptchaError('');
     if (window.PhamWaitlistCheckout && window.PhamWaitlistCheckout.resetUiState) {
       window.PhamWaitlistCheckout.resetUiState();
     }
@@ -136,9 +126,6 @@ document.addEventListener('DOMContentLoaded', function () {
   window.addEventListener('pageshow', function (event) {
     if (!event.persisted) return;
     resetWaitlistFormState();
-    if (turnstileEnabled && window.PhamTurnstile && window.PhamTurnstile.restoreFromCache) {
-      turnstileReady = window.PhamTurnstile.init(root);
-    }
   });
 
   function proceedToCheckout() {
@@ -149,7 +136,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setSubmitting(true);
     showFormError('');
-    showCaptchaError('');
 
     window.PhamWaitlistCheckout.go(form, root).then(function (result) {
       if (!result || !result.ok) {
@@ -180,41 +166,6 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    if (!turnstileEnabled) {
-      proceedToCheckout();
-      return;
-    }
-
-    if (!window.PhamTurnstile) {
-      showCaptchaError('Security check is still loading. Please wait a moment and try again.');
-      return;
-    }
-
-    if (verifyInFlight) {
-      return;
-    }
-
-    verifyInFlight = true;
-    setSubmitting(true);
-    showCaptchaError('');
-
-    turnstileReady
-      .then(function () {
-        return window.PhamTurnstile.run(form, root);
-      })
-      .then(function (result) {
-        if (!result || !result.ok) {
-          verifyInFlight = false;
-          setSubmitting(false);
-          showCaptchaError((result && result.message) || 'Security check failed. Please try again.');
-          return;
-        }
-        proceedToCheckout();
-      })
-      .catch(function () {
-        verifyInFlight = false;
-        setSubmitting(false);
-        showCaptchaError('Security check unavailable. Refresh the page and try again.');
-      });
+    proceedToCheckout();
   });
 });

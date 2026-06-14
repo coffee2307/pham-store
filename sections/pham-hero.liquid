@@ -69,11 +69,12 @@
               {{ block.settings.text }}
             </p>
           {%- when 'heading' -%}
-            <h1 class="pham-hero__heading"
-                {{ block.shopify_attributes }}
-                style="--pham-hero-heading-size: {{ block.settings.font_size }}px">
-              {{ block.settings.text }}
-            </h1>
+            <div class="pham-hero__heading-wrap" {{ block.shopify_attributes }}>
+              <h1 class="pham-hero__heading"
+                  style="--pham-hero-heading-size: {{ block.settings.font_size }}px">
+                {{ block.settings.text }}
+              </h1>
+            </div>
           {%- when 'subheading' -%}
             <p class="pham-hero__subheading" {{ block.shopify_attributes }}>
               {{ block.settings.text }}
@@ -168,12 +169,15 @@
     align-items: center;
     justify-content: center;
     padding-block: var(--space-2xl);
+    box-sizing: border-box;
   }
   .pham-hero__content {
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
-    max-width: 800px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     align-items: center;
     text-align: center;
   }
@@ -189,15 +193,28 @@
     color: var(--color-accent);
     margin: 0;
   }
+  .pham-hero__heading-wrap {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
   .pham-hero__heading {
     font-family: var(--font-display);
     font-weight: 300;
     font-style: normal;
-    font-size: clamp(2.5rem, calc(var(--pham-hero-heading-size, 96px) * 0.5), var(--pham-hero-heading-size, 96px));
+    font-size: var(--pham-hero-heading-size, 88px);
     line-height: 1.02;
     letter-spacing: var(--tracking-tight);
     margin: 0;
     color: var(--color-bone);
+    white-space: nowrap;
+    text-align: center;
+    display: inline-block;
+    width: max-content;
+    max-width: 100%;
   }
   .pham-hero__subheading {
     font-family: var(--font-display);
@@ -345,10 +362,33 @@
       padding-top: calc(80px + var(--space-lg));
       padding-bottom: var(--space-xl);
     }
+    .pham-hero__cta-wrap {
+      width: 100%;
+      max-width: 100%;
+      align-items: center;
+    }
+    .pham-hero__cta--preorder {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      padding: 16px 14px;
+      gap: 8px;
+      font-size: var(--text-sm);
+      box-shadow: none;
+    }
+    .pham-hero__cta-label {
+      white-space: normal;
+      text-align: center;
+      line-height: 1.25;
+      letter-spacing: 0.05em;
+    }
   }
 
   @media (max-width: 640px) {
-    .pham-hero__heading { font-size: clamp(2rem, 11vw, 4rem); }
+    .pham-hero__heading {
+      letter-spacing: 0.01em;
+    }
     .pham-hero__inner   { padding-block: var(--space-xl); padding-top: calc(80px + var(--space-lg)); }
   }
 
@@ -356,6 +396,32 @@
     .pham-hero__scroll-line { animation: none; transform: scaleY(1); transform-origin: center; }
   }
 </style>
+
+<script>
+  (function phamHeroFitHeading() {
+    function fit() {
+      document.querySelectorAll('[data-pham-hero] .pham-hero__heading').forEach(function (el) {
+        var wrap = el.closest('.pham-hero__heading-wrap');
+        if (!wrap) return;
+        var maxPx = parseFloat(el.style.getPropertyValue('--pham-hero-heading-size')) || 88;
+        var size = maxPx;
+        var budget = wrap.clientWidth;
+        el.style.fontSize = size + 'px';
+        while (size > 14 && el.scrollWidth > budget) {
+          size -= 1;
+          el.style.fontSize = size + 'px';
+        }
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fit);
+    } else {
+      fit();
+    }
+    window.addEventListener('resize', fit, { passive: true });
+    document.addEventListener('shopify:section:load', fit);
+  })();
+</script>
 
 {% schema %}
 {
@@ -458,7 +524,7 @@
           "type": "text",
           "id": "text",
           "label": "Eyebrow text",
-          "default": "NEW EDITION · SS26"
+          "default": "PHAM · EDITION 01"
         }
       ]
     },
@@ -471,7 +537,7 @@
           "type": "text",
           "id": "text",
           "label": "Heading",
-          "default": "Silence is luxury."
+          "default": "Simply Being, Fully Living."
         },
         {
           "type": "range",
@@ -494,7 +560,7 @@
           "type": "textarea",
           "id": "text",
           "label": "Subheading",
-          "default": "Restraint is power. An atelier of considered, slow-made garments for those who understand that elegance is what you choose not to say."
+          "default": "The first piece. Made slowly."
         }
       ]
     },
@@ -519,7 +585,7 @@
           "type": "text",
           "id": "sub_label",
           "label": "Sub-label (below CTA)",
-          "default": "EDITION 01 // RESERVE BEFORE PHASE CLOSE"
+          "default": "EDITION 01 // THE FIRST RELEASE"
         },
         {
           "type": "checkbox",

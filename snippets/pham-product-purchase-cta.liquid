@@ -20,7 +20,7 @@
   assign closed_note = section.settings.preorder_closed_note | default: 'The waitlist is currently closed. We will announce the next window by email.'
   assign add_label = settings.pham_add_to_cart_label | default: 'ADD TO EDITION'
   assign sold_label = settings.pham_sold_out_label | default: 'SOLD OUT'
-  assign sold_note = settings.pham_sold_out_note | default: 'This edition is sealed. Join the atelier mailing list for the next release.'
+  assign sold_note = settings.pham_sold_out_note | default: 'This run is closed. Join the atelier list for the next release.'
 
   assign variant_available = current_variant.available
   if product.available == false

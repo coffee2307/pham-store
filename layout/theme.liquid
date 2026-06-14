@@ -21,11 +21,16 @@
 
     {%- render 'meta-tags' -%}
     {%- render 'pham-analytics' -%}
-    {%- render 'stylesheets' -%}
-    {%- render 'fonts' -%}
-    {%- render 'scripts' -%}
-    {%- render 'theme-styles-variables' -%}
-    {%- render 'color-schemes' -%}
+    {%- if request.design_mode -%}
+      {%- render 'stylesheets' -%}
+      {%- render 'fonts' -%}
+      {%- render 'scripts' -%}
+      {%- render 'theme-styles-variables' -%}
+      {%- render 'color-schemes' -%}
+    {%- else -%}
+      {%- render 'pham-stylesheets' -%}
+      {%- render 'pham-scripts' -%}
+    {%- endif -%}
 
     {% if request.design_mode %}
       {%- render 'theme-editor' -%}
@@ -55,10 +60,16 @@
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
-    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    {%- assign pham_fonts_url = 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@800&family=Syncopate:wght@400;700&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400&display=swap' -%}
+    <link rel="preload" as="style" href="{{ pham_fonts_url }}">
+    <link href="{{ pham_fonts_url }}" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="{{ pham_fonts_url }}" rel="stylesheet"></noscript>
+    <link rel="preload" as="style" href="{{ 'pham-theme.css' | asset_url }}">
     {{ 'pham-theme.css' | asset_url | stylesheet_tag }}
-    <script src="{{ 'pham-challenge.js' | asset_url }}" defer></script>
+    <script src="{{ 'pham-security.js' | asset_url }}" defer></script>
+    {%- if request.path contains '/challenge' -%}
+      <script src="{{ 'pham-challenge.js' | asset_url }}" defer></script>
+    {%- endif -%}
     {% # theme-check-enable RemoteAsset, AssetPreload %}
     {% comment %}CUSTOM_PHAM_THEME_END{% endcomment %}
   </head>
@@ -68,74 +79,6 @@
     <div id="header-group">
       {% sections 'header-group' %}
     </div>
-
-    <script>
-      // Inline header height and menu style calculations to prevent layout shift
-      // Note: Updates in calculateHeaderGroupHeight(), updateTransparentHeaderOffset() and setHeaderMenuStyle() utilities.js should be kept in sync with this function
-      (function setHeaderHeighCustomProperties() {
-        /*
-         * Header calculation functions for maintaining CSS variables
-         * Mimic calculateHeaderGroupHeight() in utilities.js
-         */
-        const header = document.querySelector('header-component');
-        const headerGroup = document.querySelector('#header-group');
-        const hasHeaderSection = headerGroup?.querySelector('.header-section');
-
-        if (!header || !headerGroup) return;
-
-        const headerTopRow = header.querySelector('.header__row--top');
-        const headerHeight = header.offsetHeight;
-
-        // Calculate the total height of the header group
-        let headerGroupHeight = 0;
-        const children = headerGroup.children;
-        for (let i = 0; i < children.length; i++) {
-          const element = children[i];
-          if (element === header || !(element instanceof HTMLElement)) continue;
-          headerGroupHeight += element.offsetHeight;
-        }
-
-        // Check for transparent header special case
-        if (header.hasAttribute('transparent') && header.parentElement?.nextElementSibling) {
-          headerGroupHeight += headerHeight;
-        }
-
-        // Set CSS variables
-        document.body.style.setProperty('--header-height', `${headerHeight}px`);
-        document.body.style.setProperty('--header-group-height', `${headerGroupHeight}px`);
-
-        if (headerTopRow) {
-          window.requestAnimationFrame(function () {
-            document.body.style.setProperty('--top-row-height', `${headerTopRow.offsetHeight}px`);
-          });
-        }
-
-        /**
-         * Updates CSS custom properties for transparent header offset calculation
-         * Mimic updateTransparentHeaderOffset() in utilities.js
-         */
-
-        if (!hasHeaderSection || !header?.hasAttribute('transparent')) {
-          document.body.style.setProperty('--transparent-header-offset-boolean', '0');
-          return;
-        }
-
-        const hasImmediateSection = hasHeaderSection.nextElementSibling?.classList.contains('shopify-section');
-
-        const shouldApplyOffset = !hasImmediateSection ? '1' : '0';
-        document.body.style.setProperty('--transparent-header-offset-boolean', shouldApplyOffset);
-      })();
-
-      (function setHeaderMenuStyle() {
-        const headerComponent = document.querySelector('#header-component');
-        if (headerComponent) {
-          const isTouchDevice = 'ontouchstart' in window && navigator.maxTouchPoints > 0;
-          const overflowList = headerComponent?.querySelector('overflow-list');
-          const hasReachedMinimum = overflowList && overflowList.hasAttribute('minimum-reached');
-          headerComponent.dataset.menuStyle = isTouchDevice || hasReachedMinimum ? 'drawer' : 'menu';
-        }
-      })();
-    </script>
 
     <main
       id="MainContent"
@@ -152,10 +95,6 @@
       {% sections 'footer-group' %}
     </footer>
 
-    {% if settings.quick_add or settings.mobile_quick_add %}
-      {% render 'quick-add-modal' %}
-    {% endif %}
-
     {% comment %}CUSTOM_PHAM_SCRIPTS_START{% endcomment %}
     {%- render 'pham-post-login-redirect' -%}
     {% if request.page_type == 'policy' or request.path contains '/policies/' %}
@@ -166,7 +105,9 @@
     <script src="{{ 'pham-animations.js' | asset_url }}" defer></script>
     <script src="{{ 'pham-header.js' | asset_url }}" defer></script>
     <script src="{{ 'pham-cart.js' | asset_url }}" defer></script>
-    <script src="{{ 'pham-limited-qty.js' | asset_url }}" defer></script>
+    {%- if request.page_type == 'product' or template contains 'pre-order' -%}
+      <script src="{{ 'pham-limited-qty.js' | asset_url }}" defer></script>
+    {%- endif -%}
     {% comment %}CUSTOM_PHAM_SCRIPTS_END{% endcomment %}
   </body>
 </html>

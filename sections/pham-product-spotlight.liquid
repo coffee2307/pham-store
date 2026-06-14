@@ -54,6 +54,18 @@
                 <span class="pham-product-spotlight__media-frame"
                       data-pham-parallax
                       data-pham-parallax-speed="{{ sp_parallax_speed }}">
+                {%- if forloop.first -%}
+                {{ image
+                    | image_url: width: 1600
+                    | image_tag:
+                      loading: 'eager',
+                      fetchpriority: 'high',
+                      widths: '480, 768, 1080, 1440, 1600',
+                      sizes: '(max-width: 749px) calc(100vw - (var(--gutter) * 2) - 48px), (max-width: 900px) 100vw, 50vw',
+                      class: 'pham-product-spotlight__img',
+                      alt: image.alt | default: product.title
+                }}
+                {%- else -%}
                 {{ image
                     | image_url: width: 1600
                     | image_tag:
@@ -63,6 +75,7 @@
                       class: 'pham-product-spotlight__img',
                       alt: image.alt | default: product.title
                 }}
+                {%- endif -%}
                 </span>
               </figure>
             {%- endfor -%}

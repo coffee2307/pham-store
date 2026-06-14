@@ -1,5 +1,5 @@
 {%- comment -%}
-  After silent account activation, redirect logged-in pass holders to checkout or product.
+  After silent account activation, redirect logged-in customers to a safe same-origin path.
 {%- endcomment -%}
 {%- if customer -%}
 <script>
@@ -10,7 +10,15 @@
     try { target = sessionStorage.getItem(key); } catch (e) { return; }
     if (!target) return;
     try { sessionStorage.removeItem(key); } catch (e) { /* ignore */ }
-    if (target.charAt(0) !== '/') return;
+
+    function safePath(value) {
+      if (window.PhamSecurity && window.PhamSecurity.isSafeSameOriginPath) {
+        return window.PhamSecurity.isSafeSameOriginPath(value);
+      }
+      return value && value.charAt(0) === '/' && value.charAt(1) !== '/';
+    }
+
+    if (!safePath(target)) return;
     window.location.replace(target);
   })();
 </script>

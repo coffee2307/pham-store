@@ -44,6 +44,7 @@
   .pham-about {
     background-color: var(--color-void);
     color: var(--color-bone);
+    padding-bottom: clamp(48px, 8vw, 96px);
   }
   .pham-about__inner {
     max-width: 680px;
@@ -73,10 +74,12 @@
     display: block;
   }
   .pham-about__subtitle {
-    margin: var(--space-xs) 0 0;
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    letter-spacing: 0.2em;
+    margin: var(--space-sm) 0 0;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--color-smoke);
   }

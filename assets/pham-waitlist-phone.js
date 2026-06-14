@@ -13,13 +13,7 @@
     }
 
     var iti = window.intlTelInput(input, {
-      initialCountry: 'auto',
-      geoIpLookup: function (callback) {
-        fetch('https://ipapi.co/json')
-          .then(function (res) { return res.json(); })
-          .then(function (data) { callback((data && data.country_code) || 'us'); })
-          .catch(function () { callback('us'); });
-      },
+      initialCountry: 'us',
       utilsScript: 'https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/js/utils.js',
       separateDialCode: true,
       nationalMode: false,
