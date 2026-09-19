@@ -11,6 +11,7 @@
       {%- if section.settings.intro != blank -%}
         <p class="pham-contact__intro">{{ section.settings.intro }}</p>
       {%- endif -%}
+      {% render 'pham-contact-email', variant: 'contact' %}
     </header>
 
     {%- form 'contact', id: 'pham-contact-form', class: 'pham-contact__form reveal-up' -%}

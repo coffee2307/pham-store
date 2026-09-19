@@ -36,6 +36,7 @@
           "settings": {
             "label": "SECURE YOUR PRE-ORDER",
             "link": "",
+            "sub_label": "EDITION 01 // THE FIRST RELEASE",
             "open_new_tab": false
           }
         }
@@ -48,6 +49,7 @@
       ],
       "settings": {
         "media_type": "image",
+        "video_url": "",
         "overlay_opacity": 45,
         "height": "full",
         "custom_height_px": 720,
@@ -59,23 +61,26 @@
       "type": "pham-marquee",
       "settings": {
         "text": "SIMPLY BEING · FULLY LIVING · EDITION 01",
-        "separator": " · ",
+        "separator": "·",
         "repetitions": 6,
         "speed": 40,
         "font_style": "mono",
         "font_size": 14,
-        "background": "#0A0A0C",
-        "text_color": "#E8E8EA",
-        "accent_color": "#FFFFFF"
+        "background": "#0a0a0c",
+        "text_color": "#e8e8ea",
+        "accent_color": "#ffffff"
       }
     },
     "pham-product-spotlight": {
       "type": "pham-product-spotlight",
       "settings": {
+        "product": "",
         "image_limit": 3,
         "eyebrow": "PHAM EDITION · SPOTLIGHT",
+        "description": "",
         "preorder_open": true,
         "preorder_label": "PRE-ORDER NOW",
+        "preorder_closed_label": "PRE-ORDER CLOSED",
         "show_inventory": true,
         "show_view_pdp": true,
         "media_position": "left"
@@ -87,62 +92,103 @@
         "look_1": {
           "type": "image",
           "settings": {
-            "size": "lg",
-            "aspect": "4-5",
-            "parallax_speed": 0.18,
-            "caption": "PHAM SS26 · FRAME 01",
-            "overlay_eyebrow": "LOOK · 01",
-            "overlay_text": "The Silhouette",
+            "image": "shopify://shop_images/pham001-1.jpg",
+            "image_2": "shopify://shop_images/pham001-2.jpg",
+            "image_3": "shopify://shop_images/pham001-3.jpg",
+            "image_4": "shopify://shop_images/pham001-4.jpg",
             "enable_carousel": true,
             "autoplay_seconds": 5,
-            "enable_lightbox": true
+            "enable_lightbox": true,
+            "size": "lg",
+            "aspect": "4-5",
+            "parallax_speed": 0.2,
+            "caption": "PHAM SS26 · FRAME 01",
+            "caption_position": "below",
+            "overlay_eyebrow": "LOOK · 01",
+            "overlay_text": "The Silhouette"
           }
         },
         "look_2": {
           "type": "image",
           "settings": {
+            "enable_carousel": true,
+            "autoplay_seconds": 5,
+            "enable_lightbox": true,
             "size": "sm",
             "aspect": "1-1",
             "parallax_speed": 0.1,
-            "caption": "DETAIL · STITCH 04"
-          }
-        },
-        "spec_1": {
-          "type": "spec",
-          "settings": {}
-        },
-        "quote_1": {
-          "type": "quote",
-          "settings": {
-            "size": "sm"
+            "caption": "DETAIL · STITCH 04",
+            "caption_position": "below",
+            "overlay_eyebrow": "LOOK",
+            "overlay_text": ""
           }
         },
         "look_3": {
           "type": "image",
           "settings": {
+            "enable_carousel": true,
+            "autoplay_seconds": 5,
+            "enable_lightbox": true,
             "size": "md",
             "aspect": "16-9",
             "parallax_speed": 0.2,
-            "caption": "ATELIER · IN-PROCESS"
-          }
-        },
-        "look_4": {
-          "type": "image",
-          "settings": {
-            "size": "sm",
-            "aspect": "3-4",
-            "parallax_speed": 0.12,
-            "caption": "FABRIC · CLOSE STUDY"
+            "caption": "ATELIER · IN-PROCESS",
+            "caption_position": "below",
+            "overlay_eyebrow": "LOOK",
+            "overlay_text": ""
           }
         },
         "look_5": {
           "type": "image",
           "settings": {
+            "enable_carousel": true,
+            "autoplay_seconds": 5,
+            "enable_lightbox": true,
             "size": "md",
             "aspect": "4-5",
-            "parallax_speed": 0.18,
+            "parallax_speed": 0.2,
+            "caption": "",
+            "caption_position": "below",
             "overlay_eyebrow": "LOOK · 02",
             "overlay_text": "The Drape"
+          }
+        },
+        "spec_1": {
+          "type": "spec",
+          "settings": {
+            "label_1": "ORIGIN",
+            "value_1": "VIETNAM · ATELIER",
+            "label_2": "FABRIC",
+            "value_2": "ITALIAN WOOL · 320 GSM",
+            "label_3": "RUN",
+            "value_3": "EDITION · 01 / ORIGIN",
+            "label_4": "RELEASED",
+            "value_4": "SPRING · 2026",
+            "size": "sm"
+          }
+        },
+        "quote_1": {
+          "type": "quote",
+          "settings": {
+            "body": "Simply Being, Fully Living.",
+            "author": "PHAM Atelier",
+            "author_role": "BRAND MANIFESTO · 01",
+            "size": "sm"
+          }
+        },
+        "look_4": {
+          "type": "image",
+          "settings": {
+            "enable_carousel": true,
+            "autoplay_seconds": 5,
+            "enable_lightbox": true,
+            "size": "sm",
+            "aspect": "3-4",
+            "parallax_speed": 0.1,
+            "caption": "FABRIC · CLOSE STUDY",
+            "caption_position": "below",
+            "overlay_eyebrow": "LOOK",
+            "overlay_text": ""
           }
         },
         "editorial_1": {
@@ -152,6 +198,7 @@
             "heading": "Cut by hand.",
             "body": "<p>The pattern is drawn on a single bolt of wool. The cutter works slowly, sews in small batches, and opens Edition 01 with the same discipline the next release will carry.</p>",
             "cta_label": "READ THE PROCESS",
+            "cta_link": "",
             "size": "xl"
           }
         }

@@ -265,13 +265,17 @@
         </a>
         <a href="{{ routes.search_url }}" class="pham-header__drawer-util">SEARCH</a>
       </div>
-      {%- if settings.pham_social_instagram != blank or settings.pham_social_tiktok != blank -%}
+      {%- assign pham_facebook = settings.pham_social_facebook | default: 'https://www.facebook.com/profile.php?id=61590900803027' -%}
+      {%- if settings.pham_social_instagram != blank or settings.pham_social_tiktok != blank or pham_facebook != blank -%}
         <div class="pham-header__drawer-socials">
           {%- if settings.pham_social_instagram != blank -%}
             <a href="{{ settings.pham_social_instagram }}" target="_blank" rel="noopener noreferrer" class="pham-header__drawer-social">Instagram</a>
           {%- endif -%}
           {%- if settings.pham_social_tiktok != blank -%}
             <a href="{{ settings.pham_social_tiktok }}" target="_blank" rel="noopener noreferrer" class="pham-header__drawer-social">TikTok</a>
+          {%- endif -%}
+          {%- if pham_facebook != blank -%}
+            <a href="{{ pham_facebook }}" target="_blank" rel="noopener noreferrer" class="pham-header__drawer-social">Facebook</a>
           {%- endif -%}
         </div>
       {%- endif -%}

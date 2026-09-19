@@ -23,7 +23,8 @@
       <div class="pham-footer__col pham-footer__col--brand">
         {% render 'pham-brand-lockup', class: 'pham-footer__logo', image_loading: 'lazy' %}
         <p class="pham-footer__tagline">{{ section.settings.tagline }}</p>
-        {%- if settings.pham_social_instagram != blank or settings.pham_social_tiktok != blank -%}
+        {%- assign pham_facebook = settings.pham_social_facebook | default: 'https://www.facebook.com/profile.php?id=61590900803027' -%}
+        {%- if settings.pham_social_instagram != blank or settings.pham_social_tiktok != blank or pham_facebook != blank -%}
           <ul class="pham-footer__socials" role="list">
             {%- if settings.pham_social_instagram != blank -%}
               <li>
@@ -41,6 +42,18 @@
                    target="_blank"
                    rel="noopener noreferrer"
                    aria-label="TikTok">TikTok</a>
+              </li>
+            {%- endif -%}
+            {%- if pham_facebook != blank -%}
+              <li class="pham-footer__social-item pham-footer__social-item--facebook">
+                <a href="{{ pham_facebook }}"
+                   class="pham-footer__social pham-footer__social--facebook"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   aria-label="PHAM on Facebook">
+                  <i class="fa-brands fa-facebook-f pham-footer__social-icon" aria-hidden="true"></i>
+                  <span class="pham-footer__social-label">Facebook</span>
+                </a>
               </li>
             {%- endif -%}
           </ul>
@@ -101,6 +114,8 @@
               <span class="pham-footer__submit-arrow" aria-hidden="true">&rarr;</span>
             </button>
           </div>
+
+          {% render 'pham-contact-email', variant: 'footer' %}
 
           {%- if form.errors -%}
             <p class="pham-footer__form-msg pham-footer__form-msg--error" role="alert">

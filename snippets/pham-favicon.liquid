@@ -1,45 +1,23 @@
 {%- comment -%}
   Favicon strategy (PHAM):
-  - Browser tabs: favicon-32x32.png (or Theme settings → Favicon).
-  - Google Search: android-chrome-192x192.png — square, dark bg, small file.
-    Do NOT use logo.png (large portrait) — Google caches poorly and may show a white disc.
-  - Upload Favicon in Theme settings → Logo and favicon for Shopify CDN crop fallback.
-  Google SERP icons can take days–weeks to refresh (Search Console → request indexing).
+  - Primary icon: android-chrome-192x192.png (>= 48px, square — Google Search requirement).
+  - Bundled assets/ are the source of truth (deploy via Shopify CLI).
+  - Do not declare sizes="48x48" on a 192px file — crawlers may ignore mismatched tags.
+  Google SERP favicon cache can take days–weeks after deploy (Search Console → request indexing).
 {%- endcomment -%}
 
-{%- liquid
-  assign pham_serp_icon = settings.favicon
-  if pham_serp_icon == blank
-    assign pham_serp_icon = settings.logo
-  endif
+{%- assign pham_icon_192 = 'android-chrome-192x192.png' | asset_url -%}
+{%- assign pham_icon_32 = 'favicon-32x32.png' | asset_url -%}
+{%- assign pham_icon_16 = 'favicon-16x16.png' | asset_url -%}
+{%- assign pham_icon_apple = 'apple-touch-icon.png' | asset_url -%}
+{%- assign pham_icon_ico = 'favicon.ico' | asset_url -%}
 
-  assign pham_tab_icon = settings.favicon
-  if pham_tab_icon == blank
-    assign pham_tab_icon = settings.logo
-  endif
--%}
-
-{%- if pham_tab_icon != blank -%}
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ pham_tab_icon | image_url: width: 32, height: 32, crop: 'center' }}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ pham_tab_icon | image_url: width: 16, height: 16, crop: 'center' }}">
-{%- else -%}
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ 'favicon-32x32.png' | asset_url }}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ 'favicon-16x16.png' | asset_url }}">
-{%- endif -%}
-
-{%- if pham_serp_icon != blank -%}
-  <link rel="icon" type="image/png" sizes="48x48" href="{{ pham_serp_icon | image_url: width: 48, height: 48, crop: 'center' }}">
-  <link rel="icon" type="image/png" sizes="96x96" href="{{ pham_serp_icon | image_url: width: 96, height: 96, crop: 'center' }}">
-  <link rel="icon" type="image/png" sizes="192x192" href="{{ pham_serp_icon | image_url: width: 192, height: 192, crop: 'center' }}">
-  <link rel="apple-touch-icon" sizes="180x180" href="{{ pham_serp_icon | image_url: width: 180, height: 180, crop: 'center' }}">
-{%- else -%}
-  <link rel="icon" type="image/png" sizes="48x48" href="{{ 'android-chrome-192x192.png' | asset_url }}">
-  <link rel="icon" type="image/png" sizes="96x96" href="{{ 'android-chrome-192x192.png' | asset_url }}">
-  <link rel="icon" type="image/png" sizes="192x192" href="{{ 'android-chrome-192x192.png' | asset_url }}">
-  <link rel="apple-touch-icon" sizes="180x180" href="{{ 'apple-touch-icon.png' | asset_url }}">
-{%- endif -%}
-
-<link rel="icon" href="{{ 'favicon.ico' | asset_url }}" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ pham_icon_192 }}">
+<link rel="shortcut icon" type="image/png" href="{{ pham_icon_192 }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ pham_icon_32 }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ pham_icon_16 }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ pham_icon_apple }}">
+<link rel="icon" href="{{ pham_icon_ico }}" sizes="any">
 {%- assign pham_manifest_href = 'site.webmanifest.liquid' | asset_url | replace: '.liquid', '' -%}
 <link rel="manifest" href="{{ pham_manifest_href }}">
 <meta name="theme-color" content="#0A0A0C">

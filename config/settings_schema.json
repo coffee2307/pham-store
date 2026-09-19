@@ -2577,6 +2577,24 @@
         "id": "pham_social_tiktok",
         "label": "TikTok URL",
         "info": "Full URL, e.g. https://tiktok.com/@pham"
+      },
+      {
+        "type": "text",
+        "id": "pham_social_facebook",
+        "label": "Facebook URL",
+        "default": "https://www.facebook.com/profile.php?id=61590900803027",
+        "info": "Official PHAM Facebook page"
+      },
+      {
+        "type": "header",
+        "content": "Contact"
+      },
+      {
+        "type": "text",
+        "id": "pham_contact_email",
+        "label": "Contact email",
+        "default": "contact@phamofficial.com",
+        "info": "Shown in the footer and on the contact page."
       }
     ]
   }

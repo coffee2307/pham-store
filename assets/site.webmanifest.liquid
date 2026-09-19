@@ -1,19 +1,11 @@
 {%- liquid
-  if settings.favicon != blank
-    assign pham_manifest_192 = settings.favicon | image_url: width: 192, height: 192, crop: 'center'
-    assign pham_manifest_512 = settings.favicon | image_url: width: 512, height: 512, crop: 'center'
-  elsif settings.logo != blank
-    assign pham_manifest_192 = settings.logo | image_url: width: 192, height: 192, crop: 'center'
-    assign pham_manifest_512 = settings.logo | image_url: width: 512, height: 512, crop: 'center'
-  else
-    assign pham_manifest_192 = 'android-chrome-192x192.png' | asset_url
-    assign pham_manifest_512 = 'android-chrome-512x512.png' | asset_url
-  endif
+  assign pham_manifest_192 = 'android-chrome-192x192.png' | asset_url
+  assign pham_manifest_512 = 'android-chrome-512x512.png' | asset_url
 
-  unless pham_manifest_192 contains 'http'
+  unless pham_manifest_192 contains 'https://'
     assign pham_manifest_192 = pham_manifest_192 | remove_first: '//' | prepend: 'https://'
   endunless
-  unless pham_manifest_512 contains 'http'
+  unless pham_manifest_512 contains 'https://'
     assign pham_manifest_512 = pham_manifest_512 | remove_first: '//' | prepend: 'https://'
   endunless
 -%}

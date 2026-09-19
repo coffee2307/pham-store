@@ -1,0 +1,14 @@
+{% comment %}
+  PHAM contact email — single line.
+
+  @param {string} variant — footer | contact
+{% endcomment %}
+{%- liquid
+  assign contact_email = settings.pham_contact_email | default: 'contact@phamofficial.com'
+  assign email_variant = variant | default: 'footer'
+-%}
+{%- if contact_email != blank -%}
+  <p class="{% if email_variant == 'contact' %}pham-contact__email-line{% else %}pham-footer__email-line{% endif %}">
+    <a href="mailto:{{ contact_email | escape }}">{{ contact_email | escape }}</a>
+  </p>
+{%- endif -%}
