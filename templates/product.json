@@ -21,15 +21,14 @@
     "product-3d": {
       "type": "pham-product-3d",
       "settings": {
-        "eyebrow": "DIGITAL GARMENT STUDY",
-        "heading": "Explore the form.",
-        "body": "A dedicated space for the PHAM-001 three-dimensional garment study.",
-        "placeholder_text": "The interactive garment study will appear here."
+        "eyebrow": "DIGITAL GARMENT STUDY / 001",
+        "heading": "INSPECT THE FORM",
+        "body": "Rotate the object and inspect the silhouette before entering the product archive."
       }
     }
   },
   "order": [
-    "main",
-    "product-3d"
+    "product-3d",
+    "main"
   ]
 }
