@@ -2587,6 +2587,28 @@
       },
       {
         "type": "header",
+        "content": "Cart assurance"
+      },
+      {
+        "type": "text",
+        "id": "pham_cart_shipping_message",
+        "label": "Shipping message",
+        "default": "Worldwide tracked shipping"
+      },
+      {
+        "type": "text",
+        "id": "pham_cart_returns_message",
+        "label": "Returns message",
+        "default": "Returns accepted within 14 days of delivery"
+      },
+      {
+        "type": "text",
+        "id": "pham_cart_duties_message",
+        "label": "Duties message",
+        "default": "Import duties may apply based on destination"
+      },
+      {
+        "type": "header",
         "content": "Contact"
       },
       {
