@@ -46,51 +46,6 @@
             "overlay_text": "The Silhouette"
           }
         },
-        "look_2": {
-          "type": "image",
-          "settings": {
-            "enable_carousel": true,
-            "autoplay_seconds": 5,
-            "enable_lightbox": true,
-            "size": "sm",
-            "aspect": "1-1",
-            "parallax_speed": 0.1,
-            "caption": "DETAIL · STITCH 04",
-            "caption_position": "below",
-            "overlay_eyebrow": "LOOK",
-            "overlay_text": ""
-          }
-        },
-        "look_3": {
-          "type": "image",
-          "settings": {
-            "enable_carousel": true,
-            "autoplay_seconds": 5,
-            "enable_lightbox": true,
-            "size": "md",
-            "aspect": "16-9",
-            "parallax_speed": 0.2,
-            "caption": "ATELIER · IN-PROCESS",
-            "caption_position": "below",
-            "overlay_eyebrow": "LOOK",
-            "overlay_text": ""
-          }
-        },
-        "look_5": {
-          "type": "image",
-          "settings": {
-            "enable_carousel": true,
-            "autoplay_seconds": 5,
-            "enable_lightbox": true,
-            "size": "md",
-            "aspect": "4-5",
-            "parallax_speed": 0.2,
-            "caption": "",
-            "caption_position": "below",
-            "overlay_eyebrow": "LOOK · 02",
-            "overlay_text": "The Drape"
-          }
-        },
         "spec_1": {
           "type": "spec",
           "settings": {
@@ -114,21 +69,6 @@
             "size": "sm"
           }
         },
-        "look_4": {
-          "type": "image",
-          "settings": {
-            "enable_carousel": true,
-            "autoplay_seconds": 5,
-            "enable_lightbox": true,
-            "size": "sm",
-            "aspect": "3-4",
-            "parallax_speed": 0.1,
-            "caption": "FABRIC · CLOSE STUDY",
-            "caption_position": "below",
-            "overlay_eyebrow": "LOOK",
-            "overlay_text": ""
-          }
-        },
         "editorial_1": {
           "type": "editorial",
           "settings": {
@@ -143,12 +83,8 @@
       },
       "block_order": [
         "look_1",
-        "look_2",
-        "look_3",
-        "look_5",
         "spec_1",
         "quote_1",
-        "look_4",
         "editorial_1"
       ],
       "settings": {

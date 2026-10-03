@@ -3,6 +3,7 @@
          data-pham-about
          role="region"
          aria-labelledby="pham-about-heading-{{ section.id }}">
+  <div class="pham-about__grid" aria-hidden="true"></div>
   <div class="pham-container pham-about__inner">
     <header class="pham-about__head reveal-up">
       {%- if section.settings.eyebrow != blank -%}
@@ -29,6 +30,30 @@
       {%- endif -%}
     </div>
 
+    {%- if section.blocks.size > 0 -%}
+      <ol class="pham-about__principles" role="list">
+        {%- for block in section.blocks -%}
+          <li class="pham-about__principle reveal-up" {{ block.shopify_attributes }}>
+            <span class="pham-about__principle-index">0{{ forloop.index }}</span>
+            <h2>{{ block.settings.title }}</h2>
+            <p>{{ block.settings.body }}</p>
+          </li>
+        {%- endfor -%}
+      </ol>
+    {%- endif -%}
+
+    <aside class="pham-about__origin reveal-up">
+      <p>{{ section.settings.origin_eyebrow }}</p>
+      <div>
+        <span>{{ section.settings.origin_label }}</span>
+        <strong>{{ section.settings.origin_value }}</strong>
+      </div>
+      <div>
+        <span>{{ section.settings.release_label }}</span>
+        <strong>{{ section.settings.release_value }}</strong>
+      </div>
+    </aside>
+
     {%- if section.settings.show_back_link -%}
       <p class="pham-about__back reveal-up">
         <a href="{{ routes.root_url }}" class="pham-back-link pham-about__back-link">
@@ -42,20 +67,27 @@
 
 <style>
   .pham-about {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     background-color: var(--color-void);
     color: var(--color-bone);
-    padding-bottom: clamp(48px, 8vw, 96px);
+    padding-block: clamp(110px, 14vw, 190px) clamp(72px, 10vw, 140px);
   }
+  .pham-about__grid { position: absolute; z-index: -1; inset: 0; background: linear-gradient(rgba(255,255,255,.027) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.027) 1px, transparent 1px); background-size: 72px 72px; mask-image: linear-gradient(to bottom, #000, transparent 86%); }
   .pham-about__inner {
-    max-width: 680px;
+    max-width: 1240px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+    column-gap: clamp(48px, 10vw, 150px);
   }
   .pham-about__head {
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
-    margin-bottom: var(--space-xl);
-    padding-bottom: var(--space-lg);
-    border-bottom: 1px solid var(--color-ash);
+    grid-column: 1 / -1;
+    max-width: 980px;
+    margin-bottom: clamp(58px, 8vw, 110px);
   }
   .pham-about__title {
     margin: 0;
@@ -63,23 +95,23 @@
     flex-direction: column;
     gap: 0.08em;
     font-family: var(--font-display);
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 700;
-    letter-spacing: var(--tracking-tech);
+    font-size: clamp(4rem, 11vw, 10rem);
+    font-weight: 300;
+    letter-spacing: -.045em;
     text-transform: uppercase;
-    line-height: 1.05;
+    line-height: .84;
     color: var(--color-bone);
   }
   .pham-about__title-line {
     display: block;
   }
   .pham-about__subtitle {
-    margin: var(--space-sm) 0 0;
-    font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 300;
-    font-size: clamp(1rem, 2vw, 1.25rem);
-    letter-spacing: 0.04em;
+    margin: 30px 0 0;
+    max-width: 620px;
+    font-family: var(--font-mono);
+    font-style: normal;
+    font-size: clamp(.72rem, 1vw, .9rem);
+    letter-spacing: .12em;
     text-transform: uppercase;
     color: var(--color-smoke);
   }
@@ -87,12 +119,13 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-lg);
-    max-width: 58ch;
+    max-width: 62ch;
+    align-self: start;
   }
   .pham-about__paragraph {
     margin: 0;
-    font-size: var(--text-md);
-    line-height: 1.75;
+    font-size: clamp(1rem, 1.35vw, 1.25rem);
+    line-height: 1.8;
     color: var(--color-bone-80);
   }
   .pham-about__closing {
@@ -100,16 +133,41 @@
     padding-top: var(--space-lg);
     border-top: 1px solid var(--color-ash);
     font-family: var(--font-display);
-    font-size: clamp(1rem, 2.2vw, 1.2rem);
-    font-weight: 700;
+    font-size: clamp(1.5rem, 3vw, 2.8rem);
+    font-weight: 300;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     line-height: 1.5;
     color: var(--color-white);
-    max-width: 36ch;
+    max-width: 24ch;
   }
+  .pham-about__principles { display: grid; align-self: start; gap: 0; margin: 0; padding: 0; border-top: 1px solid rgba(255,255,255,.22); list-style: none; }
+  .pham-about__principle { display: grid; grid-template-columns: 44px 1fr; gap: 6px 18px; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,.14); }
+  .pham-about__principle-index { grid-row: 1 / 3; color: rgba(242,242,239,.42); font: 400 9px/1.4 var(--font-mono); }
+  .pham-about__principle h2 { margin: 0; color: var(--color-bone); font: 400 1rem/1.2 var(--font-display); letter-spacing: .04em; text-transform: uppercase; }
+  .pham-about__principle p { margin: 0; color: var(--color-bone-60); font: 400 .84rem/1.6 var(--font-body); }
+  .pham-about__origin { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr repeat(2, minmax(180px, .45fr)); gap: 24px; margin-top: clamp(70px, 10vw, 130px); padding-block: 22px; border-top: 1px solid rgba(255,255,255,.2); border-bottom: 1px solid rgba(255,255,255,.12); }
+  .pham-about__origin p,.pham-about__origin span,.pham-about__origin strong { margin: 0; font: 400 9px/1.45 var(--font-mono); letter-spacing: .08em; }
+  .pham-about__origin p,.pham-about__origin span { color: rgba(242,242,239,.44); }
+  .pham-about__origin div { display: grid; gap: 6px; }
+  .pham-about__origin strong { color: rgba(242,242,239,.9); }
   .pham-about__back {
+    grid-column: 1 / -1;
     margin: var(--space-2xl) 0 0;
+  }
+  @media (max-width: 899px) {
+    .pham-about__inner { grid-template-columns: 1fr; }
+    .pham-about__body { margin-bottom: 60px; }
+    .pham-about__origin { grid-template-columns: 1fr 1fr; }
+    .pham-about__origin > p { grid-column: 1 / -1; }
+  }
+  @media (max-width: 599px) {
+    .pham-about { padding-block: 96px 72px; }
+    .pham-about__title { font-size: clamp(3.2rem, 19vw, 5.6rem); }
+    .pham-about__head { margin-bottom: 48px; }
+    .pham-about__paragraph { font-size: .96rem; }
+    .pham-about__origin { grid-template-columns: 1fr; }
+    .pham-about__origin > p { grid-column: auto; }
   }
 </style>
 
@@ -162,16 +220,62 @@
       "default": "We do not create pieces to fill a wardrobe. We create garments to define an identity."
     },
     {
+      "type": "text",
+      "id": "origin_eyebrow",
+      "label": "Origin eyebrow",
+      "default": "PHAM / RECORD"
+    },
+    {
+      "type": "text",
+      "id": "origin_label",
+      "label": "Origin label",
+      "default": "ORIGIN"
+    },
+    {
+      "type": "text",
+      "id": "origin_value",
+      "label": "Origin value",
+      "default": "VIETNAM / ATELIER"
+    },
+    {
+      "type": "text",
+      "id": "release_label",
+      "label": "Release label",
+      "default": "FIRST OBJECT"
+    },
+    {
+      "type": "text",
+      "id": "release_value",
+      "label": "Release value",
+      "default": "PHAM-001 / 2026"
+    },
+    {
       "type": "checkbox",
       "id": "show_back_link",
       "label": "Show return-to-home link",
       "default": true
     }
   ],
+  "blocks": [
+    {
+      "type": "principle",
+      "name": "Principle",
+      "limit": 4,
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "FORM BEFORE NOISE" },
+        { "type": "textarea", "id": "body", "label": "Text", "default": "Every line must carry purpose before it carries attention." }
+      ]
+    }
+  ],
   "presets": [
     {
       "name": "PHAM About",
-      "category": "PHAM"
+      "category": "PHAM",
+      "blocks": [
+        { "type": "principle" },
+        { "type": "principle" },
+        { "type": "principle" }
+      ]
     }
   ],
   "enabled_on": {

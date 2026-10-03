@@ -1,4 +1,3 @@
-/* PHAM Vault: scroll-directed product theatre with a resilient 2D fallback. */
 (function () {
   'use strict';
 
@@ -8,83 +7,85 @@
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = window.matchMedia('(pointer: fine)').matches;
   const saveData = Boolean(navigator.connection && navigator.connection.saveData);
-  const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.min.js';
-  let threePromise;
-
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const damp = (current, target, speed, delta) => current + (target - current) * (1 - Math.exp(-speed * delta));
 
-  function loadThree() {
-    if (!threePromise) threePromise = import(THREE_URL);
-    return threePromise;
-  }
+  function createSpatialCanvas(root, canvas) {
+    if (!canvas || reducedMotion || saveData || window.innerWidth < 900 || root.dataset.canvasEnabled === 'false') return null;
+    const context = canvas.getContext('2d', { alpha: false });
+    if (!context) return null;
+    let width = 0;
+    let height = 0;
+    let pixelRatio = 1;
 
-  function createVaultScene(root, canvas) {
-    if (!canvas || reducedMotion || saveData || window.innerWidth < 760) return Promise.resolve(null);
+    function resize() {
+      width = root.clientWidth;
+      height = root.querySelector('.pham-vault__sticky').clientHeight;
+      pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = Math.round(width * pixelRatio);
+      canvas.height = Math.round(height * pixelRatio);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    }
 
-    return loadThree().then(function (THREE) {
-      const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
-      renderer.setClearColor(0x050505, 1);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    function draw(progress, pointerX, pointerY) {
+      context.fillStyle = '#050505';
+      context.fillRect(0, 0, width, height);
+      const centerX = width * (0.5 + pointerX * 0.018);
+      const centerY = height * (0.47 + pointerY * 0.014);
+      const maxWidth = Math.min(width * 0.76, 1040);
+      const maxHeight = Math.min(height * 0.78, 840);
+      const offset = (progress * 10) % 1;
 
-      const scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x050505, 0.092);
-      const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 80);
-      camera.position.set(0, 0.15, 8.2);
-
-      const rig = new THREE.Group();
-      scene.add(rig);
-      const frameMaterial = new THREE.LineBasicMaterial({ color: 0xd8d8d2, transparent: true, opacity: 0.15 });
-      const frameGeometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(5.2, 6.8, 0.08));
-      for (let index = 0; index < 10; index += 1) {
-        const frame = new THREE.LineSegments(frameGeometry, frameMaterial.clone());
-        frame.position.z = -index * 1.85;
-        frame.scale.setScalar(1 + index * 0.055);
-        frame.material.opacity = Math.max(0.025, 0.16 - index * 0.012);
-        rig.add(frame);
+      for (let index = 0; index < 11; index += 1) {
+        const depth = (index + offset) / 10;
+        const eased = depth * depth;
+        const frameWidth = 80 + (maxWidth - 80) * eased;
+        const frameHeight = 110 + (maxHeight - 110) * eased;
+        const opacity = 0.035 + depth * 0.095;
+        context.strokeStyle = 'rgba(224,224,218,' + opacity.toFixed(3) + ')';
+        context.lineWidth = 1;
+        context.strokeRect(centerX - frameWidth / 2, centerY - frameHeight / 2, frameWidth, frameHeight);
       }
 
-      const floor = new THREE.GridHelper(34, 34, 0x777777, 0x242424);
-      floor.position.set(0, -3.45, -7);
-      floor.material.transparent = true;
-      floor.material.opacity = 0.22;
-      scene.add(floor);
+      context.strokeStyle = 'rgba(224,224,218,.07)';
+      [
+        [centerX - maxWidth / 2, centerY - maxHeight / 2],
+        [centerX + maxWidth / 2, centerY - maxHeight / 2],
+        [centerX - maxWidth / 2, centerY + maxHeight / 2],
+        [centerX + maxWidth / 2, centerY + maxHeight / 2]
+      ].forEach(function (corner) {
+        context.beginPath();
+        context.moveTo(centerX, centerY);
+        context.lineTo(corner[0], corner[1]);
+        context.stroke();
+      });
 
-      const sideGeometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(-4.7, -3.4, 1), new THREE.Vector3(-4.7, 3.4, -18),
-        new THREE.Vector3(4.7, -3.4, 1), new THREE.Vector3(4.7, 3.4, -18)
-      ]);
-      scene.add(new THREE.LineSegments(sideGeometry, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.09 })));
+      const gradient = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(width, height) * 0.62);
+      gradient.addColorStop(0, 'rgba(255,255,255,.035)');
+      gradient.addColorStop(0.52, 'rgba(0,0,0,0)');
+      gradient.addColorStop(1, 'rgba(0,0,0,.58)');
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, width, height);
+    }
 
-      function resize() {
-        const width = root.clientWidth;
-        const height = root.querySelector('.pham-vault__sticky').clientHeight;
-        renderer.setSize(width, height, false);
-        camera.aspect = width / Math.max(height, 1);
-        camera.updateProjectionMatrix();
-      }
-      resize();
-      root.classList.add('is-webgl-ready');
-
-      return { THREE: THREE, renderer: renderer, scene: scene, camera: camera, rig: rig, floor: floor, resize: resize };
-    }).catch(function () {
-      root.classList.add('is-webgl-fallback');
-      return null;
-    });
+    resize();
+    root.classList.add('is-canvas-ready');
+    return { resize: resize, draw: draw };
   }
 
   function mountVault(root) {
     if (root.dataset.phamVaultMounted === 'true') return;
     root.dataset.phamVaultMounted = 'true';
-
     const sticky = root.querySelector('.pham-vault__sticky');
     const canvas = root.querySelector('[data-pham-vault-canvas]');
     const object = root.querySelector('[data-pham-vault-object]');
     const chapters = Array.from(root.querySelectorAll('[data-pham-vault-chapter]'));
     const jumps = Array.from(root.querySelectorAll('[data-pham-vault-jump]'));
     const cursor = root.querySelector('[data-pham-vault-cursor]');
-    let sceneState = null;
-    let active = true;
+    const canvasState = createSpatialCanvas(root, canvas);
+    let active = false;
     let frame = 0;
     let previousTime = performance.now();
     let progress = 0;
@@ -117,46 +118,42 @@
     }
 
     function render(time) {
+      if (!active) {
+        frame = 0;
+        return;
+      }
       const delta = Math.min((time - previousTime) / 1000, 0.1);
       previousTime = time;
       smoothProgress = damp(smoothProgress, progress, 5.5, delta);
       smoothPointerX = damp(smoothPointerX, pointerX, 7, delta);
       smoothPointerY = damp(smoothPointerY, pointerY, 7, delta);
-
       root.style.setProperty('--vault-progress', smoothProgress.toFixed(4));
-      const chapter = Math.min(3, Math.floor(smoothProgress * 4));
-      setChapter(chapter);
+      setChapter(Math.min(chapters.length - 1, Math.floor(smoothProgress * chapters.length)));
 
       if (object && !reducedMotion) {
         const wave = Math.sin(smoothProgress * Math.PI * 2);
         const x = wave * 4.2 + smoothPointerX * 10;
         const y = -48 + Math.sin(smoothProgress * Math.PI) * -2 + smoothPointerY * 4;
-        const scale = 1 + Math.sin(smoothProgress * Math.PI) * 0.09;
+        const scale = 1 + Math.sin(smoothProgress * Math.PI) * 0.08;
         const rotateY = wave * -3 + smoothPointerX * 2.5;
         object.style.transform = 'translate3d(calc(-50% + ' + x.toFixed(2) + 'px), ' + y.toFixed(2) + '%, 0) rotateY(' + rotateY.toFixed(2) + 'deg) scale(' + scale.toFixed(4) + ')';
       }
+      if (canvasState) canvasState.draw(smoothProgress, smoothPointerX, smoothPointerY);
+      frame = requestAnimationFrame(render);
+    }
 
-      if (sceneState && active) {
-        sceneState.camera.position.x = smoothPointerX * 0.36 + Math.sin(smoothProgress * Math.PI * 2) * 0.18;
-        sceneState.camera.position.y = 0.15 - smoothPointerY * 0.24 + smoothProgress * 0.4;
-        sceneState.camera.position.z = 8.2 - smoothProgress * 2.2;
-        sceneState.camera.lookAt(0, 0, -2.5 - smoothProgress * 2.5);
-        sceneState.rig.rotation.z = smoothPointerX * 0.008;
-        sceneState.rig.position.z = smoothProgress * 2.4;
-        sceneState.floor.position.z = -7 + smoothProgress * 4;
-        sceneState.renderer.render(sceneState.scene, sceneState.camera);
-      }
+    function start() {
+      if (frame || !active) return;
+      previousTime = performance.now();
       frame = requestAnimationFrame(render);
     }
 
     measureProgress();
     setChapter(0);
-    createVaultScene(root, canvas).then(function (created) { sceneState = created; });
-
     window.addEventListener('scroll', measureProgress, { passive: true });
     window.addEventListener('resize', function () {
       measureProgress();
-      if (sceneState) sceneState.resize();
+      if (canvasState) canvasState.resize();
     }, { passive: true });
 
     root.addEventListener('pointermove', function (event) {
@@ -175,7 +172,8 @@
       jump.addEventListener('click', function () {
         const sectionTop = window.scrollY + root.getBoundingClientRect().top;
         const distance = root.offsetHeight - window.innerHeight;
-        window.scrollTo({ top: sectionTop + distance * (index / 3), behavior: reducedMotion ? 'auto' : 'smooth' });
+        const denominator = Math.max(chapters.length - 1, 1);
+        window.scrollTo({ top: sectionTop + distance * (index / denominator), behavior: reducedMotion ? 'auto' : 'smooth' });
       });
     });
 
@@ -190,14 +188,9 @@
 
     const observer = new IntersectionObserver(function (entries) {
       active = entries[0].isIntersecting;
+      if (active) start();
     }, { rootMargin: '20% 0px' });
     observer.observe(root);
-    frame = requestAnimationFrame(render);
-  }
-
-  function mountAll(scope) {
-    (scope || document).querySelectorAll('[data-pham-vault]').forEach(mountVault);
-    (scope || document).querySelectorAll('[data-pham-archive]').forEach(mountArchive);
   }
 
   function mountArchive(root) {
@@ -211,6 +204,8 @@
     let dragging = false;
     let dragStart = 0;
     let dragProgress = 0;
+    let active = false;
+    let frame = 0;
     let previousTime = performance.now();
 
     function fromScroll() {
@@ -220,13 +215,23 @@
     }
 
     function draw(time) {
+      if (!active) {
+        frame = 0;
+        return;
+      }
       const delta = Math.min((time - previousTime) / 1000, 0.1);
       previousTime = time;
       current = damp(current, target, 6, delta);
       const distance = Math.max(track.scrollWidth - window.innerWidth, 0);
       track.style.transform = 'translate3d(' + (-distance * current).toFixed(2) + 'px,0,0)';
       root.style.setProperty('--archive-progress', current.toFixed(4));
-      requestAnimationFrame(draw);
+      frame = requestAnimationFrame(draw);
+    }
+
+    function start() {
+      if (frame || !active) return;
+      previousTime = performance.now();
+      frame = requestAnimationFrame(draw);
     }
 
     viewport.addEventListener('pointerdown', function (event) {
@@ -248,8 +253,20 @@
     viewport.addEventListener('pointercancel', function () { dragging = false; });
     window.addEventListener('scroll', fromScroll, { passive: true });
     window.addEventListener('resize', fromScroll, { passive: true });
-    fromScroll();
-    requestAnimationFrame(draw);
+
+    const observer = new IntersectionObserver(function (entries) {
+      active = entries[0].isIntersecting;
+      if (active) {
+        fromScroll();
+        start();
+      }
+    }, { rootMargin: '20% 0px' });
+    observer.observe(root);
+  }
+
+  function mountAll(scope) {
+    (scope || document).querySelectorAll('[data-pham-vault]').forEach(mountVault);
+    (scope || document).querySelectorAll('[data-pham-archive]').forEach(mountArchive);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { mountAll(); }, { once: true });

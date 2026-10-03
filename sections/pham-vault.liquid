@@ -25,6 +25,7 @@
   class="pham-vault"
   data-pham-vault
   data-section-id="{{ section.id }}"
+  data-canvas-enabled="{{ section.settings.enable_spatial_canvas }}"
   aria-label="{{ section.settings.accessibility_label | escape }}"
 >
   <div class="pham-vault__sticky">
@@ -64,7 +65,12 @@
         <p class="pham-vault__kicker">01 / THRESHOLD</p>
         <h1 class="pham-vault__display">{{ section.settings.chapter_1_title }}</h1>
         <p class="pham-vault__copy">{{ section.settings.chapter_1_body }}</p>
-        <span class="pham-vault__cue">SCROLL TO ENTER</span>
+        <div class="pham-vault__entry-actions">
+          <span class="pham-vault__cue">{{ section.settings.scroll_label }}</span>
+          {%- if featured_product != blank -%}
+            <a class="pham-vault__entry-link" href="{{ object_url }}">{{ section.settings.entry_cta_label }} <span aria-hidden="true">&#8599;</span></a>
+          {%- endif -%}
+        </div>
       </article>
 
       <article class="pham-vault__chapter pham-vault__chapter--right" data-pham-vault-chapter="1" aria-hidden="true">
@@ -90,6 +96,9 @@
         </h2>
         {%- if featured_product != blank -%}
           <p class="pham-vault__price">{{ featured_product.price | money }}</p>
+          <p class="pham-vault__availability">
+            {%- if featured_product.available -%}{{ section.settings.available_label }}{%- else -%}{{ section.settings.sold_out_label }}{%- endif -%}
+          </p>
         {%- endif -%}
         <p class="pham-vault__copy">{{ section.settings.chapter_4_body }}</p>
         <a class="pham-vault__cta" href="{{ object_url }}" data-pham-magnetic>
@@ -117,10 +126,13 @@
   "class": "pham-vault-section",
   "settings": [
     { "type": "text", "id": "accessibility_label", "label": "Accessibility label", "default": "PHAM Edition 01 digital experience" },
+    { "type": "checkbox", "id": "enable_spatial_canvas", "label": "Enable spatial canvas on desktop", "default": true, "info": "Automatically disabled on mobile, reduced-motion and data-saver devices." },
     { "type": "product", "id": "product", "label": "Featured product" },
     { "type": "image_picker", "id": "object_image", "label": "Hero object image", "info": "Use a transparent product image. Falls back to the featured product image." },
     { "type": "text", "id": "chapter_1_title", "label": "Chapter 1 title", "default": "ENTER THE VAULT" },
     { "type": "textarea", "id": "chapter_1_body", "label": "Chapter 1 text", "default": "One object. One edition. Built without compromise." },
+    { "type": "text", "id": "scroll_label", "label": "Scroll prompt", "default": "SCROLL TO ENTER" },
+    { "type": "text", "id": "entry_cta_label", "label": "Immediate product link", "default": "VIEW OBJECT 001" },
     { "type": "text", "id": "chapter_2_title", "label": "Chapter 2 title", "default": "FORM BEFORE NOISE" },
     { "type": "textarea", "id": "chapter_2_body", "label": "Chapter 2 text", "default": "A cropped silhouette engineered to hold tension between restraint and force." },
     { "type": "text", "id": "chapter_3_title", "label": "Chapter 3 title", "default": "BUILT IN LAYERS" },
@@ -132,6 +144,8 @@
     { "type": "text", "id": "spec_3_value", "label": "Specification 3 value", "default": "LIMITED / 001" },
     { "type": "text", "id": "chapter_4_title", "label": "Chapter 4 title", "default": "PHAM-001" },
     { "type": "textarea", "id": "chapter_4_body", "label": "Chapter 4 text", "default": "The first PHAM object. Released in a deliberately limited edition." },
+    { "type": "text", "id": "available_label", "label": "Available label", "default": "AVAILABLE / LIMITED EDITION" },
+    { "type": "text", "id": "sold_out_label", "label": "Sold out label", "default": "EDITION CLOSED" },
     { "type": "text", "id": "cta_label", "label": "Button label", "default": "INSPECT THE OBJECT" },
     { "type": "url", "id": "cta_link", "label": "Button link", "info": "Falls back to the featured product." }
   ],
