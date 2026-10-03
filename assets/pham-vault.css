@@ -224,12 +224,12 @@
 }
 
 .pham-archive { position: relative; height: 280svh; background: #080808; color: #f2f2ef; }
-.pham-archive__sticky { position: sticky; top: 0; height: 100svh; min-height: 680px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; }
-.pham-archive__head { position: relative; z-index: 3; display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; padding-top: clamp(86px, 11vh, 120px); padding-bottom: 24px; }
+.pham-archive__sticky { position: sticky; top: 0; height: 100svh; min-height: 680px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
+.pham-archive__head { position: relative; z-index: 3; width: 100%; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; padding-top: clamp(86px, 11vh, 120px); padding-bottom: 24px; }
 .pham-archive__head p,.pham-archive__head span { margin: 0; color: rgba(242,242,239,.46); font: 400 9px/1 var(--font-mono); }
 .pham-archive__head h2 { margin: 0; text-align: center; font: 400 clamp(2rem, 4vw, 4.5rem)/1 var(--font-display); letter-spacing: 0; }
 .pham-archive__head span { text-align: right; }
-.pham-archive__viewport { min-height: 0; overflow: visible; cursor: grab; touch-action: pan-y; }
+.pham-archive__viewport { width: 100%; min-width: 0; min-height: 0; overflow: visible; cursor: grab; touch-action: pan-y; }
 .pham-archive__viewport:active { cursor: grabbing; }
 .pham-archive__track { display: flex; height: 100%; width: max-content; align-items: center; gap: clamp(20px, 3vw, 48px); padding: 0 var(--gutter); will-change: transform; }
 .pham-archive__frame { width: min(58vw, 820px); height: min(61vh, 680px); margin: 0; flex: 0 0 auto; display: grid; grid-template-rows: 1fr auto; gap: 12px; }
