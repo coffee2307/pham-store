@@ -173,20 +173,44 @@
         "columns": 12
       }
     },
-    "pham-immersive-hero": {
-      "type": "pham-immersive-hero",
+    "pham-vault": {
+      "type": "pham-vault",
       "settings": {
-        "eyebrow": "PHAM / EDITION 01 / FORM STUDY",
-        "heading": "Simply Being,\nFully Living.",
-        "body": "The first piece. Cut with intent, held in restraint.",
-        "cta_label": "DISCOVER EDITION 01",
+        "accessibility_label": "PHAM Edition 01 digital experience",
+        "product": "",
+        "chapter_1_title": "ENTER THE VAULT",
+        "chapter_1_body": "One object. One edition. Built without compromise.",
+        "chapter_2_title": "FORM BEFORE NOISE",
+        "chapter_2_body": "A cropped silhouette engineered to hold tension between restraint and force.",
+        "chapter_3_title": "BUILT IN LAYERS",
+        "spec_1_label": "SHELL",
+        "spec_1_value": "PREMIUM NYLON",
+        "spec_2_label": "STRUCTURE",
+        "spec_2_value": "QUILTED INSULATION",
+        "spec_3_label": "EDITION",
+        "spec_3_value": "LIMITED / 001",
+        "chapter_4_title": "PHAM-001",
+        "chapter_4_body": "The first PHAM object. Released in a deliberately limited edition.",
+        "cta_label": "INSPECT THE OBJECT",
         "cta_link": ""
+      }
+    },
+    "pham-archive": {
+      "type": "pham-archive-rail",
+      "settings": {
+        "product": "",
+        "eyebrow": "EDITION 01 / VISUAL RECORD",
+        "title": "THE ARCHIVE",
+        "manifesto_eyebrow": "PHAM / MANIFESTO",
+        "manifesto": "We do not create pieces to fill a wardrobe. We create garments to define an identity.",
+        "link_label": "VIEW OBJECT 001",
+        "link": ""
       }
     }
   },
   "order": [
-    "pham-immersive-hero",
-    "pham-marquee",
+    "pham-vault",
+    "pham-archive",
     "pham-product-spotlight",
     "pham-lookbook"
   ]

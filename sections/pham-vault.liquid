@@ -1,0 +1,141 @@
+{%- liquid
+  assign featured_product = section.settings.product
+  if featured_product == blank
+    assign featured_product = collections.all.products.first
+  endif
+
+  assign object_image = section.settings.object_image
+  if object_image == blank and featured_product != blank
+    assign object_image = featured_product.featured_image
+  endif
+
+  assign object_url = section.settings.cta_link
+  if object_url == blank and featured_product != blank
+    assign object_url = featured_product.url
+  endif
+  if object_url == blank
+    assign object_url = routes.all_products_collection_url
+  endif
+-%}
+
+{{ 'pham-vault.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'pham-vault.js' | asset_url }}" defer></script>
+
+<section
+  class="pham-vault"
+  data-pham-vault
+  data-section-id="{{ section.id }}"
+  aria-label="{{ section.settings.accessibility_label | escape }}"
+>
+  <div class="pham-vault__sticky">
+    <canvas class="pham-vault__canvas" data-pham-vault-canvas aria-hidden="true"></canvas>
+    <div class="pham-vault__fallback" aria-hidden="true"></div>
+    <div class="pham-vault__noise" aria-hidden="true"></div>
+
+    <div class="pham-vault__chrome" aria-hidden="true">
+      <span>PHAM / DIGITAL ARCHIVE</span>
+      <span>OBJECT 001</span>
+      <span>VIETNAM / 2026</span>
+    </div>
+
+    <div class="pham-vault__object" data-pham-vault-object>
+      {%- if object_image != blank -%}
+        {{
+          object_image
+          | image_url: width: 1800
+          | image_tag:
+            loading: 'eager',
+            fetchpriority: 'high',
+            widths: '600, 900, 1200, 1500, 1800',
+            sizes: '(max-width: 749px) 84vw, 54vw',
+            class: 'pham-vault__object-image',
+            alt: featured_product.title
+        }}
+      {%- else -%}
+        <div class="pham-vault__object-empty" aria-hidden="true">
+          <span>PHAM</span><i></i><span>001</span>
+        </div>
+      {%- endif -%}
+      <span class="pham-vault__object-shadow" aria-hidden="true"></span>
+    </div>
+
+    <div class="pham-vault__chapters pham-container">
+      <article class="pham-vault__chapter is-active" data-pham-vault-chapter="0">
+        <p class="pham-vault__kicker">01 / THRESHOLD</p>
+        <h1 class="pham-vault__display">{{ section.settings.chapter_1_title }}</h1>
+        <p class="pham-vault__copy">{{ section.settings.chapter_1_body }}</p>
+        <span class="pham-vault__cue">SCROLL TO ENTER</span>
+      </article>
+
+      <article class="pham-vault__chapter pham-vault__chapter--right" data-pham-vault-chapter="1" aria-hidden="true">
+        <p class="pham-vault__kicker">02 / OBJECT</p>
+        <h2 class="pham-vault__display">{{ section.settings.chapter_2_title }}</h2>
+        <p class="pham-vault__copy">{{ section.settings.chapter_2_body }}</p>
+      </article>
+
+      <article class="pham-vault__chapter" data-pham-vault-chapter="2" aria-hidden="true">
+        <p class="pham-vault__kicker">03 / CONSTRUCTION</p>
+        <h2 class="pham-vault__display">{{ section.settings.chapter_3_title }}</h2>
+        <div class="pham-vault__specs">
+          <div><span>{{ section.settings.spec_1_label }}</span><strong>{{ section.settings.spec_1_value }}</strong></div>
+          <div><span>{{ section.settings.spec_2_label }}</span><strong>{{ section.settings.spec_2_value }}</strong></div>
+          <div><span>{{ section.settings.spec_3_label }}</span><strong>{{ section.settings.spec_3_value }}</strong></div>
+        </div>
+      </article>
+
+      <article class="pham-vault__chapter pham-vault__chapter--purchase" data-pham-vault-chapter="3" aria-hidden="true">
+        <p class="pham-vault__kicker">04 / ACQUISITION</p>
+        <h2 class="pham-vault__display">
+          {%- if featured_product != blank -%}{{ featured_product.title }}{%- else -%}{{ section.settings.chapter_4_title }}{%- endif -%}
+        </h2>
+        {%- if featured_product != blank -%}
+          <p class="pham-vault__price">{{ featured_product.price | money }}</p>
+        {%- endif -%}
+        <p class="pham-vault__copy">{{ section.settings.chapter_4_body }}</p>
+        <a class="pham-vault__cta" href="{{ object_url }}" data-pham-magnetic>
+          <span>{{ section.settings.cta_label }}</span><span aria-hidden="true">&#8599;</span>
+        </a>
+      </article>
+    </div>
+
+    <nav class="pham-vault__nav" aria-label="Vault chapters">
+      <button type="button" class="is-active" data-pham-vault-jump="0" aria-label="Open chapter 1"><span>01</span></button>
+      <button type="button" data-pham-vault-jump="1" aria-label="Open chapter 2"><span>02</span></button>
+      <button type="button" data-pham-vault-jump="2" aria-label="Open chapter 3"><span>03</span></button>
+      <button type="button" data-pham-vault-jump="3" aria-label="Open chapter 4"><span>04</span></button>
+    </nav>
+
+    <div class="pham-vault__progress" aria-hidden="true"><i data-pham-vault-progress></i></div>
+    <div class="pham-vault__cursor" data-pham-vault-cursor aria-hidden="true"><span>EXPLORE</span></div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "PHAM Vault experience",
+  "tag": "section",
+  "class": "pham-vault-section",
+  "settings": [
+    { "type": "text", "id": "accessibility_label", "label": "Accessibility label", "default": "PHAM Edition 01 digital experience" },
+    { "type": "product", "id": "product", "label": "Featured product" },
+    { "type": "image_picker", "id": "object_image", "label": "Hero object image", "info": "Use a transparent product image. Falls back to the featured product image." },
+    { "type": "text", "id": "chapter_1_title", "label": "Chapter 1 title", "default": "ENTER THE VAULT" },
+    { "type": "textarea", "id": "chapter_1_body", "label": "Chapter 1 text", "default": "One object. One edition. Built without compromise." },
+    { "type": "text", "id": "chapter_2_title", "label": "Chapter 2 title", "default": "FORM BEFORE NOISE" },
+    { "type": "textarea", "id": "chapter_2_body", "label": "Chapter 2 text", "default": "A cropped silhouette engineered to hold tension between restraint and force." },
+    { "type": "text", "id": "chapter_3_title", "label": "Chapter 3 title", "default": "BUILT IN LAYERS" },
+    { "type": "text", "id": "spec_1_label", "label": "Specification 1 label", "default": "SHELL" },
+    { "type": "text", "id": "spec_1_value", "label": "Specification 1 value", "default": "PREMIUM NYLON" },
+    { "type": "text", "id": "spec_2_label", "label": "Specification 2 label", "default": "STRUCTURE" },
+    { "type": "text", "id": "spec_2_value", "label": "Specification 2 value", "default": "QUILTED INSULATION" },
+    { "type": "text", "id": "spec_3_label", "label": "Specification 3 label", "default": "EDITION" },
+    { "type": "text", "id": "spec_3_value", "label": "Specification 3 value", "default": "LIMITED / 001" },
+    { "type": "text", "id": "chapter_4_title", "label": "Chapter 4 title", "default": "PHAM-001" },
+    { "type": "textarea", "id": "chapter_4_body", "label": "Chapter 4 text", "default": "The first PHAM object. Released in a deliberately limited edition." },
+    { "type": "text", "id": "cta_label", "label": "Button label", "default": "INSPECT THE OBJECT" },
+    { "type": "url", "id": "cta_link", "label": "Button link", "info": "Falls back to the featured product." }
+  ],
+  "presets": [{ "name": "PHAM Vault experience", "category": "PHAM" }],
+  "enabled_on": { "templates": ["index"] }
+}
+{% endschema %}

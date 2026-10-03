@@ -1,0 +1,107 @@
+{%- liquid
+  assign archive_product = section.settings.product
+  if archive_product == blank
+    assign archive_product = collections.all.products.first
+  endif
+  assign image_count = 0
+  if archive_product != blank
+    for media in archive_product.media
+      if media.media_type == 'image'
+        assign image_count = image_count | plus: 1
+      endif
+    endfor
+  endif
+  assign archive_link = section.settings.link
+  if archive_link == blank and archive_product != blank
+    assign archive_link = archive_product.url
+  endif
+  if archive_link == blank
+    assign archive_link = routes.all_products_collection_url
+  endif
+-%}
+
+{{ 'pham-vault.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'pham-vault.js' | asset_url }}" defer></script>
+
+<section class="pham-archive" data-pham-archive aria-label="{{ section.settings.title | escape }}">
+  <div class="pham-archive__sticky">
+    <header class="pham-archive__head pham-container">
+      <p>{{ section.settings.eyebrow }}</p>
+      <h2>{{ section.settings.title }}</h2>
+      <span>SCROLL / DRAG</span>
+    </header>
+
+    <div class="pham-archive__viewport" data-pham-archive-viewport>
+      <div class="pham-archive__track" data-pham-archive-track>
+        {%- if image_count > 0 -%}
+          {%- assign frame_index = 0 -%}
+          {%- for media in archive_product.media -%}
+            {%- if media.media_type == 'image' and frame_index < 6 -%}
+              {%- assign frame_index = frame_index | plus: 1 -%}
+              {%- assign archive_alt = media.alt | default: archive_product.title -%}
+              <figure class="pham-archive__frame{% if frame_index == 1 %} pham-archive__frame--hero{% endif %}">
+                {{ media | image_url: width: 1800 | image_tag: loading: 'lazy', widths: '600, 900, 1200, 1500, 1800', sizes: '(max-width: 749px) 82vw, 58vw', alt: archive_alt }}
+                <figcaption><span>FRAME / 0{{ frame_index }}</span><span>{{ archive_product.title }}</span></figcaption>
+              </figure>
+            {%- endif -%}
+          {%- endfor -%}
+        {%- else -%}
+          {%- for block in section.blocks -%}
+            <figure class="pham-archive__frame{% if forloop.first %} pham-archive__frame--hero{% endif %}" {{ block.shopify_attributes }}>
+              {%- if block.settings.image != blank -%}
+                {{ block.settings.image | image_url: width: 1800 | image_tag: loading: 'lazy', widths: '600, 900, 1200, 1500, 1800', sizes: '(max-width: 749px) 82vw, 58vw', alt: block.settings.caption }}
+              {%- else -%}
+                <div class="pham-archive__frame-empty"><span>PHAM</span><i></i><span>0{{ forloop.index }}</span></div>
+              {%- endif -%}
+              <figcaption><span>FRAME / 0{{ forloop.index }}</span><span>{{ block.settings.caption }}</span></figcaption>
+            </figure>
+          {%- endfor -%}
+        {%- endif -%}
+
+        <div class="pham-archive__manifesto">
+          <p>{{ section.settings.manifesto_eyebrow }}</p>
+          <blockquote>{{ section.settings.manifesto }}</blockquote>
+          <a href="{{ archive_link }}">{{ section.settings.link_label }} &#8599;</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pham-archive__meter pham-container" aria-hidden="true"><span>01</span><i><b data-pham-archive-meter></b></i><span>END</span></div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "PHAM Archive rail",
+  "tag": "section",
+  "class": "pham-archive-section",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product", "info": "Uses up to six product images. Falls back to the first product." },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "EDITION 01 / VISUAL RECORD" },
+    { "type": "text", "id": "title", "label": "Title", "default": "THE ARCHIVE" },
+    { "type": "text", "id": "manifesto_eyebrow", "label": "Manifesto eyebrow", "default": "PHAM / MANIFESTO" },
+    { "type": "textarea", "id": "manifesto", "label": "Manifesto", "default": "We do not create pieces to fill a wardrobe. We create garments to define an identity." },
+    { "type": "text", "id": "link_label", "label": "Link label", "default": "VIEW OBJECT 001" },
+    { "type": "url", "id": "link", "label": "Link", "info": "Falls back to the selected product." }
+  ],
+  "blocks": [
+    {
+      "type": "frame",
+      "name": "Fallback frame",
+      "limit": 6,
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "caption", "label": "Caption", "default": "PHAM / OBJECT STUDY" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "PHAM Archive rail",
+      "category": "PHAM",
+      "blocks": [{ "type": "frame" }, { "type": "frame" }, { "type": "frame" }]
+    }
+  ],
+  "enabled_on": { "templates": ["index"] }
+}
+{% endschema %}
