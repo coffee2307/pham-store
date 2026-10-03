@@ -124,6 +124,11 @@
             <span class="pham-cart-page__subtotal-value">{{ cart.total_price | money }}</span>
           </div>
           <p class="pham-cart-page__taxnote">Taxes and shipping calculated at checkout.</p>
+          <ul class="pham-cart-trust pham-cart-trust--page" role="list">
+            {%- if settings.pham_cart_shipping_message != blank -%}<li>{{ settings.pham_cart_shipping_message }}</li>{%- endif -%}
+            {%- if settings.pham_cart_returns_message != blank -%}<li>{{ settings.pham_cart_returns_message }}</li>{%- endif -%}
+            {%- if settings.pham_cart_duties_message != blank -%}<li>{{ settings.pham_cart_duties_message }}</li>{%- endif -%}
+          </ul>
           <div class="pham-cart-page__actions">
             <a href="{{ cart_product_url }}" class="pham-cart-page__continue">View the Edition</a>
             <button type="submit" name="checkout" class="pham-cart-page__checkout">
