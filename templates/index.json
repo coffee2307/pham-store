@@ -9,20 +9,6 @@
  */
 {
   "sections": {
-    "pham-marquee": {
-      "type": "pham-marquee",
-      "settings": {
-        "text": "SIMPLY BEING · FULLY LIVING · EDITION 01",
-        "separator": "·",
-        "repetitions": 6,
-        "speed": 40,
-        "font_style": "mono",
-        "font_size": 14,
-        "background": "#0a0a0c",
-        "text_color": "#e8e8ea",
-        "accent_color": "#ffffff"
-      }
-    },
     "pham-product-spotlight": {
       "type": "pham-product-spotlight",
       "settings": {
