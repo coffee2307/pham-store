@@ -17,9 +17,19 @@
         "phases_eyebrow": "PRODUCTION SCHEDULE",
         "shipping_terms": "Shipping details will be confirmed closer to release. We will keep waitlist members informed by email."
       }
+    },
+    "product-3d": {
+      "type": "pham-product-3d",
+      "settings": {
+        "eyebrow": "DIGITAL GARMENT STUDY",
+        "heading": "Explore the form.",
+        "body": "A dedicated space for the PHAM-001 three-dimensional garment study.",
+        "placeholder_text": "The interactive garment study will appear here."
+      }
     }
   },
   "order": [
-    "main"
+    "main",
+    "product-3d"
   ]
 }
