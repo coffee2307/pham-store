@@ -26,6 +26,8 @@
   data-pham-vault
   data-section-id="{{ section.id }}"
   data-canvas-enabled="{{ section.settings.enable_spatial_canvas }}"
+  data-object-scale="{{ section.settings.object_scale | times: 0.01 }}"
+  style="--vault-object-scale: {{ section.settings.object_scale | times: 0.01 }}"
   aria-label="{{ section.settings.accessibility_label | escape }}"
 >
   <div class="pham-vault__sticky">
@@ -129,6 +131,7 @@
     { "type": "checkbox", "id": "enable_spatial_canvas", "label": "Enable spatial canvas on desktop", "default": true, "info": "Automatically disabled on mobile, reduced-motion and data-saver devices." },
     { "type": "product", "id": "product", "label": "Featured product" },
     { "type": "image_picker", "id": "object_image", "label": "Hero object image", "info": "Use a transparent product image. Falls back to the featured product image." },
+    { "type": "range", "id": "object_scale", "label": "Hero object scale", "min": 70, "max": 110, "step": 5, "unit": "%", "default": 85, "info": "Lower this when a portrait image needs more space around the typography." },
     { "type": "text", "id": "chapter_1_title", "label": "Chapter 1 title", "default": "ENTER THE VAULT" },
     { "type": "textarea", "id": "chapter_1_body", "label": "Chapter 1 text", "default": "One object. One edition. Built without compromise." },
     { "type": "text", "id": "scroll_label", "label": "Scroll prompt", "default": "SCROLL TO ENTER" },
