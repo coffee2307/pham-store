@@ -9,54 +9,6 @@
  */
 {
   "sections": {
-    "pham-hero": {
-      "type": "pham-hero",
-      "blocks": {
-        "eyebrow": {
-          "type": "eyebrow",
-          "settings": {
-            "text": "PHAM · EDITION 01"
-          }
-        },
-        "heading": {
-          "type": "heading",
-          "settings": {
-            "text": "Simply Being, Fully Living.",
-            "font_size": 88
-          }
-        },
-        "subheading": {
-          "type": "subheading",
-          "settings": {
-            "text": "The first piece. Made slowly."
-          }
-        },
-        "button": {
-          "type": "button",
-          "settings": {
-            "label": "SECURE YOUR PRE-ORDER",
-            "link": "",
-            "sub_label": "EDITION 01 // THE FIRST RELEASE",
-            "open_new_tab": false
-          }
-        }
-      },
-      "block_order": [
-        "eyebrow",
-        "heading",
-        "subheading",
-        "button"
-      ],
-      "settings": {
-        "media_type": "image",
-        "video_url": "",
-        "overlay_opacity": 45,
-        "height": "full",
-        "custom_height_px": 720,
-        "text_alignment": "center",
-        "show_scroll": true
-      }
-    },
     "pham-marquee": {
       "type": "pham-marquee",
       "settings": {
@@ -220,10 +172,20 @@
         "enable_parallax": true,
         "columns": 12
       }
+    },
+    "pham-immersive-hero": {
+      "type": "pham-immersive-hero",
+      "settings": {
+        "eyebrow": "PHAM / EDITION 01 / FORM STUDY",
+        "heading": "Simply Being,\nFully Living.",
+        "body": "The first piece. Cut with intent, held in restraint.",
+        "cta_label": "DISCOVER EDITION 01",
+        "cta_link": ""
+      }
     }
   },
   "order": [
-    "pham-hero",
+    "pham-immersive-hero",
     "pham-marquee",
     "pham-product-spotlight",
     "pham-lookbook"
