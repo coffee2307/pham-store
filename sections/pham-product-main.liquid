@@ -23,7 +23,25 @@
   assign faq_handle        = section.settings.faq_handle | default: 'faq'
   assign size_guide_page   = pages[size_handle]
   assign faq_page          = pages[faq_handle]
+  assign short_tagline     = product.metafields.custom.short_tagline.value
+  assign edition_number    = product.metafields.custom.edition_number.value
+  assign shipping_window   = product.metafields.custom.shipping_window.value
 -%}
+{%- capture construction_content -%}
+  {%- if product.metafields.custom.construction != blank -%}
+    {{ product.metafields.custom.construction | metafield_tag }}
+  {%- else -%}
+    {{ product.description }}
+  {%- endif -%}
+{%- endcapture -%}
+{%- capture materials_content -%}
+  {%- if product.metafields.custom.materials != blank -%}
+    {{ product.metafields.custom.materials | metafield_tag }}
+  {%- endif -%}
+{%- endcapture -%}
+{%- if product.metafields.custom.care_instructions != blank -%}
+  {%- capture care_content -%}{{ product.metafields.custom.care_instructions | metafield_tag }}{%- endcapture -%}
+{%- endif -%}
 
 <section class="pham-product-main"
          id="MainProduct-{{ product.id }}"
@@ -49,6 +67,12 @@
             <p class="pham-eyebrow pham-product-main__vendor">{{ product.vendor }}</p>
           {%- endif -%}
           <h1 class="pham-product-main__title">{{ product.title }}</h1>
+          {%- if short_tagline != blank -%}
+            <p class="pham-product-main__tagline">{{ short_tagline }}</p>
+          {%- endif -%}
+          {%- if edition_number != blank -%}
+            <p class="pham-product-main__edition">{{ edition_number }}</p>
+          {%- endif -%}
 
           <div class="pham-product-main__price-block">
             <p class="pham-product-main__price" data-pham-product-price>
@@ -137,6 +161,9 @@
           {%- if section.settings.preorder_note != blank -%}
             <p class="pham-product-main__preorder-note">{{ section.settings.preorder_note }}</p>
           {%- endif -%}
+          {%- if shipping_window != blank -%}
+            <p class="pham-product-main__shipping-window">{{ shipping_window }}</p>
+          {%- endif -%}
 
           {%- if section.settings.show_trust_strip -%}
             {% render 'pham-product-trust', section: section %}
@@ -153,7 +180,12 @@
           {%- endif -%}
 
           {%- assign details_id = section.id | append: '-details' -%}
-          {% render 'pham-accordion', heading: details_heading, content: product.description, id: details_id, open: true %}
+          {% render 'pham-accordion', heading: details_heading, content: construction_content, id: details_id, open: true %}
+
+          {%- if materials_content != blank -%}
+            {%- assign materials_id = section.id | append: '-materials' -%}
+            {% render 'pham-accordion', heading: section.settings.materials_heading, content: materials_content, id: materials_id %}
+          {%- endif -%}
 
           {%- if shipping_content != blank -%}
             {%- assign ship_id = section.id | append: '-ship' -%}
@@ -236,6 +268,9 @@
     gap: clamp(var(--space-lg), 4vw, var(--space-2xl));
     align-items: start;
   }
+  .pham-product-main__tagline { max-width: 42ch; margin: 14px 0 0; color: var(--color-bone-60); font: 400 .9rem/1.6 var(--font-body); }
+  .pham-product-main__edition { margin: 12px 0 0; color: var(--color-smoke); font: 400 9px/1.4 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+  .pham-product-main__shipping-window { margin: 12px 0 0; padding: 12px 14px; border: 1px solid rgba(255,255,255,.14); color: var(--color-bone-80); font: 400 9px/1.5 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
   .pham-product-main__media {
     align-self: start;
   }
@@ -1343,6 +1378,12 @@
       "id": "details_heading",
       "label": "Product details heading",
       "default": "Product details"
+    },
+    {
+      "type": "text",
+      "id": "materials_heading",
+      "label": "Materials heading",
+      "default": "Materials"
     },
     {
       "type": "text",
