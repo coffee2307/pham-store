@@ -10,8 +10,37 @@
         "paragraph_1": "Founded in 2026 by a 16-year-old creator, PHAM was established not to follow the noise of the industry, but to build a sanctuary for pure design.",
         "paragraph_2": "We deliberately reject the concept of mass production. To us, true luxury lies in absolute devotion. Operating as a solo-led design label allows the founder to oversee every single stage of creation—from the very first sketch, the precise engineering of silhouettes, to the final execution. By holding uncompromised control over the entire process, PHAM ensures that every garment remains a flawless, untainted reflection of a singular aesthetic vision.",
         "closing_line": "We do not create pieces to fill a wardrobe. We create garments to define an identity.",
+        "origin_eyebrow": "PHAM / RECORD",
+        "origin_label": "ORIGIN",
+        "origin_value": "VIETNAM / ATELIER",
+        "release_label": "FIRST OBJECT",
+        "release_value": "PHAM-001 / 2026",
         "show_back_link": true
-      }
+      },
+      "blocks": {
+        "principle_form": {
+          "type": "principle",
+          "settings": {
+            "title": "FORM BEFORE NOISE",
+            "body": "Every line must carry purpose before it carries attention."
+          }
+        },
+        "principle_restraint": {
+          "type": "principle",
+          "settings": {
+            "title": "RESTRAINT AS FORCE",
+            "body": "Identity is built through proportion, material and controlled detail."
+          }
+        },
+        "principle_process": {
+          "type": "principle",
+          "settings": {
+            "title": "ONE OBJECT AT A TIME",
+            "body": "Each edition is developed slowly, documented completely and released deliberately."
+          }
+        }
+      },
+      "block_order": ["principle_form", "principle_restraint", "principle_process"]
     }
   },
   "order": [
