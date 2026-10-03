@@ -30,6 +30,8 @@
     switches.forEach(function (button) {
       button.addEventListener('click', function () { show(button.dataset.phamStageSwitch); });
     });
+
+    show(stage.dataset.defaultView || 'image');
   }
 
   function mountAll(scope) {

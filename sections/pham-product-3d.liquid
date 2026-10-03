@@ -16,6 +16,7 @@
   class="pham-object-stage"
   data-pham-object-stage
   data-has-model="{% if model_media != blank %}true{% else %}false{% endif %}"
+  data-default-view="{% if fallback_image == blank and model_media != blank %}model{% else %}image{% endif %}"
   data-image-mode-label="{{ section.settings.image_mode_label | escape }}"
   data-model-mode-label="{{ section.settings.model_mode_label | escape }}"
   aria-label="{{ section.settings.heading | escape }}"
@@ -50,13 +51,19 @@
     {%- endif -%}
     </div>
     {%- if model_media != blank -%}
-      <div class="pham-object-stage__model-view" data-pham-stage-model hidden></div>
+      <div class="pham-object-stage__model-view" data-pham-stage-model{% if fallback_image != blank %} hidden{% endif %}></div>
       <template data-pham-stage-model-template>
         {{ model_media | model_viewer_tag: class: 'pham-object-stage__model', reveal: 'interaction', auto_rotate: true, camera_controls: true, interaction_prompt: 'auto', interaction_policy: 'allow-when-focused' }}
       </template>
     {%- endif -%}
     <p class="pham-object-stage__mode" data-pham-stage-mode>
-      {%- if fallback_image != blank -%}{{ section.settings.image_mode_label }}{%- else -%}{{ section.settings.model_empty_label }}{%- endif -%}
+      {%- if fallback_image != blank -%}
+        {{ section.settings.image_mode_label }}
+      {%- elsif model_media != blank -%}
+        {{ section.settings.model_mode_label }}
+      {%- else -%}
+        {{ section.settings.model_empty_label }}
+      {%- endif -%}
     </p>
     {%- if model_media != blank and fallback_image != blank -%}
       <div class="pham-object-stage__switcher" role="group" aria-label="{{ section.settings.viewer_label | escape }}">
