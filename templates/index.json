@@ -116,23 +116,10 @@
         "cta_label": "INSPECT THE OBJECT",
         "cta_link": ""
       }
-    },
-    "pham-archive": {
-      "type": "pham-archive-rail",
-      "settings": {
-        "product": "",
-        "eyebrow": "EDITION 01 / VISUAL RECORD",
-        "title": "THE ARCHIVE",
-        "manifesto_eyebrow": "PHAM / MANIFESTO",
-        "manifesto": "We do not create pieces to fill a wardrobe. We create garments to define an identity.",
-        "link_label": "VIEW OBJECT 001",
-        "link": ""
-      }
     }
   },
   "order": [
     "pham-vault",
-    "pham-archive",
     "pham-product-spotlight",
     "pham-lookbook"
   ]
