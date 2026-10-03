@@ -85,6 +85,7 @@
     const jumps = Array.from(root.querySelectorAll('[data-pham-vault-jump]'));
     const cursor = root.querySelector('[data-pham-vault-cursor]');
     const canvasState = createSpatialCanvas(root, canvas);
+    const objectScale = clamp(Number.parseFloat(root.dataset.objectScale) || 0.85, 0.7, 1.1);
     let active = false;
     let frame = 0;
     let previousTime = performance.now();
@@ -134,7 +135,7 @@
         const wave = Math.sin(smoothProgress * Math.PI * 2);
         const x = wave * 4.2 + smoothPointerX * 10;
         const y = -48 + Math.sin(smoothProgress * Math.PI) * -2 + smoothPointerY * 4;
-        const scale = 1 + Math.sin(smoothProgress * Math.PI) * 0.08;
+        const scale = objectScale * (1 + Math.sin(smoothProgress * Math.PI) * 0.06);
         const rotateY = wave * -3 + smoothPointerX * 2.5;
         object.style.transform = 'translate3d(calc(-50% + ' + x.toFixed(2) + 'px), ' + y.toFixed(2) + '%, 0) rotateY(' + rotateY.toFixed(2) + 'deg) scale(' + scale.toFixed(4) + ')';
       }
