@@ -133,19 +133,19 @@
       const mobile = window.innerWidth < 600;
       const tablet = window.innerWidth >= 600 && window.innerWidth < 1024;
       const targetWidth = mobile
-        ? Math.min(window.innerWidth * 0.60, 250)
+        ? Math.min(window.innerWidth * 0.72, 300)
         : tablet
           ? Math.min(window.innerWidth * 0.48, 400)
           : Math.min(430, window.innerWidth * 0.29);
       const targetHeight = mobile
-        ? Math.min(window.innerHeight * 0.45, 380)
+        ? Math.min(window.innerHeight * 0.58, 460)
         : tablet
           ? Math.min(window.innerHeight * 0.62, 560)
           : Math.min(window.innerHeight * 0.72, 650);
       return clamp(
         Math.min(targetWidth / width, targetHeight / height),
-        mobile ? 1.15 : 1.35,
-        mobile ? 2.10 : tablet ? 2.8 : 3.1
+        mobile ? 1.2 : 1.35,
+        mobile ? 2.55 : tablet ? 2.8 : 3.1
       );
     }
 
@@ -273,8 +273,17 @@
 
       const mobileDialog = window.innerWidth < 600;
       const targetScale = getExpandedCardScale(card);
+      const orbitRect = orbit.getBoundingClientRect();
+      const mobileOffsetX = mobileDialog
+        ? (window.innerWidth * 0.5) - (orbitRect.left + orbitRect.width * 0.5)
+        : 0;
+      const mobileOffsetY = mobileDialog
+        ? (window.innerHeight * 0.5) - (orbitRect.top + orbitRect.height * 0.5)
+        : 0;
       const targetCardTransform = mobileDialog
-        ? 'translate3d(-50%, -50%, 0) rotateY(0rad) translateZ(0px) rotateZ(0deg) translate3d(0,0,0) scale(' +
+        ? 'translate3d(-50%, -50%, 0) translate3d(' +
+          mobileOffsetX.toFixed(2) + 'px,' +
+          mobileOffsetY.toFixed(2) + 'px,0) rotateY(0rad) translateZ(0px) rotateZ(0deg) scale(' +
           targetScale.toFixed(4) +
           ')'
         : 'translate3d(-50%, -50%, 0) ' +
