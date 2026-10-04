@@ -53,11 +53,9 @@
     let expandedSource = null;
     let dialogReturnFocus = null;
     let cardDialogAnimation = null;
-    let planeDialogAnimation = null;
     let cardDialogSettled = false;
     let cardDialogClosing = false;
     let sourceCardTransform = '';
-    let sourcePlaneTransform = '';
     let dialogOpenScrollY = 0;
     let dialogPlaneTilt = 0;
     let dialogPlaneLean = 0;
@@ -162,10 +160,6 @@
         try { cardDialogAnimation.cancel(); } catch (error) {}
         cardDialogAnimation = null;
       }
-      if (planeDialogAnimation) {
-        try { planeDialogAnimation.cancel(); } catch (error) {}
-        planeDialogAnimation = null;
-      }
     }
 
     function onCardDialogWheel(event) {
@@ -200,7 +194,6 @@
       cardDialogSettled = false;
       expandedSource = null;
       sourceCardTransform = '';
-      sourcePlaneTransform = '';
       dialogOpenScrollY = 0;
       dialogPlaneTilt = 0;
       dialogPlaneLean = 0;
@@ -236,7 +229,6 @@
       }
 
       reverseAnimation(cardDialogAnimation, 820);
-      if (planeDialogAnimation) reverseAnimation(planeDialogAnimation, 820);
       cardDialogAnimation.onfinish = finishCardDialogClose;
     }
 
@@ -266,7 +258,6 @@
       dialogReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
       sourceCardTransform = card.style.transform || window.getComputedStyle(card).transform;
-      sourcePlaneTransform = orbitPlane.style.transform || window.getComputedStyle(orbitPlane).transform;
       dialogOpenScrollY = window.scrollY;
       dialogPlaneTilt = currentTilt;
       dialogPlaneLean = 6 + Math.sin(smoothProgress * Math.PI * 2) * 0.35;
@@ -281,9 +272,13 @@
         ? (window.innerHeight * 0.5) - (orbitRect.top + orbitRect.height * 0.5)
         : 0;
       const targetCardTransform = mobileDialog
-        ? 'translate3d(-50%, -50%, 0) translate3d(' +
+        ? 'translate3d(-50%, -50%, 0) ' +
+          'rotateZ(' + (-dialogPlaneLean).toFixed(3) + 'deg) ' +
+          'rotateX(' + (-dialogPlaneTilt).toFixed(3) + 'deg) ' +
+          'translate3d(' +
           mobileOffsetX.toFixed(2) + 'px,' +
-          mobileOffsetY.toFixed(2) + 'px,0) rotateY(0rad) translateZ(0px) rotateZ(0deg) scale(' +
+          mobileOffsetY.toFixed(2) + 'px,0) ' +
+          'rotateY(0rad) translateZ(0px) rotateZ(0deg) scale(' +
           targetScale.toFixed(4) +
           ')'
         : 'translate3d(-50%, -50%, 0) ' +
@@ -315,21 +310,10 @@
         { duration, easing, fill: 'both' }
       );
 
-      if (mobileDialog && typeof orbitPlane.animate === 'function') {
-        planeDialogAnimation = orbitPlane.animate(
-          [{ transform: sourcePlaneTransform }, { transform: 'rotateX(0deg) rotateZ(0deg)' }],
-          { duration, easing, fill: 'both' }
-        );
-      }
-
       cardDialogAnimation.onfinish = function () {
         if (cardDialogClosing) return;
         cardDialogAnimation.pause();
         cardDialogAnimation.currentTime = duration;
-        if (planeDialogAnimation) {
-          planeDialogAnimation.pause();
-          planeDialogAnimation.currentTime = duration;
-        }
         settleCardDialogOpen();
       };
     }
