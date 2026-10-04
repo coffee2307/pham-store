@@ -238,6 +238,36 @@
     display: block;
     object-fit: cover;
   }
+
+  @media (min-width: 901px) {
+    .pham-product-spotlight__media {
+      padding: clamp(12px, 1.2vw, 22px);
+      box-sizing: border-box;
+    }
+    .pham-product-spotlight__gallery {
+      gap: clamp(12px, 1.2vw, 22px);
+    }
+    .pham-product-spotlight__media-item {
+      border: 1px solid var(--color-ash);
+      background: var(--color-obsidian);
+    }
+    .pham-product-spotlight__media-frame {
+      height: clamp(520px, 78svh, 780px);
+      display: grid;
+      place-items: center;
+      background: var(--color-obsidian);
+    }
+    .pham-product-spotlight__img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+    }
+    .pham-product-spotlight__panel {
+      min-height: clamp(520px, 78svh, 780px);
+      box-sizing: border-box;
+    }
+  }
   .pham-product-spotlight__skeleton {
     width: 100%;
     aspect-ratio: 3 / 4;
