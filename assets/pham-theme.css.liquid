@@ -4298,3 +4298,39 @@ body.pham-challenge-page .shopify-section-group-footer-group {
     max-width: 12.5rem;
   }
 }
+
+
+/* PHAM desktop pointer glow */
+.pham-cursor-glow {
+  position: fixed;
+  z-index: 2147483000;
+  left: 0;
+  top: 0;
+  width: 120px;
+  height: 120px;
+  pointer-events: none;
+  opacity: 0;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,255,255,.14) 0%,
+    rgba(255,255,255,.075) 18%,
+    rgba(255,255,255,.035) 36%,
+    rgba(255,255,255,0) 70%);
+  filter: blur(5px);
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+  transition: opacity 180ms ease, filter 180ms ease;
+}
+.pham-cursor-glow.is-visible {
+  opacity: .62;
+}
+.pham-cursor-glow.is-interactive {
+  filter: blur(7px);
+  opacity: .78;
+}
+@media (hover: none), (pointer: coarse), (max-width: 899px), (prefers-reduced-motion: reduce) {
+  .pham-cursor-glow {
+    display: none !important;
+  }
+}
