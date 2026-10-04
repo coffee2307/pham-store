@@ -2443,19 +2443,19 @@
         "type": "textarea",
         "id": "pham_seo_default_description",
         "label": "Default meta description",
-        "default": "PHAM Atelier is an independent fashion label from Vietnam, developing limited-edition garments through restraint, proportion and controlled detail."
+        "default": "PHAM Atelier is an independent fashion label from Vietnam creating edition-based dark outerwear and design objects through restraint, proportion, construction and controlled detail."
       },
       {
         "type": "textarea",
         "id": "pham_seo_home_description",
         "label": "Homepage meta description",
-        "default": "PHAM Atelier is an independent fashion label from Vietnam. Discover PHAM-001, Edition 01, and the design process behind the first release."
+        "default": "PHAM Atelier is an independent fashion label from Vietnam. Explore PHAM-001, Edition 01, dark outerwear, garment construction and the design process behind the first release."
       },
       {
         "type": "textarea",
         "id": "pham_seo_product_description",
         "label": "Product fallback meta description",
-        "default": "Discover PHAM-001 — Edition 01 by PHAM Atelier, a limited cropped bomber developed in Vietnam through a focused, design-led process."
+        "default": "PHAM-001 — Edition 01 by PHAM Atelier is a limited cropped bomber developed in Vietnam around proportion, construction and controlled detail."
       },
       {
         "type": "textarea",
@@ -2467,7 +2467,7 @@
         "type": "textarea",
         "id": "pham_seo_about_description",
         "label": "About meta description",
-        "default": "About PHAM Atelier — an independent fashion label founded in Vietnam in 2026, focused on restraint, proportion, construction and limited editions."
+        "default": "About PHAM Atelier — the independent fashion label founded in Vietnam in 2026 behind PHAM-001, Edition 01 and future edition-based objects."
       },
       {
         "type": "textarea",
@@ -2485,7 +2485,7 @@
         "type": "textarea",
         "id": "pham_seo_contact_description",
         "label": "Contact meta description",
-        "default": "Contact the PHAM atelier — private enquiries, sizing help, and order support."
+        "default": "Contact PHAM Atelier at phamofficial.com for PHAM-001, sizing, order support and official brand enquiries."
       },
       {
         "type": "textarea",
@@ -2503,7 +2503,7 @@
         "type": "textarea",
         "id": "pham_seo_shop_description",
         "label": "Collection fallback meta description",
-        "default": "Browse PHAM Atelier — limited-edition garments, PHAM-001 and future objects developed through a restrained design process."
+        "default": "Browse PHAM Atelier — PHAM-001 and future limited-edition darkwear, outerwear and design objects from the independent Vietnam-based label."
       },
       {
         "type": "header",
