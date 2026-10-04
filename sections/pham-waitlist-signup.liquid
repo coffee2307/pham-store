@@ -75,7 +75,7 @@
             {%- if section.settings.heading != blank -%}
               {{ section.settings.heading }}
             {%- else -%}
-              Join the <span class="pham-waitlist__title-phrase">pre-order</span> waitlist
+              Join the <span class="pham-waitlist__title-phrase">{{ product.title | default: 'PHAM-001' }}</span> waitlist
             {%- endif -%}
           </h1>
         {%- if section.settings.intro != blank -%}
