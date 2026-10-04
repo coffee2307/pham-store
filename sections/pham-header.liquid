@@ -13,7 +13,7 @@
 {%- liquid
   assign menu_handle    = section.settings.menu | default: 'main-menu'
   assign menu           = linklists[menu_handle]
-  assign show_search    = section.settings.show_search
+  assign show_search    = false
   assign show_account   = section.settings.show_account
 
   comment
@@ -263,7 +263,6 @@
            class="pham-header__drawer-util">
           {% if customer %}ACCOUNT{% else %}SIGN IN{% endif %}
         </a>
-        <a href="{{ routes.search_url }}" class="pham-header__drawer-util">SEARCH</a>
       </div>
       {%- assign pham_facebook = settings.pham_social_facebook | default: 'https://www.facebook.com/profile.php?id=61590900803027' -%}
       {%- if settings.pham_social_instagram != blank or settings.pham_social_tiktok != blank or pham_facebook != blank -%}
@@ -394,7 +393,7 @@
       "type": "checkbox",
       "id": "show_search",
       "label": "Show search icon",
-      "default": true
+      "default": false
     },
     {
       "type": "checkbox",
