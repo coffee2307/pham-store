@@ -1865,6 +1865,69 @@ input[type="search"]::-webkit-search-decoration {
 .pham-header__action:hover { color: var(--color-white); border-color: var(--color-ash); }
 .pham-header__icon { display: block; width: 18px; height: 18px; }
 
+/* Shopify customer account component — PHAM skin */
+.pham-account-component {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--color-bone);
+  --shopify-account-avatar-size: 40px;
+  --shopify-account-signed-in-avatar-size: 32px;
+  --shopify-account-signed-in-avatar-color-background: var(--color-bone);
+  --shopify-account-signed-in-avatar-color-text: var(--color-void);
+  --shopify-account-color-accent: var(--color-white);
+  --shopify-account-color-accent-hover: var(--color-bone);
+  --shopify-account-color-accent-text: var(--color-void);
+  --shopify-account-color-background: var(--color-void);
+  --shopify-account-color-background-subdued: var(--color-obsidian);
+  --shopify-account-color-border: var(--color-ash);
+  --shopify-account-color-card-background: var(--color-obsidian);
+  --shopify-account-color-card-text: var(--color-bone);
+  --shopify-account-color-control-background: var(--color-charcoal);
+  --shopify-account-color-control-text: var(--color-bone);
+  --shopify-account-color-shadow: rgba(0, 0, 0, 0.82);
+  --shopify-account-color-text: var(--color-bone);
+  --shopify-account-color-text-subdued: var(--color-smoke);
+  --shopify-account-dialog-position-top: 72px;
+  --shopify-account-font-body: var(--font-body);
+  --shopify-account-font-heading: var(--font-display);
+  --shopify-account-font-body-weight: 400;
+  --shopify-account-font-heading-weight: 400;
+  --shopify-account-font-heading-transform: uppercase;
+  --shopify-account-radius-base: 0px;
+  --shopify-account-radius-button: 0px;
+  --shopify-account-radius-button-small: 0px;
+  --shopify-account-radius-dialog: 0px;
+  --shopify-account-radius-input: 0px;
+}
+.pham-account-component::part(signed-out-avatar) {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-bone);
+  transition:
+    color var(--duration-fast) var(--ease-tech),
+    border-color var(--duration-fast) var(--ease-tech);
+}
+.pham-account-component::part(signed-out-avatar):hover {
+  color: var(--color-white);
+  border-color: var(--color-ash);
+}
+.pham-account-trigger {
+  pointer-events: none;
+  width: 40px;
+  height: 40px;
+}
+@media (max-width: 749px) {
+  .pham-account-component {
+    --shopify-account-dialog-position-top: 58px;
+  }
+}
+
 .pham-header__cart-count {
   position: absolute;
   top: -2px;
