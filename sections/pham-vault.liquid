@@ -42,6 +42,13 @@
             {%- for block in section.blocks -%}
               {%- assign card_image = block.settings.image -%}
               {%- assign card_alt = block.settings.alt_text | default: card_image.alt | default: 'PHAM archive image' -%}
+              {%- if forloop.first -%}
+                {%- assign card_loading = 'eager' -%}
+                {%- assign card_fetchpriority = 'high' -%}
+              {%- else -%}
+                {%- assign card_loading = 'lazy' -%}
+                {%- assign card_fetchpriority = 'low' -%}
+              {%- endif -%}
               <figure class="pham-vault__orbit-card"
                       data-pham-vault-card
                       {% if block.settings.link == blank %}tabindex="0" role="button" aria-expanded="false" aria-label="Open {{ card_alt | escape }}"{% endif %}
@@ -53,9 +60,11 @@
                         card_image
                         | image_url: width: 1200
                         | image_tag:
-                          loading: 'lazy',
+                          loading: card_loading,
+                          fetchpriority: card_fetchpriority,
+                          decoding: 'async',
                           widths: '320, 480, 720, 960, 1200',
-                          sizes: '(max-width: 749px) 34vw, 18vw',
+                          sizes: '(max-width: 749px) 34vw, 16vw',
                           alt: card_alt
                       }}
                     {%- else -%}
