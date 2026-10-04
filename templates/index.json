@@ -102,7 +102,7 @@
         "product": "",
         "object_scale": 90,
         "orbit_speed": 6,
-        "orbit_tilt": 24,
+        "orbit_tilt": 8,
         "chapter_1_title": "ENTER THE VAULT",
         "chapter_1_body": "One object. One edition. Built without compromise.",
         "chapter_2_title": "FORM BEFORE NOISE",
@@ -118,7 +118,18 @@
         "chapter_4_body": "The first PHAM object. Released in a deliberately limited edition.",
         "cta_label": "INSPECT THE OBJECT",
         "cta_link": ""
-      }
+      },
+      "blocks": {
+        "orbit_01": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 01", "link": "" } },
+        "orbit_02": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 02", "link": "" } },
+        "orbit_03": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 03", "link": "" } },
+        "orbit_04": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 04", "link": "" } },
+        "orbit_05": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 05", "link": "" } },
+        "orbit_06": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 06", "link": "" } },
+        "orbit_07": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 07", "link": "" } },
+        "orbit_08": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 08", "link": "" } }
+      },
+      "block_order": ["orbit_01", "orbit_02", "orbit_03", "orbit_04", "orbit_05", "orbit_06", "orbit_07", "orbit_08"]
     }
   },
   "order": [
