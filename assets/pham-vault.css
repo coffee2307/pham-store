@@ -1,3 +1,7 @@
+:root { --pham-header-offset: 80px; }
+@media (max-width: 900px) { :root { --pham-header-offset: 64px; } }
+@media (max-width: 749px) { :root { --pham-header-offset: 60px; } }
+
 .pham-vault {
   --vault-progress: 0;
   --vault-pointer-x: 0;
@@ -210,6 +214,7 @@
   transition: opacity 500ms cubic-bezier(.2, 0, 0, 1), transform 700ms cubic-bezier(.2, 0, 0, 1), visibility 500ms;
 }
 .pham-vault__chapter.is-active { opacity: 1; visibility: visible; transform: translate3d(0, 0, 0); pointer-events: auto; }
+.pham-vault__chapter:first-child.is-active { transition: none; }
 .pham-vault__chapter--right { left: auto; right: var(--gutter); text-align: right; }
 .pham-vault__chapter--right .pham-vault__copy { margin-left: auto; }
 .pham-vault__chapter--purchase { left: auto; right: var(--gutter); width: min(27vw, 360px); }
