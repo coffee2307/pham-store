@@ -6,6 +6,7 @@
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = window.matchMedia('(pointer: fine)').matches;
+  const desktopCardMode = window.matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)');
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const damp = (current, target, speed, delta) => current + (target - current) * (1 - Math.exp(-speed * delta));
 
@@ -44,6 +45,15 @@
     let radius = 320;
     let sectionTop = 0;
     let scrollDistance = 1;
+    let frontIndex = -1;
+    let hoveredCard = null;
+    let cardDialogOpen = false;
+    let cardDialog = null;
+    let cardDialogFigure = null;
+    let cardDialogClose = null;
+    let expandedSource = null;
+    let dialogReturnFocus = null;
+    let dialogCloseTimer = 0;
 
     function measureOrbit() {
       const width = orbit.clientWidth;
@@ -91,6 +101,144 @@
       });
     }
 
+    function ensureCardDialog() {
+      if (cardDialog) return;
+
+      cardDialog = document.createElement('div');
+      cardDialog.className = 'pham-vault-card-dialog';
+      cardDialog.setAttribute('role', 'dialog');
+      cardDialog.setAttribute('aria-modal', 'true');
+      cardDialog.setAttribute('aria-label', 'Expanded archive image');
+      cardDialog.setAttribute('aria-hidden', 'true');
+      cardDialog.innerHTML =
+        '<div class="pham-vault-card-dialog__backdrop" data-pham-vault-card-dismiss></div>' +
+        '<figure class="pham-vault-card-dialog__card" data-pham-vault-card-expanded></figure>' +
+        '<button type="button" class="pham-vault-card-dialog__close" data-pham-vault-card-close aria-label="Close expanded archive image">CLOSE</button>';
+
+      document.body.appendChild(cardDialog);
+      cardDialogFigure = cardDialog.querySelector('[data-pham-vault-card-expanded]');
+      cardDialogClose = cardDialog.querySelector('[data-pham-vault-card-close]');
+
+      cardDialog.querySelector('[data-pham-vault-card-dismiss]').addEventListener('click', closeCardDialog);
+      cardDialogClose.addEventListener('click', closeCardDialog);
+    }
+
+    function finishCardDialogClose() {
+      window.clearTimeout(dialogCloseTimer);
+      dialogCloseTimer = 0;
+      if (expandedSource) expandedSource.classList.remove('is-card-source-open');
+      if (cardDialogFigure) {
+        cardDialogFigure.innerHTML = '';
+        cardDialogFigure.removeAttribute('style');
+      }
+      if (cardDialog) {
+        cardDialog.classList.remove('is-open', 'is-closing');
+        cardDialog.setAttribute('aria-hidden', 'true');
+      }
+      document.body.classList.remove('pham-vault-card-open');
+      document.removeEventListener('keydown', onCardDialogKeydown);
+      expandedSource = null;
+
+      if (dialogReturnFocus && typeof dialogReturnFocus.focus === 'function') {
+        try { dialogReturnFocus.focus(); } catch (error) { /* no-op */ }
+      }
+      dialogReturnFocus = null;
+    }
+
+    function closeCardDialog() {
+      if (!cardDialogOpen || !cardDialog) return;
+      cardDialogOpen = false;
+      cardDialog.classList.add('is-closing');
+
+      const rect = expandedSource && expandedSource.isConnected
+        ? expandedSource.getBoundingClientRect()
+        : null;
+
+      if (!reducedMotion && rect && cardDialogFigure) {
+        cardDialogFigure.style.left = rect.left.toFixed(2) + 'px';
+        cardDialogFigure.style.top = rect.top.toFixed(2) + 'px';
+        cardDialogFigure.style.width = rect.width.toFixed(2) + 'px';
+        cardDialogFigure.style.height = rect.height.toFixed(2) + 'px';
+        cardDialogFigure.style.transform = 'rotate(5deg) scale(.94)';
+        dialogCloseTimer = window.setTimeout(finishCardDialogClose, 380);
+      } else {
+        finishCardDialogClose();
+      }
+    }
+
+    function onCardDialogKeydown(event) {
+      if (!cardDialogOpen) return;
+      if (event.key === 'Escape' || event.key === 'Esc') {
+        event.preventDefault();
+        closeCardDialog();
+        return;
+      }
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        if (cardDialogClose) cardDialogClose.focus();
+      }
+    }
+
+    function openCardDialog(card) {
+      if (!desktopCardMode.matches || cardDialogOpen || dragMoved) return;
+
+      ensureCardDialog();
+      const rect = card.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      cardDialogOpen = true;
+      expandedSource = card;
+      dialogReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      card.classList.add('is-card-source-open');
+
+      cardDialogFigure.innerHTML = card.innerHTML;
+      cardDialogFigure.querySelectorAll('a').forEach(function (link) {
+        link.removeAttribute('href');
+        link.setAttribute('tabindex', '-1');
+        link.setAttribute('aria-hidden', 'true');
+      });
+
+      const ratio = rect.height / Math.max(rect.width, 1);
+      let targetWidth = Math.min(430, window.innerWidth * 0.3);
+      let targetHeight = targetWidth * ratio;
+      const maxHeight = window.innerHeight * 0.74;
+      if (targetHeight > maxHeight) {
+        targetHeight = maxHeight;
+        targetWidth = targetHeight / ratio;
+      }
+
+      const targetLeft = (window.innerWidth - targetWidth) * 0.5;
+      const targetTop = (window.innerHeight - targetHeight) * 0.5;
+      const cardIndex = Math.max(0, cards.indexOf(card));
+      const cardAngle = rotation + (Math.PI * 2 / cards.length) * cardIndex;
+      const initialLean = clamp(Math.sin(cardAngle) * 8, -10, 10);
+
+      cardDialogFigure.style.transition = 'none';
+      cardDialogFigure.style.left = rect.left.toFixed(2) + 'px';
+      cardDialogFigure.style.top = rect.top.toFixed(2) + 'px';
+      cardDialogFigure.style.width = rect.width.toFixed(2) + 'px';
+      cardDialogFigure.style.height = rect.height.toFixed(2) + 'px';
+      cardDialogFigure.style.transform = 'rotate(' + initialLean.toFixed(2) + 'deg) scale(.95)';
+
+      cardDialog.classList.add('is-open');
+      cardDialog.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('pham-vault-card-open');
+      document.addEventListener('keydown', onCardDialogKeydown);
+
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          if (!cardDialogOpen || !cardDialogFigure) return;
+          cardDialogFigure.style.transition = '';
+          cardDialogFigure.style.left = targetLeft.toFixed(2) + 'px';
+          cardDialogFigure.style.top = targetTop.toFixed(2) + 'px';
+          cardDialogFigure.style.width = targetWidth.toFixed(2) + 'px';
+          cardDialogFigure.style.height = targetHeight.toFixed(2) + 'px';
+          cardDialogFigure.style.transform = 'rotate(0deg) scale(1)';
+          if (cardDialogClose) cardDialogClose.focus({ preventScroll: true });
+        });
+      });
+    }
+
     function render(time) {
       if (!active) {
         frame = 0;
@@ -103,7 +251,7 @@
       setChapter(Math.min(chapters.length - 1, Math.floor(smoothProgress * chapters.length)));
 
       if (!reducedMotion) {
-        if (!dragging) {
+        if (!dragging && !cardDialogOpen) {
           rotation += (autoSpeed + velocity) * delta;
           velocity *= Math.exp(-3.2 * delta);
         }
@@ -121,16 +269,51 @@
         orbitRing.style.height = ringDiameter.toFixed(2) + 'px';
       }
 
-      cards.forEach(function (card, index) {
+      const compactOrbit = window.innerWidth < 600;
+      const mobileFocus = window.innerWidth < 900;
+      const cardStates = cards.map(function (card, index) {
         const angle = rotation + step * index;
-        const depth = (Math.cos(angle) + 1) * 0.5;
-        const compactOrbit = window.innerWidth < 600;
-        const cardScale = compactOrbit ? 0.76 + depth * 0.18 : 0.8 + depth * 0.2;
-        const cardLean = Math.sin(angle) * (compactOrbit ? 6 : 8);
-        card.style.zIndex = String(Math.round(depth * 100));
-        card.style.opacity = String(0.34 + depth * 0.66);
-        card.style.filter = 'brightness(' + (0.48 + depth * 0.58).toFixed(3) + ')';
-        card.style.transform = 'translate3d(-50%, -50%, 0) rotateY(' + angle.toFixed(5) + 'rad) translateZ(' + orbitRadius.toFixed(2) + 'px) rotateZ(' + cardLean.toFixed(2) + 'deg) scale(' + cardScale.toFixed(3) + ')';
+        return {
+          angle: angle,
+          depth: (Math.cos(angle) + 1) * 0.5
+        };
+      });
+
+      let candidateFront = 0;
+      for (let index = 1; index < cardStates.length; index += 1) {
+        if (cardStates[index].depth > cardStates[candidateFront].depth) candidateFront = index;
+      }
+
+      if (
+        frontIndex >= 0 &&
+        frontIndex !== candidateFront &&
+        cardStates[frontIndex] &&
+        cardStates[candidateFront].depth < cardStates[frontIndex].depth + 0.035
+      ) {
+        candidateFront = frontIndex;
+      }
+      frontIndex = candidateFront;
+
+      cards.forEach(function (card, index) {
+        const state = cardStates[index];
+        const isFront = index === frontIndex;
+        const isFrontHover = isFront && hoveredCard === card && desktopCardMode.matches;
+        const baseScale = compactOrbit ? 0.76 + state.depth * 0.18 : 0.8 + state.depth * 0.2;
+        const focusScale = isFront ? (mobileFocus ? 1.045 : (isFrontHover ? 1.06 : 1.025)) : 1;
+        const lift = isFront ? (mobileFocus ? 8 : (isFrontHover ? 16 : 7)) : 0;
+        const focusLean = isFront ? (mobileFocus ? -4 : (isFrontHover ? -1.5 : 0)) : 0;
+        const cardLean = Math.sin(state.angle) * (compactOrbit ? 6 : 8) + focusLean;
+        const cardScale = baseScale * focusScale;
+
+        card.classList.toggle('is-front', isFront);
+        card.classList.toggle('is-front-hover', isFrontHover);
+        card.style.zIndex = String(Math.round(state.depth * 100) + (isFront ? 2 : 0));
+        card.style.opacity = String(Math.min(1, 0.34 + state.depth * 0.66 + (isFront ? 0.05 : 0)));
+        card.style.filter = 'brightness(' + (0.48 + state.depth * 0.58 + (isFront ? 0.05 : 0)).toFixed(3) + ')';
+        card.style.transform =
+          'translate3d(-50%, -50%, 0) rotateY(' + state.angle.toFixed(5) + 'rad) ' +
+          'translateZ(' + orbitRadius.toFixed(2) + 'px) rotateZ(' + cardLean.toFixed(2) + 'deg) ' +
+          'translate3d(0,' + (-lift).toFixed(2) + 'px,0) scale(' + cardScale.toFixed(3) + ')';
       });
 
       if (orbitCards && !orbitCards.classList.contains('is-positioned')) {
@@ -155,6 +338,7 @@
       measureLayout();
       measureProgress();
       measureOrbit();
+      if (cardDialogOpen && !desktopCardMode.matches) closeCardDialog();
     }, { passive: true });
     if ('ResizeObserver' in window) {
       new ResizeObserver(function () {
@@ -218,6 +402,21 @@
       }
     }, true);
 
+    cards.forEach(function (card) {
+      card.addEventListener('pointerenter', function () {
+        hoveredCard = card;
+      }, { passive: true });
+      card.addEventListener('pointerleave', function () {
+        if (hoveredCard === card) hoveredCard = null;
+      }, { passive: true });
+      card.addEventListener('click', function (event) {
+        if (!desktopCardMode.matches || dragMoved) return;
+        event.preventDefault();
+        event.stopPropagation();
+        openCardDialog(card);
+      });
+    });
+
     jumps.forEach(function (jump, index) {
       jump.addEventListener('click', function () {
         const denominator = Math.max(chapters.length - 1, 1);
@@ -251,6 +450,11 @@
       active = !document.hidden && root.getBoundingClientRect().bottom > 0 && root.getBoundingClientRect().top < window.innerHeight;
       if (active) start();
     });
+
+    root.addEventListener('shopify:section:unload', function () {
+      document.removeEventListener('keydown', onCardDialogKeydown);
+      if (cardDialog && cardDialog.parentNode) cardDialog.parentNode.removeChild(cardDialog);
+    }, { once: true });
   }
 
   function mountArchive(root) {

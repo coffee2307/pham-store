@@ -15,6 +15,7 @@
     const progressBar = stage.querySelector('[data-pham-stage-progress-bar]');
     const progressValue = stage.querySelector('[data-pham-stage-progress-value]');
     const errorNote = stage.querySelector('[data-pham-stage-error]');
+    const rotateHint = stage.querySelector('[data-pham-stage-rotate-hint]');
     const switches = Array.from(stage.querySelectorAll('[data-pham-stage-switch]'));
     const defaultView = stage.dataset.defaultView || 'image';
 
@@ -23,6 +24,8 @@
     let failed = false;
     let desiredView = defaultView;
     let failTimer = 0;
+    let rotateHintTimer = 0;
+    let rotateHintShown = false;
     let observer = null;
 
     function setModeLabel(label) {
@@ -44,6 +47,26 @@
       if (errorNote) errorNote.hidden = !visible;
     }
 
+    function hideRotateHint() {
+      window.clearTimeout(rotateHintTimer);
+      rotateHintTimer = 0;
+      if (!rotateHint) return;
+      rotateHint.classList.remove('is-visible');
+      window.setTimeout(function () {
+        if (!rotateHint.classList.contains('is-visible')) rotateHint.hidden = true;
+      }, reducedMotion ? 0 : 440);
+    }
+
+    function showRotateHint() {
+      if (!rotateHint || rotateHintShown) return;
+      rotateHintShown = true;
+      rotateHint.hidden = false;
+      requestAnimationFrame(function () {
+        rotateHint.classList.add('is-visible');
+      });
+      rotateHintTimer = window.setTimeout(hideRotateHint, reducedMotion ? 2400 : 3600);
+    }
+
     function syncSwitcher(view) {
       switches.forEach(function (button) {
         const active = button.dataset.phamStageSwitch === view;
@@ -53,6 +76,7 @@
     }
 
     function showImage() {
+      hideRotateHint();
       if (image) image.hidden = false;
       if (model) model.hidden = true;
       syncSwitcher('image');
@@ -71,9 +95,11 @@
       setModeLabel(stage.dataset.modelModeLabel);
       stage.classList.add('is-model-ready');
       stage.classList.remove('is-model-loading', 'is-model-error');
+      showRotateHint();
     }
 
     function showModelLoading() {
+      hideRotateHint();
       if (image) image.hidden = false;
       if (model) model.hidden = true;
       syncSwitcher('model');
@@ -85,6 +111,7 @@
     }
 
     function showModelError() {
+      hideRotateHint();
       if (image) image.hidden = false;
       if (model) model.hidden = true;
       setLoaderVisible(false);
@@ -114,6 +141,9 @@
       viewer.setAttribute('disable-pan', '');
       viewer.setAttribute('disable-zoom', '');
       if (reducedMotion) viewer.removeAttribute('auto-rotate');
+
+      viewer.addEventListener('pointerdown', hideRotateHint, { passive: true });
+      viewer.addEventListener('keydown', hideRotateHint);
 
       viewer.addEventListener('progress', function (event) {
         if (event.detail && event.detail.reason && event.detail.reason !== 'model-load') return;
