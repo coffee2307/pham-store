@@ -165,7 +165,7 @@
       "url": {{ canonical_url | json }},
       "name": {{ product.title | json }},
       "model": {{ product.title | json }},
-      "description": {{ product.description | strip_html | strip | json }},
+      "description": {{ product.description | replace: '</p>', '</p> ' | replace: '<br>', ' ' | replace: '<br/>', ' ' | replace: '<br />', ' ' | strip_html | strip | json }},
       "category": {{ product.type | default: 'Outerwear' | json }},
       "mainEntityOfPage": {{ canonical_url | json }},
       "brand": {
