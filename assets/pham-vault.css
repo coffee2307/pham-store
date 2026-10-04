@@ -738,10 +738,27 @@
   }
   .pham-vault.is-card-open .pham-vault__orbit-ring {
     opacity: .12;
+    transition: opacity 820ms cubic-bezier(.37,0,.63,1);
   }
-  .pham-vault.is-card-open:not(.is-card-closing) .pham-vault__orbit-card:not(.is-tarot-expanded) {
-    opacity: 0 !important;
+  .pham-vault.is-card-closing .pham-vault__orbit-ring {
+    opacity: 1;
+  }
+  .pham-vault.is-card-open .pham-vault__orbit-card:not(.is-tarot-expanded) {
     pointer-events: none;
+  }
+  .pham-vault.is-card-open .pham-vault__orbit-card:not(.is-tarot-expanded) .pham-vault__orbit-card-face {
+    opacity: 0;
+    filter: brightness(.46);
+    transition:
+      opacity 820ms cubic-bezier(.37,0,.63,1),
+      filter 820ms cubic-bezier(.37,0,.63,1),
+      transform 320ms cubic-bezier(.2,.78,.2,1),
+      border-color 260ms ease,
+      box-shadow 320ms ease;
+  }
+  .pham-vault.is-card-closing .pham-vault__orbit-card:not(.is-tarot-expanded) .pham-vault__orbit-card-face {
+    opacity: 1;
+    filter: none;
   }
   .pham-vault__orbit-card.is-tarot-expanded {
     z-index: 999 !important;
