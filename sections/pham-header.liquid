@@ -137,15 +137,30 @@
       {%- endif -%}
 
       {%- if show_account -%}
-        <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
-           class="pham-header__action pham-header__action--account"
-           aria-label="{% if customer %}Account{% else %}Sign in{% endif %}">
-          <svg class="pham-header__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
-            <circle cx="9" cy="6.5" r="3" stroke="currentColor" stroke-width="1.2" fill="none"/>
-            <path d="M3 16c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/>
-          </svg>
-          <span class="pham-visually-hidden">{% if customer %}Account{% else %}Sign in{% endif %}</span>
-        </a>
+        {%- if shop.customer_accounts_enabled -%}
+          <shopify-account
+            class="pham-account-component"
+            menu="{{ section.settings.customer_account_menu | default: 'customer-account-main-menu' }}"
+          >
+            <span slot="signed-out-avatar" class="pham-header__action pham-header__action--account pham-account-trigger" aria-label="Sign in">
+              <svg class="pham-header__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
+                <circle cx="9" cy="6.5" r="3" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                <path d="M3 16c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+              </svg>
+              <span class="pham-visually-hidden">Sign in</span>
+            </span>
+          </shopify-account>
+        {%- else -%}
+          <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
+             class="pham-header__action pham-header__action--account"
+             aria-label="{% if customer %}Account{% else %}Sign in{% endif %}">
+            <svg class="pham-header__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
+              <circle cx="9" cy="6.5" r="3" stroke="currentColor" stroke-width="1.2" fill="none"/>
+              <path d="M3 16c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+            </svg>
+            <span class="pham-visually-hidden">{% if customer %}Account{% else %}Sign in{% endif %}</span>
+          </a>
+        {%- endif -%}
       {%- endif -%}
 
       <button type="button"
@@ -400,6 +415,13 @@
       "id": "show_account",
       "label": "Show account icon",
       "default": true
+    },
+    {
+      "type": "link_list",
+      "id": "customer_account_menu",
+      "label": "Customer account menu",
+      "default": "customer-account-main-menu",
+      "info": "Used by Shopify's account component for Orders, Profile, and account links."
     },
     {
       "type": "checkbox",
