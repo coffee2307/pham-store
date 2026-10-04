@@ -4,11 +4,6 @@
     assign featured_product = collections.all.products.first
   endif
 
-  assign object_image = section.settings.object_image
-  if object_image == blank and featured_product != blank
-    assign object_image = featured_product.featured_image
-  endif
-
   assign object_url = section.settings.cta_link
   if object_url == blank and featured_product != blank
     assign object_url = featured_product.url
@@ -46,7 +41,7 @@
           {%- if section.blocks.size > 0 -%}
             {%- for block in section.blocks -%}
               {%- assign card_image = block.settings.image -%}
-              {%- assign card_alt = block.settings.alt_text | default: card_image.alt | default: featured_product.title -%}
+              {%- assign card_alt = block.settings.alt_text | default: card_image.alt | default: 'PHAM archive image' -%}
               <figure class="pham-vault__orbit-card" data-pham-vault-card {{ block.shopify_attributes }}>
                 {%- if block.settings.link != blank -%}<a href="{{ block.settings.link }}" aria-label="{{ card_alt | escape }}">{%- endif -%}
                   {%- if card_image != blank -%}
@@ -63,49 +58,6 @@
                     <span class="pham-vault__orbit-placeholder">PHAM<br>0{{ forloop.index }}</span>
                   {%- endif -%}
                 {%- if block.settings.link != blank -%}</a>{%- endif -%}
-              </figure>
-            {%- endfor -%}
-          {%- elsif featured_product != blank and featured_product.images.size > 0 -%}
-            {%- for card_image in featured_product.images limit: 10 -%}
-              <figure class="pham-vault__orbit-card" data-pham-vault-card>
-                {{
-                  card_image
-                  | image_url: width: 1200
-                  | image_tag:
-                    loading: 'lazy',
-                    widths: '320, 480, 720, 960, 1200',
-                    sizes: '(max-width: 749px) 34vw, 18vw',
-                    alt: card_image.alt | default: featured_product.title
-                }}
-              </figure>
-            {%- endfor -%}
-            {%- if featured_product.images.size < 6 -%}
-              {%- for card_image in featured_product.images limit: 5 -%}
-                <figure class="pham-vault__orbit-card" data-pham-vault-card aria-hidden="true">
-                  {{
-                    card_image
-                    | image_url: width: 1200
-                    | image_tag:
-                      loading: 'lazy',
-                      widths: '320, 480, 720, 960, 1200',
-                      sizes: '(max-width: 749px) 34vw, 18vw',
-                      alt: ''
-                  }}
-                </figure>
-              {%- endfor -%}
-            {%- endif -%}
-          {%- elsif object_image != blank -%}
-            {%- for card_number in (1..8) -%}
-              <figure class="pham-vault__orbit-card" data-pham-vault-card>
-                {{
-                  object_image
-                  | image_url: width: 1200
-                  | image_tag:
-                    loading: 'lazy',
-                    widths: '320, 480, 720, 960, 1200',
-                    sizes: '(max-width: 749px) 34vw, 18vw',
-                    alt: featured_product.title
-                }}
               </figure>
             {%- endfor -%}
           {%- else -%}
@@ -186,10 +138,9 @@
   "settings": [
     { "type": "text", "id": "accessibility_label", "label": "Accessibility label", "default": "PHAM Edition 01 digital experience" },
     { "type": "product", "id": "product", "label": "Featured product" },
-    { "type": "image_picker", "id": "object_image", "label": "Fallback orbit image", "info": "Used only when no orbit cards or product images are available." },
     { "type": "range", "id": "object_scale", "label": "Orbit scale", "min": 70, "max": 110, "step": 5, "unit": "%", "default": 90 },
     { "type": "range", "id": "orbit_speed", "label": "Automatic rotation speed", "min": 0, "max": 16, "step": 1, "unit": "°/s", "default": 6 },
-    { "type": "range", "id": "orbit_tilt", "label": "Orbit tilt", "min": 12, "max": 30, "step": 1, "unit": "°", "default": 24 },
+    { "type": "range", "id": "orbit_tilt", "label": "Orbit tilt", "min": 2, "max": 16, "step": 1, "unit": "°", "default": 8 },
     { "type": "text", "id": "chapter_1_title", "label": "Chapter 1 title", "default": "ENTER THE VAULT" },
     { "type": "textarea", "id": "chapter_1_body", "label": "Chapter 1 text", "default": "One object. One edition. Built without compromise." },
     { "type": "text", "id": "scroll_label", "label": "Scroll prompt", "default": "SCROLL TO ENTER" },
