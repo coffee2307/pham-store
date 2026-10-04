@@ -15,7 +15,7 @@
     assign direct_purchase = true
   endif
 
-  assign preorder_label = section.settings.preorder_label | default: 'PRE-ORDER NOW'
+  assign preorder_label = section.settings.preorder_label | default: 'JOIN THE WAITLIST'
   assign closed_label = section.settings.preorder_closed_label | default: 'PRE-ORDER CLOSED'
   assign closed_note = section.settings.preorder_closed_note | default: 'The waitlist is currently closed. We will announce the next window by email.'
   assign add_label = settings.pham_add_to_cart_label | default: 'ADD TO EDITION'
