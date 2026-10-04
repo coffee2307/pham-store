@@ -10,11 +10,11 @@
         "shipping_content": "<p>Complimentary worldwide express shipping on all orders. Returns accepted within 14 days of receipt.</p>",
         "care_heading": "Composition & Care",
         "care_content": "<p>Dry clean only. Store flat in a breathable garment bag away from direct sunlight.</p>",
-        "preorder_label": "PRE-ORDER NOW",
-        "preorder_note": "Tap PRE-ORDER NOW to join the waitlist. We will email you as the next edition develops.",
+        "preorder_label": "JOIN THE WAITLIST",
+        "preorder_note": "Join the PHAM-001 waitlist. We will email you when pre-order access opens.",
         "show_phases_default": true,
         "phases_eyebrow": "PRODUCTION SCHEDULE",
-        "shipping_terms": "Shipping details will be confirmed closer to release. We will keep waitlist members informed by email."
+        "shipping_terms": "Production and fulfillment dates will be confirmed before payment is collected. Waitlist members will be notified by email."
       },
       "blocks": {
         "gallery_male_002": {
