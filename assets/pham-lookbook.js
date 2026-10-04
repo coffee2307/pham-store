@@ -12,6 +12,8 @@
   const BODY_LB_CLASS = 'pham-lookbook-lightbox-open';
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 4;
+  const prefersReducedMotion =
+    window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function clamp(n, min, max) {
     return Math.min(max, Math.max(min, n));
@@ -37,12 +39,12 @@
       this.counter = el.querySelector('[data-pham-carousel-current]');
       this.index = 0;
       this.total = this.slides.length;
-      this.autoplayMs = parseInt(el.getAttribute('data-autoplay') || '0', 10);
+      this.autoplayMs = prefersReducedMotion ? 0 : parseInt(el.getAttribute('data-autoplay') || '0', 10);
       this.timer = null;
       this.paused = false;
       this.inViewport = true;
       this.viewportObserver = null;
-      this.transitionMs = 720;
+      this.transitionMs = prefersReducedMotion ? 0 : 720;
       this.transitioning = false;
       this._transitionTimer = null;
       this._enterFrame = null;
@@ -836,6 +838,23 @@
         e.preventDefault();
         e.stopPropagation();
         this.go(this.index + 1);
+      } else if (e.key === 'Tab') {
+        const focusable = Array.from(
+          this.modal.querySelectorAll('button:not([disabled]):not([hidden]), a[href], [tabindex]:not([tabindex="-1"])')
+        ).filter((el) => el.getClientRects().length > 0);
+        if (!focusable.length) {
+          e.preventDefault();
+          return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     }
   }
