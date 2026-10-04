@@ -126,17 +126,18 @@
 }
 .pham-vault__orbit-plane {
   will-change: transform;
-  transform: rotateX(24deg) rotateZ(-7deg);
+  transform: rotateX(8deg) rotateZ(4deg);
 }
 .pham-vault__orbit-ring {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 78%;
-  height: 78%;
+  width: 52%;
+  height: 52%;
   border: 1px solid rgba(255,255,255,.1);
   border-radius: 50%;
-  transform: translate3d(-50%, -50%, -8px) rotateX(74deg);
+  transform: translate3d(-50%, -50%, -8px) rotateX(90deg);
+  transform-origin: center;
   box-shadow: 0 0 80px rgba(255,255,255,.018);
   pointer-events: none;
 }
