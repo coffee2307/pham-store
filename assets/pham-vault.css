@@ -559,7 +559,7 @@
     top: 46%;
     width: min(76vw, 1280px);
     height: min(80vh, 840px);
-    --orbit-card-width: clamp(146px, 13.2vw, 222px);
+    --orbit-card-width: clamp(156px, 14vw, 236px);
   }
 }
 
@@ -568,7 +568,7 @@
     top: 39%;
     width: min(74vw, 1180px);
     height: 66svh;
-    --orbit-card-width: clamp(126px, 11.8vw, 188px);
+    --orbit-card-width: clamp(134px, 12.4vw, 198px);
   }
 }
 
