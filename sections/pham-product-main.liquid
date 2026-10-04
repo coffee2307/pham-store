@@ -257,9 +257,10 @@
     {{ product.variants | json }}
   </script>
 
-  <script type="application/ld+json">
-    {{ product | structured_data }}
-  </script>
+  {%- comment -%}
+    Product JSON-LD is rendered centrally by snippets/pham-structured-data.liquid
+    to keep a single canonical Product entity on the page.
+  {%- endcomment -%}
 </section>
 
 <style>
