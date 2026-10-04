@@ -2443,19 +2443,19 @@
         "type": "textarea",
         "id": "pham_seo_default_description",
         "label": "Default meta description",
-        "default": "PHAM — Simply Being, Fully Living. A slow-made label beginning with Edition 01."
+        "default": "PHAM Atelier is an independent fashion label from Vietnam, developing limited-edition garments through restraint, proportion and controlled detail."
       },
       {
         "type": "textarea",
         "id": "pham_seo_home_description",
         "label": "Homepage meta description",
-        "default": "PHAM — Simply Being, Fully Living. Edition 01 is the first release; pre-order and worldwide shipping now open."
+        "default": "PHAM Atelier is an independent fashion label from Vietnam. Discover PHAM-001, Edition 01, and the design process behind the first release."
       },
       {
         "type": "textarea",
         "id": "pham_seo_product_description",
         "label": "Product fallback meta description",
-        "default": "Explore the PHAM edition — slow-made luxury with complimentary worldwide express shipping."
+        "default": "Discover PHAM-001 — Edition 01 by PHAM Atelier, a limited cropped bomber developed in Vietnam through a focused, design-led process."
       },
       {
         "type": "textarea",
@@ -2467,7 +2467,7 @@
         "type": "textarea",
         "id": "pham_seo_about_description",
         "label": "About meta description",
-        "default": "PHAM manifesto — a solo-led design label founded in 2026. Pure design, absolute devotion, one singular aesthetic vision."
+        "default": "About PHAM Atelier — an independent fashion label founded in Vietnam in 2026, focused on restraint, proportion, construction and limited editions."
       },
       {
         "type": "textarea",
@@ -2503,7 +2503,7 @@
         "type": "textarea",
         "id": "pham_seo_shop_description",
         "label": "Collection fallback meta description",
-        "default": "Browse the PHAM atelier collection — limited editions and considered luxury."
+        "default": "Browse PHAM Atelier — limited-edition garments, PHAM-001 and future objects developed through a restrained design process."
       },
       {
         "type": "header",
