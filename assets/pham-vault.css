@@ -191,6 +191,16 @@
     0 0 0 1px rgba(255,255,255,.055),
     0 0 28px rgba(255,255,255,.07);
 }
+.pham-vault__orbit-card[role="button"]:focus-visible {
+  outline: none;
+}
+.pham-vault__orbit-card[role="button"]:focus-visible .pham-vault__orbit-card-face {
+  border-color: rgba(255,255,255,.82);
+  box-shadow:
+    0 24px 56px rgba(0,0,0,.56),
+    0 0 0 2px rgba(255,255,255,.72),
+    0 0 34px rgba(255,255,255,.12);
+}
 .pham-vault__orbit-card a { display: block; width: 100%; height: 100%; color: inherit; text-decoration: none; }
 .pham-vault__orbit-card img {
   display: block;
