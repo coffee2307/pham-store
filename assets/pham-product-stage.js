@@ -68,6 +68,8 @@
     let rotateHintTimer = 0;
     let rotateHintShown = false;
     let observer = null;
+    let viewerEl = null;
+    let stageInViewport = true;
 
     function setModeLabel(label) {
       if (mode) mode.textContent = label || '';
@@ -86,6 +88,18 @@
 
     function setErrorVisible(visible) {
       if (errorNote) errorNote.hidden = !visible;
+    }
+
+    function syncViewerActivity() {
+      if (!viewerEl) return;
+      const shouldRotate =
+        !reducedMotion &&
+        ready &&
+        desiredView === 'model' &&
+        stageInViewport &&
+        !document.hidden;
+      if (shouldRotate) viewerEl.setAttribute('auto-rotate', '');
+      else viewerEl.removeAttribute('auto-rotate');
     }
 
     function hideRotateHint() {
@@ -124,6 +138,7 @@
       setLoaderVisible(false);
       setErrorVisible(false);
       setModeLabel(stage.dataset.imageModeLabel);
+      syncViewerActivity();
     }
 
     function showModelReady() {
@@ -136,6 +151,7 @@
       setModeLabel(stage.dataset.modelModeLabel);
       stage.classList.add('is-model-ready');
       stage.classList.remove('is-model-loading', 'is-model-error');
+      syncViewerActivity();
       showRotateHint();
     }
 
@@ -176,12 +192,13 @@
 
     function configureModel(viewer) {
       if (!viewer) return;
+      viewerEl = viewer;
       viewer.setAttribute('reveal', 'auto');
       viewer.setAttribute('loading', 'eager');
       viewer.setAttribute('interaction-prompt', 'none');
       viewer.setAttribute('disable-pan', '');
       viewer.setAttribute('disable-zoom', '');
-      if (reducedMotion) viewer.removeAttribute('auto-rotate');
+      syncViewerActivity();
 
       viewer.addEventListener('pointerdown', hideRotateHint, { passive: true });
       viewer.addEventListener('keydown', hideRotateHint);
@@ -260,6 +277,16 @@
         show(button.dataset.phamStageSwitch);
       });
     });
+
+    if ('IntersectionObserver' in window) {
+      const activityObserver = new IntersectionObserver(function (entries) {
+        stageInViewport = Boolean(entries[0] && entries[0].isIntersecting);
+        syncViewerActivity();
+      }, { rootMargin: '20% 0px', threshold: 0.01 });
+      activityObserver.observe(stage);
+    }
+
+    document.addEventListener('visibilitychange', syncViewerActivity);
 
     if (defaultView === 'model' && model && template) {
       if ('IntersectionObserver' in window) {
