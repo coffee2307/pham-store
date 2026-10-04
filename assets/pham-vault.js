@@ -16,6 +16,7 @@
     const orbit = root.querySelector('[data-pham-vault-orbit]');
     const orbitPlane = root.querySelector('[data-pham-vault-orbit-plane]');
     const orbitRing = root.querySelector('.pham-vault__orbit-ring');
+    const orbitCards = root.querySelector('.pham-vault__orbit-cards');
     const cards = Array.from(root.querySelectorAll('[data-pham-vault-card]'));
     const chapters = Array.from(root.querySelectorAll('[data-pham-vault-chapter]'));
     const jumps = Array.from(root.querySelectorAll('[data-pham-vault-jump]'));
@@ -131,6 +132,10 @@
         card.style.filter = 'brightness(' + (0.48 + depth * 0.58).toFixed(3) + ')';
         card.style.transform = 'translate3d(-50%, -50%, 0) rotateY(' + angle.toFixed(5) + 'rad) translateZ(' + orbitRadius.toFixed(2) + 'px) rotateZ(' + cardLean.toFixed(2) + 'deg) scale(' + cardScale.toFixed(3) + ')';
       });
+
+      if (orbitCards && !orbitCards.classList.contains('is-positioned')) {
+        orbitCards.classList.add('is-positioned');
+      }
 
       frame = requestAnimationFrame(render);
     }

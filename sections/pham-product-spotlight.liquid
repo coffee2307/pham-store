@@ -55,11 +55,12 @@
                       data-pham-parallax
                       data-pham-parallax-speed="{{ sp_parallax_speed }}">
                 {{ image
-                    | image_url: width: 1600
+                    | image_url: width: 1600, quality: 78
                     | image_tag:
                       loading: 'lazy',
                       decoding: 'async',
-                      widths: '480, 768, 1080, 1440, 1600',
+                      fetchpriority: 'low',
+                      widths: '360, 480, 640, 768, 960, 1200, 1600',
                       sizes: '(max-width: 749px) calc(100vw - (var(--gutter) * 2) - 48px), (max-width: 900px) 100vw, 50vw',
                       class: 'pham-product-spotlight__img',
                       alt: image.alt | default: product.title

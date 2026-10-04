@@ -122,7 +122,17 @@
 .pham-vault__orbit-cards {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
   transform-style: preserve-3d;
+}
+.pham-vault__orbit-cards {
+  opacity: 0;
+  contain: layout paint;
+}
+.pham-vault__orbit-cards.is-positioned {
+  opacity: 1;
+  transition: opacity 180ms ease;
 }
 .pham-vault__orbit-plane {
   will-change: transform;
@@ -301,6 +311,7 @@
   .pham-vault__sticky { position: relative; min-height: 100svh; }
   .pham-vault__chapter:not(:first-child),.pham-vault__nav,.pham-vault__progress,.pham-vault__canvas { display: none; }
   .pham-vault__chapter { opacity: 1; visibility: visible; transform: none; }
+  .pham-vault__orbit-cards { opacity: 1; transition: none; }
   .pham-vault__cue::before { animation: none; }
   .pham-vault__orbit-stage { cursor: default; }
 }

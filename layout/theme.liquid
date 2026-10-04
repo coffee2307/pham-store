@@ -36,7 +36,15 @@
       {%- render 'theme-editor' -%}
     {% endif %}
 
-    {{ content_for_header }}
+    {%- if request.design_mode -%}
+      {{ content_for_header }}
+    {%- else -%}
+      {%- capture pham_async_stylesheet_attrs -%} media="print" onload="this.media='screen'" rel="stylesheet"{%- endcapture -%}
+      {%- assign pham_content_for_header = content_for_header
+        | replace: ' media="screen" rel="stylesheet"', pham_async_stylesheet_attrs
+      -%}
+      {{ pham_content_for_header }}
+    {%- endif -%}
     {% # theme-check-enable RemoteAsset %}
 
     {% comment %}CUSTOM_PHAM_THEME_START{% endcomment %}
@@ -60,10 +68,16 @@
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    {%- assign pham_fonts_url = 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@800&family=Syncopate:wght@400;700&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400&display=swap' -%}
-    <link rel="preload" as="style" href="{{ pham_fonts_url }}">
-    <link href="{{ pham_fonts_url }}" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="{{ pham_fonts_url }}" rel="stylesheet"></noscript>
+    {%- assign pham_text_fonts_url = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400&display=swap' -%}
+    {%- assign pham_display_fonts_url = 'https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&display=optional' -%}
+    <link rel="preload" as="style" href="{{ pham_text_fonts_url }}">
+    <link href="{{ pham_text_fonts_url }}" rel="stylesheet" media="print" onload="this.media='all'">
+    <link rel="preload" as="style" href="{{ pham_display_fonts_url }}">
+    <link href="{{ pham_display_fonts_url }}" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+      <link href="{{ pham_text_fonts_url }}" rel="stylesheet">
+      <link href="{{ pham_display_fonts_url }}" rel="stylesheet">
+    </noscript>
     <link rel="preload" as="style" href="{{ 'pham-theme.css' | asset_url }}">
     {{ 'pham-theme.css' | asset_url | stylesheet_tag }}
     <script src="{{ 'pham-security.js' | asset_url }}" defer></script>
