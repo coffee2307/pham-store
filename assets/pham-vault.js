@@ -41,6 +41,8 @@
     let lastPointerX = 0;
     let lastPointerTime = 0;
     let radius = 320;
+    let sectionTop = 0;
+    let scrollDistance = 1;
 
     function measureOrbit() {
       const width = orbit.clientWidth;
@@ -63,10 +65,14 @@
       }
     }
 
-    function measureProgress() {
+    function measureLayout() {
       const rect = root.getBoundingClientRect();
-      const distance = Math.max(root.offsetHeight - window.innerHeight, 1);
-      progress = clamp(-rect.top / distance, 0, 1);
+      sectionTop = window.scrollY + rect.top;
+      scrollDistance = Math.max(root.offsetHeight - window.innerHeight, 1);
+    }
+
+    function measureProgress() {
+      progress = clamp((window.scrollY - sectionTop) / scrollDistance, 0, 1);
     }
 
     function setChapter(index) {
@@ -135,14 +141,22 @@
       frame = requestAnimationFrame(render);
     }
 
+    measureLayout();
     measureProgress();
     measureOrbit();
     setChapter(0);
     window.addEventListener('scroll', measureProgress, { passive: true });
     window.addEventListener('resize', function () {
+      measureLayout();
       measureProgress();
       measureOrbit();
     }, { passive: true });
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(function () {
+        measureLayout();
+        measureProgress();
+      }).observe(root);
+    }
 
     orbit.addEventListener('pointerdown', function (event) {
       if (event.button !== undefined && event.button !== 0) return;
@@ -201,20 +215,25 @@
 
     jumps.forEach(function (jump, index) {
       jump.addEventListener('click', function () {
-        const sectionTop = window.scrollY + root.getBoundingClientRect().top;
-        const distance = root.offsetHeight - window.innerHeight;
         const denominator = Math.max(chapters.length - 1, 1);
-        window.scrollTo({ top: sectionTop + distance * (index / denominator), behavior: reducedMotion ? 'auto' : 'smooth' });
+        window.scrollTo({ top: sectionTop + scrollDistance * (index / denominator), behavior: reducedMotion ? 'auto' : 'smooth' });
       });
     });
 
     root.querySelectorAll('[data-pham-magnetic]').forEach(function (element) {
       if (!finePointer || reducedMotion) return;
+      let magneticRect = null;
+      element.addEventListener('pointerenter', function () {
+        magneticRect = element.getBoundingClientRect();
+      }, { passive: true });
       element.addEventListener('pointermove', function (event) {
-        const rect = element.getBoundingClientRect();
-        element.style.transform = 'translate3d(' + ((event.clientX - rect.left - rect.width / 2) * 0.08).toFixed(2) + 'px,' + ((event.clientY - rect.top - rect.height / 2) * 0.12).toFixed(2) + 'px,0)';
+        if (!magneticRect) return;
+        element.style.transform = 'translate3d(' + ((event.clientX - magneticRect.left - magneticRect.width / 2) * 0.08).toFixed(2) + 'px,' + ((event.clientY - magneticRect.top - magneticRect.height / 2) * 0.12).toFixed(2) + 'px,0)';
       });
-      element.addEventListener('pointerleave', function () { element.style.transform = ''; });
+      element.addEventListener('pointerleave', function () {
+        magneticRect = null;
+        element.style.transform = '';
+      });
     });
 
     const observer = new IntersectionObserver(function (entries) {
@@ -243,11 +262,20 @@
     let active = false;
     let frame = 0;
     let previousTime = performance.now();
+    let sectionTop = 0;
+    let scrollDistance = 1;
+    let translateDistance = 0;
+
+    function measureArchiveLayout() {
+      const rect = root.getBoundingClientRect();
+      sectionTop = window.scrollY + rect.top;
+      scrollDistance = Math.max(root.offsetHeight - window.innerHeight, 1);
+      translateDistance = Math.max(track.scrollWidth - window.innerWidth, 0);
+    }
 
     function fromScroll() {
       if (dragging) return;
-      const rect = root.getBoundingClientRect();
-      target = clamp(-rect.top / Math.max(root.offsetHeight - window.innerHeight, 1), 0, 1);
+      target = clamp((window.scrollY - sectionTop) / scrollDistance, 0, 1);
     }
 
     function draw(time) {
@@ -258,8 +286,7 @@
       const delta = Math.min((time - previousTime) / 1000, 0.1);
       previousTime = time;
       current = damp(current, target, 6, delta);
-      const distance = Math.max(track.scrollWidth - window.innerWidth, 0);
-      track.style.transform = 'translate3d(' + (-distance * current).toFixed(2) + 'px,0,0)';
+      track.style.transform = 'translate3d(' + (-translateDistance * current).toFixed(2) + 'px,0,0)';
       root.style.setProperty('--archive-progress', current.toFixed(4));
       frame = requestAnimationFrame(draw);
     }
@@ -279,7 +306,7 @@
     });
     viewport.addEventListener('pointermove', function (event) {
       if (!dragging) return;
-      const distance = Math.max(track.scrollWidth - window.innerWidth, 1);
+      const distance = Math.max(translateDistance, 1);
       target = clamp(dragProgress - (event.clientX - dragStart) / distance, 0, 1);
     });
     viewport.addEventListener('pointerup', function (event) {
@@ -287,8 +314,19 @@
       if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
     });
     viewport.addEventListener('pointercancel', function () { dragging = false; });
+    measureArchiveLayout();
+    fromScroll();
     window.addEventListener('scroll', fromScroll, { passive: true });
-    window.addEventListener('resize', fromScroll, { passive: true });
+    window.addEventListener('resize', function () {
+      measureArchiveLayout();
+      fromScroll();
+    }, { passive: true });
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(function () {
+        measureArchiveLayout();
+        fromScroll();
+      }).observe(root);
+    }
 
     const observer = new IntersectionObserver(function (entries) {
       active = entries[0].isIntersecting;
@@ -298,33 +336,6 @@
       }
     }, { rootMargin: '20% 0px' });
     observer.observe(root);
-  }
-
-  let cursorHaloMounted = false;
-
-  function mountCursorHalo() {
-    if (cursorHaloMounted || reducedMotion || !finePointer || window.innerWidth < 900) return;
-    cursorHaloMounted = true;
-
-    const halo = document.createElement('div');
-    halo.className = 'pham-cursor-halo';
-    halo.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(halo);
-
-    function move(event) {
-      halo.style.transform = 'translate3d(' + (event.clientX - halo.offsetWidth / 2).toFixed(1) + 'px,' + (event.clientY - halo.offsetHeight / 2).toFixed(1) + 'px,0)';
-      halo.classList.add('is-visible');
-      const interactive = event.target instanceof Element && event.target.closest('a, button, input, select, textarea, [role="button"], [data-pham-vault-orbit]');
-      halo.classList.toggle('is-interactive', Boolean(interactive));
-    }
-
-    window.addEventListener('pointermove', move, { passive: true });
-    document.documentElement.addEventListener('mouseleave', function () {
-      halo.classList.remove('is-visible');
-    });
-    window.addEventListener('blur', function () {
-      halo.classList.remove('is-visible');
-    });
   }
 
   function syncHeaderOffset() {
