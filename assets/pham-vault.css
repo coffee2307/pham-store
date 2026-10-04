@@ -603,7 +603,7 @@
 }
 .pham-vault.is-card-open .pham-vault__orbit-ring {
   opacity: .28;
-  transition: opacity 520ms cubic-bezier(.37,0,.63,1);
+  transition: opacity 440ms cubic-bezier(.37,0,.63,1);
 }
 .pham-vault.is-card-closing .pham-vault__orbit-ring {
   opacity: 1;
@@ -612,8 +612,8 @@
   opacity: .52;
   filter: brightness(.62);
   transition:
-    opacity 520ms cubic-bezier(.37,0,.63,1),
-    filter 520ms cubic-bezier(.37,0,.63,1),
+    opacity 440ms cubic-bezier(.37,0,.63,1),
+    filter 440ms cubic-bezier(.37,0,.63,1),
     transform 320ms cubic-bezier(.2,.78,.2,1),
     border-color 260ms ease,
     box-shadow 320ms ease;
@@ -637,8 +637,8 @@
     0 0 38px rgba(255,255,255,.065);
   transform: none !important;
   transition:
-    border-color 700ms cubic-bezier(.37,0,.63,1),
-    box-shadow 800ms cubic-bezier(.37,0,.63,1) !important;
+    border-color 560ms cubic-bezier(.37,0,.63,1),
+    box-shadow 640ms cubic-bezier(.37,0,.63,1) !important;
 }
 
 .pham-vault-card-dialog {
@@ -649,15 +649,15 @@
   visibility: hidden;
   pointer-events: none;
   transition:
-    opacity 620ms cubic-bezier(.37,0,.63,1),
-    visibility 0s linear 640ms;
+    opacity 500ms cubic-bezier(.37,0,.63,1),
+    visibility 0s linear 520ms;
 }
 .pham-vault-card-dialog.is-open {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transition:
-    opacity 620ms cubic-bezier(.37,0,.63,1),
+    opacity 500ms cubic-bezier(.37,0,.63,1),
     visibility 0s linear 0s;
 }
 .pham-vault-card-dialog__backdrop {
@@ -667,7 +667,7 @@
     radial-gradient(circle at 50% 48%, rgba(255,255,255,.02), transparent 40%),
     rgba(2,2,2,.48);
   opacity: 1;
-  transition: opacity 720ms cubic-bezier(.37,0,.63,1);
+  transition: opacity 560ms cubic-bezier(.37,0,.63,1);
 }
 .pham-vault-card-dialog.is-closing .pham-vault-card-dialog__backdrop {
   opacity: 0;
@@ -690,8 +690,8 @@
   transform: translateY(-5px);
   pointer-events: none;
   transition:
-    opacity 320ms ease,
-    transform 420ms cubic-bezier(.37,0,.63,1),
+    opacity 260ms ease,
+    transform 340ms cubic-bezier(.37,0,.63,1),
     border-color 180ms ease,
     color 180ms ease;
 }
