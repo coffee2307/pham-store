@@ -14,7 +14,7 @@
       "settings": {
         "product": "",
         "image_limit": 3,
-        "eyebrow": "PHAM EDITION · SPOTLIGHT",
+        "eyebrow": "PHAM ATELIER · EDITION 01",
         "description": "",
         "preorder_label": "JOIN THE WAITLIST",
         "preorder_closed_label": "PRE-ORDER CLOSED",
@@ -39,7 +39,7 @@
             "size": "lg",
             "aspect": "4-5",
             "parallax_speed": 0.2,
-            "caption": "PHAM SS26 · FRAME 01",
+            "caption": "PHAM ATELIER · EDITION 01 · FRAME 01",
             "caption_position": "below",
             "overlay_eyebrow": "LOOK · 01",
             "overlay_text": "The Silhouette"
@@ -49,7 +49,7 @@
           "type": "spec",
           "settings": {
             "label_1": "DESIGN",
-            "value_1": "PHAM · VIETNAM",
+            "value_1": "PHAM ATELIER · VIETNAM",
             "label_2": "SHELL",
             "value_2": "PREMIUM NYLON · MICROFIBER LEATHER",
             "label_3": "RUN",
@@ -74,8 +74,8 @@
             "eyebrow": "PROCESS",
             "heading": "Built in layers.",
             "body": "<p>PHAM-001 is built around a compact cropped silhouette using premium nylon, microfiber leather, mesh lining and quilted insulation. Paneled construction and controlled volume define Edition 01 before it enters its limited production run.</p>",
-            "cta_label": "READ THE PROCESS",
-            "cta_link": "",
+            "cta_label": "ABOUT PHAM ATELIER",
+            "cta_link": "/pages/about",
             "size": "xl"
           }
         }
@@ -87,9 +87,9 @@
         "editorial_1"
       ],
       "settings": {
-        "eyebrow": "EDITORIAL · PHAM",
+        "eyebrow": "EDITORIAL · PHAM ATELIER",
         "title": "The Architecture of Restraint",
-        "intro": "A visual study of Edition 01 — its silhouette, fabric, and the slow process behind the first release.",
+        "intro": "A PHAM Atelier visual study of Edition 01 — its silhouette, material construction and the slow process behind the first release.",
         "enable_parallax": true,
         "columns": 12
       }
@@ -97,7 +97,7 @@
     "pham-vault": {
       "type": "pham-vault",
       "settings": {
-        "accessibility_label": "PHAM Edition 01 digital experience",
+        "accessibility_label": "PHAM Atelier — Edition 01 digital archive",
         "product": "",
         "object_scale": 90,
         "orbit_speed": 6,
@@ -114,9 +114,9 @@
         "spec_3_label": "EDITION",
         "spec_3_value": "LIMITED / 001",
         "chapter_4_title": "PHAM-001",
-        "chapter_4_body": "The first PHAM object. Released in a deliberately limited edition.",
-        "cta_label": "INSPECT THE OBJECT",
-        "cta_link": ""
+        "chapter_4_body": "The first object from PHAM Atelier. Released as PHAM-001 in a deliberately limited Edition 01.",
+        "cta_label": "INSPECT PHAM-001",
+        "cta_link": "/products/pham-001"
       },
       "blocks": {
         "orbit_01": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 01", "link": "" } },
