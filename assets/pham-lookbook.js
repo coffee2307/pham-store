@@ -40,6 +40,8 @@
       this.autoplayMs = parseInt(el.getAttribute('data-autoplay') || '0', 10);
       this.timer = null;
       this.paused = false;
+      this.inViewport = true;
+      this.viewportObserver = null;
       this.transitionMs = 720;
       this.transitioning = false;
       this._transitionTimer = null;
@@ -76,7 +78,22 @@
 
       this._bind();
       this._initSlides();
+      this._observeViewport();
       this._startAutoplay();
+    }
+
+    _observeViewport() {
+      if (!('IntersectionObserver' in window)) return;
+      this.inViewport = false;
+      this.viewportObserver = new IntersectionObserver((entries) => {
+        const entry = entries[0];
+        const visible = Boolean(entry && entry.isIntersecting);
+        if (visible === this.inViewport) return;
+        this.inViewport = visible;
+        if (visible) this._startAutoplay();
+        else this._clearAutoplay();
+      }, { rootMargin: '120px 0px', threshold: 0.01 });
+      this.viewportObserver.observe(this.el);
     }
 
     _initSlides() {
@@ -299,7 +316,7 @@
 
     _startAutoplay() {
       this._clearAutoplay();
-      if (!this.autoplayMs || this.total < 2 || this.paused) return;
+      if (!this.autoplayMs || this.total < 2 || this.paused || !this.inViewport) return;
 
       const schedule = (delay) => {
         this.timer = window.setTimeout(() => {
@@ -336,6 +353,10 @@
       this._cancelEnterFrame();
       this._clearTransitionTimer();
       this._clearAutoplay();
+      if (this.viewportObserver) {
+        this.viewportObserver.disconnect();
+        this.viewportObserver = null;
+      }
       document.removeEventListener('visibilitychange', this._onVisibility);
     }
   }
