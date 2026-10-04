@@ -105,7 +105,7 @@
   --orbit-card-height: calc(var(--orbit-card-width) * 1.34);
   position: absolute;
   z-index: 3;
-  left: 61%;
+  left: 50%;
   top: 50%;
   width: min(68vw, 1120px);
   height: min(76vh, 760px);
@@ -126,7 +126,7 @@
 }
 .pham-vault__orbit-plane {
   will-change: transform;
-  transform: rotateX(8deg) rotateZ(4deg);
+  transform: rotateX(5deg) rotateZ(6deg);
 }
 .pham-vault__orbit-ring {
   position: absolute;
