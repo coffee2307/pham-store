@@ -14,6 +14,11 @@
 
   assign show_vendor       = section.settings.show_vendor
   assign show_sku          = section.settings.show_sku
+  assign pham_vendor_label = product.vendor | strip
+  assign pham_vendor_lower = pham_vendor_label | downcase
+  if pham_vendor_label == blank or pham_vendor_lower == 'pham' or pham_vendor_lower == 'pham official'
+    assign pham_vendor_label = 'PHAM ATELIER'
+  endif
   assign details_heading   = section.settings.details_heading | default: 'Product details'
   assign shipping_heading  = section.settings.shipping_heading | default: 'Shipping & Returns'
   assign care_heading      = section.settings.care_heading | default: 'Composition & Care'
@@ -64,8 +69,8 @@
       <div class="pham-product-main__panel-inner">
 
         <header class="pham-product-main__head reveal-up" data-pham-delay="80">
-          {%- if show_vendor and product.vendor != blank -%}
-            <p class="pham-eyebrow pham-product-main__vendor">{{ product.vendor }}</p>
+          {%- if show_vendor -%}
+            <p class="pham-eyebrow pham-product-main__vendor">{{ pham_vendor_label }}</p>
           {%- endif -%}
           <h1 class="pham-product-main__title">{{ product.title }}</h1>
           {%- if short_tagline != blank -%}
