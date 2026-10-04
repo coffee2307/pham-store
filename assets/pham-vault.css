@@ -618,6 +618,16 @@
     border-color 260ms ease,
     box-shadow 320ms ease;
 }
+.pham-vault.is-card-open .pham-vault__orbit-card.is-occluded-by-expanded:not(.is-tarot-expanded) .pham-vault__orbit-card-face {
+  opacity: 0 !important;
+  filter: brightness(.4) !important;
+  box-shadow: none !important;
+}
+.pham-vault__orbit-card.is-tarot-expanded .pham-vault__orbit-card-face {
+  isolation: isolate;
+  background: #090909;
+  backface-visibility: hidden;
+}
 .pham-vault.is-card-closing .pham-vault__orbit-card:not(.is-tarot-expanded) .pham-vault__orbit-card-face {
   opacity: 1;
   filter: none;
