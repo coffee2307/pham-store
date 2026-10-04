@@ -16,9 +16,10 @@
       viewer.setAttribute('reveal', 'auto');
       viewer.setAttribute('loading', 'eager');
       viewer.setAttribute('interaction-prompt', 'none');
-      viewer.setAttribute('min-camera-orbit', 'auto auto 78%');
-      viewer.setAttribute('max-camera-orbit', 'auto auto 140%');
-      viewer.setAttribute('min-field-of-view', '18deg');
+      viewer.setAttribute('disable-pan', '');
+      viewer.setAttribute('min-camera-orbit', 'auto auto 115%');
+      viewer.setAttribute('max-camera-orbit', 'auto auto 150%');
+      viewer.setAttribute('min-field-of-view', '24deg');
       viewer.setAttribute('max-field-of-view', '38deg');
     }
 
