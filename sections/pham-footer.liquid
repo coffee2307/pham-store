@@ -2,13 +2,7 @@
 {%- capture footer_product_url -%}{%- render 'pham-featured-product-url' -%}{%- endcapture -%}
 {%- assign footer_product_url = footer_product_url | strip -%}
 {%- liquid
-  assign menu_handle = section.settings.menu | default: 'footer'
-  assign menu        = linklists[menu_handle]
-  assign year        = 'now' | date: '%Y'
-  assign faq_handle = section.settings.faq_handle | default: 'faq'
-  assign size_handle = section.settings.size_guide_handle | default: 'size-guide'
-  assign faq_page = pages[faq_handle]
-  assign size_page = pages[size_handle]
+  assign year = 'now' | date: '%Y'
 -%}
 
 <footer class="pham-footer"
