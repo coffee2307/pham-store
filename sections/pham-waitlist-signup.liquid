@@ -49,6 +49,7 @@
   {%- else -%}
     {%- form 'contact', id: 'PhamWaitlistForm', class: 'pham-waitlist__form reveal-up', novalidate: 'novalidate' -%}
       <input type="hidden" name="contact[Product]" value="{{ product.title | escape }}">
+      <input type="hidden" name="contact[Variant ID]" value="{{ current_variant.id }}" data-pham-waitlist-contact-variant>
       <input type="hidden" name="contact[Source]" value="PHAM waitlist">
 
       {%- if form.posted_successfully? -%}
