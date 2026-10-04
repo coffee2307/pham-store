@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: theme-check-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   theme-check:
     runs-on: ubuntu-latest
@@ -25,6 +29,14 @@ jobs:
 
       - name: Install Shopify CLI
         run: npm install --global @shopify/cli@latest
+
+      - name: Check PHAM JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in assets/pham-*.js; do
+            node --check "$file"
+          done
 
       - name: Run Shopify Theme Check
         run: shopify theme check
