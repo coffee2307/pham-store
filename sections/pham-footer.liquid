@@ -63,31 +63,12 @@
       {%- comment -%} ============== COLUMN 2 — QUICK MENU ============== {%- endcomment -%}
       <div class="pham-footer__col pham-footer__col--menu">
         <h3 class="pham-footer__heading">{{ section.settings.menu_heading }}</h3>
-        {%- if menu != blank and menu.links.size > 0 -%}
-          <ul class="pham-footer__menu" role="list">
-            {%- for link in menu.links -%}
-              <li class="pham-footer__menu-item">
-                <a href="{{ link.url }}" class="pham-footer__link">{% render 'pham-nav-label', title: link.title, url: link.url %}</a>
-              </li>
-            {%- endfor -%}
-          </ul>
-        {%- else -%}
-          <ul class="pham-footer__menu" role="list">
-            <li><a href="{{ footer_product_url }}" class="pham-footer__link">PRODUCT</a></li>
-            {%- if faq_page != blank -%}
-              <li><a href="{{ faq_page.url }}" class="pham-footer__link">FAQ</a></li>
-            {%- else -%}
-              <li><a href="/pages/faq" class="pham-footer__link">FAQ</a></li>
-            {%- endif -%}
-            {%- if size_page != blank -%}
-              <li><a href="{{ size_page.url }}" class="pham-footer__link">SIZE GUIDE</a></li>
-            {%- else -%}
-              <li><a href="/pages/size-guide" class="pham-footer__link">SIZE GUIDE</a></li>
-            {%- endif -%}
-            <li><a href="/pages/contact" class="pham-footer__link">CONTACT</a></li>
-            <li><a href="{{ routes.account_url }}" class="pham-footer__link">ACCOUNT</a></li>
-          </ul>
-        {%- endif -%}
+        <ul class="pham-footer__menu" role="list">
+          <li class="pham-footer__menu-item"><a href="{{ routes.root_url }}" class="pham-footer__link">HOME</a></li>
+          <li class="pham-footer__menu-item"><a href="{{ footer_product_url }}" class="pham-footer__link">PRODUCT</a></li>
+          <li class="pham-footer__menu-item"><a href="/pages/about" class="pham-footer__link">ABOUT</a></li>
+          <li class="pham-footer__menu-item"><a href="/pages/contact" class="pham-footer__link">CONTACT</a></li>
+        </ul>
       </div>
 
       {%- comment -%} ============== COLUMN 3 — NEWSLETTER ============== {%- endcomment -%}
