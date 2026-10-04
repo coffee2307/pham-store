@@ -46,7 +46,6 @@
     let sectionTop = 0;
     let scrollDistance = 1;
     let frontIndex = -1;
-    let hoveredCard = null;
     let cardDialogOpen = false;
     let cardDialog = null;
     let cardDialogFigure = null;
@@ -297,19 +296,22 @@
       cards.forEach(function (card, index) {
         const state = cardStates[index];
         const isFront = index === frontIndex;
-        const isFrontHover = isFront && hoveredCard === card && desktopCardMode.matches;
         const baseScale = compactOrbit ? 0.76 + state.depth * 0.18 : 0.8 + state.depth * 0.2;
-        const focusScale = isFront ? (mobileFocus ? 1.045 : (isFrontHover ? 1.06 : 1.025)) : 1;
-        const lift = isFront ? (mobileFocus ? 8 : (isFrontHover ? 16 : 7)) : 0;
-        const focusLean = isFront ? (mobileFocus ? -4 : (isFrontHover ? -1.5 : 0)) : 0;
+
+        // Continuous front-focus curve prevents the old binary handoff from snapping.
+        const rawFocus = clamp((state.depth - 0.74) / 0.26, 0, 1);
+        const focus = rawFocus * rawFocus * (3 - 2 * rawFocus);
+        const focusScale = 1 + focus * (mobileFocus ? 0.045 : 0.024);
+        const lift = focus * (mobileFocus ? 8 : 6);
+        const focusLean = mobileFocus ? -4 * focus : 0;
         const cardLean = Math.sin(state.angle) * (compactOrbit ? 6 : 8) + focusLean;
         const cardScale = baseScale * focusScale;
 
         card.classList.toggle('is-front', isFront);
-        card.classList.toggle('is-front-hover', isFrontHover);
+        card.style.setProperty('--pham-card-focus', focus.toFixed(3));
         card.style.zIndex = String(Math.round(state.depth * 100) + (isFront ? 2 : 0));
-        card.style.opacity = String(Math.min(1, 0.34 + state.depth * 0.66 + (isFront ? 0.05 : 0)));
-        card.style.filter = 'brightness(' + (0.48 + state.depth * 0.58 + (isFront ? 0.05 : 0)).toFixed(3) + ')';
+        card.style.opacity = String(Math.min(1, 0.34 + state.depth * 0.66 + focus * 0.04));
+        card.style.filter = 'brightness(' + (0.48 + state.depth * 0.58 + focus * 0.05).toFixed(3) + ')';
         card.style.transform =
           'translate3d(-50%, -50%, 0) rotateY(' + state.angle.toFixed(5) + 'rad) ' +
           'translateZ(' + orbitRadius.toFixed(2) + 'px) rotateZ(' + cardLean.toFixed(2) + 'deg) ' +
@@ -403,12 +405,6 @@
     }, true);
 
     cards.forEach(function (card) {
-      card.addEventListener('pointerenter', function () {
-        hoveredCard = card;
-      }, { passive: true });
-      card.addEventListener('pointerleave', function () {
-        if (hoveredCard === card) hoveredCard = null;
-      }, { passive: true });
       card.addEventListener('click', function (event) {
         if (!desktopCardMode.matches || dragMoved) return;
         event.preventDefault();
