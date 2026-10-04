@@ -57,6 +57,8 @@
     let cardDialogClosing = false;
     let sourceCardTransform = '';
     let dialogOpenScrollY = 0;
+    let dialogPlaneTilt = 0;
+    let dialogPlaneLean = 0;
 
     function measureOrbit() {
       const width = orbit.clientWidth;
@@ -179,6 +181,8 @@
       expandedSource = null;
       sourceCardTransform = '';
       dialogOpenScrollY = 0;
+      dialogPlaneTilt = 0;
+      dialogPlaneLean = 0;
 
       if (dialogReturnFocus && typeof dialogReturnFocus.focus === 'function') {
         try { dialogReturnFocus.focus(); } catch (error) {}
@@ -191,7 +195,7 @@
       const timing = animation.effect && animation.effect.getTiming ? animation.effect.getTiming() : null;
       const duration = timing && Number(timing.duration) ? Number(timing.duration) : fallbackDuration;
       if (animation.currentTime == null) animation.currentTime = duration;
-      animation.playbackRate = -0.9;
+      animation.playbackRate = -1;
       animation.play();
     }
 
@@ -210,7 +214,7 @@
         return;
       }
 
-      reverseAnimation(cardDialogAnimation, 980);
+      reverseAnimation(cardDialogAnimation, 820);
       cardDialogAnimation.onfinish = finishCardDialogClose;
     }
 
@@ -241,10 +245,15 @@
 
       sourceCardTransform = card.style.transform || window.getComputedStyle(card).transform;
       dialogOpenScrollY = window.scrollY;
+      dialogPlaneTilt = currentTilt;
+      dialogPlaneLean = 6 + Math.sin(smoothProgress * Math.PI * 2) * 0.35;
 
       const targetScale = getExpandedCardScale(card);
       const targetCardTransform =
-        'translate3d(-50%, -50%, 0) rotateY(0rad) translateZ(0px) rotateZ(0deg) translate3d(0,0,0) scale(' +
+        'translate3d(-50%, -50%, 0) ' +
+        'rotateZ(' + (-dialogPlaneLean).toFixed(3) + 'deg) ' +
+        'rotateX(' + (-dialogPlaneTilt).toFixed(3) + 'deg) ' +
+        'rotateY(0rad) translateZ(0px) rotateZ(0deg) translate3d(0,0,0) scale(' +
         targetScale.toFixed(4) +
         ')';
       card.classList.add('is-tarot-expanded');
@@ -262,7 +271,7 @@
         return;
       }
 
-      const duration = 980;
+      const duration = 820;
       const easing = 'cubic-bezier(.37,0,.63,1)';
 
       cardDialogAnimation = card.animate(
@@ -301,7 +310,9 @@
       const orbitRadius = radius * spacing;
       const step = Math.PI * 2 / cards.length;
       const orbitLean = 6 + Math.sin(smoothProgress * Math.PI * 2) * 0.35;
-      orbitPlane.style.transform = 'rotateX(' + currentTilt.toFixed(2) + 'deg) rotateZ(' + orbitLean.toFixed(2) + 'deg)';
+      if (!cardDialogOpen) {
+        orbitPlane.style.transform = 'rotateX(' + currentTilt.toFixed(2) + 'deg) rotateZ(' + orbitLean.toFixed(2) + 'deg)';
+      }
       if (orbitRing) {
         const ringDiameter = orbitRadius * 1.32;
         orbitRing.style.width = ringDiameter.toFixed(2) + 'px';
