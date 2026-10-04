@@ -234,6 +234,9 @@
       cardDialogClosing = false;
       cardDialogSettled = false;
       if (window.innerWidth < 600) mobileOrbitResume = 0;
+      if (expandedSource && expandedSource.getAttribute('role') === 'button') {
+        expandedSource.setAttribute('aria-expanded', 'false');
+      }
       expandedSource = null;
       sourceCardTransform = '';
       dialogOpenScrollY = 0;
@@ -307,6 +310,7 @@
       cardDialogSettled = false;
       if (window.innerWidth < 600) mobileOrbitResume = 0;
       expandedSource = card;
+      if (card.getAttribute('role') === 'button') card.setAttribute('aria-expanded', 'true');
       dialogReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
       sourceCardTransform = card.style.transform || window.getComputedStyle(card).transform;
@@ -555,6 +559,13 @@
     cards.forEach(function (card) {
       card.addEventListener('click', function (event) {
         if (!cardExpandMode.matches || dragMoved) return;
+        event.preventDefault();
+        event.stopPropagation();
+        openCardDialog(card);
+      });
+      card.addEventListener('keydown', function (event) {
+        if (card.getAttribute('role') !== 'button') return;
+        if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
         event.stopPropagation();
         openCardDialog(card);
