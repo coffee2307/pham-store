@@ -77,8 +77,10 @@
         targetRadius = Math.max(width * 0.33, cardWidth * 1.28 * density);
         radius = clamp(targetRadius, 220, 360);
       } else {
-        targetRadius = Math.max(width * 0.31, cardWidth * 1.22 * density);
-        radius = clamp(targetRadius, 270, 455);
+        // Desktop: keep the ring a little tighter so the larger cards read
+        // as one sculptural object instead of isolated tiles.
+        targetRadius = Math.max(width * 0.295, cardWidth * 1.16 * density);
+        radius = clamp(targetRadius, 265, 430);
       }
     }
 
