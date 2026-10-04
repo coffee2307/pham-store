@@ -59,6 +59,7 @@
     let dialogOpenScrollY = 0;
     let dialogPlaneTilt = 0;
     let dialogPlaneLean = 0;
+    let mobileOrbitResume = 1;
 
     function measureOrbit() {
       const width = orbit.clientWidth;
@@ -192,6 +193,7 @@
       cardDialogOpen = false;
       cardDialogClosing = false;
       cardDialogSettled = false;
+      if (window.innerWidth < 600) mobileOrbitResume = 0;
       expandedSource = null;
       sourceCardTransform = '';
       dialogOpenScrollY = 0;
@@ -254,6 +256,7 @@
       cardDialogOpen = true;
       cardDialogClosing = false;
       cardDialogSettled = false;
+      if (window.innerWidth < 600) mobileOrbitResume = 0;
       expandedSource = card;
       dialogReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
@@ -331,7 +334,13 @@
 
       if (!reducedMotion) {
         if (!dragging && !cardDialogOpen) {
-          rotation += (autoSpeed + velocity) * delta;
+          if (window.innerWidth < 600) {
+            mobileOrbitResume = damp(mobileOrbitResume, 1, 4.8, delta);
+            rotation += (autoSpeed * mobileOrbitResume + velocity) * delta;
+          } else {
+            mobileOrbitResume = 1;
+            rotation += (autoSpeed + velocity) * delta;
+          }
           velocity *= Math.exp(-3.2 * delta);
         }
         currentTilt = damp(currentTilt, targetTilt, 6, delta);
