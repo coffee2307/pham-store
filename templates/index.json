@@ -16,7 +16,7 @@
         "image_limit": 3,
         "eyebrow": "PHAM EDITION · SPOTLIGHT",
         "description": "",
-        "preorder_label": "PRE-ORDER NOW",
+        "preorder_label": "JOIN THE WAITLIST",
         "preorder_closed_label": "PRE-ORDER CLOSED",
         "show_inventory": true,
         "show_view_pdp": true,
@@ -55,7 +55,7 @@
             "label_3": "RUN",
             "value_3": "EDITION 01 · 50 PIECES",
             "label_4": "STATUS",
-            "value_4": "PRE-ORDER · 2026",
+            "value_4": "WAITLIST OPEN · 2026",
             "size": "sm"
           }
         },
