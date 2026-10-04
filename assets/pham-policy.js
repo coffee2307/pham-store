@@ -103,13 +103,20 @@
     return p;
   }
 
-  function revertPromotedHeadings() {
+  function normalizeBodyHeadingLevels() {
     var rte = body.querySelector('.rte') || body;
-    Array.prototype.forEach.call(rte.querySelectorAll('h1, h2, h3'), function (heading) {
+
+    /* Shopify renders the policy title as the page's single H1.
+       Preserve semantic H2/H3 headings inside policy content; only demote
+       accidental body-level H1 headings to H2 so the hierarchy stays valid. */
+    Array.prototype.forEach.call(rte.querySelectorAll('h1'), function (heading) {
       if (heading.closest('.shopify-policy__title')) return;
-      var text = heading.textContent.trim();
-      var level = isSectionTitle(text) ? 'section' : 'subsection';
-      heading.replaceWith(labeledParagraph(text, level));
+      var h2 = document.createElement('h2');
+      h2.innerHTML = heading.innerHTML;
+      Array.prototype.forEach.call(heading.attributes, function (attr) {
+        if (attr.name !== 'class') h2.setAttribute(attr.name, attr.value);
+      });
+      heading.replaceWith(h2);
     });
   }
 
@@ -432,7 +439,7 @@
 
   function normalizeAll() {
     stripImportedClasses();
-    revertPromotedHeadings();
+    normalizeBodyHeadingLevels();
     labelHeadingParagraphs();
     normalizePolicyBlocks();
     tagExistingHeadings();
