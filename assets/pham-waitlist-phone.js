@@ -56,7 +56,7 @@
   };
 
   document.addEventListener('DOMContentLoaded', function () {
-    var form = document.querySelector('[data-pham-waitlist-form]');
+    var form = document.querySelector('#PhamWaitlistForm');
     if (form) initPhoneField(form);
   });
 })();
