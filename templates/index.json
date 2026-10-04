@@ -100,6 +100,9 @@
       "settings": {
         "accessibility_label": "PHAM Edition 01 digital experience",
         "product": "",
+        "object_scale": 90,
+        "orbit_speed": 6,
+        "orbit_tilt": 24,
         "chapter_1_title": "ENTER THE VAULT",
         "chapter_1_body": "One object. One edition. Built without compromise.",
         "chapter_2_title": "FORM BEFORE NOISE",
