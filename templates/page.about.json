@@ -7,9 +7,9 @@
         "title_line_1": "PHAM",
         "title_line_2": "MANIFESTO",
         "subtitle": "Simply Being, Fully Living.",
-        "paragraph_1": "Founded in 2026 by a 16-year-old creator, PHAM was established not to follow the noise of the industry, but to build a sanctuary for pure design.",
-        "paragraph_2": "We deliberately reject the concept of mass production. To us, true luxury lies in absolute devotion. Operating as a solo-led design label allows the founder to oversee every single stage of creation—from the very first sketch, the precise engineering of silhouettes, to the final execution. By holding uncompromised control over the entire process, PHAM ensures that every garment remains a flawless, untainted reflection of a singular aesthetic vision.",
-        "closing_line": "We do not create pieces to fill a wardrobe. We create garments to define an identity.",
+        "paragraph_1": "Founded in Vietnam in 2026, PHAM is an independent design label built around restraint, proportion and controlled detail.",
+        "paragraph_2": "Each object is developed as a focused edition rather than a seasonal volume exercise. From silhouette and material selection to sampling and final production, decisions are kept deliberate and traceable so the finished garment remains coherent with the original intent.",
+        "closing_line": "Not louder. More deliberate.",
         "origin_eyebrow": "PHAM / RECORD",
         "origin_label": "ORIGIN",
         "origin_value": "VIETNAM / ATELIER",
@@ -38,9 +38,16 @@
             "title": "ONE OBJECT AT A TIME",
             "body": "Each edition is developed slowly, documented completely and released deliberately."
           }
+        },
+        "principle_detail": {
+          "type": "principle",
+          "settings": {
+            "title": "DETAIL WITHOUT DISPLAY",
+            "body": "Identity lives in construction, proportion and hidden detail rather than oversized branding."
+          }
         }
       },
-      "block_order": ["principle_form", "principle_restraint", "principle_process"]
+      "block_order": ["principle_form", "principle_restraint", "principle_process", "principle_detail"]
     }
   },
   "order": [
