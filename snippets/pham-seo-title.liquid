@@ -9,9 +9,9 @@
 
   case request.page_type
     when 'index'
-      assign pham_seo = 'HOME'
+      assign pham_seo = 'PHAM Atelier — Independent Fashion Label'
     when 'product'
-      assign pham_seo = product.title
+      assign pham_seo = product.title | append: ' — Edition 01 | PHAM Atelier'
     when 'collection'
       assign coll_lower = collection.title | downcase | strip
       if coll_lower == 'sản phẩm' or coll_lower == 'san pham' or coll_lower == 'all' or coll_lower == 'tất cả' or coll_lower == 'tat ca' or collection.handle == 'all' or collection.handle == 'frontpage'
@@ -47,9 +47,9 @@
       assign pham_seo = 'ADDRESSES'
     when 'page'
       if page.handle == 'contact' or t_lower contains 'liên hệ' or t_lower contains 'lien he' or t_lower == 'contact'
-        assign pham_seo = 'CONTACT'
+        assign pham_seo = 'Contact PHAM Atelier'
       elsif page.handle == 'about' or t_lower contains 'giới thiệu' or t_lower contains 'gioi thieu' or t_lower == 'about'
-        assign pham_seo = 'ABOUT'
+        assign pham_seo = 'About PHAM Atelier — Independent Fashion Label'
       elsif t_lower contains 'trang chủ' or t_lower contains 'trang chu' or t_lower == 'home'
         assign pham_seo = 'HOME'
       elsif t_lower contains 'chính sách' or t_lower contains 'chinh sach' or t_lower contains 'policy'
@@ -61,6 +61,6 @@
       assign pham_seo = raw_title
   endcase
 
-  assign pham_seo_clean = pham_seo | strip_html | strip | upcase
+  assign pham_seo_clean = pham_seo | strip_html | strip
 -%}
 {{- pham_seo_clean | escape -}}
