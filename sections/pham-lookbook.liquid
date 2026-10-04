@@ -344,7 +344,7 @@
   .pham-lookbook-v2 {
     background-color: var(--color-void);
     color: var(--color-bone);
-    padding-block: clamp(72px, 9vw, 140px);
+    padding-block: clamp(56px, 6vw, 96px);
     overflow: hidden;
   }
   .pham-lookbook-v2__head {
@@ -353,7 +353,7 @@
     grid-template-rows: auto auto;
     align-items: end;
     gap: clamp(14px, 1.4vw, 20px) clamp(32px, 6vw, 88px);
-    margin-bottom: clamp(44px, 6vw, 80px);
+    margin-bottom: clamp(34px, 4.5vw, 56px);
     padding-top: clamp(18px, 2.2vw, 30px);
     border-top: 1px solid rgba(255,255,255,.14);
     max-width: none;
@@ -375,7 +375,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: var(--tracking-tech);
-    font-size: clamp(2.15rem, 4.6vw, 4.35rem);
+    font-size: clamp(2.1rem, 4vw, 3.75rem);
     line-height: 1.04;
     color: var(--color-bone);
     margin: 0;
@@ -396,7 +396,7 @@
     gap: clamp(10px, 1.35vw, 18px);
     align-items: stretch;
   }
-  .pham-lookbook-v2__cell { position: relative; min-width: 0; }
+  .pham-lookbook-v2__cell { position: relative; min-width: 0; margin: 0; }
   .pham-lookbook-v2__cell--xs { grid-column: span 3; }
   .pham-lookbook-v2__cell--sm { grid-column: span 4; }
   .pham-lookbook-v2__cell--md { grid-column: span 6; }
@@ -423,6 +423,23 @@
   .pham-lookbook-v2__cell--aspect-2-3   .pham-lookbook-v2__frame { aspect-ratio: 2/3; }
   .pham-lookbook-v2__cell--aspect-9-16  .pham-lookbook-v2__frame { aspect-ratio: 9/16; }
   .pham-lookbook-v2__cell--aspect-21-9  .pham-lookbook-v2__frame { aspect-ratio: 21/9; }
+
+  @media (min-width: 901px) {
+    .pham-lookbook-v2__frame {
+      max-height: min(64svh, 640px);
+    }
+    .pham-lookbook-v2__frame--carousel,
+    .pham-lookbook-v2__cell--aspect-1-1 .pham-lookbook-v2__frame,
+    .pham-lookbook-v2__cell--aspect-3-4 .pham-lookbook-v2__frame,
+    .pham-lookbook-v2__cell--aspect-4-5 .pham-lookbook-v2__frame,
+    .pham-lookbook-v2__cell--aspect-16-9 .pham-lookbook-v2__frame,
+    .pham-lookbook-v2__cell--aspect-2-3 .pham-lookbook-v2__frame,
+    .pham-lookbook-v2__cell--aspect-9-16 .pham-lookbook-v2__frame,
+    .pham-lookbook-v2__cell--aspect-21-9 .pham-lookbook-v2__frame {
+      height: min(64svh, 640px);
+      aspect-ratio: auto;
+    }
+  }
 
   .pham-lookbook-v2__img {
     position: absolute;
@@ -803,9 +820,10 @@
   .pham-lookbook-v2__cell--editorial {
     display: flex;
     align-items: center;
-    padding: clamp(34px, 5vw, 72px) clamp(24px, 4vw, 64px);
-    border-top: 1px solid var(--color-ash);
-    border-bottom: 1px solid var(--color-ash);
+    min-height: clamp(280px, 34svh, 360px);
+    padding: clamp(30px, 4vw, 56px) clamp(24px, 4vw, 56px);
+    border: 1px solid var(--color-ash);
+    box-sizing: border-box;
   }
   .pham-lookbook-v2__editorial {
     display: flex;
@@ -837,7 +855,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
-    min-height: 100%;
+    min-height: clamp(280px, 34svh, 360px);
     background-color: rgba(20, 20, 26, 0.58);
   }
   .pham-lookbook-v2__quote-mark {
@@ -877,7 +895,7 @@
     padding: clamp(20px, 3vw, 36px);
     display: grid;
     gap: var(--space-sm);
-    align-content: end;
+    align-content: center;
     min-height: 100%;
     background-color: rgba(20, 20, 26, 0.38);
   }
