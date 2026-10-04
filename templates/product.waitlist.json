@@ -4,11 +4,11 @@
       "type": "pham-waitlist-signup",
       "settings": {
         "preorder_open": true,
-        "eyebrow": "PRE-ORDER · WAITLIST",
+        "eyebrow": "WAITLIST · EDITION 01",
         "heading": "",
-        "intro": "Complete your details below. You will proceed to secure checkout for your Digital Access Pass.",
-        "form_note": "Your pass is reserved after payment is confirmed.",
-        "submit_label": "PROCEED TO CHECKOUT"
+        "intro": "Complete your details below to join the PHAM-001 waitlist. No payment is collected at this stage.",
+        "form_note": "Joining the waitlist does not create an order or reserve a unit. We will email you when pre-order access opens.",
+        "submit_label": "JOIN THE WAITLIST"
       }
     }
   },
