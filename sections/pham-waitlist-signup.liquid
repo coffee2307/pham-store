@@ -47,11 +47,24 @@
       <a href="{{ routes.root_url }}" class="pham-back-link">Return to atelier</a>
     </div>
   {%- else -%}
-    <form id="PhamWaitlistForm"
-          class="pham-waitlist__form reveal-up"
-          data-pham-waitlist-form
-          novalidate>
+    {%- form 'contact', id: 'PhamWaitlistForm', class: 'pham-waitlist__form reveal-up', novalidate: 'novalidate' -%}
+      <input type="hidden" name="contact[Product]" value="{{ product.title | escape }}">
+      <input type="hidden" name="contact[Source]" value="PHAM waitlist">
 
+      {%- if form.posted_successfully? -%}
+        <div class="pham-waitlist-thank-you" role="status" aria-live="polite">
+          <p class="pham-eyebrow">{{ section.settings.success_eyebrow }}</p>
+          <h1 class="pham-waitlist-thank-you__title">{{ section.settings.success_heading }}</h1>
+          <p class="pham-waitlist-thank-you__message">{{ section.settings.success_message }}</p>
+          <p class="pham-waitlist-thank-you__followup">{{ section.settings.success_followup }}</p>
+          <div class="pham-waitlist-thank-you__actions">
+            {%- if product != blank -%}
+              <a class="pham-waitlist-thank-you__link" href="{{ product.url }}">RETURN TO {{ product.title }}</a>
+            {%- endif -%}
+            <a class="pham-waitlist-thank-you__link" href="{{ routes.root_url }}">RETURN TO ATELIER</a>
+          </div>
+        </div>
+      {%- else -%}
       <div data-pham-waitlist-form-panel>
         <header class="pham-waitlist__head">
           {%- if section.settings.eyebrow != blank -%}
@@ -78,7 +91,9 @@
         {%- endif -%}
         </header>
 
-        <div class="pham-waitlist__status is-error" data-pham-waitlist-error hidden role="alert"></div>
+        <div class="pham-waitlist__status is-error" data-pham-waitlist-error{% unless form.errors %} hidden{% endunless %} role="alert">
+          {%- if form.errors -%}Please review the highlighted details and try again.{{ form.errors | default_errors }}{%- endif -%}
+        </div>
 
         {%- if pham_honeypot_on -%}
           <div class="pham-waitlist__hp" aria-hidden="true">
@@ -97,6 +112,7 @@
             <label for="PhamWaitlistName-{{ section.id }}">Full name</label>
             <input id="PhamWaitlistName-{{ section.id }}"
                    data-pham-waitlist-name
+                   name="contact[Name]"
                    type="text"
                    autocomplete="name"
                    required
@@ -108,6 +124,7 @@
             <label for="PhamWaitlistEmail-{{ section.id }}">Email</label>
             <input id="PhamWaitlistEmail-{{ section.id }}"
                    data-pham-waitlist-email
+                   name="contact[email]"
                    type="email"
                    autocomplete="email"
                    spellcheck="false"
@@ -121,6 +138,7 @@
             <label for="PhamWaitlistPhone-{{ section.id }}">Phone</label>
             <input id="PhamWaitlistPhone-{{ section.id }}"
                    data-pham-waitlist-phone
+                   name="contact[phone]"
                    type="tel"
                    autocomplete="tel"
                    required
@@ -132,6 +150,7 @@
             <label for="PhamWaitlistAltContact-{{ section.id }}">Alternative contact <span class="pham-waitlist__optional">(optional)</span></label>
             <input id="PhamWaitlistAltContact-{{ section.id }}"
                    data-pham-waitlist-alt
+                   name="contact[Alternative contact]"
                    type="text"
                    autocomplete="off"
                    placeholder="WhatsApp, Telegram, Line, WeChat, etc.">
@@ -141,6 +160,7 @@
             <label for="PhamWaitlistNotes-{{ section.id }}">Other requests <span class="pham-waitlist__optional">(optional)</span></label>
             <textarea id="PhamWaitlistNotes-{{ section.id }}"
                       data-pham-waitlist-notes
+                      name="contact[body]"
                       rows="4"
                       placeholder="Sizing, shipping country, special requests…"></textarea>
           </div>
@@ -154,14 +174,14 @@
             <span class="pham-waitlist__yn" role="radiogroup" aria-label="Email updates">
               <label class="pham-waitlist__yn-option">
                 <input type="radio"
-                       name="pham-waitlist-marketing-{{ section.id }}"
+                       name="contact[Marketing opt-in]"
                        value="yes"
                        data-pham-waitlist-marketing
                        {% if section.settings.marketing_checked %}checked{% endif %}>
                 <span>YES</span>
               </label><span class="pham-waitlist__yn-sep" aria-hidden="true">/</span><label class="pham-waitlist__yn-option">
                 <input type="radio"
-                       name="pham-waitlist-marketing-{{ section.id }}"
+                       name="contact[Marketing opt-in]"
                        value="no"
                        data-pham-waitlist-marketing
                        {% unless section.settings.marketing_checked %}checked{% endunless %}>
@@ -174,7 +194,8 @@
             <input id="PhamWaitlistLegal-{{ section.id }}"
                    class="pham-waitlist__checkbox-input"
                    type="checkbox"
-                   value="true"
+                   name="contact[Legal consent]"
+                   value="yes"
                    data-pham-waitlist-legal
                    required
                    aria-required="true">
@@ -185,9 +206,9 @@
               {%- elsif privacy_policy.body != blank and terms_policy.body != blank -%}
                 I agree to the <a href="{{ privacy_policy.url }}">Privacy policy</a> and <a href="{{ terms_policy.url }}">Terms of service</a>.
               {%- elsif privacy_policy.body != blank -%}
-                I agree to the <a href="{{ privacy_policy.url }}">Privacy policy</a> and pre-order terms.
+                I agree to the <a href="{{ privacy_policy.url }}">Privacy policy</a> and waitlist terms.
               {%- else -%}
-                I agree to the pre-order terms and understand my details will be used to manage this waitlist.
+                I agree to the waitlist terms and understand my details will be used to manage this waitlist.
               {%- endif -%}
             </span>
           </label>
@@ -202,7 +223,8 @@
           </button>
         </div>
       </div>
-    </form>
+      {%- endif -%}
+    {%- endform -%}
   {%- endunless -%}
 </section>
 
@@ -556,7 +578,7 @@
 <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/js/intlTelInput.min.js" defer></script>
 {% # theme-check-enable RemoteAsset %}
 <script src="{{ 'pham-waitlist-phone.js' | asset_url }}" defer></script>
-<script src="{{ 'pham-waitlist-checkout.js' | asset_url }}" defer></script>
+
 
 {% schema %}
 {
@@ -602,19 +624,19 @@
       "type": "textarea",
       "id": "intro",
       "label": "Intro",
-      "default": "Complete your details below. You will proceed to secure checkout for your Digital Access Pass."
+      "default": "Complete your details below to join the PHAM-001 waitlist. No payment is collected at this stage."
     },
     {
       "type": "textarea",
       "id": "form_note",
       "label": "Note under fields",
-      "default": "Your pass is reserved after payment is confirmed."
+      "default": "Joining the waitlist does not create an order or reserve a unit. We will email you when pre-order access opens."
     },
     {
       "type": "text",
       "id": "submit_label",
       "label": "Submit button",
-      "default": "PROCEED TO CHECKOUT"
+      "default": "JOIN THE WAITLIST"
     },
     {
       "type": "header",
@@ -636,7 +658,7 @@
       "type": "checkbox",
       "id": "marketing_checked",
       "label": "Default to Yes for email updates",
-      "default": true
+      "default": false
     },
     {
       "type": "header",
