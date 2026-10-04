@@ -151,7 +151,7 @@
 
           {%- capture pham_show_limited_qty -%}{%- render 'pham-is-limited-edition', product: product -%}{%- endcapture -%}
           {%- assign pham_show_limited_qty = pham_show_limited_qty | strip -%}
-          {%- if pham_show_limited_qty == 'true' -%}
+          {%- if pham_show_limited_qty == 'true' and pham_preorder_open == false and current_variant.available -%}
             {%- render 'pham-edition-qty', section_id: section.id, style: 'main' -%}
           {%- endif -%}
 
