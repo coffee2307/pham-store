@@ -55,6 +55,7 @@
     let dialogCloseTimer = 0;
     let cardDialogAnimation = null;
     let cardDialogSettled = false;
+    let cardDialogClosing = false;
     let dialogGeometry = null;
 
     function measureOrbit() {
@@ -129,6 +130,8 @@
       window.clearTimeout(dialogCloseTimer);
       dialogCloseTimer = 0;
       cardDialogSettled = false;
+      cardDialogClosing = false;
+      cardDialogOpen = false;
 
       if (cardDialogAnimation) {
         try { cardDialogAnimation.cancel(); } catch (error) { /* no-op */ }
@@ -211,80 +214,50 @@
       );
     }
 
+    function settleCardDialogOpen() {
+      if (!cardDialogOpen || cardDialogClosing) return;
+      cardDialogSettled = true;
+      cardDialog.classList.add('is-settled');
+      if (cardDialogClose) cardDialogClose.focus({ preventScroll: true });
+    }
+
     function closeCardDialog() {
-      if (!cardDialogOpen || !cardDialog || !cardDialogSettled) return;
-      cardDialogOpen = false;
+      if (!cardDialogOpen || !cardDialog || cardDialogClosing) return;
+
+      cardDialogClosing = true;
       cardDialogSettled = false;
       cardDialog.classList.remove('is-settled');
       cardDialog.classList.add('is-closing');
 
-      if (cardDialogAnimation) {
-        try { cardDialogAnimation.cancel(); } catch (error) { /* no-op */ }
-        cardDialogAnimation = null;
-      }
-
-      const rect = expandedSource && expandedSource.isConnected
-        ? expandedSource.getBoundingClientRect()
-        : null;
-
-      if (reducedMotion || !rect || !cardDialogFigure || typeof cardDialogFigure.animate !== 'function') {
+      if (reducedMotion || !cardDialogAnimation) {
         finishCardDialogClose();
         return;
       }
 
-      const geometry = getTarotGeometry(expandedSource, rect);
-      dialogGeometry = geometry;
+      // Reverse the exact opening timeline from its current position.
+      // No second animation, no geometry recalculation and no destination drift.
+      const timing = cardDialogAnimation.effect && cardDialogAnimation.effect.getTiming
+        ? cardDialogAnimation.effect.getTiming()
+        : null;
+      const duration = timing && Number(timing.duration) ? Number(timing.duration) : 680;
 
-      cardDialogFigure.style.left = geometry.left.toFixed(2) + 'px';
-      cardDialogFigure.style.top = geometry.top.toFixed(2) + 'px';
-      cardDialogFigure.style.width = geometry.width.toFixed(2) + 'px';
-      cardDialogFigure.style.height = geometry.height.toFixed(2) + 'px';
-      cardDialogFigure.style.transform = 'translate3d(0,0,0) scale(1) rotateZ(0deg) rotateY(0deg)';
+      if (cardDialogAnimation.playState === 'finished' || cardDialogAnimation.currentTime == null) {
+        cardDialogAnimation.currentTime = duration;
+      }
 
-      cardDialogAnimation = cardDialogFigure.animate([
-        {
-          transform: 'translate3d(0,0,0) scale(1) rotateZ(0deg) rotateY(0deg)',
-          opacity: 1,
-          offset: 0
-        },
-        {
-          transform: 'translate3d(0,-10px,36px) scale(1.025) rotateZ(-.7deg) rotateY(' + (-geometry.turn * .08).toFixed(2) + 'deg)',
-          opacity: 1,
-          offset: .18
-        },
-        {
-          transform: tarotTransform(
-            geometry,
-            .58,
-            geometry.scale + (1 - geometry.scale) * .42,
-            .56,
-            .58,
-            18
-          ),
-          opacity: .96,
-          offset: .58
-        },
-        {
-          transform: tarotTransform(geometry, 1, geometry.scale, 1, 1, 0),
-          opacity: .72,
-          offset: 1
-        }
-      ], {
-        duration: 620,
-        easing: 'cubic-bezier(.45,0,.22,1)',
-        fill: 'forwards'
-      });
+      cardDialogAnimation.playbackRate = -1;
+      cardDialogAnimation.play();
 
-      cardDialogAnimation.finished.then(finishCardDialogClose).catch(function () {
-        if (!cardDialogOpen) finishCardDialogClose();
-      });
+      cardDialogAnimation.onfinish = function () {
+        finishCardDialogClose();
+      };
     }
 
     function onCardDialogKeydown(event) {
       if (!cardDialogOpen) return;
       if (event.key === 'Escape' || event.key === 'Esc') {
         event.preventDefault();
-        if (cardDialogSettled) closeCardDialog();
+        closeCardDialog();
         return;
       }
       if (event.key === 'Tab') {
@@ -303,7 +276,6 @@
       cardDialogOpen = true;
       expandedSource = card;
       dialogReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      card.classList.add('is-card-source-open');
 
       cardDialogFigure.innerHTML = card.innerHTML;
       cardDialogFigure.querySelectorAll('a').forEach(function (link) {
@@ -328,68 +300,56 @@
       document.addEventListener('keydown', onCardDialogKeydown);
 
       if (reducedMotion || typeof cardDialogFigure.animate !== 'function') {
+        card.classList.add('is-card-source-open');
         cardDialogSettled = true;
         cardDialog.classList.add('is-settled');
         if (cardDialogClose) cardDialogClose.focus({ preventScroll: true });
         return;
       }
 
-      const startScale = geometry.scale * .96;
+      const startTransform = tarotTransform(
+        geometry,
+        1,
+        geometry.scale,
+        1,
+        1,
+        0
+      );
+      const endTransform = 'translate3d(0,0,0) scale(1) rotateZ(0deg) rotateY(0deg)';
+
       cardDialogAnimation = cardDialogFigure.animate([
         {
-          transform: tarotTransform(geometry, 1, startScale, 1, 1, 0),
-          opacity: .55,
-          filter: 'brightness(.76)',
-          offset: 0
+          transform: startTransform,
+          opacity: 1
         },
         {
-          transform: tarotTransform(
-            geometry,
-            .84,
-            Math.min(.94, geometry.scale * 1.13),
-            .74,
-            .72,
-            24
-          ),
-          opacity: .92,
-          filter: 'brightness(.9)',
-          offset: .2
-        },
-        {
-          transform: tarotTransform(
-            geometry,
-            .18,
-            1.035,
-            .12,
-            .1,
-            34
-          ),
-          opacity: 1,
-          filter: 'brightness(1.03)',
-          offset: .76
-        },
-        {
-          transform: 'translate3d(0,0,0) scale(1) rotateZ(0deg) rotateY(0deg)',
-          opacity: 1,
-          filter: 'brightness(1)',
-          offset: 1
+          transform: endTransform,
+          opacity: 1
         }
       ], {
-        duration: 760,
-        easing: 'cubic-bezier(.16,.84,.24,1)',
-        fill: 'forwards'
+        duration: 680,
+        easing: 'cubic-bezier(.2,.72,.18,1)',
+        fill: 'both'
       });
 
-      cardDialogAnimation.finished.then(function () {
-        cardDialogAnimation = null;
-        if (!cardDialogOpen) return;
-        cardDialogSettled = true;
-        cardDialog.classList.add('is-settled');
-        cardDialogFigure.style.transform = 'translate3d(0,0,0) scale(1) rotateZ(0deg) rotateY(0deg)';
-        cardDialogFigure.style.opacity = '1';
-        cardDialogFigure.style.filter = '';
-        if (cardDialogClose) cardDialogClose.focus({ preventScroll: true });
-      }).catch(function () { /* cancelled during teardown */ });
+      // The clone is now visually sitting exactly over the source.
+      // Hide the source only after the animation timeline exists.
+      card.classList.add('is-card-source-open');
+
+      cardDialogAnimation.onfinish = function () {
+        if (cardDialogClosing) {
+          finishCardDialogClose();
+          return;
+        }
+        cardDialogAnimation.pause();
+        const timing = cardDialogAnimation.effect && cardDialogAnimation.effect.getTiming
+          ? cardDialogAnimation.effect.getTiming()
+          : null;
+        if (timing && Number(timing.duration)) {
+          cardDialogAnimation.currentTime = Number(timing.duration);
+        }
+        settleCardDialogOpen();
+      };
     }
 
     function render(time) {
@@ -495,7 +455,6 @@
       measureProgress();
       measureOrbit();
       if (cardDialogOpen && !desktopCardMode.matches) {
-        cardDialogSettled = true;
         closeCardDialog();
       }
     }, { passive: true });
