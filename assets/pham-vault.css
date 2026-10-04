@@ -731,6 +731,10 @@
   .pham-vault__orbit-stage {
     perspective: 1800px;
   }
+  .pham-vault__orbit-card.is-front {
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
   .pham-vault__orbit-cards {
     contain: none;
     overflow: visible;
@@ -769,7 +773,6 @@
     opacity: 1 !important;
     filter: none !important;
     backface-visibility: hidden;
-    isolation: isolate;
   }
   .pham-vault__orbit-card.is-tarot-expanded .pham-vault__orbit-card-face,
   .pham-vault__orbit-card.is-tarot-expanded .pham-vault__orbit-placeholder {
