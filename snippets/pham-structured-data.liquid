@@ -1,13 +1,15 @@
 {%- comment -%}
   PHAM entity-first structured data.
-  Purpose: help search engines distinguish PHAM Atelier (phamofficial.com)
-  from other fashion brands using the PHAM name.
+  Purpose: give search engines an explicit graph for PHAM Atelier (phamofficial.com)
+  and the PHAM visual brand, reducing ambiguity with unrelated fashion entities.
 {%- endcomment -%}
 
 {%- liquid
   assign pham_entity_name = 'PHAM Atelier'
+  assign pham_brand_name = 'PHAM'
   assign pham_entity_url = request.origin
-  assign pham_entity_description = 'PHAM Atelier is an independent fashion label founded in Vietnam in 2026, developing limited-edition garments through restraint, proportion and controlled detail.'
+  assign pham_entity_description = 'PHAM Atelier is an independent fashion label founded in Vietnam in 2026, developing edition-based dark outerwear and design objects through restraint, proportion, construction and controlled detail.'
+  assign pham_brand_description = 'PHAM is the visual brand of PHAM Atelier, an independent Vietnam-based label behind PHAM-001 and the PHAM edition series.'
 
   assign pham_entity_logo = settings.pham_logo
   if pham_entity_logo != blank
@@ -32,15 +34,33 @@
       "url": {{ pham_entity_url | append: '/' | json }},
       "logo": {
         "@type": "ImageObject",
+        "@id": {{ pham_entity_url | append: '/#logo' | json }},
         "url": {{ pham_entity_logo_url | json }}
       },
       "description": {{ pham_entity_description | json }},
+      "disambiguatingDescription": "Independent fashion label from Vietnam behind PHAM-001 and the PHAM edition series.",
+      "identifier": {
+        "@type": "PropertyValue",
+        "propertyID": "officialDomain",
+        "value": "phamofficial.com"
+      },
       "foundingDate": "2026",
       "foundingLocation": {
         "@type": "Country",
         "name": "Vietnam"
       },
       "email": "mailto:contact@phamofficial.com",
+      "slogan": "Simply Being, Fully Living.",
+      "brand": {
+        "@id": {{ pham_entity_url | append: '/#brand' | json }}
+      },
+      "knowsAbout": [
+        "Darkwear",
+        "Outerwear",
+        "Garment construction",
+        "Material studies",
+        "Limited-edition fashion"
+      ],
       "sameAs": [
         {%- assign pham_social_written = false -%}
         {%- if settings.pham_social_instagram != blank -%}
@@ -57,20 +77,84 @@
           {{ settings.pham_social_facebook | json }}
         {%- endif -%}
       ]
-    }
-    {%- if request.page_type == 'index' -%}
-    ,
+    },
+    {
+      "@type": "Brand",
+      "@id": {{ pham_entity_url | append: '/#brand' | json }},
+      "name": {{ pham_brand_name | json }},
+      "alternateName": ["PHAM Atelier", "PHAM Vietnam"],
+      "url": {{ pham_entity_url | append: '/' | json }},
+      "logo": {
+        "@id": {{ pham_entity_url | append: '/#logo' | json }}
+      },
+      "description": {{ pham_brand_description | json }},
+      "disambiguatingDescription": "Edition-based darkwear and design objects by PHAM Atelier, founded in Vietnam in 2026.",
+      "slogan": "Simply Being, Fully Living."
+    },
     {
       "@type": "WebSite",
       "@id": {{ pham_entity_url | append: '/#website' | json }},
       "url": {{ pham_entity_url | append: '/' | json }},
       "name": "PHAM Atelier",
       "alternateName": ["PHAM", "PHAM Vietnam"],
-      "description": "Official website of PHAM Atelier, an independent fashion label from Vietnam.",
+      "description": "Official website of PHAM Atelier, an independent fashion label from Vietnam developing edition-based dark outerwear and design objects.",
       "publisher": {
         "@id": {{ pham_entity_url | append: '/#organization' | json }}
       },
+      "about": {
+        "@id": {{ pham_entity_url | append: '/#brand' | json }}
+      },
       "inLanguage": {{ request.locale.iso_code | json }}
+    }
+    {%- if request.page_type == 'index' -%}
+    ,
+    {
+      "@type": "WebPage",
+      "@id": {{ pham_entity_url | append: '/#webpage' | json }},
+      "url": {{ pham_entity_url | append: '/' | json }},
+      "name": "PHAM Atelier — Independent Fashion Label",
+      "description": "PHAM Atelier is an independent fashion label from Vietnam developing edition-based dark outerwear and design objects.",
+      "isPartOf": {
+        "@id": {{ pham_entity_url | append: '/#website' | json }}
+      },
+      "about": {
+        "@id": {{ pham_entity_url | append: '/#brand' | json }}
+      },
+      "publisher": {
+        "@id": {{ pham_entity_url | append: '/#organization' | json }}
+      }
+    }
+    {%- endif -%}
+    {%- if request.page_type == 'page' and page != blank and page.handle == 'about' -%}
+    ,
+    {
+      "@type": "AboutPage",
+      "@id": {{ canonical_url | append: '#webpage' | json }},
+      "url": {{ canonical_url | json }},
+      "name": "About PHAM Atelier",
+      "isPartOf": {
+        "@id": {{ pham_entity_url | append: '/#website' | json }}
+      },
+      "mainEntity": {
+        "@id": {{ pham_entity_url | append: '/#organization' | json }}
+      },
+      "about": {
+        "@id": {{ pham_entity_url | append: '/#brand' | json }}
+      }
+    }
+    {%- elsif request.page_type == 'page' and page != blank and page.handle == 'contact' -%}
+    ,
+    {
+      "@type": "ContactPage",
+      "@id": {{ canonical_url | append: '#webpage' | json }},
+      "url": {{ canonical_url | json }},
+      "name": "Contact PHAM Atelier",
+      "isPartOf": {
+        "@id": {{ pham_entity_url | append: '/#website' | json }}
+      },
+      "about": {
+        "@id": {{ pham_entity_url | append: '/#organization' | json }}
+      }
     }
     {%- endif -%}
     {%- if request.page_type == 'product' and product != blank -%}
@@ -80,11 +164,33 @@
       "@id": {{ canonical_url | append: '#product' | json }},
       "url": {{ canonical_url | json }},
       "name": {{ product.title | json }},
+      "model": {{ product.title | json }},
       "description": {{ product.description | strip_html | strip | json }},
-      "category": {{ product.type | default: 'Apparel' | json }},
+      "category": {{ product.type | default: 'Outerwear' | json }},
+      "mainEntityOfPage": {{ canonical_url | json }},
       "brand": {
-        "@id": {{ pham_entity_url | append: '/#organization' | json }}
+        "@id": {{ pham_entity_url | append: '/#brand' | json }}
       }
+      {%- if product.handle == 'pham-001' -%}
+      ,
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Object code",
+          "value": "PHAM-001"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Edition",
+          "value": "Edition 01"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Design origin",
+          "value": "Vietnam"
+        }
+      ]
+      {%- endif -%}
       {%- if product.featured_image != blank -%}
       ,
       "image": [
