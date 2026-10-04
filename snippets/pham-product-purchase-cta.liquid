@@ -26,11 +26,22 @@
   if product.available == false
     assign variant_available = false
   endif
+
+  assign waitlist_separator = '?'
+  if pham_waitlist_page_url contains '?'
+    assign waitlist_separator = '&'
+  endif
+  capture waitlist_variant_url
+    echo pham_waitlist_page_url
+    echo waitlist_separator
+    echo 'variant='
+    echo current_variant.id
+  endcapture
 -%}
 
 {%- if pham_preorder_open -%}
   {%- if cta_style == 'spotlight' -%}
-    <a href="{{ pham_waitlist_page_url }}?variant={{ current_variant.id }}"
+    <a href="{{ waitlist_variant_url | escape }}"
        class="pham-product-spotlight__add"
        data-pham-waitlist-cta>
       <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
@@ -40,7 +51,7 @@
       </span>
     </a>
   {%- else -%}
-    <a href="{{ pham_waitlist_page_url }}?variant={{ current_variant.id }}"
+    <a href="{{ waitlist_variant_url | escape }}"
        class="pham-product-main__cta pham-product-main__cta--preorder"
        data-pham-waitlist-cta
        data-pham-preorder-label="{{ preorder_label | escape }}">

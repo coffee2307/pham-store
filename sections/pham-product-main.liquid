@@ -1,5 +1,5 @@
 <!-- # DO NOT EDIT — managed by PHAM theme architecture -->
-{%- capture pham_preorder_open_raw -%}{%- render 'pham-preorder-open', section: section -%}{%- endcapture -%}
+{%- capture pham_preorder_open_raw -%}{%- render 'pham-preorder-open' -%}{%- endcapture -%}
 {%- assign pham_preorder_open_raw = pham_preorder_open_raw | strip -%}
 {%- assign pham_preorder_open = true -%}
 {%- if pham_preorder_open_raw == 'false' -%}{%- assign pham_preorder_open = false -%}{%- endif -%}
@@ -1476,14 +1476,7 @@
     },
     {
       "type": "header",
-      "content": "Pre-order CTA"
-    },
-    {
-      "type": "checkbox",
-      "id": "preorder_open",
-      "label": "Accept pre-orders",
-      "default": true,
-      "info": "Pre-order stays open even when inventory is 0. Uncheck to show PRE-ORDER CLOSED."
+      "content": "Pre-order CTA · global state"
     },
     {
       "type": "text",
@@ -1502,7 +1495,7 @@
       "id": "preorder_closed_note",
       "label": "Closed state note",
       "default": "Pre-order is currently closed for this edition.",
-      "info": "Shown when Accept pre-orders is turned off in this section."
+      "info": "Shown when the global PHAM waitlist/pre-order state is closed."
     },
     {
       "type": "textarea",

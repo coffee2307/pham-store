@@ -3,7 +3,7 @@
   --vault-pointer-x: 0;
   --vault-pointer-y: 0;
   position: relative;
-  height: 360svh;
+  height: 320svh;
   background: #050505;
   color: #f2f2ef;
 }

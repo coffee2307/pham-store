@@ -16,7 +16,6 @@
         "image_limit": 3,
         "eyebrow": "PHAM EDITION · SPOTLIGHT",
         "description": "",
-        "preorder_open": true,
         "preorder_label": "PRE-ORDER NOW",
         "preorder_closed_label": "PRE-ORDER CLOSED",
         "show_inventory": true,
@@ -49,14 +48,14 @@
         "spec_1": {
           "type": "spec",
           "settings": {
-            "label_1": "ORIGIN",
-            "value_1": "VIETNAM · ATELIER",
-            "label_2": "FABRIC",
-            "value_2": "ITALIAN WOOL · 320 GSM",
+            "label_1": "DESIGN",
+            "value_1": "PHAM · VIETNAM",
+            "label_2": "SHELL",
+            "value_2": "PREMIUM NYLON · MICROFIBER LEATHER",
             "label_3": "RUN",
-            "value_3": "EDITION · 01 / ORIGIN",
-            "label_4": "RELEASED",
-            "value_4": "SPRING · 2026",
+            "value_3": "EDITION 01 · 50 PIECES",
+            "label_4": "STATUS",
+            "value_4": "PRE-ORDER · 2026",
             "size": "sm"
           }
         },
@@ -73,8 +72,8 @@
           "type": "editorial",
           "settings": {
             "eyebrow": "PROCESS",
-            "heading": "Cut by hand.",
-            "body": "<p>The pattern is drawn on a single bolt of wool. The cutter works slowly, sews in small batches, and opens Edition 01 with the same discipline the next release will carry.</p>",
+            "heading": "Built in layers.",
+            "body": "<p>PHAM-001 is built around a compact cropped silhouette using premium nylon, microfiber leather, mesh lining and quilted insulation. Paneled construction and controlled volume define Edition 01 before it enters its limited production run.</p>",
             "cta_label": "READ THE PROCESS",
             "cta_link": "",
             "size": "xl"

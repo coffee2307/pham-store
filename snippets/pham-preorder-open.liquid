@@ -1,8 +1,8 @@
 {% comment %}
-  Single source of truth for waitlist / pre-order signup open state.
-  Open by default. Closed only when explicitly disabled.
+  Single source of truth for waitlist / pre-order signup state.
+  Driven only by global PHAM theme settings so homepage and PDP cannot disagree.
+  Open by default. Closed only when explicitly disabled globally or by schedule.
 
-  @param {object} section
   Outputs: true | false (capture in parent, then strip)
 {% endcomment %}
 {%- liquid
@@ -12,9 +12,6 @@
     assign pham_signup_open = false
   endif
 
-  if section.settings.preorder_open == false
-    assign pham_signup_open = false
-  endif
 
   if settings.pham_waitlist_use_schedule
     assign today = 'now' | date: '%Y-%m-%d'
