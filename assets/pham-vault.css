@@ -192,7 +192,7 @@
     0 0 28px rgba(255,255,255,.07);
 }
 .pham-vault__orbit-card.is-card-source-open {
-  opacity: .08 !important;
+  opacity: 0 !important;
 }
 .pham-vault__orbit-card a { display: block; width: 100%; height: 100%; color: inherit; text-decoration: none; }
 .pham-vault__orbit-card img {
@@ -610,7 +610,9 @@ body.pham-vault-card-open {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 300ms ease, visibility 0s linear 320ms;
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+  transition: opacity 260ms ease, visibility 0s linear 280ms;
 }
 .pham-vault-card-dialog.is-open {
   opacity: 1;
@@ -621,31 +623,30 @@ body.pham-vault-card-open {
 .pham-vault-card-dialog__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(2,2,2,.66);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  transition: opacity 320ms ease;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255,255,255,.035), transparent 34%),
+    rgba(2,2,2,.68);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  opacity: 1;
+  transition: opacity 560ms cubic-bezier(.2,.7,.2,1);
 }
 .pham-vault-card-dialog__card {
   position: fixed;
   z-index: 2;
   margin: 0;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.36);
+  border: 1px solid rgba(255,255,255,.38);
   background: #080808;
   box-shadow:
-    0 36px 120px rgba(0,0,0,.76),
-    0 0 0 1px rgba(255,255,255,.08),
-    0 0 72px rgba(255,255,255,.1);
+    0 42px 140px rgba(0,0,0,.8),
+    0 0 0 1px rgba(255,255,255,.075),
+    0 0 84px rgba(255,255,255,.11);
   transform-origin: center;
-  transition:
-    left 560ms cubic-bezier(.2,.8,.2,1),
-    top 560ms cubic-bezier(.2,.8,.2,1),
-    width 560ms cubic-bezier(.2,.8,.2,1),
-    height 560ms cubic-bezier(.2,.8,.2,1),
-    transform 620ms cubic-bezier(.16,.84,.24,1),
-    box-shadow 420ms ease;
-  will-change: left, top, width, height, transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  pointer-events: none;
+  will-change: transform, opacity, filter;
 }
 .pham-vault-card-dialog__card .pham-vault__orbit-card-face,
 .pham-vault-card-dialog__card img,
@@ -679,15 +680,31 @@ body.pham-vault-card-open {
   cursor: pointer;
   font: 500 9px/1 var(--font-mono);
   letter-spacing: .14em;
+  opacity: 0;
+  transform: translateY(-7px);
+  pointer-events: none;
+  transition: opacity 220ms ease, transform 260ms cubic-bezier(.2,.8,.2,1), border-color 180ms ease, color 180ms ease;
+}
+.pham-vault-card-dialog.is-settled .pham-vault-card-dialog__close {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.pham-vault-card-dialog.is-open:not(.is-settled) .pham-vault-card-dialog__backdrop {
+  pointer-events: none;
 }
 .pham-vault-card-dialog__close:hover,
 .pham-vault-card-dialog__close:focus-visible {
   border-color: rgba(255,255,255,.58);
   color: #fff;
 }
-.pham-vault-card-dialog.is-closing .pham-vault-card-dialog__backdrop,
+.pham-vault-card-dialog.is-closing .pham-vault-card-dialog__backdrop {
+  opacity: 0;
+}
 .pham-vault-card-dialog.is-closing .pham-vault-card-dialog__close {
   opacity: 0;
+  transform: translateY(-7px);
+  pointer-events: none;
 }
 
 @media (max-width: 1023px) {

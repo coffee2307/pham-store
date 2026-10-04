@@ -53,6 +53,9 @@
     let expandedSource = null;
     let dialogReturnFocus = null;
     let dialogCloseTimer = 0;
+    let cardDialogAnimation = null;
+    let cardDialogSettled = false;
+    let dialogGeometry = null;
 
     function measureOrbit() {
       const width = orbit.clientWidth;
@@ -125,18 +128,27 @@
     function finishCardDialogClose() {
       window.clearTimeout(dialogCloseTimer);
       dialogCloseTimer = 0;
+      cardDialogSettled = false;
+
+      if (cardDialogAnimation) {
+        try { cardDialogAnimation.cancel(); } catch (error) { /* no-op */ }
+        cardDialogAnimation = null;
+      }
+
       if (expandedSource) expandedSource.classList.remove('is-card-source-open');
       if (cardDialogFigure) {
         cardDialogFigure.innerHTML = '';
         cardDialogFigure.removeAttribute('style');
       }
       if (cardDialog) {
-        cardDialog.classList.remove('is-open', 'is-closing');
+        cardDialog.classList.remove('is-open', 'is-closing', 'is-settled');
         cardDialog.setAttribute('aria-hidden', 'true');
       }
+
       document.body.classList.remove('pham-vault-card-open');
       document.removeEventListener('keydown', onCardDialogKeydown);
       expandedSource = null;
+      dialogGeometry = null;
 
       if (dialogReturnFocus && typeof dialogReturnFocus.focus === 'function') {
         try { dialogReturnFocus.focus(); } catch (error) { /* no-op */ }
@@ -144,37 +156,140 @@
       dialogReturnFocus = null;
     }
 
+    function getTarotGeometry(card, sourceRect) {
+      const intrinsicRatio = Math.max(
+        1,
+        (card.offsetHeight || sourceRect.height) / Math.max(card.offsetWidth || sourceRect.width, 1)
+      );
+
+      let targetWidth = Math.min(500, window.innerWidth * 0.34);
+      let targetHeight = targetWidth * intrinsicRatio;
+      const maxHeight = window.innerHeight * 0.8;
+
+      if (targetHeight > maxHeight) {
+        targetHeight = maxHeight;
+        targetWidth = targetHeight / intrinsicRatio;
+      }
+
+      const targetLeft = (window.innerWidth - targetWidth) * 0.5;
+      const targetTop = (window.innerHeight - targetHeight) * 0.5;
+      const sourceCenterX = sourceRect.left + sourceRect.width * 0.5;
+      const sourceCenterY = sourceRect.top + sourceRect.height * 0.5;
+      const targetCenterX = targetLeft + targetWidth * 0.5;
+      const targetCenterY = targetTop + targetHeight * 0.5;
+      const startScale = clamp(
+        Math.min(sourceRect.width / targetWidth, sourceRect.height / targetHeight),
+        0.18,
+        0.82
+      );
+
+      const cardIndex = Math.max(0, cards.indexOf(card));
+      const cardAngle = rotation + (Math.PI * 2 / cards.length) * cardIndex;
+
+      return {
+        left: targetLeft,
+        top: targetTop,
+        width: targetWidth,
+        height: targetHeight,
+        dx: sourceCenterX - targetCenterX,
+        dy: sourceCenterY - targetCenterY,
+        scale: startScale,
+        lean: clamp(Math.sin(cardAngle) * 9, -11, 11),
+        turn: clamp(Math.sin(cardAngle) * 42, -46, 46)
+      };
+    }
+
+    function tarotTransform(geometry, progress, scaleBoost, leanFactor, turnFactor, z) {
+      return (
+        'translate3d(' +
+        (geometry.dx * progress).toFixed(2) + 'px,' +
+        (geometry.dy * progress).toFixed(2) + 'px,' +
+        (z || 0).toFixed(2) + 'px) ' +
+        'scale(' + scaleBoost.toFixed(4) + ') ' +
+        'rotateZ(' + (geometry.lean * leanFactor).toFixed(2) + 'deg) ' +
+        'rotateY(' + (geometry.turn * turnFactor).toFixed(2) + 'deg)'
+      );
+    }
+
     function closeCardDialog() {
-      if (!cardDialogOpen || !cardDialog) return;
+      if (!cardDialogOpen || !cardDialog || !cardDialogSettled) return;
       cardDialogOpen = false;
+      cardDialogSettled = false;
+      cardDialog.classList.remove('is-settled');
       cardDialog.classList.add('is-closing');
+
+      if (cardDialogAnimation) {
+        try { cardDialogAnimation.cancel(); } catch (error) { /* no-op */ }
+        cardDialogAnimation = null;
+      }
 
       const rect = expandedSource && expandedSource.isConnected
         ? expandedSource.getBoundingClientRect()
         : null;
 
-      if (!reducedMotion && rect && cardDialogFigure) {
-        cardDialogFigure.style.left = rect.left.toFixed(2) + 'px';
-        cardDialogFigure.style.top = rect.top.toFixed(2) + 'px';
-        cardDialogFigure.style.width = rect.width.toFixed(2) + 'px';
-        cardDialogFigure.style.height = rect.height.toFixed(2) + 'px';
-        cardDialogFigure.style.transform = 'rotate(5deg) scale(.94)';
-        dialogCloseTimer = window.setTimeout(finishCardDialogClose, 380);
-      } else {
+      if (reducedMotion || !rect || !cardDialogFigure || typeof cardDialogFigure.animate !== 'function') {
         finishCardDialogClose();
+        return;
       }
+
+      const geometry = getTarotGeometry(expandedSource, rect);
+      dialogGeometry = geometry;
+
+      cardDialogFigure.style.left = geometry.left.toFixed(2) + 'px';
+      cardDialogFigure.style.top = geometry.top.toFixed(2) + 'px';
+      cardDialogFigure.style.width = geometry.width.toFixed(2) + 'px';
+      cardDialogFigure.style.height = geometry.height.toFixed(2) + 'px';
+      cardDialogFigure.style.transform = 'translate3d(0,0,0) scale(1) rotateZ(0deg) rotateY(0deg)';
+
+      cardDialogAnimation = cardDialogFigure.animate([
+        {
+          transform: 'translate3d(0,0,0) scale(1) rotateZ(0deg) rotateY(0deg)',
+          opacity: 1,
+          offset: 0
+        },
+        {
+          transform: 'translate3d(0,-10px,36px) scale(1.025) rotateZ(-.7deg) rotateY(' + (-geometry.turn * .08).toFixed(2) + 'deg)',
+          opacity: 1,
+          offset: .18
+        },
+        {
+          transform: tarotTransform(
+            geometry,
+            .58,
+            geometry.scale + (1 - geometry.scale) * .42,
+            .56,
+            .58,
+            18
+          ),
+          opacity: .96,
+          offset: .58
+        },
+        {
+          transform: tarotTransform(geometry, 1, geometry.scale, 1, 1, 0),
+          opacity: .72,
+          offset: 1
+        }
+      ], {
+        duration: 620,
+        easing: 'cubic-bezier(.45,0,.22,1)',
+        fill: 'forwards'
+      });
+
+      cardDialogAnimation.finished.then(finishCardDialogClose).catch(function () {
+        if (!cardDialogOpen) finishCardDialogClose();
+      });
     }
 
     function onCardDialogKeydown(event) {
       if (!cardDialogOpen) return;
       if (event.key === 'Escape' || event.key === 'Esc') {
         event.preventDefault();
-        closeCardDialog();
+        if (cardDialogSettled) closeCardDialog();
         return;
       }
       if (event.key === 'Tab') {
         event.preventDefault();
-        if (cardDialogClose) cardDialogClose.focus();
+        if (cardDialogClose && cardDialogSettled) cardDialogClose.focus();
       }
     }
 
@@ -197,45 +312,84 @@
         link.setAttribute('aria-hidden', 'true');
       });
 
-      const ratio = rect.height / Math.max(rect.width, 1);
-      let targetWidth = Math.min(500, window.innerWidth * 0.34);
-      let targetHeight = targetWidth * ratio;
-      const maxHeight = window.innerHeight * 0.8;
-      if (targetHeight > maxHeight) {
-        targetHeight = maxHeight;
-        targetWidth = targetHeight / ratio;
-      }
+      const geometry = getTarotGeometry(card, rect);
+      dialogGeometry = geometry;
+      cardDialogSettled = false;
 
-      const targetLeft = (window.innerWidth - targetWidth) * 0.5;
-      const targetTop = (window.innerHeight - targetHeight) * 0.5;
-      const cardIndex = Math.max(0, cards.indexOf(card));
-      const cardAngle = rotation + (Math.PI * 2 / cards.length) * cardIndex;
-      const initialLean = clamp(Math.sin(cardAngle) * 8, -10, 10);
-
-      cardDialogFigure.style.transition = 'none';
-      cardDialogFigure.style.left = rect.left.toFixed(2) + 'px';
-      cardDialogFigure.style.top = rect.top.toFixed(2) + 'px';
-      cardDialogFigure.style.width = rect.width.toFixed(2) + 'px';
-      cardDialogFigure.style.height = rect.height.toFixed(2) + 'px';
-      cardDialogFigure.style.transform = 'rotate(' + initialLean.toFixed(2) + 'deg) scale(.92)';
+      cardDialogFigure.style.left = geometry.left.toFixed(2) + 'px';
+      cardDialogFigure.style.top = geometry.top.toFixed(2) + 'px';
+      cardDialogFigure.style.width = geometry.width.toFixed(2) + 'px';
+      cardDialogFigure.style.height = geometry.height.toFixed(2) + 'px';
+      cardDialogFigure.style.transform = 'translate3d(0,0,0) scale(1) rotateZ(0deg) rotateY(0deg)';
 
       cardDialog.classList.add('is-open');
       cardDialog.setAttribute('aria-hidden', 'false');
       document.body.classList.add('pham-vault-card-open');
       document.addEventListener('keydown', onCardDialogKeydown);
 
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          if (!cardDialogOpen || !cardDialogFigure) return;
-          cardDialogFigure.style.transition = '';
-          cardDialogFigure.style.left = targetLeft.toFixed(2) + 'px';
-          cardDialogFigure.style.top = targetTop.toFixed(2) + 'px';
-          cardDialogFigure.style.width = targetWidth.toFixed(2) + 'px';
-          cardDialogFigure.style.height = targetHeight.toFixed(2) + 'px';
-          cardDialogFigure.style.transform = 'rotate(0deg) scale(1)';
-          if (cardDialogClose) cardDialogClose.focus({ preventScroll: true });
-        });
+      if (reducedMotion || typeof cardDialogFigure.animate !== 'function') {
+        cardDialogSettled = true;
+        cardDialog.classList.add('is-settled');
+        if (cardDialogClose) cardDialogClose.focus({ preventScroll: true });
+        return;
+      }
+
+      const startScale = geometry.scale * .96;
+      cardDialogAnimation = cardDialogFigure.animate([
+        {
+          transform: tarotTransform(geometry, 1, startScale, 1, 1, 0),
+          opacity: .55,
+          filter: 'brightness(.76)',
+          offset: 0
+        },
+        {
+          transform: tarotTransform(
+            geometry,
+            .84,
+            Math.min(.94, geometry.scale * 1.13),
+            .74,
+            .72,
+            24
+          ),
+          opacity: .92,
+          filter: 'brightness(.9)',
+          offset: .2
+        },
+        {
+          transform: tarotTransform(
+            geometry,
+            .18,
+            1.035,
+            .12,
+            .1,
+            34
+          ),
+          opacity: 1,
+          filter: 'brightness(1.03)',
+          offset: .76
+        },
+        {
+          transform: 'translate3d(0,0,0) scale(1) rotateZ(0deg) rotateY(0deg)',
+          opacity: 1,
+          filter: 'brightness(1)',
+          offset: 1
+        }
+      ], {
+        duration: 760,
+        easing: 'cubic-bezier(.16,.84,.24,1)',
+        fill: 'forwards'
       });
+
+      cardDialogAnimation.finished.then(function () {
+        cardDialogAnimation = null;
+        if (!cardDialogOpen) return;
+        cardDialogSettled = true;
+        cardDialog.classList.add('is-settled');
+        cardDialogFigure.style.transform = 'translate3d(0,0,0) scale(1) rotateZ(0deg) rotateY(0deg)';
+        cardDialogFigure.style.opacity = '1';
+        cardDialogFigure.style.filter = '';
+        if (cardDialogClose) cardDialogClose.focus({ preventScroll: true });
+      }).catch(function () { /* cancelled during teardown */ });
     }
 
     function render(time) {
@@ -340,7 +494,10 @@
       measureLayout();
       measureProgress();
       measureOrbit();
-      if (cardDialogOpen && !desktopCardMode.matches) closeCardDialog();
+      if (cardDialogOpen && !desktopCardMode.matches) {
+        cardDialogSettled = true;
+        closeCardDialog();
+      }
     }, { passive: true });
     if ('ResizeObserver' in window) {
       new ResizeObserver(function () {
