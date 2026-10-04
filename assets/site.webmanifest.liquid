@@ -9,4 +9,4 @@
     assign pham_manifest_512 = pham_manifest_512 | remove_first: '//' | prepend: 'https://'
   endunless
 -%}
-{"name":"PHAM","short_name":"PHAM","icons":[{"src":{{ pham_manifest_192 | json }},"sizes":"192x192","type":"image/png","purpose":"any"},{"src":{{ pham_manifest_512 | json }},"sizes":"512x512","type":"image/png","purpose":"any"}],"theme_color":"#0A0A0C","background_color":"#0A0A0C","display":"standalone"}
+{"name":"PHAM Atelier","short_name":"PHAM","icons":[{"src":{{ pham_manifest_192 | json }},"sizes":"192x192","type":"image/png","purpose":"any"},{"src":{{ pham_manifest_512 | json }},"sizes":"512x512","type":"image/png","purpose":"any"}],"theme_color":"#0A0A0C","background_color":"#0A0A0C","display":"standalone"}
