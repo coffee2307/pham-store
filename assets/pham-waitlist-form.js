@@ -113,6 +113,8 @@ document.addEventListener('DOMContentLoaded', function () {
   var resolvedVariant = resolveVariantId();
   if (resolvedVariant) {
     root.setAttribute('data-variant-id', resolvedVariant);
+    var variantField = form.querySelector('[data-pham-waitlist-contact-variant]');
+    if (variantField) variantField.value = resolvedVariant;
   }
 
   function resetWaitlistFormState() {
