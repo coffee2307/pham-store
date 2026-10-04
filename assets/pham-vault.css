@@ -729,23 +729,40 @@
 
 @media (max-width: 599px) {
   .pham-vault.is-card-open .pham-vault__orbit-stage {
+    z-index: 18;
     perspective: 1800px;
   }
-  .pham-vault.is-card-open .pham-vault__orbit-ring {
-    opacity: .22;
+  .pham-vault.is-card-open .pham-vault__orbit-cards {
+    contain: none;
+    overflow: visible;
   }
-  .pham-vault.is-card-open .pham-vault__orbit-card:not(.is-tarot-expanded) .pham-vault__orbit-card-face {
-    opacity: .34;
-    filter: brightness(.52);
+  .pham-vault.is-card-open .pham-vault__orbit-ring {
+    opacity: .12;
+  }
+  .pham-vault.is-card-open:not(.is-card-closing) .pham-vault__orbit-card:not(.is-tarot-expanded) {
+    opacity: 0 !important;
+    pointer-events: none;
   }
   .pham-vault__orbit-card.is-tarot-expanded {
+    z-index: 999 !important;
+    opacity: 1 !important;
+    filter: none !important;
     transform-style: flat;
     backface-visibility: hidden;
+    isolation: isolate;
+  }
+  .pham-vault__orbit-card.is-tarot-expanded .pham-vault__orbit-card-face,
+  .pham-vault__orbit-card.is-tarot-expanded .pham-vault__orbit-placeholder {
+    opacity: 1 !important;
+    background-color: #090909;
+  }
+  .pham-vault-card-dialog {
+    z-index: 17;
   }
   .pham-vault-card-dialog__backdrop {
     background:
-      radial-gradient(circle at 50% 38%, rgba(255,255,255,.018), transparent 42%),
-      rgba(2,2,2,.5);
+      radial-gradient(circle at 50% 45%, rgba(255,255,255,.015), transparent 46%),
+      rgba(2,2,2,.6);
   }
   .pham-vault-card-dialog__close {
     top: max(12px, env(safe-area-inset-top));
