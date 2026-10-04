@@ -25,15 +25,13 @@
   class="pham-vault"
   data-pham-vault
   data-section-id="{{ section.id }}"
-  data-canvas-enabled="{{ section.settings.enable_spatial_canvas }}"
-  data-object-scale="{{ section.settings.object_scale | times: 0.01 }}"
-  style="--vault-object-scale: {{ section.settings.object_scale | times: 0.01 }}"
+  data-orbit-speed="{{ section.settings.orbit_speed }}"
+  data-orbit-tilt="{{ section.settings.orbit_tilt }}"
+  style="--vault-orbit-scale: {{ section.settings.object_scale | times: 0.01 }}"
   aria-label="{{ section.settings.accessibility_label | escape }}"
 >
   <div class="pham-vault__sticky">
-    <canvas class="pham-vault__canvas" data-pham-vault-canvas aria-hidden="true"></canvas>
     <div class="pham-vault__fallback" aria-hidden="true"></div>
-    <div class="pham-vault__noise" aria-hidden="true"></div>
 
     <div class="pham-vault__chrome" aria-hidden="true">
       <span>PHAM / DIGITAL ARCHIVE</span>
@@ -41,25 +39,70 @@
       <span>VIETNAM / 2026</span>
     </div>
 
-    <div class="pham-vault__object" data-pham-vault-object>
-      {%- if object_image != blank -%}
-        {{
-          object_image
-          | image_url: width: 1800
-          | image_tag:
-            loading: 'eager',
-            fetchpriority: 'high',
-            widths: '600, 900, 1200, 1500, 1800',
-            sizes: '(max-width: 749px) 84vw, 54vw',
-            class: 'pham-vault__object-image',
-            alt: featured_product.title
-        }}
-      {%- else -%}
-        <div class="pham-vault__object-empty" aria-hidden="true">
-          <span>PHAM</span><i></i><span>001</span>
+    <div class="pham-vault__orbit-stage" data-pham-vault-orbit>
+      <div class="pham-vault__orbit-plane" data-pham-vault-orbit-plane>
+        <div class="pham-vault__orbit-ring" aria-hidden="true"></div>
+        <div class="pham-vault__orbit-cards">
+          {%- if section.blocks.size > 0 -%}
+            {%- for block in section.blocks -%}
+              {%- assign card_image = block.settings.image -%}
+              {%- assign card_alt = block.settings.alt_text | default: card_image.alt | default: featured_product.title -%}
+              <figure class="pham-vault__orbit-card" data-pham-vault-card {{ block.shopify_attributes }}>
+                {%- if block.settings.link != blank -%}<a href="{{ block.settings.link }}" aria-label="{{ card_alt | escape }}">{%- endif -%}
+                  {%- if card_image != blank -%}
+                    {{
+                      card_image
+                      | image_url: width: 1200
+                      | image_tag:
+                        loading: 'lazy',
+                        widths: '320, 480, 720, 960, 1200',
+                        sizes: '(max-width: 749px) 34vw, 18vw',
+                        alt: card_alt
+                    }}
+                  {%- else -%}
+                    <span class="pham-vault__orbit-placeholder">PHAM<br>0{{ forloop.index }}</span>
+                  {%- endif -%}
+                {%- if block.settings.link != blank -%}</a>{%- endif -%}
+              </figure>
+            {%- endfor -%}
+          {%- elsif featured_product != blank and featured_product.images.size > 0 -%}
+            {%- for card_image in featured_product.images limit: 10 -%}
+              <figure class="pham-vault__orbit-card" data-pham-vault-card>
+                {{
+                  card_image
+                  | image_url: width: 1200
+                  | image_tag:
+                    loading: 'lazy',
+                    widths: '320, 480, 720, 960, 1200',
+                    sizes: '(max-width: 749px) 34vw, 18vw',
+                    alt: card_image.alt | default: featured_product.title
+                }}
+              </figure>
+            {%- endfor -%}
+          {%- elsif object_image != blank -%}
+            {%- for card_number in (1..8) -%}
+              <figure class="pham-vault__orbit-card" data-pham-vault-card>
+                {{
+                  object_image
+                  | image_url: width: 1200
+                  | image_tag:
+                    loading: 'lazy',
+                    widths: '320, 480, 720, 960, 1200',
+                    sizes: '(max-width: 749px) 34vw, 18vw',
+                    alt: featured_product.title
+                }}
+              </figure>
+            {%- endfor -%}
+          {%- else -%}
+            {%- for card_number in (1..8) -%}
+              <figure class="pham-vault__orbit-card" data-pham-vault-card>
+                <span class="pham-vault__orbit-placeholder">PHAM<br>0{{ card_number }}</span>
+              </figure>
+            {%- endfor -%}
+          {%- endif -%}
         </div>
-      {%- endif -%}
-      <span class="pham-vault__object-shadow" aria-hidden="true"></span>
+      </div>
+      <span class="pham-vault__orbit-hint" aria-hidden="true">DRAG / ROTATE</span>
     </div>
 
     <div class="pham-vault__chapters pham-container">
@@ -117,7 +160,6 @@
     </nav>
 
     <div class="pham-vault__progress" aria-hidden="true"><i data-pham-vault-progress></i></div>
-    <div class="pham-vault__cursor" data-pham-vault-cursor aria-hidden="true"><span>EXPLORE</span></div>
   </div>
 </section>
 
@@ -128,10 +170,11 @@
   "class": "pham-vault-section",
   "settings": [
     { "type": "text", "id": "accessibility_label", "label": "Accessibility label", "default": "PHAM Edition 01 digital experience" },
-    { "type": "checkbox", "id": "enable_spatial_canvas", "label": "Enable spatial canvas on desktop", "default": true, "info": "Automatically disabled on mobile, reduced-motion and data-saver devices." },
     { "type": "product", "id": "product", "label": "Featured product" },
-    { "type": "image_picker", "id": "object_image", "label": "Hero object image", "info": "Use a transparent product image. Falls back to the featured product image." },
-    { "type": "range", "id": "object_scale", "label": "Hero object scale", "min": 70, "max": 110, "step": 5, "unit": "%", "default": 85, "info": "Lower this when a portrait image needs more space around the typography." },
+    { "type": "image_picker", "id": "object_image", "label": "Fallback orbit image", "info": "Used only when no orbit cards or product images are available." },
+    { "type": "range", "id": "object_scale", "label": "Orbit scale", "min": 70, "max": 110, "step": 5, "unit": "%", "default": 90 },
+    { "type": "range", "id": "orbit_speed", "label": "Automatic rotation speed", "min": 0, "max": 16, "step": 1, "unit": "°/s", "default": 6 },
+    { "type": "range", "id": "orbit_tilt", "label": "Orbit tilt", "min": 12, "max": 30, "step": 1, "unit": "°", "default": 24 },
     { "type": "text", "id": "chapter_1_title", "label": "Chapter 1 title", "default": "ENTER THE VAULT" },
     { "type": "textarea", "id": "chapter_1_body", "label": "Chapter 1 text", "default": "One object. One edition. Built without compromise." },
     { "type": "text", "id": "scroll_label", "label": "Scroll prompt", "default": "SCROLL TO ENTER" },
@@ -151,6 +194,18 @@
     { "type": "text", "id": "sold_out_label", "label": "Sold out label", "default": "EDITION CLOSED" },
     { "type": "text", "id": "cta_label", "label": "Button label", "default": "INSPECT THE OBJECT" },
     { "type": "url", "id": "cta_link", "label": "Button link", "info": "Falls back to the featured product." }
+  ],
+  "blocks": [
+    {
+      "type": "orbit_card",
+      "name": "Orbit image",
+      "limit": 12,
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "alt_text", "label": "Alternative text" },
+        { "type": "url", "id": "link", "label": "Optional link" }
+      ]
+    }
   ],
   "presets": [{ "name": "PHAM Vault experience", "category": "PHAM" }],
   "enabled_on": { "templates": ["index"] }
