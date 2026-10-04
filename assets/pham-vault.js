@@ -6,7 +6,7 @@
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = window.matchMedia('(pointer: fine)').matches;
-  const desktopCardMode = window.matchMedia('(min-width: 1024px)');
+  const cardExpandMode = window.matchMedia('(min-width: 320px)');
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const damp = (current, target, speed, delta) => current + (target - current) * (1 - Math.exp(-speed * delta));
   const normalizeAngle = (angle) => Math.atan2(Math.sin(angle), Math.cos(angle));
@@ -117,7 +117,7 @@
       cardDialog.setAttribute('aria-hidden', 'true');
       cardDialog.innerHTML =
         '<div class="pham-vault-card-dialog__backdrop" data-pham-vault-card-dismiss></div>' +
-        '<button type="button" class="pham-vault-card-dialog__close" data-pham-vault-card-close aria-label="Close expanded archive image">CLOSE</button>';
+        '<button type="button" class="pham-vault-card-dialog__close" data-pham-vault-card-close aria-label="Close expanded archive image">&times;</button>';
 
       sticky.appendChild(cardDialog);
       cardDialogClose = cardDialog.querySelector('[data-pham-vault-card-close]');
@@ -128,9 +128,23 @@
     function getExpandedCardScale(card) {
       const width = Math.max(card.offsetWidth, 1);
       const height = Math.max(card.offsetHeight, 1);
-      const targetWidth = Math.min(430, window.innerWidth * 0.29);
-      const targetHeight = Math.min(window.innerHeight * 0.72, 650);
-      return clamp(Math.min(targetWidth / width, targetHeight / height), 1.35, 3.1);
+      const mobile = window.innerWidth < 600;
+      const tablet = window.innerWidth >= 600 && window.innerWidth < 1024;
+      const targetWidth = mobile
+        ? Math.min(window.innerWidth * 0.72, 300)
+        : tablet
+          ? Math.min(window.innerWidth * 0.48, 400)
+          : Math.min(430, window.innerWidth * 0.29);
+      const targetHeight = mobile
+        ? Math.min(window.innerHeight * 0.52, 430)
+        : tablet
+          ? Math.min(window.innerHeight * 0.62, 560)
+          : Math.min(window.innerHeight * 0.72, 650);
+      return clamp(
+        Math.min(targetWidth / width, targetHeight / height),
+        mobile ? 1.2 : 1.35,
+        mobile ? 2.45 : tablet ? 2.8 : 3.1
+      );
     }
 
     function settleCardDialogOpen() {
@@ -232,7 +246,7 @@
     }
 
     function openCardDialog(card) {
-      if (!desktopCardMode.matches || cardDialogOpen || dragMoved) return;
+      if (!cardExpandMode.matches || cardDialogOpen || dragMoved) return;
 
       ensureCardDialog();
       cancelDialogAnimations();
@@ -393,7 +407,7 @@
       measureLayout();
       measureProgress();
       measureOrbit();
-      if (cardDialogOpen && !desktopCardMode.matches) {
+      if (cardDialogOpen && !cardExpandMode.matches) {
         closeCardDialog();
       }
     }, { passive: true });
@@ -462,7 +476,7 @@
 
     cards.forEach(function (card) {
       card.addEventListener('click', function (event) {
-        if (!desktopCardMode.matches || dragMoved) return;
+        if (!cardExpandMode.matches || dragMoved) return;
         event.preventDefault();
         event.stopPropagation();
         openCardDialog(card);
