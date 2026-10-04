@@ -6,96 +6,47 @@
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = window.matchMedia('(pointer: fine)').matches;
-  const saveData = Boolean(navigator.connection && navigator.connection.saveData);
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const damp = (current, target, speed, delta) => current + (target - current) * (1 - Math.exp(-speed * delta));
-
-  function createSpatialCanvas(root, canvas) {
-    if (!canvas || reducedMotion || saveData || window.innerWidth < 900 || root.dataset.canvasEnabled === 'false') return null;
-    const context = canvas.getContext('2d', { alpha: false });
-    if (!context) return null;
-    let width = 0;
-    let height = 0;
-    let pixelRatio = 1;
-
-    function resize() {
-      width = root.clientWidth;
-      height = root.querySelector('.pham-vault__sticky').clientHeight;
-      pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
-      canvas.width = Math.round(width * pixelRatio);
-      canvas.height = Math.round(height * pixelRatio);
-      canvas.style.width = width + 'px';
-      canvas.style.height = height + 'px';
-      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    }
-
-    function draw(progress, pointerX, pointerY) {
-      context.fillStyle = '#050505';
-      context.fillRect(0, 0, width, height);
-      const centerX = width * (0.5 + pointerX * 0.018);
-      const centerY = height * (0.47 + pointerY * 0.014);
-      const maxWidth = Math.min(width * 0.76, 1040);
-      const maxHeight = Math.min(height * 0.78, 840);
-      const offset = (progress * 10) % 1;
-
-      for (let index = 0; index < 11; index += 1) {
-        const depth = (index + offset) / 10;
-        const eased = depth * depth;
-        const frameWidth = 80 + (maxWidth - 80) * eased;
-        const frameHeight = 110 + (maxHeight - 110) * eased;
-        const opacity = 0.035 + depth * 0.095;
-        context.strokeStyle = 'rgba(224,224,218,' + opacity.toFixed(3) + ')';
-        context.lineWidth = 1;
-        context.strokeRect(centerX - frameWidth / 2, centerY - frameHeight / 2, frameWidth, frameHeight);
-      }
-
-      context.strokeStyle = 'rgba(224,224,218,.07)';
-      [
-        [centerX - maxWidth / 2, centerY - maxHeight / 2],
-        [centerX + maxWidth / 2, centerY - maxHeight / 2],
-        [centerX - maxWidth / 2, centerY + maxHeight / 2],
-        [centerX + maxWidth / 2, centerY + maxHeight / 2]
-      ].forEach(function (corner) {
-        context.beginPath();
-        context.moveTo(centerX, centerY);
-        context.lineTo(corner[0], corner[1]);
-        context.stroke();
-      });
-
-      const gradient = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(width, height) * 0.62);
-      gradient.addColorStop(0, 'rgba(255,255,255,.035)');
-      gradient.addColorStop(0.52, 'rgba(0,0,0,0)');
-      gradient.addColorStop(1, 'rgba(0,0,0,.58)');
-      context.fillStyle = gradient;
-      context.fillRect(0, 0, width, height);
-    }
-
-    resize();
-    root.classList.add('is-canvas-ready');
-    return { resize: resize, draw: draw };
-  }
 
   function mountVault(root) {
     if (root.dataset.phamVaultMounted === 'true') return;
     root.dataset.phamVaultMounted = 'true';
     const sticky = root.querySelector('.pham-vault__sticky');
-    const canvas = root.querySelector('[data-pham-vault-canvas]');
-    const object = root.querySelector('[data-pham-vault-object]');
+    const orbit = root.querySelector('[data-pham-vault-orbit]');
+    const orbitPlane = root.querySelector('[data-pham-vault-orbit-plane]');
+    const cards = Array.from(root.querySelectorAll('[data-pham-vault-card]'));
     const chapters = Array.from(root.querySelectorAll('[data-pham-vault-chapter]'));
     const jumps = Array.from(root.querySelectorAll('[data-pham-vault-jump]'));
-    const cursor = root.querySelector('[data-pham-vault-cursor]');
-    const canvasState = createSpatialCanvas(root, canvas);
-    const objectScale = clamp(Number.parseFloat(root.dataset.objectScale) || 0.85, 0.7, 1.1);
+    if (!sticky || !orbit || !orbitPlane || !cards.length) return;
+    const autoSpeed = clamp(Number.parseFloat(root.dataset.orbitSpeed) || 6, 0, 16) * Math.PI / 180;
+    const baseTilt = clamp(Number.parseFloat(root.dataset.orbitTilt) || 24, 12, 30);
     let active = false;
     let frame = 0;
     let previousTime = performance.now();
     let progress = 0;
     let smoothProgress = 0;
-    let pointerX = 0;
-    let pointerY = 0;
-    let smoothPointerX = 0;
-    let smoothPointerY = 0;
     let currentChapter = -1;
+    let rotation = 0.34;
+    let velocity = 0;
+    let currentTilt = baseTilt;
+    let targetTilt = baseTilt;
+    let dragging = false;
+    let horizontalDrag = false;
+    let dragMoved = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let dragStartRotation = 0;
+    let lastPointerX = 0;
+    let lastPointerTime = 0;
+    let radius = 320;
+
+    function measureOrbit() {
+      const width = orbit.clientWidth;
+      radius = window.innerWidth < 600
+        ? clamp(width * 0.31, 118, 168)
+        : clamp(width * 0.31, 210, 455);
+    }
 
     function measureProgress() {
       const rect = root.getBoundingClientRect();
@@ -126,20 +77,34 @@
       const delta = Math.min((time - previousTime) / 1000, 0.1);
       previousTime = time;
       smoothProgress = damp(smoothProgress, progress, 5.5, delta);
-      smoothPointerX = damp(smoothPointerX, pointerX, 7, delta);
-      smoothPointerY = damp(smoothPointerY, pointerY, 7, delta);
       root.style.setProperty('--vault-progress', smoothProgress.toFixed(4));
       setChapter(Math.min(chapters.length - 1, Math.floor(smoothProgress * chapters.length)));
 
-      if (object && !reducedMotion) {
-        const wave = Math.sin(smoothProgress * Math.PI * 2);
-        const x = wave * 4.2 + smoothPointerX * 10;
-        const y = -48 + Math.sin(smoothProgress * Math.PI) * -2 + smoothPointerY * 4;
-        const scale = objectScale * (1 + Math.sin(smoothProgress * Math.PI) * 0.06);
-        const rotateY = wave * -3 + smoothPointerX * 2.5;
-        object.style.transform = 'translate3d(calc(-50% + ' + x.toFixed(2) + 'px), ' + y.toFixed(2) + '%, 0) rotateY(' + rotateY.toFixed(2) + 'deg) scale(' + scale.toFixed(4) + ')';
+      if (!reducedMotion) {
+        if (!dragging) {
+          rotation += (autoSpeed + velocity) * delta;
+          velocity *= Math.exp(-3.2 * delta);
+        }
+        currentTilt = damp(currentTilt, targetTilt, 6, delta);
       }
-      if (canvasState) canvasState.draw(smoothProgress, smoothPointerX, smoothPointerY);
+
+      const spacing = reducedMotion ? 1 : 1 + Math.sin(smoothProgress * Math.PI * 3) * 0.1;
+      const orbitRadius = radius * spacing;
+      const step = Math.PI * 2 / cards.length;
+      const orbitLean = -7 + Math.sin(smoothProgress * Math.PI * 2) * 2.5;
+      orbitPlane.style.transform = 'rotateX(' + currentTilt.toFixed(2) + 'deg) rotateZ(' + orbitLean.toFixed(2) + 'deg)';
+
+      cards.forEach(function (card, index) {
+        const angle = rotation + step * index;
+        const depth = (Math.cos(angle) + 1) * 0.5;
+        const cardScale = 0.82 + depth * 0.2;
+        const cardLean = Math.sin(angle) * 8;
+        card.style.zIndex = String(Math.round(depth * 100));
+        card.style.opacity = String(0.34 + depth * 0.66);
+        card.style.filter = 'brightness(' + (0.48 + depth * 0.58).toFixed(3) + ')';
+        card.style.transform = 'translate3d(-50%, -50%, 0) rotateY(' + angle.toFixed(5) + 'rad) translateZ(' + orbitRadius.toFixed(2) + 'px) rotateZ(' + cardLean.toFixed(2) + 'deg) scale(' + cardScale.toFixed(3) + ')';
+      });
+
       frame = requestAnimationFrame(render);
     }
 
@@ -150,24 +115,68 @@
     }
 
     measureProgress();
+    measureOrbit();
     setChapter(0);
     window.addEventListener('scroll', measureProgress, { passive: true });
     window.addEventListener('resize', function () {
       measureProgress();
-      if (canvasState) canvasState.resize();
+      measureOrbit();
     }, { passive: true });
 
-    root.addEventListener('pointermove', function (event) {
-      const rect = sticky.getBoundingClientRect();
-      pointerX = clamp(((event.clientX - rect.left) / rect.width - 0.5) * 2, -1, 1);
-      pointerY = clamp(((event.clientY - rect.top) / rect.height - 0.5) * 2, -1, 1);
-      if (cursor && finePointer) cursor.style.transform = 'translate3d(' + (event.clientX - 38) + 'px,' + (event.clientY - 38) + 'px,0)';
-    }, { passive: true });
-    root.addEventListener('pointerleave', function () {
-      pointerX = 0;
-      pointerY = 0;
-      if (cursor) cursor.style.transform = 'translate3d(-100px,-100px,0)';
-    }, { passive: true });
+    orbit.addEventListener('pointerdown', function (event) {
+      if (event.button !== undefined && event.button !== 0) return;
+      dragging = true;
+      horizontalDrag = event.pointerType === 'mouse';
+      dragMoved = false;
+      dragStartX = event.clientX;
+      dragStartY = event.clientY;
+      dragStartRotation = rotation;
+      lastPointerX = event.clientX;
+      lastPointerTime = performance.now();
+      velocity = 0;
+      orbit.classList.add('is-dragging');
+      if (event.pointerType === 'mouse') orbit.setPointerCapture(event.pointerId);
+    });
+
+    orbit.addEventListener('pointermove', function (event) {
+      if (!dragging) return;
+      const deltaX = event.clientX - dragStartX;
+      const deltaY = event.clientY - dragStartY;
+      if (!horizontalDrag && Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY) * 1.15) {
+        horizontalDrag = true;
+        orbit.setPointerCapture(event.pointerId);
+      }
+      if (!horizontalDrag) return;
+      event.preventDefault();
+      dragMoved = dragMoved || Math.abs(deltaX) > 5;
+      rotation = dragStartRotation + deltaX * 0.009;
+      targetTilt = clamp(baseTilt - deltaY * 0.045, baseTilt - 6, baseTilt + 6);
+      const now = performance.now();
+      const elapsed = Math.max((now - lastPointerTime) / 1000, 0.016);
+      velocity = clamp((event.clientX - lastPointerX) * 0.009 / elapsed, -3.2, 3.2);
+      lastPointerX = event.clientX;
+      lastPointerTime = now;
+    }, { passive: false });
+
+    function endDrag(event) {
+      if (!dragging) return;
+      dragging = false;
+      horizontalDrag = false;
+      targetTilt = baseTilt;
+      orbit.classList.remove('is-dragging');
+      if (event && orbit.hasPointerCapture(event.pointerId)) orbit.releasePointerCapture(event.pointerId);
+    }
+
+    orbit.addEventListener('pointerup', endDrag);
+    orbit.addEventListener('pointercancel', endDrag);
+    orbit.addEventListener('lostpointercapture', function () { endDrag(); });
+    orbit.addEventListener('click', function (event) {
+      if (dragMoved) {
+        event.preventDefault();
+        event.stopPropagation();
+        dragMoved = false;
+      }
+    }, true);
 
     jumps.forEach(function (jump, index) {
       jump.addEventListener('click', function () {
@@ -192,6 +201,11 @@
       if (active) start();
     }, { rootMargin: '20% 0px' });
     observer.observe(root);
+
+    document.addEventListener('visibilitychange', function () {
+      active = !document.hidden && root.getBoundingClientRect().bottom > 0 && root.getBoundingClientRect().top < window.innerHeight;
+      if (active) start();
+    });
   }
 
   function mountArchive(root) {
