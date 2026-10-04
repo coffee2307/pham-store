@@ -2,6 +2,47 @@
   'use strict';
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const MODEL_VIEWER_SRC = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js';
+
+  function ensureModelViewerLibrary() {
+    if (window.customElements && window.customElements.get('model-viewer')) {
+      return Promise.resolve();
+    }
+    if (window.__PHAM_MODEL_VIEWER_PROMISE__) {
+      return window.__PHAM_MODEL_VIEWER_PROMISE__;
+    }
+
+    window.__PHAM_MODEL_VIEWER_PROMISE__ = new Promise(function (resolve, reject) {
+      const existing = document.querySelector('script[data-pham-model-viewer]');
+      const script = existing || document.createElement('script');
+
+      function finish() {
+        if (window.customElements && window.customElements.whenDefined) {
+          window.customElements.whenDefined('model-viewer').then(resolve, reject);
+        } else {
+          resolve();
+        }
+      }
+
+      if (existing) {
+        if (window.customElements && window.customElements.get('model-viewer')) finish();
+        else {
+          existing.addEventListener('load', finish, { once: true });
+          existing.addEventListener('error', reject, { once: true });
+        }
+        return;
+      }
+
+      script.type = 'module';
+      script.src = MODEL_VIEWER_SRC;
+      script.dataset.phamModelViewer = 'true';
+      script.addEventListener('load', finish, { once: true });
+      script.addEventListener('error', reject, { once: true });
+      document.head.appendChild(script);
+    });
+
+    return window.__PHAM_MODEL_VIEWER_PROMISE__;
+  }
 
   function mount(stage) {
     if (stage.dataset.phamStageMounted === 'true') return;
@@ -174,14 +215,23 @@
       if (requested || failed || !model || !template) return;
       requested = true;
       setProgress(0);
-      model.appendChild(template.content.cloneNode(true));
-      configureModel(model.querySelector('model-viewer'));
 
       failTimer = window.setTimeout(function () {
         if (ready || failed) return;
         failed = true;
         showModelError();
       }, 30000);
+
+      ensureModelViewerLibrary().then(function () {
+        if (failed || model.querySelector('model-viewer')) return;
+        model.appendChild(template.content.cloneNode(true));
+        configureModel(model.querySelector('model-viewer'));
+      }).catch(function () {
+        clearFailTimer();
+        failed = true;
+        ready = false;
+        showModelError();
+      });
     }
 
     function show(view) {
