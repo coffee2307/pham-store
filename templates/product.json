@@ -16,14 +16,56 @@
         "show_phases_default": true,
         "phases_eyebrow": "PRODUCTION SCHEDULE",
         "shipping_terms": "Shipping details will be confirmed closer to release. We will keep waitlist members informed by email."
-      }
+      },
+      "blocks": {
+        "gallery_male_002": {
+          "type": "gallery_image",
+          "settings": {
+            "image": "shopify://shop_images/sketch-male-002.png",
+            "alt": "PHAM-001 front styling study"
+          }
+        },
+        "gallery_male_001": {
+          "type": "gallery_image",
+          "settings": {
+            "image": "shopify://shop_images/sketch-male-001.png",
+            "alt": "PHAM-001 alternate styling study"
+          }
+        },
+        "gallery_female_002": {
+          "type": "gallery_image",
+          "settings": {
+            "image": "shopify://shop_images/sketch-female-002.png",
+            "alt": "PHAM-001 womenswear front styling study"
+          }
+        },
+        "gallery_female_001": {
+          "type": "gallery_image",
+          "settings": {
+            "image": "shopify://shop_images/sketch-female-001.png",
+            "alt": "PHAM-001 womenswear alternate styling study"
+          }
+        }
+      },
+      "block_order": [
+        "gallery_male_002",
+        "gallery_male_001",
+        "gallery_female_002",
+        "gallery_female_001"
+      ]
     },
     "product-3d": {
       "type": "pham-product-3d",
       "settings": {
+        "model_url": "https://cdn.shopify.com/3d/models/o/9151f5eebff102c8/PHAM.glb",
+        "poster_url": "https://cdn.shopify.com/s/files/1/0863/2454/3744/files/preview_images/PHAM.png?v=1791085276",
+        "default_view": "model",
+        "model_alt": "Interactive 3D study of the PHAM-001 cropped bomber",
+        "object_code": "PHAM-001",
         "eyebrow": "DIGITAL GARMENT STUDY / 001",
         "heading": "INSPECT THE FORM",
-        "body": "Rotate the object and inspect the silhouette before entering the product archive."
+        "body": "Rotate the object and inspect the silhouette before entering the product archive.",
+        "interaction_label": "DRAG TO ROTATE"
       }
     }
   },

@@ -17,10 +17,21 @@
       viewer.setAttribute('loading', 'eager');
       viewer.setAttribute('interaction-prompt', 'none');
       viewer.setAttribute('disable-pan', '');
-      viewer.setAttribute('min-camera-orbit', 'auto auto 115%');
-      viewer.setAttribute('max-camera-orbit', 'auto auto 150%');
-      viewer.setAttribute('min-field-of-view', '24deg');
-      viewer.setAttribute('max-field-of-view', '38deg');
+      viewer.setAttribute('disable-zoom', '');
+    }
+
+    function ensureModelViewer() {
+      if (window.customElements && window.customElements.get('model-viewer')) return;
+      if (!window.Shopify || typeof window.Shopify.loadFeatures !== 'function') return;
+      window.Shopify.loadFeatures([
+        {
+          name: 'model-viewer-ui',
+          version: '1.0',
+          onLoad: function (errors) {
+            if (errors) stage.dataset.phamModelError = 'true';
+          }
+        }
+      ]);
     }
 
     function show(view) {
@@ -28,6 +39,7 @@
       if (useModel && !loaded) {
         model.appendChild(template.content.cloneNode(true));
         configureModel(model.querySelector('model-viewer'));
+        ensureModelViewer();
         loaded = true;
       }
       if (image) image.hidden = useModel;

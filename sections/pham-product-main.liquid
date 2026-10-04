@@ -55,7 +55,8 @@
 
     {%- comment -%} ============= LEFT: GALLERY (e-commerce layout) ============= {%- endcomment -%}
     <div class="pham-product-main__media reveal-up">
-      {% render 'pham-product-gallery', product: product, section_id: section.id %}
+      {%- assign gallery_image_blocks = section.blocks | where: 'type', 'gallery_image' -%}
+      {% render 'pham-product-gallery', product: product, section_id: section.id, gallery_blocks: gallery_image_blocks %}
     </div>
 
     {%- comment -%} ============= RIGHT: STICKY PANEL ============= {%- endcomment -%}
@@ -1533,6 +1534,25 @@
     }
   ],
   "blocks": [
+    {
+      "type": "gallery_image",
+      "name": "Product gallery image",
+      "limit": 12,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image",
+          "info": "Independent from the product media library. If no custom gallery image is selected, the gallery falls back to product images only."
+        },
+        {
+          "type": "text",
+          "id": "alt",
+          "label": "Alternative text",
+          "info": "Describe the garment view for accessibility."
+        }
+      ]
+    },
     {
       "type": "phase",
       "name": "Production phase",

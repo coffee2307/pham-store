@@ -1,12 +1,18 @@
 {%- liquid
-  assign model_media = blank
-  for media in product.media
-    if media.media_type == 'model'
-      assign model_media = media
-      break
-    endif
-  endfor
-  assign fallback_image = section.settings.fallback_image | default: product.featured_image
+  assign model_url = section.settings.model_url | strip
+  assign poster_image = section.settings.poster_image
+  assign poster_url = section.settings.poster_url | strip
+  assign has_poster = false
+  if poster_image != blank or poster_url != blank
+    assign has_poster = true
+  endif
+
+  assign default_view = section.settings.default_view
+  if model_url == blank
+    assign default_view = 'image'
+  elsif has_poster == false
+    assign default_view = 'model'
+  endif
 -%}
 
 {{ 'pham-vault.css' | asset_url | stylesheet_tag }}
@@ -15,8 +21,8 @@
 <section
   class="pham-object-stage"
   data-pham-object-stage
-  data-has-model="{% if model_media != blank %}true{% else %}false{% endif %}"
-  data-default-view="{% if fallback_image == blank and model_media != blank %}model{% else %}image{% endif %}"
+  data-has-model="{% if model_url != blank %}true{% else %}false{% endif %}"
+  data-default-view="{{ default_view }}"
   data-image-mode-label="{{ section.settings.image_mode_label | escape }}"
   data-model-mode-label="{{ section.settings.model_mode_label | escape }}"
   aria-label="{{ section.settings.heading | escape }}"
@@ -24,7 +30,7 @@
   <div class="pham-object-stage__grid" aria-hidden="true"></div>
   <div class="pham-object-stage__meta pham-container">
     <p>{{ section.settings.eyebrow }}</p>
-    <p>OBJECT / {{ product.id }}</p>
+    <p>OBJECT / {{ section.settings.object_code }}</p>
   </div>
 
   <header class="pham-object-stage__intro pham-container">
@@ -34,47 +40,76 @@
   </header>
 
   <div class="pham-object-stage__viewer">
-    <div class="pham-object-stage__image-view" data-pham-stage-image>
-    {%- if fallback_image != blank -%}
-      {{
-        fallback_image
-        | image_url: width: 1800
-        | image_tag:
-          loading: 'lazy',
-          widths: '600, 900, 1200, 1500, 1800',
-          sizes: '(max-width: 749px) 92vw, 62vw',
-          class: 'pham-object-stage__fallback-image',
-          alt: product.title
-      }}
-    {%- else -%}
-      <div class="pham-object-stage__empty" aria-hidden="true"><span>PHAM</span><i></i><span>OBJECT</span></div>
-    {%- endif -%}
+    <div class="pham-object-stage__image-view" data-pham-stage-image{% if default_view == 'model' %} hidden{% endif %}>
+      {%- if poster_image != blank -%}
+        {{
+          poster_image
+          | image_url: width: 1800
+          | image_tag:
+            loading: 'eager',
+            fetchpriority: 'high',
+            widths: '600, 900, 1200, 1500, 1800',
+            sizes: '(max-width: 749px) 92vw, 62vw',
+            class: 'pham-object-stage__fallback-image',
+            alt: section.settings.model_alt
+        }}
+      {%- elsif poster_url != blank -%}
+        <img
+          src="{{ poster_url | escape }}"
+          class="pham-object-stage__fallback-image"
+          alt="{{ section.settings.model_alt | escape }}"
+          loading="eager"
+          fetchpriority="high"
+          width="1800"
+          height="1800"
+        >
+      {%- else -%}
+        <div class="pham-object-stage__empty" aria-hidden="true"><span>PHAM</span><i></i><span>OBJECT</span></div>
+      {%- endif -%}
     </div>
-    {%- if model_media != blank -%}
-      <div class="pham-object-stage__model-view" data-pham-stage-model{% if fallback_image != blank %} hidden{% endif %}></div>
+
+    {%- if model_url != blank -%}
+      <div class="pham-object-stage__model-view" data-pham-stage-model{% if default_view != 'model' %} hidden{% endif %}></div>
       <template data-pham-stage-model-template>
-        {{ model_media | model_viewer_tag: class: 'pham-object-stage__model', reveal: 'auto', auto_rotate: true, camera_controls: true, interaction_prompt: 'none', interaction_policy: 'allow-when-focused' }}
+        <model-viewer
+          class="pham-object-stage__model"
+          src="{{ model_url | escape }}"
+          {% if poster_image != blank %}poster="{{ poster_image | image_url: width: 1600 }}"{% elsif poster_url != blank %}poster="{{ poster_url | escape }}"{% endif %}
+          alt="{{ section.settings.model_alt | escape }}"
+          loading="eager"
+          reveal="auto"
+          camera-controls
+          auto-rotate
+          disable-pan
+          disable-zoom
+          interaction-prompt="none"
+          interaction-policy="allow-when-focused"
+          camera-orbit="0deg 75deg 135%"
+          field-of-view="32deg"
+        ></model-viewer>
       </template>
     {%- endif -%}
+
     <p class="pham-object-stage__mode" data-pham-stage-mode>
-      {%- if fallback_image != blank -%}
-        {{ section.settings.image_mode_label }}
-      {%- elsif model_media != blank -%}
+      {%- if default_view == 'model' -%}
         {{ section.settings.model_mode_label }}
+      {%- elsif has_poster -%}
+        {{ section.settings.image_mode_label }}
       {%- else -%}
         {{ section.settings.model_empty_label }}
       {%- endif -%}
     </p>
-    {%- if model_media != blank and fallback_image != blank -%}
+
+    {%- if model_url != blank and has_poster -%}
       <div class="pham-object-stage__switcher" role="group" aria-label="{{ section.settings.viewer_label | escape }}">
-        <button type="button" class="is-active" data-pham-stage-switch="image" aria-pressed="true">{{ section.settings.image_label }}</button>
-        <button type="button" data-pham-stage-switch="model" aria-pressed="false">{{ section.settings.model_label }}</button>
+        <button type="button"{% if default_view == 'image' %} class="is-active"{% endif %} data-pham-stage-switch="image" aria-pressed="{% if default_view == 'image' %}true{% else %}false{% endif %}">{{ section.settings.image_label }}</button>
+        <button type="button"{% if default_view == 'model' %} class="is-active"{% endif %} data-pham-stage-switch="model" aria-pressed="{% if default_view == 'model' %}true{% else %}false{% endif %}">{{ section.settings.model_label }}</button>
       </div>
     {%- endif -%}
   </div>
 
   <div class="pham-object-stage__controls pham-container">
-    <p>{% if model_media != blank %}{{ section.settings.interaction_label }}{% else %}{{ section.settings.model_empty_label }}{% endif %}</p>
+    <p>{% if model_url != blank %}{{ section.settings.interaction_label }}{% else %}{{ section.settings.model_empty_label }}{% endif %}</p>
     <a href="#MainProduct-{{ product.id }}">VIEW PRODUCT INFORMATION &#8595;</a>
   </div>
 </section>
@@ -91,7 +126,7 @@
   .pham-object-stage__viewer { position: absolute; z-index: 2; inset: 54px 0 32px; display: grid; place-items: center; overflow: hidden; overflow: clip; }
   .pham-object-stage__image-view,.pham-object-stage__model-view { width: 100%; height: 100%; display: grid; place-items: center; overflow: hidden; isolation: isolate; contain: layout paint; }
   .pham-object-stage__model-view[hidden],.pham-object-stage__image-view[hidden] { display: none; }
-  .pham-object-stage__model { display: block; width: min(70vw, 960px); max-width: 100%; height: 86vh; max-height: 100%; min-height: 620px; overflow: hidden; background: transparent; --poster-color: transparent; }
+  .pham-object-stage__model { display: block; width: min(70vw, 960px); max-width: 100%; height: 86vh; max-height: 100%; min-height: 620px; overflow: hidden; background: transparent; --poster-color: transparent; touch-action: pan-y; }
   .pham-object-stage__fallback-image { width: min(62vw, 840px); height: 80vh; object-fit: contain; filter: saturate(.76) contrast(1.08) drop-shadow(0 50px 60px rgba(0,0,0,.74)); transition: transform 900ms cubic-bezier(.2,0,0,1), filter 900ms ease; }
   .pham-object-stage:hover .pham-object-stage__fallback-image { transform: scale(1.025); filter: saturate(.88) contrast(1.04) drop-shadow(0 58px 70px rgba(0,0,0,.82)); }
   .pham-object-stage__mode { position: absolute; right: var(--gutter); top: 50%; margin: 0; writing-mode: vertical-rl; color: rgba(242,242,239,.43); font: 400 9px/1 var(--font-mono); }
@@ -113,17 +148,24 @@
   "tag": "section",
   "class": "pham-product-stage-section",
   "settings": [
-    { "type": "image_picker", "id": "fallback_image", "label": "Fallback image", "info": "Shown until a 3D model is added to the product media." },
+    { "type": "header", "content": "Independent media" },
+    { "type": "text", "id": "model_url", "label": "GLB model URL", "info": "Upload the GLB under Content > Files, then paste its CDN URL here. This source is independent from product media." },
+    { "type": "image_picker", "id": "poster_image", "label": "Poster / image view", "info": "Independent presentation image shown while the model loads or when IMAGE is selected." },
+    { "type": "text", "id": "poster_url", "label": "Poster URL (migration fallback)", "info": "Optional direct image URL. The image picker above takes priority." },
+    { "type": "select", "id": "default_view", "label": "Default view", "default": "model", "options": [{ "value": "model", "label": "3D model" }, { "value": "image", "label": "Image" }] },
+    { "type": "text", "id": "model_alt", "label": "Model description", "default": "Interactive 3D study of the PHAM garment" },
+    { "type": "text", "id": "object_code", "label": "Object code", "default": "PHAM-001" },
+    { "type": "header", "content": "Copy" },
     { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "DIGITAL GARMENT STUDY / 001" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "INSPECT THE FORM" },
     { "type": "textarea", "id": "body", "label": "Description", "default": "Rotate the object and inspect the silhouette before entering the product archive." },
-    { "type": "text", "id": "viewer_label", "label": "Viewer switch label", "default": "Product media view" },
+    { "type": "text", "id": "viewer_label", "label": "Viewer switch label", "default": "Independent media view" },
     { "type": "text", "id": "image_label", "label": "Image view label", "default": "IMAGE" },
     { "type": "text", "id": "model_label", "label": "3D view label", "default": "3D" },
     { "type": "text", "id": "image_mode_label", "label": "Image mode status", "default": "IMAGE STUDY" },
     { "type": "text", "id": "model_mode_label", "label": "3D mode status", "default": "3D MODEL / LIVE" },
-    { "type": "text", "id": "interaction_label", "label": "3D interaction help", "default": "DRAG TO ROTATE / SCROLL TO ZOOM" },
-    { "type": "text", "id": "model_empty_label", "label": "Missing model message", "default": "3D MODEL SLOT READY" }
+    { "type": "text", "id": "interaction_label", "label": "3D interaction help", "default": "DRAG TO ROTATE" },
+    { "type": "text", "id": "model_empty_label", "label": "Missing model message", "default": "ADD A GLB URL IN THEME EDITOR" }
   ],
   "presets": [{ "name": "PHAM Product stage", "category": "PHAM" }],
   "enabled_on": { "templates": ["product"] }
