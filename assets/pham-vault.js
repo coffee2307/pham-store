@@ -21,7 +21,7 @@
     const jumps = Array.from(root.querySelectorAll('[data-pham-vault-jump]'));
     if (!sticky || !orbit || !orbitPlane || !cards.length) return;
     const autoSpeed = clamp(Number.parseFloat(root.dataset.orbitSpeed) || 6, 0, 16) * Math.PI / 180;
-    const baseTilt = clamp(Number.parseFloat(root.dataset.orbitTilt) || 8, 2, 16);
+    const baseTilt = clamp(Number.parseFloat(root.dataset.orbitTilt) || 5, 2, 10);
     let active = false;
     let frame = 0;
     let previousTime = performance.now();
@@ -92,7 +92,7 @@
       const spacing = reducedMotion ? 1 : 1 + Math.sin(smoothProgress * Math.PI * 3) * 0.1;
       const orbitRadius = radius * spacing;
       const step = Math.PI * 2 / cards.length;
-      const orbitLean = 4 + Math.sin(smoothProgress * Math.PI * 2) * 1.25;
+      const orbitLean = 6 + Math.sin(smoothProgress * Math.PI * 2) * 0.35;
       orbitPlane.style.transform = 'rotateX(' + currentTilt.toFixed(2) + 'deg) rotateZ(' + orbitLean.toFixed(2) + 'deg)';
       if (orbitRing) {
         const ringDiameter = orbitRadius * 1.32;
@@ -156,7 +156,7 @@
       event.preventDefault();
       dragMoved = dragMoved || Math.abs(deltaX) > 5;
       rotation = dragStartRotation + deltaX * 0.009;
-      targetTilt = clamp(baseTilt - deltaY * 0.03, baseTilt - 3, baseTilt + 3);
+      targetTilt = clamp(baseTilt - deltaY * 0.018, baseTilt - 1.5, baseTilt + 1.5);
       const now = performance.now();
       const elapsed = Math.max((now - lastPointerTime) / 1000, 0.016);
       velocity = clamp((event.clientX - lastPointerX) * 0.009 / elapsed, -3.2, 3.2);
