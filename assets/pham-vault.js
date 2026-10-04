@@ -148,6 +148,41 @@
       );
     }
 
+    function markExpandedCardOcclusion(card, targetScale, orbitRect, mobileDialog) {
+      cards.forEach(function (peer) {
+        peer.classList.remove('is-occluded-by-expanded');
+      });
+
+      // Mobile already fades every peer completely while the card is open.
+      // On larger viewports, keep the surrounding orbit visible but remove
+      // only peers whose projected bounds would cross the enlarged card.
+      if (mobileDialog) return;
+
+      const targetWidth = Math.max(card.offsetWidth * targetScale, 1);
+      const targetHeight = Math.max(card.offsetHeight * targetScale, 1);
+      const centerX = orbitRect.left + orbitRect.width * 0.5;
+      const centerY = orbitRect.top + orbitRect.height * 0.5;
+      const margin = 18;
+      const targetRect = {
+        left: centerX - targetWidth * 0.5 - margin,
+        right: centerX + targetWidth * 0.5 + margin,
+        top: centerY - targetHeight * 0.5 - margin,
+        bottom: centerY + targetHeight * 0.5 + margin
+      };
+
+      cards.forEach(function (peer) {
+        if (peer === card) return;
+        const rect = peer.getBoundingClientRect();
+        const overlaps =
+          rect.right > targetRect.left &&
+          rect.left < targetRect.right &&
+          rect.bottom > targetRect.top &&
+          rect.top < targetRect.bottom;
+
+        if (overlaps) peer.classList.add('is-occluded-by-expanded');
+      });
+    }
+
     function settleCardDialogOpen() {
       if (!cardDialogOpen || cardDialogClosing) return;
       cardDialogSettled = true;
@@ -179,6 +214,9 @@
         expandedSource.classList.remove('is-tarot-expanded');
         expandedSource.style.transform = sourceCardTransform;
       }
+      cards.forEach(function (card) {
+        card.classList.remove('is-occluded-by-expanded');
+      });
 
       root.classList.remove('is-card-open', 'is-card-closing', 'is-card-settled');
       if (cardDialog) {
@@ -274,6 +312,9 @@
       const mobileOffsetY = mobileDialog
         ? (window.innerHeight * 0.5) - (orbitRect.top + orbitRect.height * 0.5)
         : 0;
+
+      markExpandedCardOcclusion(card, targetScale, orbitRect, mobileDialog);
+
       const targetCardTransform = mobileDialog
         ? 'translate3d(-50%, -50%, 0) ' +
           'rotateZ(' + (-dialogPlaneLean).toFixed(3) + 'deg) ' +
