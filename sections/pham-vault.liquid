@@ -42,7 +42,10 @@
             {%- for block in section.blocks -%}
               {%- assign card_image = block.settings.image -%}
               {%- assign card_alt = block.settings.alt_text | default: card_image.alt | default: 'PHAM archive image' -%}
-              <figure class="pham-vault__orbit-card" data-pham-vault-card {{ block.shopify_attributes }}>
+              <figure class="pham-vault__orbit-card"
+                      data-pham-vault-card
+                      {% if block.settings.link == blank %}tabindex="0" role="button" aria-expanded="false" aria-label="Open {{ card_alt | escape }}"{% endif %}
+                      {{ block.shopify_attributes }}>
                 <div class="pham-vault__orbit-card-face">
                   {%- if block.settings.link != blank -%}<a href="{{ block.settings.link }}" aria-label="{{ card_alt | escape }}">{%- endif -%}
                     {%- if card_image != blank -%}
@@ -64,7 +67,7 @@
             {%- endfor -%}
           {%- else -%}
             {%- for card_number in (1..8) -%}
-              <figure class="pham-vault__orbit-card" data-pham-vault-card>
+              <figure class="pham-vault__orbit-card" data-pham-vault-card tabindex="0" role="button" aria-expanded="false" aria-label="Open PHAM archive frame {{ card_number }}">
                 <div class="pham-vault__orbit-card-face">
                   <span class="pham-vault__orbit-placeholder">PHAM<br>0{{ card_number }}</span>
                 </div>
