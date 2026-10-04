@@ -11,10 +11,22 @@
     const switches = Array.from(stage.querySelectorAll('[data-pham-stage-switch]'));
     let loaded = false;
 
+    function configureModel(viewer) {
+      if (!viewer) return;
+      viewer.setAttribute('reveal', 'auto');
+      viewer.setAttribute('loading', 'eager');
+      viewer.setAttribute('interaction-prompt', 'none');
+      viewer.setAttribute('min-camera-orbit', 'auto auto 78%');
+      viewer.setAttribute('max-camera-orbit', 'auto auto 140%');
+      viewer.setAttribute('min-field-of-view', '18deg');
+      viewer.setAttribute('max-field-of-view', '38deg');
+    }
+
     function show(view) {
       const useModel = view === 'model' && model && template;
       if (useModel && !loaded) {
         model.appendChild(template.content.cloneNode(true));
+        configureModel(model.querySelector('model-viewer'));
         loaded = true;
       }
       if (image) image.hidden = useModel;
