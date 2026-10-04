@@ -258,6 +258,15 @@
 
       cardDialogClosing = true;
       cardDialogSettled = false;
+
+      // Release peer occlusion as soon as the close transition starts.
+      // Previously these classes stayed on until finishCardDialogClose(), so
+      // overlapping neighbour cards remained forced to opacity: 0 and then
+      // popped back only after the expanded-card reverse animation finished.
+      cards.forEach(function (peer) {
+        peer.classList.remove('is-occluded-by-expanded');
+      });
+
       root.classList.remove('is-card-settled');
       root.classList.add('is-card-closing');
       cardDialog.classList.remove('is-settled');
