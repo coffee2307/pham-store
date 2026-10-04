@@ -126,7 +126,7 @@
                     <div class="pham-lookbook-v2__carousel-track" data-pham-carousel-track>
                       {%- assign slide_idx = 0 -%}
                       {%- if block.settings.image != blank -%}
-                        {% render 'pham-lookbook-slide', image: block.settings.image, index: slide_idx, alt_fallback: alt_fallback, enable_lightbox: enable_lightbox, loading: 'eager' %}
+                        {% render 'pham-lookbook-slide', image: block.settings.image, index: slide_idx, alt_fallback: alt_fallback, enable_lightbox: enable_lightbox, loading: 'lazy' %}
                         {%- assign slide_idx = slide_idx | plus: 1 -%}
                       {%- endif -%}
                       {%- if block.settings.image_2 != blank -%}
