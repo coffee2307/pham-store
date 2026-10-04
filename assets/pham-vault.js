@@ -130,9 +130,9 @@
         (card.offsetHeight || sourceRect.height) / Math.max(card.offsetWidth || sourceRect.width, 1)
       );
 
-      let targetWidth = Math.min(500, window.innerWidth * 0.34);
+      let targetWidth = Math.min(460, window.innerWidth * 0.3);
       let targetHeight = targetWidth * intrinsicRatio;
-      const maxHeight = window.innerHeight * 0.8;
+      const maxHeight = window.innerHeight * 0.74;
 
       if (targetHeight > maxHeight) {
         targetHeight = maxHeight;
@@ -160,8 +160,9 @@
         dy: sourceCenterY - targetCenterY,
         scaleX: scaleX,
         scaleY: scaleY,
-        lean: clamp(Math.sin(cardAngle) * 8, -10, 10),
-        turn: clamp(Math.sin(cardAngle) * 34, -38, 38)
+        lean: clamp(Math.sin(cardAngle) * 3.2, -4, 4),
+        turn: clamp(Math.sin(cardAngle) * 13, -15, 15),
+        distance: Math.hypot(sourceCenterX - targetCenterX, sourceCenterY - targetCenterY)
       };
     }
 
@@ -248,10 +249,10 @@
       const timing = cardDialogAnimation.effect && cardDialogAnimation.effect.getTiming
         ? cardDialogAnimation.effect.getTiming()
         : null;
-      const duration = timing && Number(timing.duration) ? Number(timing.duration) : 660;
+      const duration = timing && Number(timing.duration) ? Number(timing.duration) : 920;
 
       if (cardDialogAnimation.currentTime == null) cardDialogAnimation.currentTime = duration;
-      cardDialogAnimation.playbackRate = -1;
+      cardDialogAnimation.playbackRate = -0.82;
       cardDialogAnimation.play();
 
       cardDialogAnimation.onfinish = function () {
@@ -322,12 +323,14 @@
         return;
       }
 
+      const motionDuration = clamp(820 + geometry.distance * 0.24, 860, 1080);
+
       cardDialogAnimation = card.animate([
         { transform: startTransform },
         { transform: endTransform }
       ], {
-        duration: 660,
-        easing: 'cubic-bezier(.22,.72,.2,1)',
+        duration: motionDuration,
+        easing: 'cubic-bezier(.4,0,.2,1)',
         fill: 'both'
       });
 
