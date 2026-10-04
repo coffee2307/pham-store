@@ -200,14 +200,14 @@
       ]
       {%- endif -%}
       {%- assign pham_variant = product.selected_or_first_available_variant -%}
-      {%- if pham_variant != blank and pham_variant.available -%}
+      {%- if pham_variant != blank -%}
       ,
       "offers": {
         "@type": "Offer",
         "url": {{ canonical_url | json }},
         "priceCurrency": {{ cart.currency.iso_code | default: shop.currency | json }},
         "price": {{ pham_variant.price | money_without_currency | replace: ',', '' | json }},
-        "availability": "https://schema.org/InStock",
+        "availability": {% if pham_variant.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
         "itemCondition": "https://schema.org/NewCondition",
         "seller": {
           "@id": {{ pham_entity_url | append: '/#organization' | json }}
