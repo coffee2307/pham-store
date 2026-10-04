@@ -1,15 +1,110 @@
 (function () {
   'use strict';
 
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   function mount(stage) {
     if (stage.dataset.phamStageMounted === 'true') return;
     stage.dataset.phamStageMounted = 'true';
+
     const image = stage.querySelector('[data-pham-stage-image]');
     const model = stage.querySelector('[data-pham-stage-model]');
     const template = stage.querySelector('[data-pham-stage-model-template]');
     const mode = stage.querySelector('[data-pham-stage-mode]');
+    const loader = stage.querySelector('[data-pham-stage-loader]');
+    const progressBar = stage.querySelector('[data-pham-stage-progress-bar]');
+    const progressValue = stage.querySelector('[data-pham-stage-progress-value]');
+    const errorNote = stage.querySelector('[data-pham-stage-error]');
     const switches = Array.from(stage.querySelectorAll('[data-pham-stage-switch]'));
-    let loaded = false;
+    const defaultView = stage.dataset.defaultView || 'image';
+
+    let requested = false;
+    let ready = false;
+    let failed = false;
+    let desiredView = defaultView;
+    let failTimer = 0;
+    let observer = null;
+
+    function setModeLabel(label) {
+      if (mode) mode.textContent = label || '';
+    }
+
+    function setProgress(value) {
+      const normalized = Math.max(0, Math.min(1, Number(value) || 0));
+      const percent = Math.round(normalized * 100);
+      if (progressBar) progressBar.style.transform = 'scaleX(' + normalized.toFixed(4) + ')';
+      if (progressValue) progressValue.textContent = String(percent).padStart(2, '0') + '%';
+    }
+
+    function setLoaderVisible(visible) {
+      if (loader) loader.hidden = !visible;
+    }
+
+    function setErrorVisible(visible) {
+      if (errorNote) errorNote.hidden = !visible;
+    }
+
+    function syncSwitcher(view) {
+      switches.forEach(function (button) {
+        const active = button.dataset.phamStageSwitch === view;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+
+    function showImage() {
+      if (image) image.hidden = false;
+      if (model) model.hidden = true;
+      syncSwitcher('image');
+      setLoaderVisible(false);
+      setErrorVisible(false);
+      setModeLabel(stage.dataset.imageModeLabel);
+    }
+
+    function showModelReady() {
+      if (!ready || !model) return;
+      if (image) image.hidden = true;
+      model.hidden = false;
+      syncSwitcher('model');
+      setLoaderVisible(false);
+      setErrorVisible(false);
+      setModeLabel(stage.dataset.modelModeLabel);
+      stage.classList.add('is-model-ready');
+      stage.classList.remove('is-model-loading', 'is-model-error');
+    }
+
+    function showModelLoading() {
+      if (image) image.hidden = false;
+      if (model) model.hidden = true;
+      syncSwitcher('model');
+      setErrorVisible(false);
+      setLoaderVisible(true);
+      setModeLabel(stage.dataset.loadingModeLabel || stage.dataset.modelModeLabel);
+      stage.classList.add('is-model-loading');
+      stage.classList.remove('is-model-error');
+    }
+
+    function showModelError() {
+      if (image) image.hidden = false;
+      if (model) model.hidden = true;
+      setLoaderVisible(false);
+      setErrorVisible(true);
+      setModeLabel(stage.dataset.errorModeLabel || stage.dataset.imageModeLabel);
+      stage.classList.add('is-model-error');
+      stage.classList.remove('is-model-loading', 'is-model-ready');
+      switches.forEach(function (button) {
+        if (button.dataset.phamStageSwitch === 'model') {
+          button.disabled = true;
+          button.setAttribute('aria-disabled', 'true');
+        }
+      });
+    }
+
+    function clearFailTimer() {
+      if (!failTimer) return;
+      window.clearTimeout(failTimer);
+      failTimer = 0;
+    }
 
     function configureModel(viewer) {
       if (!viewer) return;
@@ -18,30 +113,89 @@
       viewer.setAttribute('interaction-prompt', 'none');
       viewer.setAttribute('disable-pan', '');
       viewer.setAttribute('disable-zoom', '');
+      if (reducedMotion) viewer.removeAttribute('auto-rotate');
+
+      viewer.addEventListener('progress', function (event) {
+        if (event.detail && event.detail.reason && event.detail.reason !== 'model-load') return;
+        if (event.detail && typeof event.detail.totalProgress === 'number') {
+          setProgress(event.detail.totalProgress);
+        }
+        if (desiredView === 'model' && !ready && !failed) showModelLoading();
+      });
+
+      viewer.addEventListener('load', function () {
+        clearFailTimer();
+        ready = true;
+        failed = false;
+        setProgress(1);
+        if (desiredView === 'model') showModelReady();
+        else showImage();
+      }, { once: true });
+
+      viewer.addEventListener('error', function () {
+        clearFailTimer();
+        failed = true;
+        ready = false;
+        showModelError();
+      }, { once: true });
+    }
+
+    function requestModel() {
+      if (requested || failed || !model || !template) return;
+      requested = true;
+      setProgress(0);
+      model.appendChild(template.content.cloneNode(true));
+      configureModel(model.querySelector('model-viewer'));
+
+      failTimer = window.setTimeout(function () {
+        if (ready || failed) return;
+        failed = true;
+        showModelError();
+      }, 30000);
     }
 
     function show(view) {
-      const useModel = view === 'model' && model && template;
-      if (useModel && !loaded) {
-        model.appendChild(template.content.cloneNode(true));
-        configureModel(model.querySelector('model-viewer'));
-        loaded = true;
+      desiredView = view === 'model' ? 'model' : 'image';
+
+      if (desiredView === 'image') {
+        showImage();
+        return;
       }
-      if (image) image.hidden = useModel;
-      if (model) model.hidden = !useModel;
-      if (mode) mode.textContent = useModel ? stage.dataset.modelModeLabel : stage.dataset.imageModeLabel;
-      switches.forEach(function (button) {
-        const active = button.dataset.phamStageSwitch === (useModel ? 'model' : 'image');
-        button.classList.toggle('is-active', active);
-        button.setAttribute('aria-pressed', active ? 'true' : 'false');
-      });
+      if (failed) {
+        showModelError();
+        return;
+      }
+      if (ready) {
+        showModelReady();
+        return;
+      }
+
+      showModelLoading();
+      requestModel();
     }
 
     switches.forEach(function (button) {
-      button.addEventListener('click', function () { show(button.dataset.phamStageSwitch); });
+      button.addEventListener('click', function () {
+        if (button.disabled || button.getAttribute('aria-disabled') === 'true') return;
+        show(button.dataset.phamStageSwitch);
+      });
     });
 
-    show(stage.dataset.defaultView || 'image');
+    if (defaultView === 'model' && model && template) {
+      if ('IntersectionObserver' in window) {
+        observer = new IntersectionObserver(function (entries) {
+          if (!entries[0] || !entries[0].isIntersecting) return;
+          observer.disconnect();
+          observer = null;
+          show('model');
+        }, { rootMargin: '240px 0px', threshold: 0.01 });
+        observer.observe(stage);
+      } else {
+        show('model');
+      }
+    } else {
+      show('image');
+    }
   }
 
   function mountAll(scope) {
