@@ -1,5 +1,5 @@
 /**
- * PHAM waitlist form — legal gate + honeypot → checkout.
+ * PHAM waitlist form — legal gate + honeypot → native Shopify contact signup.
  */
 document.addEventListener('DOMContentLoaded', function () {
   'use strict';
@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var root = document.querySelector('[data-pham-waitlist-signup]');
   if (!root) return;
 
-  var form = root.querySelector('[data-pham-waitlist-form]');
+  var form = root.querySelector('#PhamWaitlistForm');
   if (!form) return;
 
   var legalInput = form.querySelector('[data-pham-waitlist-legal]');
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
       submitBtn.disabled = true;
       submitBtn.setAttribute('aria-disabled', 'true');
       submitBtn.setAttribute('aria-busy', 'true');
-      if (submitLabelEl) submitLabelEl.textContent = 'Starting checkout…';
+      if (submitLabelEl) submitLabelEl.textContent = 'Joining waitlist…';
       return;
     }
     submitBtn.removeAttribute('aria-busy');
@@ -118,9 +118,6 @@ document.addEventListener('DOMContentLoaded', function () {
   function resetWaitlistFormState() {
     setSubmitting(false);
     showFormError('');
-    if (window.PhamWaitlistCheckout && window.PhamWaitlistCheckout.resetUiState) {
-      window.PhamWaitlistCheckout.resetUiState();
-    }
   }
 
   window.addEventListener('pageshow', function (event) {
@@ -128,34 +125,14 @@ document.addEventListener('DOMContentLoaded', function () {
     resetWaitlistFormState();
   });
 
-  function proceedToCheckout() {
-    if (!window.PhamWaitlistCheckout) {
-      showFormError('Checkout is unavailable. Please try again later.');
-      return;
-    }
-
-    setSubmitting(true);
-    showFormError('');
-
-    window.PhamWaitlistCheckout.go(form, root).then(function (result) {
-      if (!result || !result.ok) {
-        if (window.PhamWaitlistCheckout.hideOverlay) {
-          window.PhamWaitlistCheckout.hideOverlay();
-        }
-        setSubmitting(false);
-        showFormError((result && result.message) || 'Unable to start checkout. Please try again.');
-      }
-    });
-  }
-
   form.addEventListener('submit', function (event) {
-    event.preventDefault();
-
     if (honeypotInput && honeypotInput.value.trim()) {
+      event.preventDefault();
       return;
     }
 
     if (legalInput && !legalInput.checked) {
+      event.preventDefault();
       syncWaitlistSubmitState();
       legalInput.focus();
       showFormError('Please accept the terms before continuing.');
@@ -163,9 +140,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (!validateWaitlistFields()) {
+      event.preventDefault();
       return;
     }
 
-    proceedToCheckout();
+    // Keep Shopify's native contact-form POST intact. This records a
+    // waitlist enquiry without creating a cart, order, reservation or payment.
+    setSubmitting(true);
   });
 });
