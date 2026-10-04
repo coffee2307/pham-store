@@ -326,11 +326,54 @@
       document.dispatchEvent(new CustomEvent('pham:cart:updated', { detail: cart }));
     }
 
-    /* ---- Escape key handler (bound while open) ---- */
+    /* ---- Keyboard handling while cart dialog is open ---- */
+    _getFocusableInDrawer() {
+      if (!this.drawer) return [];
+      const selector = [
+        'a[href]:not([tabindex="-1"])',
+        'button:not([disabled]):not([tabindex="-1"])',
+        'input:not([disabled]):not([type="hidden"]):not([tabindex="-1"])',
+        'select:not([disabled]):not([tabindex="-1"])',
+        'textarea:not([disabled]):not([tabindex="-1"])',
+        '[tabindex]:not([tabindex="-1"])'
+      ].join(',');
+
+      return Array.from(this.drawer.querySelectorAll(selector)).filter((element) => {
+        if (element.hidden || element.getAttribute('aria-hidden') === 'true') return false;
+        const style = window.getComputedStyle(element);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+      });
+    }
+
     _onKeydown(e) {
-      if ((e.key === 'Escape' || e.key === 'Esc') && this.drawer && this.drawer.classList.contains('is-open')) {
+      if (!this.drawer || !this.drawer.classList.contains('is-open')) return;
+
+      if (e.key === 'Escape' || e.key === 'Esc') {
         e.preventDefault();
         this.close();
+        return;
+      }
+
+      if (e.key !== 'Tab') return;
+
+      const focusables = this._getFocusableInDrawer();
+      if (focusables.length === 0) {
+        e.preventDefault();
+        return;
+      }
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+
+      if (e.shiftKey) {
+        if (active === first || !this.drawer.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last || !this.drawer.contains(active)) {
+        e.preventDefault();
+        first.focus();
       }
     }
 
