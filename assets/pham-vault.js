@@ -6,7 +6,7 @@
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = window.matchMedia('(pointer: fine)').matches;
-  const desktopCardMode = window.matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)');
+  const desktopCardMode = window.matchMedia('(min-width: 1024px)');
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const damp = (current, target, speed, delta) => current + (target - current) * (1 - Math.exp(-speed * delta));
 
@@ -198,9 +198,9 @@
       });
 
       const ratio = rect.height / Math.max(rect.width, 1);
-      let targetWidth = Math.min(430, window.innerWidth * 0.3);
+      let targetWidth = Math.min(500, window.innerWidth * 0.34);
       let targetHeight = targetWidth * ratio;
-      const maxHeight = window.innerHeight * 0.74;
+      const maxHeight = window.innerHeight * 0.8;
       if (targetHeight > maxHeight) {
         targetHeight = maxHeight;
         targetWidth = targetHeight / ratio;
@@ -217,7 +217,7 @@
       cardDialogFigure.style.top = rect.top.toFixed(2) + 'px';
       cardDialogFigure.style.width = rect.width.toFixed(2) + 'px';
       cardDialogFigure.style.height = rect.height.toFixed(2) + 'px';
-      cardDialogFigure.style.transform = 'rotate(' + initialLean.toFixed(2) + 'deg) scale(.95)';
+      cardDialogFigure.style.transform = 'rotate(' + initialLean.toFixed(2) + 'deg) scale(.92)';
 
       cardDialog.classList.add('is-open');
       cardDialog.setAttribute('aria-hidden', 'false');
@@ -352,7 +352,7 @@
     orbit.addEventListener('pointerdown', function (event) {
       if (event.button !== undefined && event.button !== 0) return;
       dragging = true;
-      horizontalDrag = event.pointerType === 'mouse';
+      horizontalDrag = false;
       dragMoved = false;
       dragStartX = event.clientX;
       dragStartY = event.clientY;
@@ -360,21 +360,22 @@
       lastPointerX = event.clientX;
       lastPointerTime = performance.now();
       velocity = 0;
-      orbit.classList.add('is-dragging');
-      if (event.pointerType === 'mouse') orbit.setPointerCapture(event.pointerId);
     });
 
     orbit.addEventListener('pointermove', function (event) {
       if (!dragging) return;
       const deltaX = event.clientX - dragStartX;
       const deltaY = event.clientY - dragStartY;
-      if (!horizontalDrag && Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY) * 1.15) {
+      const dragThreshold = event.pointerType === 'mouse' ? 5 : 8;
+
+      if (!horizontalDrag && Math.abs(deltaX) > dragThreshold && Math.abs(deltaX) > Math.abs(deltaY) * 1.15) {
         horizontalDrag = true;
-        orbit.setPointerCapture(event.pointerId);
+        dragMoved = true;
+        orbit.classList.add('is-dragging');
+        try { orbit.setPointerCapture(event.pointerId); } catch (error) { /* capture can fail after pointer cancellation */ }
       }
       if (!horizontalDrag) return;
       event.preventDefault();
-      dragMoved = dragMoved || Math.abs(deltaX) > 5;
       rotation = dragStartRotation + deltaX * 0.009;
       targetTilt = clamp(baseTilt - deltaY * 0.018, baseTilt - 1.5, baseTilt + 1.5);
       const now = performance.now();
