@@ -15,12 +15,13 @@
     const sticky = root.querySelector('.pham-vault__sticky');
     const orbit = root.querySelector('[data-pham-vault-orbit]');
     const orbitPlane = root.querySelector('[data-pham-vault-orbit-plane]');
+    const orbitRing = root.querySelector('.pham-vault__orbit-ring');
     const cards = Array.from(root.querySelectorAll('[data-pham-vault-card]'));
     const chapters = Array.from(root.querySelectorAll('[data-pham-vault-chapter]'));
     const jumps = Array.from(root.querySelectorAll('[data-pham-vault-jump]'));
     if (!sticky || !orbit || !orbitPlane || !cards.length) return;
     const autoSpeed = clamp(Number.parseFloat(root.dataset.orbitSpeed) || 6, 0, 16) * Math.PI / 180;
-    const baseTilt = clamp(Number.parseFloat(root.dataset.orbitTilt) || 24, 12, 30);
+    const baseTilt = clamp(Number.parseFloat(root.dataset.orbitTilt) || 8, 2, 16);
     let active = false;
     let frame = 0;
     let previousTime = performance.now();
@@ -91,8 +92,13 @@
       const spacing = reducedMotion ? 1 : 1 + Math.sin(smoothProgress * Math.PI * 3) * 0.1;
       const orbitRadius = radius * spacing;
       const step = Math.PI * 2 / cards.length;
-      const orbitLean = -7 + Math.sin(smoothProgress * Math.PI * 2) * 2.5;
+      const orbitLean = 4 + Math.sin(smoothProgress * Math.PI * 2) * 1.25;
       orbitPlane.style.transform = 'rotateX(' + currentTilt.toFixed(2) + 'deg) rotateZ(' + orbitLean.toFixed(2) + 'deg)';
+      if (orbitRing) {
+        const ringDiameter = orbitRadius * 1.32;
+        orbitRing.style.width = ringDiameter.toFixed(2) + 'px';
+        orbitRing.style.height = ringDiameter.toFixed(2) + 'px';
+      }
 
       cards.forEach(function (card, index) {
         const angle = rotation + step * index;
@@ -150,7 +156,7 @@
       event.preventDefault();
       dragMoved = dragMoved || Math.abs(deltaX) > 5;
       rotation = dragStartRotation + deltaX * 0.009;
-      targetTilt = clamp(baseTilt - deltaY * 0.045, baseTilt - 6, baseTilt + 6);
+      targetTilt = clamp(baseTilt - deltaY * 0.03, baseTilt - 3, baseTilt + 3);
       const now = performance.now();
       const elapsed = Math.max((now - lastPointerTime) / 1000, 0.016);
       velocity = clamp((event.clientX - lastPointerX) * 0.009 / elapsed, -3.2, 3.2);
