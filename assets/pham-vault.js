@@ -50,13 +50,13 @@
     let cardDialog = null;
     let cardDialogClose = null;
     let expandedSource = null;
-    let expandedSlot = null;
-    let expandedOriginalStyle = null;
     let dialogReturnFocus = null;
     let cardDialogAnimation = null;
+    let planeDialogAnimation = null;
     let cardDialogSettled = false;
     let cardDialogClosing = false;
-    let dialogGeometry = null;
+    let sourceCardTransform = '';
+    let sourcePlaneTransform = '';
 
     function measureOrbit() {
       const width = orbit.clientWidth;
@@ -117,104 +117,48 @@
         '<div class="pham-vault-card-dialog__backdrop" data-pham-vault-card-dismiss></div>' +
         '<button type="button" class="pham-vault-card-dialog__close" data-pham-vault-card-close aria-label="Close expanded archive image">CLOSE</button>';
 
-      document.body.appendChild(cardDialog);
+      sticky.appendChild(cardDialog);
       cardDialogClose = cardDialog.querySelector('[data-pham-vault-card-close]');
-
       cardDialog.querySelector('[data-pham-vault-card-dismiss]').addEventListener('click', closeCardDialog);
       cardDialogClose.addEventListener('click', closeCardDialog);
     }
 
-    function getTarotGeometry(card, sourceRect) {
-      const intrinsicRatio = Math.max(
-        1,
-        (card.offsetHeight || sourceRect.height) / Math.max(card.offsetWidth || sourceRect.width, 1)
-      );
-
-      let targetWidth = Math.min(460, window.innerWidth * 0.3);
-      let targetHeight = targetWidth * intrinsicRatio;
-      const maxHeight = window.innerHeight * 0.74;
-
-      if (targetHeight > maxHeight) {
-        targetHeight = maxHeight;
-        targetWidth = targetHeight / intrinsicRatio;
-      }
-
-      const targetLeft = (window.innerWidth - targetWidth) * 0.5;
-      const targetTop = (window.innerHeight - targetHeight) * 0.5;
-      const sourceCenterX = sourceRect.left + sourceRect.width * 0.5;
-      const sourceCenterY = sourceRect.top + sourceRect.height * 0.5;
-      const targetCenterX = targetLeft + targetWidth * 0.5;
-      const targetCenterY = targetTop + targetHeight * 0.5;
-      const scaleX = clamp(sourceRect.width / targetWidth, 0.12, 1);
-      const scaleY = clamp(sourceRect.height / targetHeight, 0.12, 1);
-
-      const cardIndex = Math.max(0, cards.indexOf(card));
-      const cardAngle = rotation + (Math.PI * 2 / cards.length) * cardIndex;
-
-      return {
-        left: targetLeft,
-        top: targetTop,
-        width: targetWidth,
-        height: targetHeight,
-        dx: sourceCenterX - targetCenterX,
-        dy: sourceCenterY - targetCenterY,
-        scaleX: scaleX,
-        scaleY: scaleY,
-        lean: clamp(Math.sin(cardAngle) * 3.2, -4, 4),
-        turn: clamp(Math.sin(cardAngle) * 13, -15, 15),
-        distance: Math.hypot(sourceCenterX - targetCenterX, sourceCenterY - targetCenterY)
-      };
-    }
-
-    function tarotStartTransform(geometry) {
-      return (
-        'translate3d(' +
-        geometry.dx.toFixed(2) + 'px,' +
-        geometry.dy.toFixed(2) + 'px,0) ' +
-        'scale3d(' +
-        geometry.scaleX.toFixed(4) + ',' +
-        geometry.scaleY.toFixed(4) + ',1) ' +
-        'rotateZ(' + geometry.lean.toFixed(2) + 'deg) ' +
-        'rotateY(' + geometry.turn.toFixed(2) + 'deg)'
-      );
+    function getExpandedCardScale(card) {
+      const width = Math.max(card.offsetWidth, 1);
+      const height = Math.max(card.offsetHeight, 1);
+      const targetWidth = Math.min(430, window.innerWidth * 0.29);
+      const targetHeight = Math.min(window.innerHeight * 0.72, 650);
+      return clamp(Math.min(targetWidth / width, targetHeight / height), 1.35, 3.1);
     }
 
     function settleCardDialogOpen() {
       if (!cardDialogOpen || cardDialogClosing) return;
       cardDialogSettled = true;
+      root.classList.add('is-card-settled');
       cardDialog.classList.add('is-settled');
       if (cardDialogClose) cardDialogClose.focus({ preventScroll: true });
     }
 
-    function restoreRealCard() {
-      if (!expandedSource) return;
-
-      const card = expandedSource;
-      card.classList.remove('is-tarot-expanded');
-
-      if (expandedOriginalStyle == null) card.removeAttribute('style');
-      else card.setAttribute('style', expandedOriginalStyle);
-
-      if (expandedSlot && expandedSlot.parentNode) {
-        expandedSlot.parentNode.insertBefore(card, expandedSlot);
-        expandedSlot.parentNode.removeChild(expandedSlot);
+    function cancelDialogAnimations() {
+      if (cardDialogAnimation) {
+        try { cardDialogAnimation.cancel(); } catch (error) {}
+        cardDialogAnimation = null;
       }
-
-      expandedSlot = null;
-      expandedOriginalStyle = null;
+      if (planeDialogAnimation) {
+        try { planeDialogAnimation.cancel(); } catch (error) {}
+        planeDialogAnimation = null;
+      }
     }
 
     function finishCardDialogClose() {
-      cardDialogSettled = false;
-      cardDialogClosing = false;
-
-      if (cardDialogAnimation) {
-        try { cardDialogAnimation.cancel(); } catch (error) { /* no-op */ }
-        cardDialogAnimation = null;
+      cancelDialogAnimations();
+      if (expandedSource) {
+        expandedSource.classList.remove('is-tarot-expanded');
+        expandedSource.style.transform = sourceCardTransform;
       }
+      orbitPlane.style.transform = sourcePlaneTransform;
 
-      restoreRealCard();
-
+      root.classList.remove('is-card-open', 'is-card-closing', 'is-card-settled');
       if (cardDialog) {
         cardDialog.classList.remove('is-open', 'is-closing', 'is-settled');
         cardDialog.setAttribute('aria-hidden', 'true');
@@ -222,53 +166,55 @@
 
       document.body.classList.remove('pham-vault-card-open');
       document.removeEventListener('keydown', onCardDialogKeydown);
-
       cardDialogOpen = false;
+      cardDialogClosing = false;
+      cardDialogSettled = false;
       expandedSource = null;
-      dialogGeometry = null;
+      sourceCardTransform = '';
+      sourcePlaneTransform = '';
 
       if (dialogReturnFocus && typeof dialogReturnFocus.focus === 'function') {
-        try { dialogReturnFocus.focus(); } catch (error) { /* no-op */ }
+        try { dialogReturnFocus.focus(); } catch (error) {}
       }
       dialogReturnFocus = null;
     }
 
+    function reverseAnimation(animation, fallbackDuration) {
+      if (!animation) return;
+      const timing = animation.effect && animation.effect.getTiming ? animation.effect.getTiming() : null;
+      const duration = timing && Number(timing.duration) ? Number(timing.duration) : fallbackDuration;
+      if (animation.currentTime == null) animation.currentTime = duration;
+      animation.playbackRate = -0.9;
+      animation.play();
+    }
+
     function closeCardDialog() {
-      if (!cardDialogOpen || !cardDialog || cardDialogClosing || !expandedSource) return;
+      if (!cardDialogOpen || cardDialogClosing || !expandedSource) return;
 
       cardDialogClosing = true;
       cardDialogSettled = false;
+      root.classList.remove('is-card-settled');
+      root.classList.add('is-card-closing');
       cardDialog.classList.remove('is-settled');
       cardDialog.classList.add('is-closing');
 
-      if (reducedMotion || !cardDialogAnimation) {
+      if (reducedMotion || !cardDialogAnimation || !planeDialogAnimation) {
         finishCardDialogClose();
         return;
       }
 
-      const timing = cardDialogAnimation.effect && cardDialogAnimation.effect.getTiming
-        ? cardDialogAnimation.effect.getTiming()
-        : null;
-      const duration = timing && Number(timing.duration) ? Number(timing.duration) : 920;
-
-      if (cardDialogAnimation.currentTime == null) cardDialogAnimation.currentTime = duration;
-      cardDialogAnimation.playbackRate = -0.82;
-      cardDialogAnimation.play();
-
-      cardDialogAnimation.onfinish = function () {
-        finishCardDialogClose();
-      };
+      reverseAnimation(cardDialogAnimation, 980);
+      reverseAnimation(planeDialogAnimation, 980);
+      cardDialogAnimation.onfinish = finishCardDialogClose;
     }
 
     function onCardDialogKeydown(event) {
       if (!cardDialogOpen) return;
-
       if (event.key === 'Escape' || event.key === 'Esc') {
         event.preventDefault();
         closeCardDialog();
         return;
       }
-
       if (event.key === 'Tab') {
         event.preventDefault();
         if (cardDialogClose && cardDialogSettled) cardDialogClose.focus();
@@ -279,75 +225,57 @@
       if (!desktopCardMode.matches || cardDialogOpen || dragMoved) return;
 
       ensureCardDialog();
-
-      const sourceRect = card.getBoundingClientRect();
-      if (!sourceRect.width || !sourceRect.height) return;
+      cancelDialogAnimations();
 
       cardDialogOpen = true;
       cardDialogClosing = false;
       cardDialogSettled = false;
       expandedSource = card;
       dialogReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      expandedOriginalStyle = card.getAttribute('style');
 
-      const geometry = getTarotGeometry(card, sourceRect);
-      dialogGeometry = geometry;
+      sourceCardTransform = card.style.transform || window.getComputedStyle(card).transform;
+      sourcePlaneTransform = orbitPlane.style.transform || window.getComputedStyle(orbitPlane).transform;
 
-      // Keep an exact DOM slot, then move the REAL card into the overlay.
-      // No clone/snapshot is created: this is the same figure element from the orbit.
-      expandedSlot = document.createComment('pham-vault-card-slot');
-      card.parentNode.insertBefore(expandedSlot, card);
-      cardDialog.insertBefore(card, cardDialogClose);
+      const targetScale = getExpandedCardScale(card);
+      const targetCardTransform =
+        'translate3d(-50%, -50%, 0) rotateY(0rad) translateZ(0px) rotateZ(0deg) translate3d(0,0,0) scale(' +
+        targetScale.toFixed(4) +
+        ')';
+      const targetPlaneTransform = 'rotateX(0deg) rotateZ(0deg)';
 
       card.classList.add('is-tarot-expanded');
-      card.style.left = geometry.left.toFixed(2) + 'px';
-      card.style.top = geometry.top.toFixed(2) + 'px';
-      card.style.width = geometry.width.toFixed(2) + 'px';
-      card.style.height = geometry.height.toFixed(2) + 'px';
-      card.style.opacity = '1';
-      card.style.filter = 'none';
-      card.style.zIndex = '2';
-
-      const startTransform = tarotStartTransform(geometry);
-      const endTransform = 'translate3d(0,0,0) scale3d(1,1,1) rotateZ(0deg) rotateY(0deg)';
-      card.style.transform = startTransform;
-
+      root.classList.add('is-card-open');
       cardDialog.classList.add('is-open');
       cardDialog.setAttribute('aria-hidden', 'false');
       document.body.classList.add('pham-vault-card-open');
       document.addEventListener('keydown', onCardDialogKeydown);
 
-      if (reducedMotion || typeof card.animate !== 'function') {
-        card.style.transform = endTransform;
+      if (reducedMotion || typeof card.animate !== 'function' || typeof orbitPlane.animate !== 'function') {
+        card.style.transform = targetCardTransform;
+        orbitPlane.style.transform = targetPlaneTransform;
         settleCardDialogOpen();
         return;
       }
 
-      const motionDuration = clamp(820 + geometry.distance * 0.24, 860, 1080);
+      const duration = 980;
+      const easing = 'cubic-bezier(.37,0,.63,1)';
 
-      cardDialogAnimation = card.animate([
-        { transform: startTransform },
-        { transform: endTransform }
-      ], {
-        duration: motionDuration,
-        easing: 'cubic-bezier(.4,0,.2,1)',
-        fill: 'both'
-      });
+      cardDialogAnimation = card.animate(
+        [{ transform: sourceCardTransform }, { transform: targetCardTransform }],
+        { duration, easing, fill: 'both' }
+      );
+
+      planeDialogAnimation = orbitPlane.animate(
+        [{ transform: sourcePlaneTransform }, { transform: targetPlaneTransform }],
+        { duration, easing, fill: 'both' }
+      );
 
       cardDialogAnimation.onfinish = function () {
-        if (cardDialogClosing) {
-          finishCardDialogClose();
-          return;
-        }
-
+        if (cardDialogClosing) return;
         cardDialogAnimation.pause();
-        const timing = cardDialogAnimation.effect && cardDialogAnimation.effect.getTiming
-          ? cardDialogAnimation.effect.getTiming()
-          : null;
-        if (timing && Number(timing.duration)) {
-          cardDialogAnimation.currentTime = Number(timing.duration);
-        }
-        card.style.transform = endTransform;
+        planeDialogAnimation.pause();
+        cardDialogAnimation.currentTime = duration;
+        planeDialogAnimation.currentTime = duration;
         settleCardDialogOpen();
       };
     }
@@ -375,7 +303,9 @@
       const orbitRadius = radius * spacing;
       const step = Math.PI * 2 / cards.length;
       const orbitLean = 6 + Math.sin(smoothProgress * Math.PI * 2) * 0.35;
-      orbitPlane.style.transform = 'rotateX(' + currentTilt.toFixed(2) + 'deg) rotateZ(' + orbitLean.toFixed(2) + 'deg)';
+      if (!cardDialogOpen) {
+        orbitPlane.style.transform = 'rotateX(' + currentTilt.toFixed(2) + 'deg) rotateZ(' + orbitLean.toFixed(2) + 'deg)';
+      }
       if (orbitRing) {
         const ringDiameter = orbitRadius * 1.32;
         orbitRing.style.width = ringDiameter.toFixed(2) + 'px';
@@ -567,7 +497,6 @@
 
     root.addEventListener('shopify:section:unload', function () {
       document.removeEventListener('keydown', onCardDialogKeydown);
-      if (expandedSource) restoreRealCard();
       if (cardDialog && cardDialog.parentNode) cardDialog.parentNode.removeChild(cardDialog);
     }, { once: true });
   }
