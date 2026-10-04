@@ -596,23 +596,31 @@
   }
 }
 
-body.pham-vault-card-open {
-  overflow: hidden !important;
-}
-
 .pham-vault.is-card-open .pham-vault__orbit-stage {
   z-index: 16;
   pointer-events: none;
   cursor: default;
 }
 .pham-vault.is-card-open .pham-vault__orbit-ring {
-  opacity: .16;
-  transition: opacity 620ms cubic-bezier(.37,0,.63,1);
+  opacity: .28;
+  transition: opacity 520ms cubic-bezier(.37,0,.63,1);
 }
-.pham-vault.is-card-open .pham-vault__orbit-card:not(.is-tarot-expanded) {
-  opacity: .09 !important;
-  filter: brightness(.32) !important;
-  transition: opacity 620ms cubic-bezier(.37,0,.63,1), filter 620ms cubic-bezier(.37,0,.63,1);
+.pham-vault.is-card-closing .pham-vault__orbit-ring {
+  opacity: 1;
+}
+.pham-vault.is-card-open .pham-vault__orbit-card:not(.is-tarot-expanded) .pham-vault__orbit-card-face {
+  opacity: .52;
+  filter: brightness(.62);
+  transition:
+    opacity 520ms cubic-bezier(.37,0,.63,1),
+    filter 520ms cubic-bezier(.37,0,.63,1),
+    transform 320ms cubic-bezier(.2,.78,.2,1),
+    border-color 260ms ease,
+    box-shadow 320ms ease;
+}
+.pham-vault.is-card-closing .pham-vault__orbit-card:not(.is-tarot-expanded) .pham-vault__orbit-card-face {
+  opacity: 1;
+  filter: none;
 }
 .pham-vault__orbit-card.is-tarot-expanded {
   z-index: 220 !important;
@@ -657,9 +665,7 @@ body.pham-vault-card-open {
   inset: 0;
   background:
     radial-gradient(circle at 50% 48%, rgba(255,255,255,.02), transparent 40%),
-    rgba(2,2,2,.58);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
+    rgba(2,2,2,.48);
   opacity: 1;
   transition: opacity 720ms cubic-bezier(.37,0,.63,1);
 }
