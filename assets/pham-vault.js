@@ -44,9 +44,23 @@
 
     function measureOrbit() {
       const width = orbit.clientWidth;
-      radius = window.innerWidth < 600
-        ? clamp(width * 0.31, 118, 168)
-        : clamp(width * 0.31, 210, 455);
+      const cardWidth = cards[0] ? Number.parseFloat(window.getComputedStyle(cards[0]).width) || 120 : 120;
+      const density = clamp(cards.length / 8, 1, 1.5);
+      let targetRadius;
+
+      if (window.innerWidth < 600) {
+        targetRadius = Math.max(width * 0.38, cardWidth * 1.35 * density);
+        radius = clamp(targetRadius, 155, 255);
+      } else if (window.innerWidth < 900) {
+        targetRadius = Math.max(width * 0.35, cardWidth * 1.32 * density);
+        radius = clamp(targetRadius, 190, 320);
+      } else if (window.innerWidth < 1200) {
+        targetRadius = Math.max(width * 0.33, cardWidth * 1.28 * density);
+        radius = clamp(targetRadius, 220, 360);
+      } else {
+        targetRadius = Math.max(width * 0.31, cardWidth * 1.22 * density);
+        radius = clamp(targetRadius, 270, 455);
+      }
     }
 
     function measureProgress() {
@@ -89,7 +103,7 @@
         currentTilt = damp(currentTilt, targetTilt, 6, delta);
       }
 
-      const spacing = reducedMotion ? 1 : 1 + Math.sin(smoothProgress * Math.PI * 3) * 0.1;
+      const spacing = reducedMotion ? 1 : 1.02 + Math.sin(smoothProgress * Math.PI * 3) * 0.02;
       const orbitRadius = radius * spacing;
       const step = Math.PI * 2 / cards.length;
       const orbitLean = 6 + Math.sin(smoothProgress * Math.PI * 2) * 0.35;
@@ -103,8 +117,9 @@
       cards.forEach(function (card, index) {
         const angle = rotation + step * index;
         const depth = (Math.cos(angle) + 1) * 0.5;
-        const cardScale = 0.82 + depth * 0.2;
-        const cardLean = Math.sin(angle) * 8;
+        const compactOrbit = window.innerWidth < 600;
+        const cardScale = compactOrbit ? 0.76 + depth * 0.18 : 0.8 + depth * 0.2;
+        const cardLean = Math.sin(angle) * (compactOrbit ? 6 : 8);
         card.style.zIndex = String(Math.round(depth * 100));
         card.style.opacity = String(0.34 + depth * 0.66);
         card.style.filter = 'brightness(' + (0.48 + depth * 0.58).toFixed(3) + ')';
@@ -285,9 +300,37 @@
     observer.observe(root);
   }
 
+  let cursorHaloMounted = false;
+
+  function mountCursorHalo() {
+    if (cursorHaloMounted || reducedMotion || !finePointer || window.innerWidth < 900) return;
+    cursorHaloMounted = true;
+
+    const halo = document.createElement('div');
+    halo.className = 'pham-cursor-halo';
+    halo.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(halo);
+
+    function move(event) {
+      halo.style.transform = 'translate3d(' + (event.clientX - halo.offsetWidth / 2).toFixed(1) + 'px,' + (event.clientY - halo.offsetHeight / 2).toFixed(1) + 'px,0)';
+      halo.classList.add('is-visible');
+      const interactive = event.target instanceof Element && event.target.closest('a, button, input, select, textarea, [role="button"], [data-pham-vault-orbit]');
+      halo.classList.toggle('is-interactive', Boolean(interactive));
+    }
+
+    window.addEventListener('pointermove', move, { passive: true });
+    document.documentElement.addEventListener('mouseleave', function () {
+      halo.classList.remove('is-visible');
+    });
+    window.addEventListener('blur', function () {
+      halo.classList.remove('is-visible');
+    });
+  }
+
   function mountAll(scope) {
     (scope || document).querySelectorAll('[data-pham-vault]').forEach(mountVault);
     (scope || document).querySelectorAll('[data-pham-archive]').forEach(mountArchive);
+    mountCursorHalo();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { mountAll(); }, { once: true });
