@@ -53,9 +53,11 @@
     let expandedSource = null;
     let dialogReturnFocus = null;
     let cardDialogAnimation = null;
+    let planeDialogAnimation = null;
     let cardDialogSettled = false;
     let cardDialogClosing = false;
     let sourceCardTransform = '';
+    let sourcePlaneTransform = '';
     let dialogOpenScrollY = 0;
     let dialogPlaneTilt = 0;
     let dialogPlaneLean = 0;
@@ -131,19 +133,19 @@
       const mobile = window.innerWidth < 600;
       const tablet = window.innerWidth >= 600 && window.innerWidth < 1024;
       const targetWidth = mobile
-        ? Math.min(window.innerWidth * 0.72, 300)
+        ? Math.min(window.innerWidth * 0.60, 250)
         : tablet
           ? Math.min(window.innerWidth * 0.48, 400)
           : Math.min(430, window.innerWidth * 0.29);
       const targetHeight = mobile
-        ? Math.min(window.innerHeight * 0.52, 430)
+        ? Math.min(window.innerHeight * 0.45, 380)
         : tablet
           ? Math.min(window.innerHeight * 0.62, 560)
           : Math.min(window.innerHeight * 0.72, 650);
       return clamp(
         Math.min(targetWidth / width, targetHeight / height),
-        mobile ? 1.2 : 1.35,
-        mobile ? 2.45 : tablet ? 2.8 : 3.1
+        mobile ? 1.15 : 1.35,
+        mobile ? 2.10 : tablet ? 2.8 : 3.1
       );
     }
 
@@ -159,6 +161,10 @@
       if (cardDialogAnimation) {
         try { cardDialogAnimation.cancel(); } catch (error) {}
         cardDialogAnimation = null;
+      }
+      if (planeDialogAnimation) {
+        try { planeDialogAnimation.cancel(); } catch (error) {}
+        planeDialogAnimation = null;
       }
     }
 
@@ -194,6 +200,7 @@
       cardDialogSettled = false;
       expandedSource = null;
       sourceCardTransform = '';
+      sourcePlaneTransform = '';
       dialogOpenScrollY = 0;
       dialogPlaneTilt = 0;
       dialogPlaneLean = 0;
@@ -229,6 +236,7 @@
       }
 
       reverseAnimation(cardDialogAnimation, 820);
+      if (planeDialogAnimation) reverseAnimation(planeDialogAnimation, 820);
       cardDialogAnimation.onfinish = finishCardDialogClose;
     }
 
@@ -258,18 +266,23 @@
       dialogReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
       sourceCardTransform = card.style.transform || window.getComputedStyle(card).transform;
+      sourcePlaneTransform = orbitPlane.style.transform || window.getComputedStyle(orbitPlane).transform;
       dialogOpenScrollY = window.scrollY;
       dialogPlaneTilt = currentTilt;
       dialogPlaneLean = 6 + Math.sin(smoothProgress * Math.PI * 2) * 0.35;
 
+      const mobileDialog = window.innerWidth < 600;
       const targetScale = getExpandedCardScale(card);
-      const targetCardTransform =
-        'translate3d(-50%, -50%, 0) ' +
-        'rotateZ(' + (-dialogPlaneLean).toFixed(3) + 'deg) ' +
-        'rotateX(' + (-dialogPlaneTilt).toFixed(3) + 'deg) ' +
-        'rotateY(0rad) translateZ(0px) rotateZ(0deg) translate3d(0,0,0) scale(' +
-        targetScale.toFixed(4) +
-        ')';
+      const targetCardTransform = mobileDialog
+        ? 'translate3d(-50%, -50%, 0) rotateY(0rad) translateZ(0px) rotateZ(0deg) translate3d(0,0,0) scale(' +
+          targetScale.toFixed(4) +
+          ')'
+        : 'translate3d(-50%, -50%, 0) ' +
+          'rotateZ(' + (-dialogPlaneLean).toFixed(3) + 'deg) ' +
+          'rotateX(' + (-dialogPlaneTilt).toFixed(3) + 'deg) ' +
+          'rotateY(0rad) translateZ(0px) rotateZ(0deg) translate3d(0,0,0) scale(' +
+          targetScale.toFixed(4) +
+          ')';
       card.classList.add('is-tarot-expanded');
       root.classList.add('is-card-open');
       cardDialog.classList.add('is-open');
@@ -293,10 +306,21 @@
         { duration, easing, fill: 'both' }
       );
 
+      if (mobileDialog && typeof orbitPlane.animate === 'function') {
+        planeDialogAnimation = orbitPlane.animate(
+          [{ transform: sourcePlaneTransform }, { transform: 'rotateX(0deg) rotateZ(0deg)' }],
+          { duration, easing, fill: 'both' }
+        );
+      }
+
       cardDialogAnimation.onfinish = function () {
         if (cardDialogClosing) return;
         cardDialogAnimation.pause();
         cardDialogAnimation.currentTime = duration;
+        if (planeDialogAnimation) {
+          planeDialogAnimation.pause();
+          planeDialogAnimation.currentTime = duration;
+        }
         settleCardDialogOpen();
       };
     }
