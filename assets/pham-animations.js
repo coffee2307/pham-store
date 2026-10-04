@@ -507,6 +507,66 @@
     }
   }
 
+
+  class PhamCursorGlow {
+    constructor() {
+      this.enabled = !prefersReducedMotion &&
+        window.matchMedia &&
+        window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      if (!this.enabled) return;
+
+      this.element = document.createElement('div');
+      this.element.className = 'pham-cursor-glow';
+      this.element.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(this.element);
+
+      this.x = -160;
+      this.y = -160;
+      this.targetX = -160;
+      this.targetY = -160;
+      this.visible = false;
+      this.frame = 0;
+
+      this._move = this._move.bind(this);
+      this._leave = this._leave.bind(this);
+      this._draw = this._draw.bind(this);
+
+      window.addEventListener('pointermove', this._move, { passive: true });
+      document.documentElement.addEventListener('mouseleave', this._leave);
+      window.addEventListener('blur', this._leave);
+    }
+
+    _move(event) {
+      this.targetX = event.clientX;
+      this.targetY = event.clientY;
+      if (!this.visible) {
+        this.visible = true;
+        this.x = this.targetX;
+        this.y = this.targetY;
+        this.element.classList.add('is-visible');
+      }
+      const interactive = event.target instanceof Element &&
+        event.target.closest('a, button, input, select, textarea, [role="button"], [data-pham-vault-orbit]');
+      this.element.classList.toggle('is-interactive', Boolean(interactive));
+      if (!this.frame) this.frame = requestAnimationFrame(this._draw);
+    }
+
+    _leave() {
+      this.visible = false;
+      this.element.classList.remove('is-visible', 'is-interactive');
+    }
+
+    _draw() {
+      this.x += (this.targetX - this.x) * 0.22;
+      this.y += (this.targetY - this.y) * 0.22;
+      this.element.style.transform = 'translate3d(' + (this.x - 60).toFixed(1) + 'px,' + (this.y - 60).toFixed(1) + 'px,0)';
+      this.frame = 0;
+      if (this.visible && (Math.abs(this.targetX - this.x) > 0.15 || Math.abs(this.targetY - this.y) > 0.15)) {
+        this.frame = requestAnimationFrame(this._draw);
+      }
+    }
+  }
+
   /* ====================================================================
      CONTROLLER — Boot orchestration
      ==================================================================== */
@@ -523,6 +583,7 @@
       };
 
       const startEnhancements = () => {
+        try { this.modules.cursorGlow = new PhamCursorGlow(); } catch (e) { console.error('[PHAM] CursorGlow failed:', e); }
         if (document.querySelector('.pham-product-card [data-pham-img-secondary]')) {
           try { this.modules.productCardHover = new PhamProductCardHover(); } catch (e) { console.error('[PHAM] ProductCardHover failed:', e); }
         }
