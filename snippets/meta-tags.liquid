@@ -52,7 +52,7 @@
 
 <meta
   property="og:site_name"
-  content="{{ shop.name }}"
+  content="PHAM Atelier"
 >
 <meta
   property="og:url"
@@ -139,7 +139,7 @@
   content="{{ og_description | escape }}"
 >
 
-<title>{{ pham_seo_title }}{% if current_page != 1 %} — PAGE {{ current_page }}{% endif %} | {{ shop.name | upcase | escape }}</title>
+<title>{{ pham_seo_title }}{% if current_page != 1 %} — Page {{ current_page }}{% endif %}{% unless pham_seo_title contains "PHAM Atelier" %} | PHAM Atelier{% endunless %}</title>
 
 <link
   rel="canonical"
