@@ -58,6 +58,52 @@
     let cardDialogClosing = false;
     let dialogGeometry = null;
 
+    function measureOrbit() {
+      const width = orbit.clientWidth;
+      const cardWidth = cards[0] ? Number.parseFloat(window.getComputedStyle(cards[0]).width) || 120 : 120;
+      const density = clamp(cards.length / 8, 1, 1.5);
+      let targetRadius;
+
+      if (window.innerWidth < 600) {
+        targetRadius = Math.max(width * 0.38, cardWidth * 1.35 * density);
+        radius = clamp(targetRadius, 155, 255);
+      } else if (window.innerWidth < 900) {
+        targetRadius = Math.max(width * 0.35, cardWidth * 1.32 * density);
+        radius = clamp(targetRadius, 190, 320);
+      } else if (window.innerWidth < 1200) {
+        targetRadius = Math.max(width * 0.33, cardWidth * 1.28 * density);
+        radius = clamp(targetRadius, 220, 360);
+      } else {
+        targetRadius = Math.max(width * 0.31, cardWidth * 1.22 * density);
+        radius = clamp(targetRadius, 270, 455);
+      }
+    }
+
+    function measureLayout() {
+      const rect = root.getBoundingClientRect();
+      sectionTop = window.scrollY + rect.top;
+      scrollDistance = Math.max(root.offsetHeight - window.innerHeight, 1);
+    }
+
+    function measureProgress() {
+      progress = clamp((window.scrollY - sectionTop) / scrollDistance, 0, 1);
+    }
+
+    function setChapter(index) {
+      if (currentChapter === index) return;
+      currentChapter = index;
+      chapters.forEach(function (chapter, chapterIndex) {
+        const selected = chapterIndex === index;
+        chapter.classList.toggle('is-active', selected);
+        chapter.setAttribute('aria-hidden', selected ? 'false' : 'true');
+      });
+      jumps.forEach(function (jump, jumpIndex) {
+        jump.classList.toggle('is-active', jumpIndex === index);
+        if (jumpIndex === index) jump.setAttribute('aria-current', 'step');
+        else jump.removeAttribute('aria-current');
+      });
+    }
+
     function ensureCardDialog() {
       if (cardDialog) return;
 
