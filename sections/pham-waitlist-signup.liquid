@@ -31,7 +31,7 @@
          data-variant-id="{{ current_variant.id }}"
          data-allowed-variant-ids="{{ product.variants | map: 'id' | join: ',' | escape }}"
          role="region"
-         aria-label="{{ section.settings.heading | default: 'Pre-order waitlist' | escape }}">
+         aria-label="{{ section.settings.heading | default: 'PHAM waitlist' | escape }}">
 
   {%- unless pham_preorder_open -%}
     <div class="pham-waitlist__closed reveal-up">
@@ -612,13 +612,13 @@
       "type": "text",
       "id": "eyebrow",
       "label": "Eyebrow",
-      "default": "PRE-ORDER · WAITLIST"
+      "default": "WAITLIST · EDITION 01"
     },
     {
       "type": "text",
       "id": "heading",
       "label": "Heading",
-      "default": "Join the pre-order waitlist",
+      "default": "Join the PHAM-001 waitlist",
       "info": "Leave blank to use the default title with proper line breaks."
     },
     {
@@ -681,7 +681,7 @@
       "type": "textarea",
       "id": "success_message",
       "label": "Success message",
-      "default": "You are on the pre-order waitlist. We will send you an email with updates as soon as possible."
+      "default": "You are on the PHAM-001 waitlist. We will email you when pre-order access opens and as Edition 01 develops."
     },
     {
       "type": "textarea",
