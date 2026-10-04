@@ -327,12 +327,21 @@
     });
   }
 
-  function mountAll(scope) {
-    (scope || document).querySelectorAll('[data-pham-vault]').forEach(mountVault);
-    (scope || document).querySelectorAll('[data-pham-archive]').forEach(mountArchive);
-    mountCursorHalo();
+  function syncHeaderOffset() {
+    const spacer = document.querySelector('.pham-header__spacer');
+    const header = document.querySelector('.pham-header');
+    const source = spacer || header;
+    const height = source ? Math.max(0, Math.round(source.getBoundingClientRect().height)) : 0;
+    document.documentElement.style.setProperty('--pham-header-offset', height + 'px');
   }
 
+  function mountAll(scope) {
+    syncHeaderOffset();
+    (scope || document).querySelectorAll('[data-pham-vault]').forEach(mountVault);
+    (scope || document).querySelectorAll('[data-pham-archive]').forEach(mountArchive);
+  }
+
+  window.addEventListener('resize', syncHeaderOffset, { passive: true });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { mountAll(); }, { once: true });
   else mountAll();
   document.addEventListener('shopify:section:load', function (event) { mountAll(event.target); });
