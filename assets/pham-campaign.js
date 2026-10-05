@@ -120,21 +120,49 @@ function mountIdentity(root){
 }
 
 function mountReferral(root){
+  if(root.dataset.phamReferralMounted === 'true') return;
+  root.dataset.phamReferralMounted = 'true';
+
   var button = root.querySelector('[data-pham-copy-referral]');
   var code = root.querySelector('[data-pham-referral-value]');
-  if(!button || !code) return;
+  var count = root.querySelector('[data-pham-referral-count]');
 
-  button.addEventListener('click', function(){
-    var value = code.textContent.trim();
-    if(!value || value === 'PENDING') return;
+  if(button && code){
+    button.addEventListener('click', function(){
+      var value = code.textContent.trim();
+      if(!value || value === 'PENDING' || value === 'LOADING…') return;
 
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(value).then(function(){
-        button.textContent = 'COPIED';
-        window.setTimeout(function(){ button.textContent = 'COPY'; }, 1200);
-      });
-    }
-  });
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(value).then(function(){
+          button.textContent = 'COPIED';
+          window.setTimeout(function(){ button.textContent = 'COPY'; }, 1200);
+        });
+      }
+    });
+  }
+
+  if(root.dataset.engineEnabled !== 'true') return;
+
+  if(code) code.textContent = 'LOADING…';
+
+  proxyRequest(root, '/status')
+    .then(function(payload){
+      var referralCode = payload.reservation && payload.reservation.collectorReferralCode
+        ? payload.reservation.collectorReferralCode
+        : '';
+      if(code){
+        code.textContent = referralCode
+          ? (root.dataset.referralTarget || '') + encodeURIComponent(referralCode)
+          : 'PENDING';
+      }
+      if(count && payload.referral){
+        count.textContent = String(payload.referral.verifiedCount || 0) + ' / ' +
+          String(payload.referral.requiredCount || 1);
+      }
+    })
+    .catch(function(){
+      if(code && code.textContent === 'LOADING…') code.textContent = 'PENDING';
+    });
 }
 
 function mountReservation(root){
@@ -312,44 +340,111 @@ function mountCollector(root){
   root.dataset.phamCollectorMounted = 'true';
 
   var output = root.querySelector('[data-pham-payment-countdown]');
-  var rawDeadline = root.dataset.paymentDeadline || '';
-  if(!output || !rawDeadline) return;
+  var deadlineRow = root.querySelector('[data-pham-deadline-row]');
+  var countdownRow = root.querySelector('[data-pham-countdown-row]');
+  var deadlineLabel = root.querySelector('[data-pham-live-deadline]');
+  var timer = null;
 
-  var deadline = new Date(rawDeadline);
-  if(isNaN(deadline.getTime())){
-    output.textContent = 'SEE DEADLINE ABOVE';
-    return;
+  function displayState(value){
+    return String(value || 'pending').replace(/_/g, ' ').toUpperCase();
   }
 
-  function renderCountdown(){
-    var diff = deadline.getTime() - Date.now();
-    if(diff <= 0){
-      output.textContent = 'WINDOW EXPIRED';
-      return false;
+  function startCountdown(rawDeadline){
+    if(!output || !rawDeadline) return;
+
+    var deadline = new Date(rawDeadline);
+    if(isNaN(deadline.getTime())){
+      output.textContent = 'SEE DEADLINE ABOVE';
+      return;
     }
 
-    var totalSeconds = Math.floor(diff / 1000);
-    var days = Math.floor(totalSeconds / 86400);
-    var hours = Math.floor((totalSeconds % 86400) / 3600);
-    var minutes = Math.floor((totalSeconds % 3600) / 60);
-    var seconds = totalSeconds % 60;
+    root.dataset.paymentDeadline = rawDeadline;
+    if(deadlineRow) deadlineRow.hidden = false;
+    if(countdownRow) countdownRow.hidden = false;
+    if(deadlineLabel){
+      try { deadlineLabel.textContent = deadline.toLocaleString(); }
+      catch (e) { deadlineLabel.textContent = rawDeadline; }
+    }
 
-    var parts = [];
-    if(days > 0) parts.push(days + 'D');
-    parts.push(String(hours).padStart(2,'0') + 'H');
-    parts.push(String(minutes).padStart(2,'0') + 'M');
-    parts.push(String(seconds).padStart(2,'0') + 'S');
-    output.textContent = parts.join(' ');
-    return true;
+    if(timer) window.clearInterval(timer);
+
+    function renderCountdown(){
+      var diff = deadline.getTime() - Date.now();
+      if(diff <= 0){
+        output.textContent = 'WINDOW EXPIRED';
+        return false;
+      }
+
+      var totalSeconds = Math.floor(diff / 1000);
+      var days = Math.floor(totalSeconds / 86400);
+      var hours = Math.floor((totalSeconds % 86400) / 3600);
+      var minutes = Math.floor((totalSeconds % 3600) / 60);
+      var seconds = totalSeconds % 60;
+
+      var parts = [];
+      if(days > 0) parts.push(days + 'D');
+      parts.push(String(hours).padStart(2,'0') + 'H');
+      parts.push(String(minutes).padStart(2,'0') + 'M');
+      parts.push(String(seconds).padStart(2,'0') + 'S');
+      output.textContent = parts.join(' ');
+      return true;
+    }
+
+    if(renderCountdown()){
+      timer = window.setInterval(function(){
+        if(!renderCountdown()){
+          window.clearInterval(timer);
+          timer = null;
+        }
+      }, 1000);
+    }
   }
 
-  if(renderCountdown()){
-    var timer = window.setInterval(function(){
-      if(!renderCountdown()) window.clearInterval(timer);
-    }, 1000);
-  }
+  if(root.dataset.paymentDeadline) startCountdown(root.dataset.paymentDeadline);
+
+  if(root.dataset.engineEnabled !== 'true') return;
+
+  proxyRequest(root, '/status')
+    .then(function(payload){
+      var reservation = payload.reservation || {};
+      var identity = payload.identity || {};
+      var referral = payload.referral || {};
+      var editionSize = root.dataset.editionSize || '50';
+
+      var statusEl = root.querySelector('[data-pham-live-reservation-status]');
+      var objectEl = root.querySelector('[data-pham-live-object]');
+      var identityEl = root.querySelector('[data-pham-live-identity-status]');
+      var referralEl = root.querySelector('[data-pham-live-referral]');
+      var lookbookEl = root.querySelector('[data-pham-live-lookbook]');
+      var lookbookCopyEl = root.querySelector('[data-pham-live-lookbook-copy]');
+      var balanceEl = root.querySelector('[data-pham-live-balance]');
+
+      if(statusEl) statusEl.textContent = displayState(reservation.status);
+      if(objectEl){
+        objectEl.textContent = reservation.objectNumber
+          ? String(reservation.objectNumber).padStart(2,'0') + ' / ' + editionSize
+          : 'PENDING ASSIGNMENT';
+      }
+      if(identityEl) identityEl.textContent = displayState(identity.status);
+      if(referralEl){
+        referralEl.textContent = String(referral.verifiedCount || 0) + ' / ' +
+          String(referral.requiredCount || 1) + ' VERIFIED';
+      }
+      if(lookbookEl) lookbookEl.textContent = displayState(reservation.lookbookStatus);
+      if(lookbookCopyEl) lookbookCopyEl.textContent = displayState(reservation.lookbookStatus);
+      if(balanceEl && reservation.balanceDueCents != null){
+        balanceEl.textContent = formatMoney(
+          reservation.balanceDueCents,
+          root.dataset.currency || 'USD'
+        );
+      }
+      if(reservation.paymentDeadline) startCountdown(reservation.paymentDeadline);
+    })
+    .catch(function(error){
+      if(error && error.code === 'customer_login_required') return;
+      // Keep Shopify metafield fallback visible if the engine is temporarily unavailable.
+    });
 }
-
 function mount(){
   captureReferral();
   qsa('[data-pham-identity-configurator]').forEach(mountIdentity);
