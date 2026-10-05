@@ -237,12 +237,17 @@
 
           {%- when 'quote' -%}
             <blockquote class="pham-lookbook-v2__cell pham-lookbook-v2__cell--{{ size }} pham-lookbook-v2__cell--quote" {{ block.shopify_attributes }}>
-              <p class="pham-lookbook-v2__quote-mark" aria-hidden="true">"</p>
+              <div class="pham-lookbook-v2__quote-head">
+                <span class="pham-eyebrow">{{ block.settings.author_role | default: 'BRAND MANIFESTO · 01' }}</span>
+                <span class="pham-lookbook-v2__quote-mark" aria-hidden="true">“</span>
+              </div>
+
               <p class="pham-lookbook-v2__quote-body">{{ block.settings.body }}</p>
+
               {%- if block.settings.author != blank -%}
                 <footer class="pham-lookbook-v2__quote-cite">
-                  <span class="pham-eyebrow">{{ block.settings.author_role | default: 'PHAM ATELIER' }}</span>
                   <span class="pham-lookbook-v2__quote-author">{{ block.settings.author }}</span>
+                  <span class="pham-lookbook-v2__quote-index" aria-hidden="true">PHAM / 01</span>
                 </footer>
               {%- endif -%}
             </blockquote>
@@ -850,44 +855,85 @@
   .pham-lookbook-v2__editorial-cta { align-self: flex-start; }
 
   .pham-lookbook-v2__cell--quote {
-    border: 1px solid var(--color-ash);
-    padding: clamp(20px, 3vw, 48px);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.14);
+    padding: clamp(24px, 2.8vw, 42px);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: clamp(24px, 3vw, 38px);
+    min-height: clamp(260px, 31svh, 330px);
+    background:
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,.04), transparent 24%),
+      rgba(14,14,18,.68);
+  }
+  .pham-lookbook-v2__cell--quote::after {
+    content: "";
+    position: absolute;
+    left: clamp(24px, 2.8vw, 42px);
+    right: clamp(24px, 2.8vw, 42px);
+    bottom: 72px;
+    height: 1px;
+    background: rgba(255,255,255,.11);
+    pointer-events: none;
+  }
+  .pham-lookbook-v2__quote-head {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-    min-height: clamp(280px, 34svh, 360px);
-    background-color: rgba(20, 20, 26, 0.58);
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+  }
+  .pham-lookbook-v2__quote-head .pham-eyebrow {
+    color: rgba(242,242,239,.34);
+    margin: 0;
   }
   .pham-lookbook-v2__quote-mark {
-    font-family: var(--font-display);
-    font-size: clamp(48px, 6vw, 96px);
-    line-height: 0.6;
-    color: var(--color-white);
-    margin: 0;
+    flex: 0 0 auto;
+    color: rgba(255,255,255,.92);
+    font: 300 30px/.7 var(--font-display);
+    transform: translateY(-1px);
   }
   .pham-lookbook-v2__quote-body {
-    font-family: var(--font-display);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: var(--tracking-tech);
-    font-size: clamp(1.125rem, 1.8vw, 1.625rem);
-    line-height: 1.3;
-    color: var(--color-bone);
+    align-self: center;
     margin: 0;
+    color: var(--color-bone);
+    font: 600 clamp(1.02rem, 1.38vw, 1.34rem)/1.2 var(--font-display);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    text-wrap: balance;
   }
   .pham-lookbook-v2__quote-cite {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    min-height: 36px;
     margin-top: auto;
-    border-top: 1px solid var(--color-ash);
-    padding-top: var(--space-sm);
+    padding-top: 18px;
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 18px;
+  }
+  .pham-lookbook-v2__quote-author,
+  .pham-lookbook-v2__quote-index {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
   }
   .pham-lookbook-v2__quote-author {
-    font-family: var(--font-mono);
     color: var(--color-white);
-    text-transform: uppercase;
-    letter-spacing: var(--tracking-wide);
+    font-size: 10px;
+    letter-spacing: .12em;
+  }
+  .pham-lookbook-v2__quote-index {
+    color: rgba(242,242,239,.24);
+    font-size: 8px;
+    letter-spacing: .14em;
+  }
+
+  @media (min-width: 1100px) {
+    .pham-lookbook-v2__quote-body {
+      white-space: nowrap;
+      text-wrap: nowrap;
+      font-size: clamp(.98rem, 1.28vw, 1.28rem);
+      letter-spacing: .13em;
+    }
   }
 
   .pham-lookbook-v2__cell--spec {
@@ -945,6 +991,21 @@
       grid-auto-flow: row;
     }
     .pham-lookbook-v2__cell { grid-column: 1 / -1 !important; }
+    .pham-lookbook-v2__cell--quote {
+      min-height: 250px;
+      padding: 24px;
+      gap: 26px;
+    }
+    .pham-lookbook-v2__cell--quote::after {
+      left: 24px;
+      right: 24px;
+      bottom: 68px;
+    }
+    .pham-lookbook-v2__quote-body {
+      font-size: clamp(1rem, 5.2vw, 1.25rem);
+      line-height: 1.25;
+      letter-spacing: .11em;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
