@@ -214,6 +214,57 @@ export class InMemoryStore {
     return number;
   }
 
+  async verifyReferralAndClaimIdentity({
+    editionId,
+    referrerReservationId,
+    referredReservationId,
+  }) {
+    if (this.referralConversions.has(referredReservationId)) {
+      throw new Error('referral_already_attributed');
+    }
+
+    let privilege = this.identityPrivileges.get(referrerReservationId) || null;
+    let newlyClaimed = false;
+
+    if (!privilege) {
+      const edition = this.editions.get(editionId);
+      if (!edition) throw new Error('edition_not_found');
+      if (edition.identityClaimed >= edition.identityLimit) {
+        throw new Error('identity_full');
+      }
+
+      privilege = {
+        reservationId: referrerReservationId,
+        editionId,
+        source: 'referral',
+        status: IdentityStatus.CLAIMED,
+        claimedAt: new Date().toISOString(),
+      };
+      newlyClaimed = true;
+    }
+
+    const conversion = {
+      referredReservationId,
+      referrerReservationId,
+      verifiedAt: new Date().toISOString(),
+      status: 'verified',
+    };
+
+    if (newlyClaimed) {
+      const edition = this.editions.get(editionId);
+      edition.identityClaimed += 1;
+      this.identityPrivileges.set(referrerReservationId, privilege);
+    }
+
+    this.referralConversions.set(referredReservationId, conversion);
+
+    return {
+      privilege: clone(privilege),
+      conversion: clone(conversion),
+      newlyClaimed,
+    };
+  }
+
   async markReferralConversion({
     referredReservationId,
     referrerReservationId,
