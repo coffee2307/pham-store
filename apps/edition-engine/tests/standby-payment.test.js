@@ -16,6 +16,7 @@ test('standby offer is full price with no reservation credit', () => {
     standbyEntryId: 'STANDBY-0001',
     editionLabel: 'EDITION 01',
     productCode: 'PHAM-001',
+    sizePreference: 'L',
     offerDeadline: deadline,
   });
 
@@ -26,6 +27,14 @@ test('standby offer is full price with no reservation credit', () => {
   assert.equal(
     built.input.customAttributes.find((x) => x.key === 'PHAM Acquisition Type').value,
     'Standby full price'
+  );
+  assert.equal(
+    built.input.customAttributes.find((x) => x.key === 'PHAM Standby ID').value,
+    'STANDBY-0001'
+  );
+  assert.equal(
+    built.input.customAttributes.find((x) => x.key === 'PHAM Size Preference').value,
+    'L'
   );
 });
 
