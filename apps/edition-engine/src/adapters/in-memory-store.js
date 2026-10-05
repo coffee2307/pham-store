@@ -174,6 +174,19 @@ export class InMemoryStore {
     return clone(this.referralConversions.get(referredReservationId) || null);
   }
 
+  async countVerifiedReferrals(referrerReservationId) {
+    let count = 0;
+    for (const conversion of this.referralConversions.values()) {
+      if (
+        conversion.referrerReservationId === referrerReservationId &&
+        conversion.status !== 'revoked'
+      ) {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
   async enqueueStandby(entry) {
     const queue = this.standby.get(entry.editionId) || [];
     if (queue.some((x) => x.customerId === entry.customerId && x.status !== 'expired')) {
