@@ -24,16 +24,18 @@ def table_signature(conn, table):
     columns = conn.execute(f"PRAGMA table_info({table})").fetchall()
     indexes = conn.execute(f"PRAGMA index_list({table})").fetchall()
 
-    column_sig = [
-        {
-            "name": row[1],
+    # Column order is intentionally ignored. SQLite ALTER TABLE appends new
+    # columns, while schema.sql groups them logically. Runtime semantics are
+    # determined by name/type/nullability/default/PK, not ordinal position.
+    column_sig = {
+        row[1]: {
             "type": (row[2] or "").upper(),
             "notnull": bool(row[3]),
             "default": row[4],
             "pk": bool(row[5]),
         }
         for row in columns
-    ]
+    }
 
     unique_indexes = []
     for idx in indexes:
