@@ -4,7 +4,7 @@
 create extension if not exists pgcrypto;
 
 create table if not exists editions (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key,
   slug text not null unique,
   label text not null,
   product_code text not null,
@@ -29,9 +29,8 @@ create table if not exists editions (
 );
 
 create table if not exists reservations (
-  id uuid primary key default gen_random_uuid(),
-  public_id text not null unique,
-  edition_id uuid not null references editions(id) on delete restrict,
+  id text primary key,
+  edition_id text not null references editions(id) on delete restrict,
   shopify_customer_id text not null,
   shopify_order_id text not null unique,
   status text not null check (status in (
@@ -53,8 +52,8 @@ create table if not exists reservations (
 );
 
 create table if not exists identity_privileges (
-  reservation_id uuid primary key references reservations(id) on delete cascade,
-  edition_id uuid not null references editions(id) on delete restrict,
+  reservation_id text primary key references reservations(id) on delete cascade,
+  edition_id text not null references editions(id) on delete restrict,
   source text not null check (source in ('paid','referral')),
   status text not null check (status in (
     'claimed','configured','production_locked','fulfilled'
@@ -70,9 +69,9 @@ create table if not exists identity_privileges (
 
 create table if not exists objects (
   id uuid primary key default gen_random_uuid(),
-  edition_id uuid not null references editions(id) on delete restrict,
+  edition_id text not null references editions(id) on delete restrict,
   object_number integer not null check (object_number > 0),
-  reservation_id uuid unique references reservations(id) on delete set null,
+  reservation_id text unique references reservations(id) on delete set null,
   auth_token_hash text,
   provenance_status text not null default 'pending',
   founder_token_type text check (founder_token_type is null or founder_token_type in ('silver','gold')),
@@ -83,9 +82,9 @@ create table if not exists objects (
 
 create table if not exists referral_conversions (
   id uuid primary key default gen_random_uuid(),
-  edition_id uuid not null references editions(id) on delete restrict,
-  referrer_reservation_id uuid not null references reservations(id) on delete cascade,
-  referred_reservation_id uuid not null unique references reservations(id) on delete cascade,
+  edition_id text not null references editions(id) on delete restrict,
+  referrer_reservation_id text not null references reservations(id) on delete cascade,
+  referred_reservation_id text not null unique references reservations(id) on delete cascade,
   status text not null default 'verified' check (status in ('verified','revoked','review')),
   verified_at timestamptz not null default now(),
   check (referrer_reservation_id <> referred_reservation_id)
@@ -93,7 +92,7 @@ create table if not exists referral_conversions (
 
 create table if not exists standby_entries (
   id uuid primary key default gen_random_uuid(),
-  edition_id uuid not null references editions(id) on delete restrict,
+  edition_id text not null references editions(id) on delete restrict,
   shopify_customer_id text not null,
   email text not null,
   country text,
@@ -115,8 +114,8 @@ create index if not exists standby_fifo_idx
 
 create table if not exists edition_events (
   id bigint generated always as identity primary key,
-  edition_id uuid references editions(id) on delete set null,
-  reservation_id uuid references reservations(id) on delete set null,
+  edition_id text references editions(id) on delete set null,
+  reservation_id text references reservations(id) on delete set null,
   event_type text not null,
   payload jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
