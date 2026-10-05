@@ -2619,5 +2619,214 @@
         "info": "Shown in the footer and on the contact page."
       }
     ]
+  },
+  {
+    "name": "PHAM · Current Edition",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Reusable controls for the active numbered edition. Keep PRELAUNCH until commerce, email delivery, fulfillment and legal review are complete."
+      },
+      {
+        "type": "checkbox",
+        "id": "pham_campaign_enabled",
+        "label": "Enable edition campaign framework",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "pham_campaign_state",
+        "label": "Campaign state",
+        "default": "prelaunch",
+        "options": [
+          {
+            "value": "prelaunch",
+            "label": "PRELAUNCH"
+          },
+          {
+            "value": "reservation_open",
+            "label": "PRIORITY RESERVATION OPEN"
+          },
+          {
+            "value": "reservation_full",
+            "label": "RESERVATION FULL / STANDBY"
+          },
+          {
+            "value": "final_payment",
+            "label": "FINAL PAYMENT WINDOW"
+          },
+          {
+            "value": "sold_out",
+            "label": "SOLD OUT"
+          },
+          {
+            "value": "archived",
+            "label": "ARCHIVED"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "pham_campaign_edition_label",
+        "label": "Edition label",
+        "default": "EDITION 01"
+      },
+      {
+        "type": "text",
+        "id": "pham_campaign_product_code",
+        "label": "Product code",
+        "default": "PHAM-001"
+      },
+      {
+        "type": "text",
+        "id": "pham_campaign_origin_label",
+        "label": "Origin / year label",
+        "default": "VIETNAM / 2026"
+      },
+      {
+        "type": "range",
+        "id": "pham_campaign_edition_size",
+        "label": "Edition size",
+        "min": 1,
+        "max": 500,
+        "step": 1,
+        "default": 50
+      },
+      {
+        "type": "range",
+        "id": "pham_campaign_reservations_claimed",
+        "label": "Reservations claimed",
+        "min": 0,
+        "max": 500,
+        "step": 1,
+        "default": 0
+      },
+      {
+        "type": "range",
+        "id": "pham_campaign_identity_limit",
+        "label": "Identity privileges total",
+        "min": 1,
+        "max": 100,
+        "step": 1,
+        "default": 15
+      },
+      {
+        "type": "range",
+        "id": "pham_campaign_identity_claimed",
+        "label": "Identity privileges claimed",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "default": 0
+      },
+      {
+        "type": "range",
+        "id": "pham_campaign_standby_count",
+        "label": "Standby count",
+        "min": 0,
+        "max": 500,
+        "step": 1,
+        "default": 0
+      },
+      {
+        "type": "text",
+        "id": "pham_campaign_reservation_price",
+        "label": "Reservation price label",
+        "default": "$24.99"
+      },
+      {
+        "type": "text",
+        "id": "pham_campaign_identity_price",
+        "label": "Identity upgrade price label",
+        "default": "$5.00"
+      },
+      {
+        "type": "text",
+        "id": "pham_campaign_final_price",
+        "label": "Final product price label",
+        "default": "$199.00"
+      },
+      {
+        "type": "text",
+        "id": "pham_campaign_balance_due",
+        "label": "Reserved customer balance label",
+        "default": "$174.01"
+      },
+      {
+        "type": "range",
+        "id": "pham_campaign_payment_window_hours",
+        "label": "Reserved payment window (hours)",
+        "min": 1,
+        "max": 168,
+        "step": 1,
+        "default": 72
+      },
+      {
+        "type": "range",
+        "id": "pham_campaign_standby_window_hours",
+        "label": "Standby payment window (hours)",
+        "min": 1,
+        "max": 168,
+        "step": 1,
+        "default": 48
+      },
+      {
+        "type": "checkbox",
+        "id": "pham_campaign_include_digital_lookbook",
+        "label": "Include exclusive digital lookbook",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "pham_campaign_digital_lookbook_label",
+        "label": "Digital benefit label",
+        "default": "Edition-exclusive digital lookbook"
+      },
+      {
+        "type": "product",
+        "id": "pham_campaign_reservation_product",
+        "label": "Reservation product (Phase B)"
+      },
+      {
+        "type": "product",
+        "id": "pham_campaign_identity_product",
+        "label": "Identity add-on product (Phase B)"
+      },
+      {
+        "type": "url",
+        "id": "pham_campaign_edition_page_url",
+        "label": "Edition landing page"
+      },
+      {
+        "type": "url",
+        "id": "pham_campaign_reservation_page_url",
+        "label": "Reservation page"
+      },
+      {
+        "type": "url",
+        "id": "pham_campaign_identity_page_url",
+        "label": "Identity configurator page"
+      },
+      {
+        "type": "url",
+        "id": "pham_campaign_referral_page_url",
+        "label": "Referral page"
+      },
+      {
+        "type": "url",
+        "id": "pham_campaign_collector_page_url",
+        "label": "Collector status page"
+      },
+      {
+        "type": "url",
+        "id": "pham_campaign_standby_page_url",
+        "label": "Standby page"
+      },
+      {
+        "type": "url",
+        "id": "pham_campaign_terms_page_url",
+        "label": "Edition terms page"
+      }
+    ]
   }
 ]
