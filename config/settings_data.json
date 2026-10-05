@@ -360,7 +360,7 @@
     "pham_campaign_state": "prelaunch",
     "pham_campaign_edition_label": "EDITION 01",
     "pham_campaign_product_code": "PHAM-001",
-    "pham_campaign_origin_label": "VIETNAM / 2026",
+    "pham_campaign_origin_label": "DESIGNED IN VIETNAM / 2026",
     "pham_campaign_edition_size": 50,
     "pham_campaign_reservations_claimed": 0,
     "pham_campaign_identity_limit": 15,
@@ -388,7 +388,8 @@
     "pham_campaign_lookbook_product": "pham-edition-01-collector-lookbook",
     "pham_campaign_engine_enabled": false,
     "pham_campaign_engine_proxy_path": "/apps/pham-edition",
-    "pham_campaign_edition_id": "edition-01"
+    "pham_campaign_edition_id": "edition-01",
+    "pham_campaign_production_origin_label": "PRODUCED IN DONGGUAN, CHINA"
   },
   "presets": {
     "Horizon": {
