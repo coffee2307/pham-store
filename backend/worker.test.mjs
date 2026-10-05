@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  buildFinalAcquisitionDraftInput,
   canonicalizeAppProxyParams,
   verifyAppProxyRequest,
   verifyShopifyWebhook,
@@ -160,5 +161,54 @@ test('verifies Shopify webhook HMAC against the raw request bytes', async () => 
   assert.equal(
     await verifyShopifyWebhook(raw, signature + 'tampered', secret),
     false
+  );
+});
+
+
+test('final acquisition draft uses the reservation-specific mapped variant', () => {
+  const input = buildFinalAcquisitionDraftInput({
+    edition: {
+      label: 'EDITION 01',
+      product_code: 'PHAM-001',
+      currency_code: 'USD',
+      reservation_price_cents: 2499,
+      final_product_variant_id: 'gid://shopify/ProductVariant/DEFAULT',
+    },
+    reservation: {
+      id: 'PHAM-R-TEST',
+      email: 'collector@example.com',
+      size_preference: 'M',
+    },
+    deadline: '2026-11-13T11:00:00.000Z',
+    variantId: 'gid://shopify/ProductVariant/SIZE-M',
+  });
+
+  assert.equal(
+    input.lineItems[0].variantId,
+    'gid://shopify/ProductVariant/SIZE-M'
+  );
+  assert.notEqual(
+    input.lineItems[0].variantId,
+    'gid://shopify/ProductVariant/DEFAULT'
+  );
+  assert.deepEqual(
+    input.customAttributes.find(attribute => attribute.key === 'PHAM Size Preference'),
+    { key: 'PHAM Size Preference', value: 'M' }
+  );
+});
+
+test('final acquisition draft fails closed when no final variant is available', () => {
+  assert.throws(
+    () => buildFinalAcquisitionDraftInput({
+      edition: {
+        label: 'EDITION 01',
+        product_code: 'PHAM-001',
+        reservation_price_cents: 2499,
+      },
+      reservation: { id: 'PHAM-R-TEST' },
+      deadline: '2026-11-13T11:00:00.000Z',
+      variantId: '',
+    }),
+    /missing_final_variant_id/
   );
 });
