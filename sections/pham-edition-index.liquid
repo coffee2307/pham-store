@@ -15,53 +15,86 @@
 
 <section class="pham-edition-index" data-pham-edition-index aria-labelledby="pham-edition-index-{{ section.id }}">
   <div class="pham-container pham-edition-index__inner">
-    <header class="pham-edition-index__head reveal-up">
-      <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
-      <h2 id="pham-edition-index-{{ section.id }}" class="pham-edition-index__title">{{ section.settings.heading }}</h2>
-      <p class="pham-edition-index__intro">{{ section.settings.intro }}</p>
-    </header>
 
-    <a class="pham-edition-index__record reveal-up" href="{{ edition_url }}">
-      <span class="pham-edition-index__record-index">{{ section.settings.edition_number }}</span>
-      <strong class="pham-edition-index__record-object">
-        {%- if edition_product != blank -%}{{ edition_product.title }}{%- else -%}{{ section.settings.object_name }}{%- endif -%}
-      </strong>
-      <span class="pham-edition-index__record-count">{{ section.settings.object_count }}</span>
-      <span class="pham-edition-index__record-year">{{ section.settings.release_year }}</span>
-      <span class="pham-edition-index__status pham-edition-index__status--{{ section.settings.status | handleize }}">
-        <i aria-hidden="true"></i>{{ section.settings.status }}
-      </span>
-      <span class="pham-edition-index__record-arrow" aria-hidden="true">↗</span>
-    </a>
+    <div class="pham-edition-index__grid">
+      <div class="pham-edition-index__archive reveal-up">
+        <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
 
-    <div class="pham-edition-index__protocol reveal-up" aria-labelledby="pham-release-protocol-{{ section.id }}">
-      <div class="pham-edition-index__protocol-head">
-        <p class="pham-eyebrow">RELEASE PROTOCOL</p>
-        <h3 id="pham-release-protocol-{{ section.id }}">{{ section.settings.protocol_heading }}</h3>
+        <div class="pham-edition-index__archive-head">
+          <h2 id="pham-edition-index-{{ section.id }}" class="pham-edition-index__title">{{ section.settings.heading }}</h2>
+          <p class="pham-edition-index__intro">{{ section.settings.intro }}</p>
+        </div>
+
+        <a class="pham-edition-index__record" href="{{ edition_url }}">
+          <span class="pham-edition-index__record-index">{{ section.settings.edition_number }}</span>
+
+          <div class="pham-edition-index__record-main">
+            <strong class="pham-edition-index__record-object">
+              {%- if edition_product != blank -%}{{ edition_product.title }}{%- else -%}{{ section.settings.object_name }}{%- endif -%}
+            </strong>
+            <span class="pham-edition-index__record-meta">
+              <span>{{ section.settings.object_count }}</span>
+              <span>{{ section.settings.release_year }}</span>
+            </span>
+          </div>
+
+          <span class="pham-edition-index__status pham-edition-index__status--{{ section.settings.status | handleize }}">
+            <i aria-hidden="true"></i>{{ section.settings.status }}
+          </span>
+
+          <span class="pham-edition-index__record-arrow" aria-hidden="true">↗</span>
+        </a>
       </div>
 
-      <ol class="pham-edition-index__steps" role="list">
-        <li><span>01</span><strong>ACCESS</strong><p>{{ section.settings.step_1 }}</p></li>
-        <li><span>02</span><strong>ORDER</strong><p>{{ section.settings.step_2 }}</p></li>
-        <li><span>03</span><strong>PRODUCTION</strong><p>{{ section.settings.step_3 }}</p></li>
-        <li><span>04</span><strong>DELIVERY</strong><p>{{ section.settings.step_4 }}</p></li>
-        <li><span>05</span><strong>ARCHIVE</strong><p>{{ section.settings.step_5 }}</p></li>
-      </ol>
+      <div class="pham-edition-index__protocol reveal-up" aria-labelledby="pham-release-protocol-{{ section.id }}">
+        <div class="pham-edition-index__protocol-head">
+          <p class="pham-eyebrow">RELEASE PROTOCOL</p>
+          <h3 id="pham-release-protocol-{{ section.id }}">{{ section.settings.protocol_heading }}</h3>
+        </div>
+
+        <ol class="pham-edition-index__steps" role="list">
+          <li>
+            <span>01</span>
+            <div><strong>ACCESS</strong><p>{{ section.settings.step_1 }}</p></div>
+          </li>
+          <li>
+            <span>02</span>
+            <div><strong>ORDER</strong><p>{{ section.settings.step_2 }}</p></div>
+          </li>
+          <li>
+            <span>03</span>
+            <div><strong>PRODUCTION</strong><p>{{ section.settings.step_3 }}</p></div>
+          </li>
+          <li>
+            <span>04</span>
+            <div><strong>DELIVERY</strong><p>{{ section.settings.step_4 }}</p></div>
+          </li>
+          <li>
+            <span>05</span>
+            <div><strong>ARCHIVE</strong><p>{{ section.settings.step_5 }}</p></div>
+          </li>
+        </ol>
+      </div>
     </div>
 
     <div class="pham-edition-index__principle reveal-up" aria-labelledby="pham-edition-principle-{{ section.id }}">
-      <p class="pham-eyebrow">{{ section.settings.principle_eyebrow }}</p>
-      <h3 id="pham-edition-principle-{{ section.id }}" class="pham-edition-index__principle-title">
-        <span>{{ section.settings.principle_line_1 }}</span>
-        <span>{{ section.settings.principle_line_2 }}</span>
-      </h3>
-      <p class="pham-edition-index__principle-sub">{{ section.settings.principle_subtext }}</p>
-
-      <div class="pham-edition-index__principle-record" aria-label="PHAM archive note">
-        <span>PHAM ATELIER</span>
-        <span>EDITION 01</span>
-        <span>VIETNAM / 2026</span>
+      <div class="pham-edition-index__principle-label">
+        <p class="pham-eyebrow">{{ section.settings.principle_eyebrow }}</p>
       </div>
+
+      <div class="pham-edition-index__principle-copy">
+        <h3 id="pham-edition-principle-{{ section.id }}" class="pham-edition-index__principle-title">
+          <span>{{ section.settings.principle_line_1 }}</span>
+          <span>{{ section.settings.principle_line_2 }}</span>
+        </h3>
+        <p class="pham-edition-index__principle-sub">{{ section.settings.principle_subtext }}</p>
+      </div>
+    </div>
+
+    <div class="pham-edition-index__footerline" aria-label="PHAM archive note">
+      <span>PHAM ATELIER</span>
+      <span>EDITION 01</span>
+      <span>VIETNAM / 2026</span>
     </div>
   </div>
 </section>
@@ -72,93 +105,146 @@
     overflow: hidden;
     background: #080808;
     color: var(--color-bone);
-    padding-block: clamp(84px, 10vw, 148px);
+    padding-block: clamp(86px, 9vw, 138px) clamp(72px, 8vw, 112px);
     border-top: 1px solid rgba(255,255,255,.08);
   }
+
   .pham-edition-index::before {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+      linear-gradient(rgba(255,255,255,.014) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.014) 1px, transparent 1px);
     background-size: 72px 72px;
-    mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), transparent 86%);
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,.72), transparent 82%);
   }
-  .pham-edition-index__inner { position: relative; z-index: 1; }
-  .pham-edition-index__head {
+
+  .pham-edition-index__inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  .pham-edition-index__grid {
     display: grid;
-    grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr);
-    column-gap: clamp(34px, 7vw, 120px);
-    align-items: end;
-    margin-bottom: clamp(44px, 6vw, 76px);
+    grid-template-columns: minmax(0, 1.04fr) minmax(340px, .96fr);
+    gap: clamp(54px, 7vw, 112px);
+    align-items: start;
   }
-  .pham-edition-index__head .pham-eyebrow { grid-column: 1 / -1; margin: 0 0 18px; color: var(--color-smoke); }
+
+  .pham-edition-index__archive > .pham-eyebrow,
+  .pham-edition-index__protocol-head > .pham-eyebrow,
+  .pham-edition-index__principle-label > .pham-eyebrow {
+    margin: 0;
+    color: var(--color-smoke);
+  }
+
+  .pham-edition-index__archive-head {
+    margin-top: clamp(22px, 3vw, 34px);
+  }
+
   .pham-edition-index__title {
     margin: 0;
-    font: 300 clamp(2.6rem, 6vw, 5.8rem)/.95 var(--font-display);
-    letter-spacing: -.035em;
-    text-transform: uppercase;
     color: var(--color-white);
+    font: 300 clamp(3.2rem, 6.2vw, 6.4rem)/.9 var(--font-display);
+    letter-spacing: -.045em;
+    text-transform: uppercase;
     text-wrap: balance;
   }
+
   .pham-edition-index__intro {
-    margin: 0 0 .2em;
-    max-width: 54ch;
+    margin: clamp(28px, 3.2vw, 40px) 0 0;
+    max-width: 48ch;
     color: var(--color-bone-60);
-    font: 400 clamp(.95rem, 1.25vw, 1.08rem)/1.75 var(--font-body);
+    font: 400 clamp(.95rem, 1.15vw, 1.05rem)/1.72 var(--font-body);
   }
+
   .pham-edition-index__record {
     position: relative;
+    margin-top: clamp(46px, 5vw, 68px);
+    min-height: 142px;
     display: grid;
-    grid-template-columns: 70px minmax(180px, 1.5fr) minmax(110px, .7fr) minmax(90px, .55fr) minmax(150px, .8fr) 24px;
-    gap: clamp(14px, 2vw, 30px);
+    grid-template-columns: 50px minmax(0,1fr) auto 22px;
+    gap: clamp(16px, 2vw, 26px);
     align-items: center;
-    padding: clamp(20px, 2.5vw, 30px) 0;
-    border-top: 1px solid rgba(255,255,255,.28);
-    border-bottom: 1px solid rgba(255,255,255,.16);
+    padding: clamp(22px, 2.6vw, 30px);
+    border: 1px solid rgba(255,255,255,.14);
     color: inherit;
     text-decoration: none;
     overflow: hidden;
     isolation: isolate;
   }
+
   .pham-edition-index__record::before {
     content: "";
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(90deg, rgba(255,255,255,.05), transparent 68%);
+    background: linear-gradient(110deg, rgba(255,255,255,.055), transparent 62%);
     transform: translateX(-105%);
     transition: transform 620ms cubic-bezier(.2,0,0,1);
   }
+
   .pham-edition-index__record:hover::before,
-  .pham-edition-index__record:focus-visible::before { transform: translateX(0); }
+  .pham-edition-index__record:focus-visible::before {
+    transform: translateX(0);
+  }
+
   .pham-edition-index__record-index,
-  .pham-edition-index__record span,
-  .pham-edition-index__record strong {
+  .pham-edition-index__status,
+  .pham-edition-index__record-meta,
+  .pham-edition-index__record-arrow {
     font-family: var(--font-mono);
-    font-size: 10px;
-    line-height: 1.4;
-    letter-spacing: .11em;
     text-transform: uppercase;
   }
-  .pham-edition-index__record-index { color: rgba(242,242,239,.4); }
+
+  .pham-edition-index__record-index {
+    align-self: start;
+    color: rgba(242,242,239,.34);
+    font-size: 9px;
+    letter-spacing: .13em;
+  }
+
+  .pham-edition-index__record-main {
+    min-width: 0;
+    display: grid;
+    gap: 16px;
+  }
+
   .pham-edition-index__record-object {
     color: var(--color-white);
-    font-size: clamp(.9rem, 1.4vw, 1.15rem) !important;
-    font-weight: 400;
+    font: 400 clamp(1.35rem, 2.25vw, 2rem)/1 var(--font-display);
+    letter-spacing: -.01em;
+    text-transform: uppercase;
   }
-  .pham-edition-index__record > span:not(.pham-edition-index__record-index):not(.pham-edition-index__status):not(.pham-edition-index__record-arrow) {
+
+  .pham-edition-index__record-meta {
+    display: flex;
+    gap: 18px;
     color: var(--color-bone-60);
+    font-size: 8px;
+    line-height: 1.3;
+    letter-spacing: .12em;
   }
+
+  .pham-edition-index__record-meta span + span::before {
+    content: "/";
+    margin-right: 18px;
+    color: rgba(242,242,239,.2);
+  }
+
   .pham-edition-index__status {
     display: inline-flex;
     align-items: center;
     gap: 9px;
-    width: fit-content;
     color: var(--color-bone-80);
+    font-size: 8px;
+    line-height: 1.3;
+    letter-spacing: .12em;
+    white-space: nowrap;
   }
+
   .pham-edition-index__status i {
     width: 5px;
     height: 5px;
@@ -166,114 +252,130 @@
     box-shadow: 0 0 12px rgba(255,255,255,.28);
     animation: pham-edition-status-pulse 2.4s ease-in-out infinite;
   }
+
   .pham-edition-index__status--archived i,
-  .pham-edition-index__status--closed i { animation: none; opacity: .42; }
+  .pham-edition-index__status--closed i {
+    animation: none;
+    opacity: .42;
+  }
+
   .pham-edition-index__record-arrow {
-    justify-self: end;
     color: var(--color-white);
-    font-size: 16px !important;
+    font-size: 15px;
     transition: transform 280ms var(--ease-tech);
   }
-  .pham-edition-index__record:hover .pham-edition-index__record-arrow { transform: translate(3px,-3px); }
+
+  .pham-edition-index__record:hover .pham-edition-index__record-arrow {
+    transform: translate(3px,-3px);
+  }
 
   .pham-edition-index__protocol {
-    margin-top: clamp(74px, 9vw, 126px);
-    border-top: 1px solid rgba(255,255,255,.14);
-    padding-top: clamp(28px, 4vw, 48px);
+    padding-left: clamp(28px, 3vw, 42px);
+    border-left: 1px solid rgba(255,255,255,.12);
   }
+
   .pham-edition-index__protocol-head {
     display: grid;
-    grid-template-columns: .75fr 1.25fr;
-    gap: clamp(32px, 7vw, 120px);
-    align-items: start;
-    margin-bottom: clamp(34px, 5vw, 58px);
+    gap: 18px;
+    margin-bottom: 26px;
   }
-  .pham-edition-index__protocol-head .pham-eyebrow { margin: 0; color: var(--color-smoke); }
+
   .pham-edition-index__protocol-head h3 {
     margin: 0;
-    max-width: 20ch;
-    font: 300 clamp(1.6rem, 3vw, 2.7rem)/1.08 var(--font-display);
-    letter-spacing: .01em;
-    text-transform: uppercase;
     color: var(--color-white);
+    font: 300 clamp(1.55rem, 2.7vw, 2.45rem)/1.06 var(--font-display);
+    letter-spacing: -.015em;
+    text-transform: uppercase;
     text-wrap: balance;
   }
+
   .pham-edition-index__steps {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    border-top: 1px solid rgba(255,255,255,.18);
-    border-bottom: 1px solid rgba(255,255,255,.12);
+    border-top: 1px solid rgba(255,255,255,.15);
   }
+
   .pham-edition-index__steps li {
-    min-height: 190px;
-    padding: 22px 20px 26px 0;
-    border-right: 1px solid rgba(255,255,255,.1);
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 38px minmax(0,1fr);
+    gap: 18px;
+    padding: 19px 0 20px;
+    border-bottom: 1px solid rgba(255,255,255,.09);
   }
-  .pham-edition-index__steps li:not(:first-child) { padding-left: 20px; }
-  .pham-edition-index__steps li:last-child { border-right: 0; padding-right: 0; }
-  .pham-edition-index__steps span,
-  .pham-edition-index__steps strong {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    line-height: 1.3;
+
+  .pham-edition-index__steps > li > span {
+    color: rgba(242,242,239,.32);
+    font: 400 8px/1.35 var(--font-mono);
     letter-spacing: .13em;
   }
-  .pham-edition-index__steps span { color: rgba(242,242,239,.34); }
-  .pham-edition-index__steps strong { margin-top: 28px; color: var(--color-white); font-weight: 400; }
+
+  .pham-edition-index__steps li div {
+    display: grid;
+    grid-template-columns: 116px minmax(0,1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .pham-edition-index__steps strong {
+    color: var(--color-white);
+    font: 400 8px/1.35 var(--font-mono);
+    letter-spacing: .12em;
+  }
+
   .pham-edition-index__steps p {
-    margin: auto 0 0;
+    margin: 0;
     color: var(--color-bone-60);
-    font: 400 .82rem/1.6 var(--font-body);
+    font: 400 .78rem/1.55 var(--font-body);
   }
+
   .pham-edition-index__principle {
-    position: relative;
-    margin-top: clamp(84px, 10vw, 140px);
-    padding-top: clamp(34px, 4vw, 52px);
+    margin-top: clamp(90px, 10vw, 150px);
+    padding-top: clamp(34px, 4vw, 48px);
     border-top: 1px solid rgba(255,255,255,.16);
+    display: grid;
+    grid-template-columns: minmax(180px,.58fr) minmax(0,1.42fr);
+    gap: clamp(38px, 7vw, 110px);
+    align-items: start;
   }
-  .pham-edition-index__principle > .pham-eyebrow {
-    margin: 0 0 clamp(20px, 3vw, 32px);
-    color: rgba(242,242,239,.38);
-  }
+
   .pham-edition-index__principle-title {
     margin: 0;
-    max-width: 980px;
     display: flex;
     flex-direction: column;
-    gap: .08em;
+    gap: .06em;
+    max-width: 920px;
     color: var(--color-white);
-    font: 300 clamp(1.9rem, 4vw, 4rem)/1 var(--font-display);
-    letter-spacing: -.025em;
+    font: 300 clamp(1.7rem, 3.4vw, 3.4rem)/1.02 var(--font-display);
+    letter-spacing: -.02em;
     text-transform: uppercase;
   }
+
   .pham-edition-index__principle-title span {
     display: block;
     width: fit-content;
     max-width: 100%;
-    text-wrap: balance;
   }
+
   .pham-edition-index__principle-title span:last-child {
-    color: rgba(242,242,239,.72);
+    color: rgba(242,242,239,.68);
   }
+
   .pham-edition-index__principle-sub {
-    margin: clamp(26px, 3.5vw, 42px) 0 0;
-    max-width: 58ch;
+    margin: 24px 0 0;
+    max-width: 52ch;
     color: var(--color-bone-60);
-    font: 400 clamp(.92rem, 1.1vw, 1.02rem)/1.75 var(--font-body);
+    font: 400 clamp(.9rem, 1vw, 1rem)/1.7 var(--font-body);
   }
-  .pham-edition-index__principle-record {
-    margin-top: clamp(54px, 7vw, 88px);
-    padding-top: 16px;
-    border-top: 1px solid rgba(255,255,255,.12);
+
+  .pham-edition-index__footerline {
+    margin-top: clamp(58px, 6vw, 82px);
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,.11);
     display: flex;
     justify-content: space-between;
     gap: 18px;
-    color: rgba(242,242,239,.26);
+    color: rgba(242,242,239,.24);
     font: 400 8px/1.4 var(--font-mono);
     letter-spacing: .13em;
     text-transform: uppercase;
@@ -283,52 +385,82 @@
     0%,100% { opacity: .35; transform: scale(.92); }
     50% { opacity: 1; transform: scale(1.16); }
   }
-  @media (max-width: 899px) {
-    .pham-edition-index__head,
-    .pham-edition-index__protocol-head { grid-template-columns: 1fr; row-gap: 22px; }
-    .pham-edition-index__record { grid-template-columns: 44px 1fr auto; row-gap: 12px; }
-    .pham-edition-index__record-object { grid-column: 2; grid-row: 1; }
-    .pham-edition-index__record-count { grid-column: 2; grid-row: 2; }
-    .pham-edition-index__record-year { grid-column: 2; grid-row: 3; }
-    .pham-edition-index__status { grid-column: 2; grid-row: 4; }
-    .pham-edition-index__record-arrow { grid-column: 3; grid-row: 1 / span 4; align-self: center; }
-    .pham-edition-index__steps { grid-template-columns: 1fr; }
-    .pham-edition-index__steps li,
-    .pham-edition-index__steps li:not(:first-child),
-    .pham-edition-index__steps li:last-child {
-      min-height: 0;
-      padding: 18px 0;
-      border-right: 0;
-      border-bottom: 1px solid rgba(255,255,255,.1);
-      display: grid;
-      grid-template-columns: 42px 110px 1fr;
-      gap: 12px;
-      align-items: start;
+
+  @media (max-width: 1023px) {
+    .pham-edition-index__grid {
+      grid-template-columns: 1fr;
+      gap: 72px;
     }
-    .pham-edition-index__steps li:last-child { border-bottom: 0; }
-    .pham-edition-index__steps strong { margin-top: 0; }
-    .pham-edition-index__steps p { margin: 0; }
-    .pham-edition-index__principle-title {
-      font-size: clamp(1.75rem, 6vw, 2.8rem);
+
+    .pham-edition-index__protocol {
+      padding-left: 0;
+      border-left: 0;
+      padding-top: 30px;
+      border-top: 1px solid rgba(255,255,255,.12);
     }
   }
-  @media (max-width: 599px) {
-    .pham-edition-index { padding-block: 72px 84px; }
-    .pham-edition-index__record { grid-template-columns: 36px 1fr 22px; }
-    .pham-edition-index__steps li,
-    .pham-edition-index__steps li:not(:first-child),
-    .pham-edition-index__steps li:last-child {
-      grid-template-columns: 32px 92px 1fr;
-      gap: 9px;
+
+  @media (max-width: 699px) {
+    .pham-edition-index {
+      padding-block: 72px 82px;
     }
-    .pham-edition-index__principle-record {
+
+    .pham-edition-index__record {
+      grid-template-columns: 34px minmax(0,1fr) 22px;
+      min-height: 0;
+      padding: 20px 18px;
+    }
+
+    .pham-edition-index__record-main {
+      gap: 12px;
+    }
+
+    .pham-edition-index__status {
+      grid-column: 2;
+      grid-row: 2;
+      margin-top: 4px;
+    }
+
+    .pham-edition-index__record-arrow {
+      grid-column: 3;
+      grid-row: 1 / span 2;
+      align-self: center;
+    }
+
+    .pham-edition-index__steps li {
+      grid-template-columns: 30px minmax(0,1fr);
+      gap: 12px;
+    }
+
+    .pham-edition-index__steps li div {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .pham-edition-index__principle {
+      grid-template-columns: 1fr;
+      gap: 24px;
+      margin-top: 76px;
+    }
+
+    .pham-edition-index__principle-title {
+      font-size: clamp(1.65rem, 8vw, 2.6rem);
+    }
+
+    .pham-edition-index__footerline {
       flex-direction: column;
       gap: 7px;
     }
   }
+
   @media (prefers-reduced-motion: reduce) {
-    .pham-edition-index__status i { animation: none !important; }
-    .pham-edition-index__record::before { transition: none !important; }
+    .pham-edition-index__status i {
+      animation: none !important;
+    }
+
+    .pham-edition-index__record::before {
+      transition: none !important;
+    }
   }
 </style>
 
