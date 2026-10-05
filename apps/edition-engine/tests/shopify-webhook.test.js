@@ -35,6 +35,7 @@ test('reservation order mapper extracts reservation, identity, lookbook and refe
           { name: '_PHAM Edition', value: 'EDITION 01' },
           { name: '_PHAM Product', value: 'PHAM-001' },
           { name: '_PHAM Referral Code', value: 'ABC12345' },
+          { name: '_PHAM Size Preference', value: 'M' },
           { name: 'Reservation terms', value: 'Accepted' },
           { name: 'Digital lookbook delivery', value: 'Included' },
         ],
@@ -56,6 +57,7 @@ test('reservation order mapper extracts reservation, identity, lookbook and refe
   assert.equal(mapped.editionLabel, 'EDITION 01');
   assert.equal(mapped.productCode, 'PHAM-001');
   assert.equal(mapped.referralCode, 'ABC12345');
+  assert.equal(mapped.sizePreference, 'M');
   assert.equal(mapped.termsAccepted, true);
   assert.equal(mapped.digitalLookbookRequested, true);
   assert.equal(mapped.identitySelected, true);
@@ -74,4 +76,10 @@ test('non-reservation Shopify orders are ignored by reservation mapper', () => {
   });
 
   assert.equal(mapped, null);
+});
+
+
+test('partially paid order is not accepted as a completed campaign payment', () => {
+  assert.equal(isPaidOrder({ financial_status: 'partially_paid' }), false);
+  assert.equal(isPaidOrder({ financial_status: 'paid' }), true);
 });
