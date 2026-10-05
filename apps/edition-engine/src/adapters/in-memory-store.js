@@ -81,6 +81,11 @@ export class InMemoryStore {
     return null;
   }
 
+  async findReservationByCustomer(editionId, customerId) {
+    const reservationId = this.customerReservations.get(`${editionId}:${customerId}`);
+    return reservationId ? clone(this.reservations.get(reservationId) || null) : null;
+  }
+
   async updateReservation(id, patch) {
     const current = this.reservations.get(id);
     if (!current) throw new Error('reservation_not_found');
