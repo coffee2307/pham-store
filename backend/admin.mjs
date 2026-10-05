@@ -62,6 +62,10 @@ switch(command){
     await request('/internal/state?edition=' + encodeURIComponent(editionArg()));
     break;
 
+  case 'readiness':
+    await request('/internal/readiness?edition=' + encodeURIComponent(editionArg()));
+    break;
+
   case 'open-final-payment':
     await request('/internal/final-payment/open', {
       method:'POST',
@@ -117,6 +121,7 @@ Environment:
 Commands:
   node admin.mjs health
   node admin.mjs state [--edition=edition-01]
+  node admin.mjs readiness [--edition=edition-01]
   node admin.mjs open-final-payment [--edition=edition-01]
   node admin.mjs promote-standby [--edition=edition-01]
   node admin.mjs finalize-objects --confirm [--edition=edition-01]
