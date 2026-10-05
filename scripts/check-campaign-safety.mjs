@@ -21,6 +21,11 @@ const includeLookbook = s.pham_campaign_include_digital_lookbook === true;
 const lookbookReady = s.pham_campaign_lookbook_ready === true;
 const engineEnabled = s.pham_campaign_engine_enabled === true;
 const engineProxyPath = String(s.pham_campaign_engine_proxy_path || '').trim();
+const configuredSizes = String(s.pham_campaign_size_options || 'XS,S,M,L,XL')
+  .split(',')
+  .map(value => value.trim())
+  .filter(Boolean);
+const uniqueConfiguredSizes = new Set(configuredSizes.map(value => value.toLowerCase()));
 
 if (!enabled) {
   console.log('PHAM campaign safety: framework disabled.');
@@ -36,6 +41,13 @@ if (engineEnabled && !engineProxyPath) {
 }
 
 if (commerceReady) {
+  if (!configuredSizes.length) {
+    failures.push('COMMERCE READY is ON but no size preference options are configured.');
+  }
+  if (uniqueConfiguredSizes.size !== configuredSizes.length) {
+    failures.push('COMMERCE READY is ON but size preference options contain duplicates.');
+  }
+
   if (!engineEnabled) {
     failures.push('COMMERCE READY is ON but the Edition Engine is disabled.');
   }
