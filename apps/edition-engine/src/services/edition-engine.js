@@ -198,25 +198,24 @@ export class EditionEngine {
       return { expired: false };
     }
 
-    await this.store.updateReservation(reservationId, {
-      status: ReservationStatus.EXPIRED,
-      expiredAt: new Date(now).toISOString(),
+    const offerDeadline = paymentDeadline(now, standbyOfferHours).toISOString();
+    const result = await this.store.expireReservationAndPromote({
+      editionId,
+      reservationId,
+      now: new Date(now).toISOString(),
+      standbyOfferDeadline: offerDeadline,
     });
 
-    const releasedNumber = await this.store.releaseObjectNumber({ editionId, reservationId });
-    await this.store.releaseReservationSlot(editionId);
-
-    const offerDeadline = paymentDeadline(now, standbyOfferHours).toISOString();
-    const promoted = await this.store.promoteNextStandby(editionId, { offerDeadline });
+    if (!result.expired) return result;
 
     await this.store.recordEvent('reservation.expired', {
       editionId,
       reservationId,
-      releasedNumber,
-      promotedCustomerId: promoted?.customerId || null,
+      releasedNumber: result.releasedNumber,
+      promotedCustomerId: result.promoted?.customerId || null,
     });
 
-    return { expired: true, releasedNumber, promoted };
+    return result;
   }
 
   async joinStandby({ editionId, customerId, email, country = '', size = '' }) {
