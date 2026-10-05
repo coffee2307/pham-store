@@ -6,7 +6,6 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "db:init:local": "wrangler d1 execute PHAM_CAMPAIGN_DB --local --file=schema.sql",
-    "db:init:remote": "wrangler d1 execute PHAM_CAMPAIGN_DB --remote --file=schema.sql",
     "db:migrate:local": "wrangler d1 migrations apply PHAM_CAMPAIGN_DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply PHAM_CAMPAIGN_DB --remote",
     "webhooks:register": "node register-shopify-webhooks.mjs",
