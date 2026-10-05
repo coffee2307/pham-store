@@ -1,0 +1,44 @@
+{{ 'pham-campaign.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'pham-campaign.js' | asset_url }}" defer></script>
+{%- assign referral_code = blank -%}
+{%- assign successful_referrals = 0 -%}
+{%- if customer -%}
+  {%- assign referral_code = customer.metafields.pham.referral_code.value -%}
+  {%- assign successful_referrals = customer.metafields.pham.successful_referrals.value | default: 0 -%}
+{%- endif -%}
+
+<section class="pham-campaign-shell" data-pham-referral-hub>
+  <div class="pham-campaign-inner">
+    <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · REFERRAL ACCESS</p>
+    <h1 class="pham-campaign-title">One verified<br>introduction.</h1>
+    <p class="pham-campaign-lede">One successful referred Priority Reservation unlocks Object Identity at no additional charge, provided the shared {{ settings.pham_campaign_identity_limit | default: 15 }}-privilege pool remains open.</p>
+
+    <div class="pham-campaign-grid">
+      <article class="pham-campaign-card pham-campaign-card--wide">
+        <h2>Your referral</h2>
+        {%- if customer -%}
+          <div class="pham-referral-code"><span data-pham-referral-value>{% if referral_code != blank %}{{ shop.url }}/r/{{ referral_code }}{% else %}PENDING{% endif %}</span><button type="button" class="pham-campaign-btn pham-campaign-btn--ghost" data-pham-copy-referral>COPY</button></div>
+          <div class="pham-campaign-stat"><strong>{{ successful_referrals }} / 1</strong><span>Verified reservations</span></div>
+        {%- else -%}
+          <p>Referral access becomes available after reservation. Sign in when your collector account is activated.</p>
+          <div class="pham-campaign-actions"><a class="pham-campaign-btn pham-campaign-btn--ghost" href="{{ routes.account_login_url }}">Sign in</a></div>
+        {%- endif -%}
+      </article>
+
+      <article class="pham-campaign-card">
+        <h2>What counts</h2>
+        <p>A referral is verified only after a different customer successfully pays for a valid Priority Reservation. Clicks, email signups and self-referrals do not count.</p>
+      </article>
+
+      <article class="pham-campaign-card">
+        <h2>Shared cap</h2>
+        <div class="pham-campaign-stat"><strong>{{ settings.pham_campaign_identity_claimed | default: 0 }} / {{ settings.pham_campaign_identity_limit | default: 15 }}</strong><span>Identity claimed</span></div>
+        <p style="margin-top:20px">Paid and referral-unlocked Identity privileges consume the same limited pool.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{"name":"PHAM Referral Hub","tag":"section","settings":[],"presets":[{"name":"PHAM Referral Hub"}]}
+{% endschema %}
