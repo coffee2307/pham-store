@@ -1,0 +1,42 @@
+{{ 'pham-campaign.css' | asset_url | stylesheet_tag }}
+{%- capture state_raw -%}{%- render 'pham-campaign-state' -%}{%- endcapture -%}
+{%- assign state = state_raw | strip -%}
+{%- assign standby_open = false -%}
+{%- if state == 'reservation_full' -%}{%- assign standby_open = true -%}{%- endif -%}
+
+<section class="pham-campaign-shell" data-pham-standby>
+  <div class="pham-campaign-inner">
+    <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · STANDBY</p>
+    <h1 class="pham-campaign-title">Next in<br>line.</h1>
+    <p class="pham-campaign-lede">Standby opens only after all paid Priority Reservations are allocated. Joining is free. If a reserved slot expires, standby offers are issued in queue order at the full {{ settings.pham_campaign_final_price | default: '$199.00' }} price.</p>
+
+    <div class="pham-campaign-grid">
+      <article class="pham-campaign-card pham-campaign-card--wide">
+        {%- if standby_open -%}
+          {%- form 'contact', id: 'PhamStandbyForm' -%}
+            <input type="hidden" name="contact[Source]" value="PHAM Standby">
+            <input type="hidden" name="contact[Edition]" value="{{ settings.pham_campaign_edition_label | default: 'EDITION 01' | escape }}">
+            <div class="pham-config-field"><label for="StandbyName-{{ section.id }}">Name</label><input id="StandbyName-{{ section.id }}" name="contact[Name]" required></div>
+            <div class="pham-config-field"><label for="StandbyEmail-{{ section.id }}">Email</label><input id="StandbyEmail-{{ section.id }}" type="email" name="contact[email]" required></div>
+            <div class="pham-config-field"><label for="StandbyCountry-{{ section.id }}">Country</label><input id="StandbyCountry-{{ section.id }}" name="contact[Country]" required></div>
+            <div class="pham-config-field"><label for="StandbySize-{{ section.id }}">Size preference</label><input id="StandbySize-{{ section.id }}" name="contact[Size preference]" placeholder="XS / S / M / L / XL"></div>
+            <button class="pham-campaign-btn" type="submit">Join standby · free</button>
+          {%- endform -%}
+        {%- else -%}
+          <h2>Standby not open</h2>
+          <p>The paid reservation allocation has not yet reached capacity. This page becomes the free fallback queue when the campaign state changes to RESERVATION FULL.</p>
+          <div class="pham-campaign-actions"><span class="pham-campaign-btn" aria-disabled="true">Standby locked</span></div>
+        {%- endif -%}
+      </article>
+
+      <article class="pham-campaign-card">
+        <h2>Offer window</h2>
+        <p>When a slot is released, the next eligible standby customer is planned to receive a {{ settings.pham_campaign_standby_window_hours | default: 48 }}-hour full-price acquisition window.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{"name":"PHAM Standby","tag":"section","settings":[],"presets":[{"name":"PHAM Standby"}]}
+{% endschema %}
