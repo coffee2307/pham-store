@@ -15,6 +15,7 @@ function webhookPayload({ referralCode = '', customer = 2, order = 2 } = {}) {
     email: `collector${customer}@example.com`,
     currency: 'USD',
     customer: {
+      id: customer,
       admin_graphql_api_id: `gid://shopify/Customer/${customer}`,
       email: `collector${customer}@example.com`,
     },
