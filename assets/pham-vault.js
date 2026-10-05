@@ -153,19 +153,19 @@
       const mobile = window.innerWidth < 600;
       const tablet = window.innerWidth >= 600 && window.innerWidth < 1024;
       const targetWidth = mobile
-        ? Math.min(window.innerWidth * 0.72, 300)
+        ? Math.min(window.innerWidth * 0.78, 330)
         : tablet
-          ? Math.min(window.innerWidth * 0.48, 400)
-          : Math.min(430, window.innerWidth * 0.29);
+          ? Math.min(window.innerWidth * 0.54, 460)
+          : Math.min(540, window.innerWidth * 0.34);
       const targetHeight = mobile
-        ? Math.min(window.innerHeight * 0.58, 460)
+        ? Math.min(window.innerHeight * 0.64, 500)
         : tablet
-          ? Math.min(window.innerHeight * 0.62, 560)
-          : Math.min(window.innerHeight * 0.72, 650);
+          ? Math.min(window.innerHeight * 0.68, 620)
+          : Math.min(window.innerHeight * 0.78, 720);
       return clamp(
         Math.min(targetWidth / width, targetHeight / height),
-        mobile ? 1.2 : 1.35,
-        mobile ? 2.55 : tablet ? 2.8 : 3.1
+        mobile ? 1.3 : 1.45,
+        mobile ? 2.8 : tablet ? 3.05 : 3.45
       );
     }
 
