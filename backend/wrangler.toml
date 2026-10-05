@@ -9,6 +9,7 @@ SHOPIFY_SHOP_DOMAIN = "yszwe3-yd.myshopify.com"
 binding = "PHAM_CAMPAIGN_DB"
 database_name = "pham-campaign"
 database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
 
 [triggers]
 crons = ["*/15 * * * *"]
