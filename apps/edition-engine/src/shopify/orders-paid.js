@@ -48,6 +48,14 @@ export async function handleOrdersPaidWebhook({
     return { status: 202, body: { ok: false, review: 'missing_terms_evidence' } };
   }
 
+  if (!mapped.sizePreference) {
+    await store.recordEvent('reservation.review_required', {
+      shopifyOrderId: mapped.shopifyOrderId,
+      reason: 'missing_size_preference',
+    });
+    return { status: 202, body: { ok: false, review: 'missing_size_preference' } };
+  }
+
   if (edition.includeLookbook && !mapped.lookbookIncluded) {
     await store.recordEvent('reservation.review_required', {
       shopifyOrderId: mapped.shopifyOrderId,
@@ -67,6 +75,7 @@ export async function handleOrdersPaidWebhook({
       shopifyOrderId: mapped.shopifyOrderId,
       reservationPaidCents: moneyToCents(mapped.reservationAmount),
       referralCode: mapped.referralCode,
+      sizePreference: mapped.sizePreference,
       paidAt: mapped.paidAt || new Date(),
     });
   } catch (error) {
