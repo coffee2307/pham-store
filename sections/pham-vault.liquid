@@ -35,6 +35,16 @@
     </div>
 
     <div class="pham-vault__orbit-stage" data-pham-vault-orbit>
+      <div class="pham-vault__orbit-core" data-pham-vault-core aria-hidden="true">
+        <span class="pham-vault__core-eyebrow">PHAM ATELIER / EDITION 01</span>
+        <span class="pham-vault__core-title" data-text="PHAM">PHAM</span>
+        <span class="pham-vault__core-meta">
+          <span>OBJECT 001</span>
+          <span>50 OBJECTS</span>
+          <span>VIETNAM / 2026</span>
+        </span>
+      </div>
+
       <div class="pham-vault__orbit-plane" data-pham-vault-orbit-plane>
         <div class="pham-vault__orbit-cards">
           {%- if section.blocks.size > 0 -%}
@@ -70,19 +80,6 @@
                       <span class="pham-vault__orbit-placeholder" aria-hidden="true"></span>
                     {%- endif -%}
                   {%- if block.settings.link != blank -%}</a>{%- endif -%}
-                  <span class="pham-vault__card-glow" aria-hidden="true"></span>
-                  <span class="pham-vault__card-identity" aria-hidden="true">
-                    <span class="pham-vault__card-top">
-                      <span>{{ forloop.index | prepend: '0' }}</span>
-                      <span>PHAM-001</span>
-                    </span>
-                    <span class="pham-vault__card-mark">PHAM</span>
-                    <span class="pham-vault__card-bottom">
-                      <span>EDITION 01</span>
-                      <span>VIETNAM / 2026</span>
-                    </span>
-                  </span>
-                  <span class="pham-vault__scanline" aria-hidden="true"></span>
                 </div>
               </figure>
             {%- endfor -%}
@@ -91,19 +88,6 @@
               <figure class="pham-vault__orbit-card" data-pham-vault-card tabindex="0" role="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Open PHAM archive frame {{ card_number }}">
                 <div class="pham-vault__orbit-card-face">
                   <span class="pham-vault__orbit-placeholder" aria-hidden="true"></span>
-                  <span class="pham-vault__card-glow" aria-hidden="true"></span>
-                  <span class="pham-vault__card-identity" aria-hidden="true">
-                    <span class="pham-vault__card-top">
-                      <span>0{{ card_number }}</span>
-                      <span>PHAM-001</span>
-                    </span>
-                    <span class="pham-vault__card-mark">PHAM</span>
-                    <span class="pham-vault__card-bottom">
-                      <span>EDITION 01</span>
-                      <span>VIETNAM / 2026</span>
-                    </span>
-                  </span>
-                  <span class="pham-vault__scanline" aria-hidden="true"></span>
                 </div>
               </figure>
             {%- endfor -%}
