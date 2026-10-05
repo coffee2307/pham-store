@@ -23,6 +23,20 @@ export class EditionEngine {
     await this.store.claimReservationSlot(editionId);
 
     try {
+      let collectorReferralCode = '';
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const candidate = generateReferralCode();
+        const existing = await this.store.findReservationByCollectorReferralCode(
+          editionId,
+          candidate
+        );
+        if (!existing) {
+          collectorReferralCode = candidate;
+          break;
+        }
+      }
+      if (!collectorReferralCode) throw new Error('referral_code_generation_failed');
+
       const reservation = await this.store.createReservation({
         id: reservationId,
         editionId,
@@ -32,7 +46,7 @@ export class EditionEngine {
         referralCode,
         paidAt: new Date(paidAt).toISOString(),
         status: ReservationStatus.ACTIVE,
-        collectorReferralCode: generateReferralCode(),
+        collectorReferralCode,
       });
 
       await this.store.recordEvent('reservation.paid', {
