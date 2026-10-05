@@ -210,7 +210,7 @@
   position: absolute;
   z-index: 72;
   left: 50%;
-  top: 35%;
+  top: 32%;
   width: min(44vw, 600px);
   min-width: 320px;
   display: grid;
