@@ -21,7 +21,9 @@
 <section class="pham-campaign-shell"
   data-pham-edition-campaign
   data-backend-url="{{ settings.pham_campaign_backend_url | escape }}"
-  data-edition-id="{{ settings.pham_campaign_edition_id | default: 'edition-01' | escape }}">
+  data-edition-id="{{ settings.pham_campaign_edition_id | default: 'edition-01' | escape }}"
+  data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
+  data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
     <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · <span data-pham-live-state>{{ state_label }}</span></p>
     <h1 class="pham-campaign-title">{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</h1>
