@@ -456,12 +456,9 @@ async function getReadiness(env, editionId) {
     'write_customers',
     'read_draft_orders',
     'write_draft_orders',
-    'read_quick_sale',
-    'write_quick_sale',
     'read_inventory',
     'write_inventory',
-    'read_products',
-    'write_app_proxy'
+    'read_products'
   ];
 
   function check(name, ok, detail) {
