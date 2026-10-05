@@ -77,7 +77,6 @@
     let sourceCardTransform = '';
     let dialogOpenScrollY = 0;
     let dialogPlaneTilt = 0;
-    let dialogPlaneYaw = 0;
     let dialogPlaneLean = 0;
     let mobileOrbitResume = 1;
 
@@ -266,7 +265,6 @@
       sourceCardTransform = '';
       dialogOpenScrollY = 0;
       dialogPlaneTilt = 0;
-      dialogPlaneYaw = 0;
       dialogPlaneLean = 0;
 
       if (dialogReturnFocus && typeof dialogReturnFocus.focus === 'function') {
@@ -344,21 +342,11 @@
       targetPointerX = 0;
       targetPointerY = 0;
       targetPointerPresence = 0;
-      const dialogOutroRelease = clamp((smoothProgress - 0.76) / 0.24, 0, 1);
-      const dialogOutroEase = dialogOutroRelease * dialogOutroRelease * (3 - 2 * dialogOutroRelease);
-      const dialogIntroRelease = clamp(smoothProgress / 0.24, 0, 1);
-      const dialogIntroEase = dialogIntroRelease * dialogIntroRelease * (3 - 2 * dialogIntroRelease);
-      const dialogIntroLean = -2.1 * (1 - dialogIntroEase);
-
-      dialogPlaneTilt = currentTilt * (1 - dialogOutroEase);
-      dialogPlaneYaw = currentPointerX * 18.5 * currentPointerPresence * (1 - dialogOutroEase);
+      dialogPlaneTilt = currentTilt;
       dialogPlaneLean =
-        (
-          6 * dialogIntroEase +
-          dialogIntroLean +
-          Math.sin(smoothProgress * Math.PI * 2) * 0.3 +
-          currentPointerX * 2.2 * currentPointerPresence
-        ) * (1 - dialogOutroEase);
+        6 +
+        Math.sin(smoothProgress * Math.PI * 2) * 0.35 +
+        currentPointerX * 2.6 * currentPointerPresence;
 
       const mobileDialog = window.innerWidth < 600;
       const targetScale = getExpandedCardScale(card);
@@ -375,7 +363,6 @@
       const targetCardTransform = mobileDialog
         ? 'translate3d(-50%, -50%, 0) ' +
           'rotateZ(' + (-dialogPlaneLean).toFixed(3) + 'deg) ' +
-          'rotateY(' + (-dialogPlaneYaw).toFixed(3) + 'deg) ' +
           'rotateX(' + (-dialogPlaneTilt).toFixed(3) + 'deg) ' +
           'translate3d(' +
           mobileOffsetX.toFixed(2) + 'px,' +
@@ -385,7 +372,6 @@
           ')'
         : 'translate3d(-50%, -50%, 0) ' +
           'rotateZ(' + (-dialogPlaneLean).toFixed(3) + 'deg) ' +
-          'rotateY(' + (-dialogPlaneYaw).toFixed(3) + 'deg) ' +
           'rotateX(' + (-dialogPlaneTilt).toFixed(3) + 'deg) ' +
           'rotateY(0rad) translateZ(0px) rotateZ(0deg) translate3d(0,0,0) scale(' +
           targetScale.toFixed(4) +
@@ -438,7 +424,7 @@
         currentPointerPresence = damp(currentPointerPresence, targetPointerPresence, 4.8, delta);
 
         if (dragging) {
-          rotation = damp(rotation, dragTargetRotation, window.innerWidth < 600 ? 38 : 24, delta);
+          rotation = damp(rotation, dragTargetRotation, 24, delta);
         } else if (!cardDialogOpen) {
           if (window.innerWidth < 600) {
             mobileOrbitResume = damp(mobileOrbitResume, 1, 4.8, delta);
@@ -674,7 +660,7 @@
       const deltaX = event.clientX - dragStartX;
       const deltaY = event.clientY - dragStartY;
       const distance = Math.hypot(deltaX, deltaY);
-      const threshold = event.pointerType === 'mouse' ? 3 : 4;
+      const threshold = event.pointerType === 'mouse' ? 3 : 7;
 
       if (!horizontalDrag && distance > threshold) {
         horizontalDrag = true;
@@ -685,8 +671,7 @@
 
       event.preventDefault();
 
-      const dragSensitivity = event.pointerType === 'mouse' ? 0.0105 : 0.0092;
-      dragTargetRotation = dragStartRotation + deltaX * dragSensitivity;
+      dragTargetRotation = dragStartRotation + deltaX * 0.0105;
       targetPointerX = clamp(deltaX / Math.max(orbit.clientWidth * 0.30, 1), -1, 1);
       targetPointerY = clamp(deltaY / Math.max(orbit.clientHeight * 0.30, 1), -1, 1);
       targetPointerPresence = 0.94;
@@ -694,14 +679,11 @@
       const now = performance.now();
       const elapsed = Math.max((now - lastPointerTime) / 1000, 0.012);
       const instantaneous = clamp(
-        (event.clientX - lastPointerX) * dragSensitivity / elapsed,
-        event.pointerType === 'mouse' ? -3.8 : -3.0,
-        event.pointerType === 'mouse' ? 3.8 : 3.0
+        (event.clientX - lastPointerX) * 0.0105 / elapsed,
+        -3.8,
+        3.8
       );
-      velocity =
-        event.pointerType === 'mouse'
-          ? velocity * 0.58 + instantaneous * 0.42
-          : velocity * 0.72 + instantaneous * 0.28;
+      velocity = velocity * 0.58 + instantaneous * 0.42;
       lastPointerX = event.clientX;
       lastPointerTime = now;
     }
