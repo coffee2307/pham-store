@@ -49,9 +49,9 @@
     assign direct_purchase = true
   endif
 
-  assign preorder_label = section.settings.preorder_label | default: 'JOIN THE WAITLIST'
-  assign closed_label = section.settings.preorder_closed_label | default: 'PRE-ORDER CLOSED'
-  assign closed_note = section.settings.preorder_closed_note | default: 'The waitlist is currently closed. We will announce the next window by email.'
+  assign preorder_label = section.settings.preorder_label | default: 'PRIORITY ACCESS COMING SOON'
+  assign closed_label = section.settings.preorder_closed_label | default: 'RESERVATION CLOSED'
+  assign closed_note = section.settings.preorder_closed_note | default: 'Priority Reservation is currently closed. Future access is announced through PHAM.'
   assign add_label = settings.pham_add_to_cart_label | default: 'ADD TO EDITION'
   assign sold_label = settings.pham_sold_out_label | default: 'SOLD OUT'
   assign sold_note = settings.pham_sold_out_note | default: 'This run is closed. Join the atelier list for the next release.'
