@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS reservations (
   digital_lookbook_status TEXT NOT NULL DEFAULT 'pending',
   final_draft_order_id TEXT,
   final_invoice_url TEXT,
+  final_shopify_order_id TEXT UNIQUE,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (edition_id) REFERENCES editions(id),
