@@ -2702,15 +2702,6 @@
         "default": "edition-01"
       },
       {
-        "type": "url",
-        "id": "pham_campaign_backend_url",
-        "label": "Campaign backend base URL"
-      },
-      {
-        "type": "paragraph",
-        "content": "Optional during prelaunch. Once the Worker is deployed, live counters and campaign state can be read from this backend without changing the visual theme."
-      },
-      {
         "type": "text",
         "id": "pham_campaign_edition_label",
         "label": "Edition label",
