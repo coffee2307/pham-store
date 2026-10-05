@@ -1,0 +1,83 @@
+name: Verify PHAM Campaign Staging
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CAMPAIGN_BACKEND_URL: ${{ secrets.CAMPAIGN_BACKEND_URL }}
+      INTERNAL_ADMIN_KEY: ${{ secrets.INTERNAL_ADMIN_KEY }}
+      STOREFRONT_ORIGIN: ${{ secrets.STOREFRONT_ORIGIN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Validate verification secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${CAMPAIGN_BACKEND_URL:?Missing CAMPAIGN_BACKEND_URL}"
+          : "${INTERNAL_ADMIN_KEY:?Missing INTERNAL_ADMIN_KEY}"
+          if [ -z "${STOREFRONT_ORIGIN:-}" ]; then
+            echo "STOREFRONT_ORIGIN=https://phamofficial.com" >> "$GITHUB_ENV"
+          fi
+
+      - name: Worker health
+        working-directory: backend
+        run: node admin.mjs health
+
+      - name: Backend readiness
+        working-directory: backend
+        run: node admin.mjs readiness --edition=edition-01
+
+      - name: Shopify App Proxy campaign route
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="${STOREFRONT_ORIGIN%/}/apps/pham-edition/campaign?edition=edition-01"
+          body="$(mktemp)"
+          code="$(curl --silent --show-error --location --output "$body" --write-out '%{http_code}' "$url")"
+          cat "$body"
+          echo
+          if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+            echo "::error::App Proxy campaign route returned HTTP $code"
+            exit 1
+          fi
+          node -e '
+            const fs=require("fs");
+            const raw=fs.readFileSync(process.argv[1],"utf8");
+            const body=JSON.parse(raw);
+            if(!body.edition || !body.counters){
+              console.error("App Proxy response is missing edition/counters");
+              process.exit(1);
+            }
+            console.log("App Proxy state:", body.edition.state);
+            console.log("Reserved:", body.counters.reserved + "/" + body.edition.editionSize);
+          ' "$body"
+
+      - name: Verify launch remains closed
+        working-directory: backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          state="$(node admin.mjs state --edition=edition-01)"
+          echo "$state"
+          node -e '
+            const body=JSON.parse(process.argv[1]);
+            if(body.edition && body.edition.state === "reservation_open"){
+              console.error("Campaign is already RESERVATION OPEN. Staging verification expects launch to remain closed.");
+              process.exit(1);
+            }
+          ' "$state"
