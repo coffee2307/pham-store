@@ -167,7 +167,11 @@
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.17);
   background:
-    linear-gradient(145deg, rgba(18,18,18,.98), rgba(5,5,5,.995));
+    linear-gradient(
+      145deg,
+      rgba(18,18,18,calc(.18 + (var(--vault-card-content-opacity, 1) * .80))),
+      rgba(5,5,5,calc(.18 + (var(--vault-card-content-opacity, 1) * .815)))
+    );
   box-shadow:
     0 20px 48px rgba(0,0,0,.46),
     inset 0 0 34px rgba(255,255,255,.012);
@@ -197,7 +201,15 @@
     0 0 0 2px rgba(255,255,255,.72),
     0 0 34px rgba(255,255,255,.12);
 }
-.pham-vault__orbit-card a { display: block; width: 100%; height: 100%; color: inherit; text-decoration: none; }
+.pham-vault__orbit-card a {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+  opacity: var(--vault-card-content-opacity, 1);
+  transition: opacity 180ms linear;
+}
 .pham-vault__orbit-card img {
   display: block;
   width: 100%;
@@ -210,7 +222,7 @@
   position: absolute;
   z-index: 72;
   left: 50%;
-  top: calc(22% + 50px);
+  top: calc(22% + 24px);
   width: min(44vw, 600px);
   min-width: 320px;
   display: grid;
@@ -361,6 +373,8 @@
 
 .pham-vault__orbit-placeholder {
   display: block;
+  opacity: var(--vault-card-content-opacity, 1);
+  transition: opacity 180ms linear;
   width: 100%;
   height: 100%;
   background:
