@@ -47,6 +47,7 @@
           <div class="pham-status-row"><span>Identity</span><strong data-pham-live-identity-status>{{ identity_status }}</strong></div>
           <div class="pham-status-row"><span>Referral</span><strong data-pham-live-referral>{{ successful_referrals }} / 1 VERIFIED</strong></div>
           <div class="pham-status-row"><span>Digital lookbook</span><strong data-pham-live-lookbook>{{ lookbook_status }}</strong></div>
+          <div class="pham-status-row"><span>Founder’s Token</span><strong data-pham-live-founder-token>PENDING ALLOCATION</strong></div>
           <div class="pham-status-row"><span>Reservation paid</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
           <div class="pham-status-row"><span>Product balance</span><strong data-pham-live-balance>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></div>
           <div class="pham-status-row" data-pham-deadline-row {% if payment_deadline == blank %}hidden{% endif %}>
