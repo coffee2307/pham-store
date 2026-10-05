@@ -45,6 +45,16 @@ export default {
         return getCampaign(env, url.searchParams.get('edition') || 'edition-01');
       }
 
+      if (request.method === 'POST' && url.pathname === '/internal/state/set') {
+        requireInternalKey(request, env);
+        return setCampaignState(request, env);
+      }
+
+      if (request.method === 'POST' && url.pathname === '/internal/lookbook/status') {
+        requireInternalKey(request, env);
+        return setLookbookStatus(request, env);
+      }
+
       if (request.method === 'GET' && url.pathname === '/internal/readiness') {
         requireInternalKey(request, env);
         return getReadiness(env, url.searchParams.get('edition') || 'edition-01');
@@ -316,6 +326,125 @@ async function joinStandbyProxy(request, env, customerId, editionId) {
       status: payload.queueStatus
     }
   }, payload.created ? 201 : 200);
+}
+
+async function setCampaignState(request, env) {
+  const body = await request.json();
+  const editionId = String(body.editionId || 'edition-01');
+  const nextState = String(body.state || '').trim();
+
+  if (body.confirm !== 'SET_CAMPAIGN_STATE') {
+    return json({ ok: false, error: 'explicit_confirmation_required' }, 400);
+  }
+
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM editions WHERE id = ?'
+  ).bind(editionId).first();
+
+  if (!edition) return json({ ok: false, error: 'edition_not_found' }, 404);
+
+  const allowed = {
+    prelaunch: ['reservation_open'],
+    reservation_open: ['prelaunch'],
+    sold_out: ['archived']
+  };
+
+  const permitted = allowed[edition.state] || [];
+  if (!permitted.includes(nextState)) {
+    return json({
+      ok: false,
+      error: 'invalid_state_transition',
+      currentState: edition.state,
+      requestedState: nextState,
+      allowed: permitted
+    }, 409);
+  }
+
+  if (nextState === 'reservation_open') {
+    const readiness = await collectReadiness(env, editionId);
+    if (!readiness.ok) {
+      return json({
+        ok: false,
+        error: 'campaign_not_ready',
+        readiness
+      }, 409);
+    }
+  }
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    'UPDATE editions SET state = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+  ).bind(nextState, editionId).run();
+
+  return json({
+    ok: true,
+    editionId,
+    previousState: edition.state,
+    state: nextState
+  });
+}
+
+async function setLookbookStatus(request, env) {
+  const body = await request.json();
+  const reservationId = String(body.reservationId || '').trim();
+  const status = String(body.status || '').trim().toLowerCase();
+  const allowed = ['pending', 'entitled', 'delivered', 'failed'];
+
+  if (!reservationId) {
+    return json({ ok: false, error: 'reservation_id_required' }, 422);
+  }
+  if (!allowed.includes(status)) {
+    return json({
+      ok: false,
+      error: 'invalid_lookbook_status',
+      allowed
+    }, 422);
+  }
+
+  const reservation = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM reservations WHERE id = ?'
+  ).bind(reservationId).first();
+
+  if (!reservation) return json({ ok: false, error: 'reservation_not_found' }, 404);
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE reservations
+     SET digital_lookbook_status = ?, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`
+  ).bind(status, reservationId).run();
+
+  const fields = [
+    metafield(
+      reservation.shopify_order_id,
+      'digital_lookbook_status',
+      'single_line_text_field',
+      status
+    )
+  ];
+
+  if (reservation.shopify_customer_id) {
+    fields.push(
+      metafield(
+        reservation.shopify_customer_id,
+        'digital_lookbook_status',
+        'single_line_text_field',
+        status
+      )
+    );
+  }
+
+  await setMetafields(env, fields);
+
+  return json({
+    ok: true,
+    reservationId,
+    status
+  });
+}
+
+async function collectReadiness(env, editionId) {
+  const response = await getReadiness(env, editionId);
+  const payload = await response.json().catch(function(){ return {}; });
+  return payload;
 }
 
 async function getReadiness(env, editionId) {
