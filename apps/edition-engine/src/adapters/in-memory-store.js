@@ -58,6 +58,8 @@ export class InMemoryStore {
     }
 
     const record = {
+      acquisitionType: 'priority_reservation',
+      lookbookStatus: 'pending',
       ...clone(input),
       status: input.status || ReservationStatus.ACTIVE,
       createdAt: input.createdAt || new Date().toISOString(),
