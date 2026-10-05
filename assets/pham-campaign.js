@@ -46,6 +46,7 @@ function engineErrorMessage(code){
     reservation_not_found: 'No active reservation was found for this collector account.',
     standby_not_open: 'Standby is not open yet.',
     standby_already_joined: 'This collector is already in the standby queue.',
+    size_preference_required: 'Enter a size preference before joining standby.',
     invalid_email: 'Enter a valid email address.',
     invalid_signature: 'Collector session verification failed. Refresh the page and try again.',
     stale_request: 'This collector session expired. Refresh the page and try again.'
