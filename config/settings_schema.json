@@ -2735,6 +2735,13 @@
         "default": 50
       },
       {
+        "type": "text",
+        "id": "pham_campaign_size_options",
+        "label": "Size preference options",
+        "default": "XS,S,M,L,XL",
+        "info": "Comma-separated. This records preference during reservation; final size is not guaranteed until a real PHAM-001 variant is assigned."
+      },
+      {
         "type": "range",
         "id": "pham_campaign_reservations_claimed",
         "label": "Reservations claimed",
