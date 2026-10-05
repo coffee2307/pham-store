@@ -331,7 +331,8 @@ async function getReadiness(env, editionId) {
     'write_quick_sale',
     'read_inventory',
     'write_inventory',
-    'read_products'
+    'read_products',
+    'write_app_proxy'
   ];
 
   function check(name, ok, detail) {
@@ -340,8 +341,7 @@ async function getReadiness(env, editionId) {
 
   check('env.SHOPIFY_SHOP_DOMAIN', Boolean(env.SHOPIFY_SHOP_DOMAIN), env.SHOPIFY_SHOP_DOMAIN || null);
   check('env.SHOPIFY_ADMIN_TOKEN', Boolean(env.SHOPIFY_ADMIN_TOKEN), env.SHOPIFY_ADMIN_TOKEN ? 'configured' : 'missing');
-  check('env.SHOPIFY_WEBHOOK_SECRET', Boolean(env.SHOPIFY_WEBHOOK_SECRET), env.SHOPIFY_WEBHOOK_SECRET ? 'configured' : 'missing');
-  check('env.SHOPIFY_API_SECRET', Boolean(env.SHOPIFY_API_SECRET), env.SHOPIFY_API_SECRET ? 'configured' : 'missing');
+  check('env.SHOPIFY_API_SECRET', Boolean(env.SHOPIFY_API_SECRET), env.SHOPIFY_API_SECRET ? 'configured (App Proxy + webhook HMAC)' : 'missing');
   check('env.INTERNAL_ADMIN_KEY', Boolean(env.INTERNAL_ADMIN_KEY), env.INTERNAL_ADMIN_KEY ? 'configured' : 'missing');
   check('env.STOREFRONT_ORIGIN', Boolean(env.STOREFRONT_ORIGIN), env.STOREFRONT_ORIGIN || null);
 
@@ -575,8 +575,13 @@ async function joinStandbyRecord(env, input) {
 
 async function handleOrdersPaid(request, env) {
   const raw = await request.arrayBuffer();
-  const verified = await verifyShopifyWebhook(raw, request.headers.get('x-shopify-hmac-sha256'), env.SHOPIFY_WEBHOOK_SECRET);
+  const verified = await verifyShopifyWebhook(raw, request.headers.get('x-shopify-hmac-sha256'), env.SHOPIFY_API_SECRET);
   if (!verified) return json({ error: 'Invalid webhook signature' }, 401);
+
+  const webhookShop = request.headers.get('x-shopify-shop-domain') || '';
+  if (env.SHOPIFY_SHOP_DOMAIN && webhookShop !== env.SHOPIFY_SHOP_DOMAIN) {
+    return json({ error: 'Invalid webhook shop' }, 401);
+  }
 
   const webhookId = request.headers.get('x-shopify-webhook-id') || '';
   const topic = request.headers.get('x-shopify-topic') || 'orders/paid';
