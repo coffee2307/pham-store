@@ -143,6 +143,44 @@ export class InMemoryStore {
     return clone(privilege);
   }
 
+  async configureIdentityWithObject({
+    editionId,
+    reservationId,
+    number,
+    configuration,
+  }) {
+    const privilege = this.identityPrivileges.get(reservationId);
+    if (!privilege) throw new Error('identity_not_claimed');
+
+    const edition = this.editions.get(editionId);
+    if (!edition) throw new Error('edition_not_found');
+    if (!Number.isInteger(number) || number < 1 || number > edition.editionSize) {
+      throw new Error('object_number_out_of_range');
+    }
+
+    const currentForReservation = this.reservationObject.get(reservationId);
+    if (currentForReservation != null && currentForReservation !== number) {
+      throw new Error('reservation_already_has_object');
+    }
+
+    const key = `${editionId}:${number}`;
+    const currentOwner = this.objectClaims.get(key);
+    if (currentOwner && currentOwner !== reservationId) {
+      throw new Error('object_number_taken');
+    }
+
+    this.objectClaims.set(key, reservationId);
+    this.reservationObject.set(reservationId, number);
+
+    Object.assign(privilege, clone(configuration), {
+      preferredNumber: number,
+      status: IdentityStatus.CONFIGURED,
+      configuredAt: new Date().toISOString(),
+    });
+
+    return clone(privilege);
+  }
+
   async claimObjectNumber({ editionId, reservationId, number }) {
     const edition = this.editions.get(editionId);
     if (!edition) throw new Error('edition_not_found');
