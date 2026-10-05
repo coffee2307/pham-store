@@ -44,7 +44,7 @@ create table if not exists reservations (
   referral_code_used text,
   collector_referral_code text not null,
   digital_lookbook_status text not null default 'pending' check (
-    digital_lookbook_status in ('pending','sent','delivered','failed')
+    digital_lookbook_status in ('pending','sent','delivered','failed','not_included')
   ),
   paid_at timestamptz not null,
   final_payment_opened_at timestamptz,
