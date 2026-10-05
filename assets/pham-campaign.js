@@ -502,18 +502,24 @@ function mountLiveCampaign(root){
   if(root.dataset.phamLiveMounted === 'true') return;
   root.dataset.phamLiveMounted = 'true';
 
-  var base = (root.dataset.backendUrl || '').replace(/\/$/, '');
   var editionId = root.dataset.editionId || 'edition-01';
-  if(!base) return;
+  var request;
 
-  fetch(base + '/api/campaign?edition=' + encodeURIComponent(editionId), {
-    method:'GET',
-    headers:{'Accept':'application/json'}
-  })
-  .then(function(response){
-    if(!response.ok) throw new Error('Campaign backend unavailable');
-    return response.json();
-  })
+  if(root.dataset.engineEnabled === 'true'){
+    request = proxyRequest(root, '/campaign?edition=' + encodeURIComponent(editionId));
+  } else {
+    var base = (root.dataset.backendUrl || '').replace(/\/$/, '');
+    if(!base) return;
+    request = fetch(base + '/api/campaign?edition=' + encodeURIComponent(editionId), {
+      method:'GET',
+      headers:{'Accept':'application/json'}
+    }).then(function(response){
+      if(!response.ok) throw new Error('Campaign backend unavailable');
+      return response.json();
+    });
+  }
+
+  request
   .then(function(payload){
     if(!payload || !payload.edition || !payload.counters) return;
 
