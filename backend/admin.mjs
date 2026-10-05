@@ -66,6 +66,13 @@ switch(command){
     await request('/internal/readiness?edition=' + encodeURIComponent(editionArg()));
     break;
 
+  case 'reviews': {
+    const rawLimit = Number(valueArg('--limit') || 50);
+    const limit = Number.isInteger(rawLimit) ? Math.max(1, Math.min(100, rawLimit)) : 50;
+    await request('/internal/reviews?limit=' + encodeURIComponent(String(limit)));
+    break;
+  }
+
   case 'set-state': {
     if(!hasFlag('--confirm')){
       fail('Refusing to change campaign state without --confirm.');
@@ -199,6 +206,7 @@ Commands:
   node admin.mjs health
   node admin.mjs state [--edition=edition-01]
   node admin.mjs readiness [--edition=edition-01]
+  node admin.mjs reviews [--limit=50]
   node admin.mjs set-state --state=reservation_open --confirm [--edition=edition-01]
   node admin.mjs mark-lookbook --reservation=PHAM-R-... --status=delivered
   node admin.mjs assign-variant --reservation=PHAM-R-... --variant=gid://shopify/ProductVariant/...
