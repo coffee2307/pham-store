@@ -2,6 +2,7 @@
 <script src="{{ 'pham-campaign.js' | asset_url }}" defer></script>
 {%- assign referral_code = blank -%}
 {%- assign successful_referrals = 0 -%}
+{%- assign referral_target = settings.pham_campaign_reservation_page_url | default: '/pages/reserve-edition-01' -%}
 {%- if customer -%}
   {%- assign referral_code = customer.metafields.pham.referral_code.value -%}
   {%- assign successful_referrals = customer.metafields.pham.successful_referrals.value | default: 0 -%}
@@ -17,7 +18,7 @@
       <article class="pham-campaign-card pham-campaign-card--wide">
         <h2>Your referral</h2>
         {%- if customer -%}
-          <div class="pham-referral-code"><span data-pham-referral-value>{% if referral_code != blank %}{{ shop.url }}/r/{{ referral_code }}{% else %}PENDING{% endif %}</span><button type="button" class="pham-campaign-btn pham-campaign-btn--ghost" data-pham-copy-referral>COPY</button></div>
+          <div class="pham-referral-code"><span data-pham-referral-value>{% if referral_code != blank %}{{ shop.url }}{{ referral_target }}?ref={{ referral_code | url_encode }}{% else %}PENDING{% endif %}</span><button type="button" class="pham-campaign-btn pham-campaign-btn--ghost" data-pham-copy-referral>COPY</button></div>
           <div class="pham-campaign-stat"><strong>{{ successful_referrals }} / 1</strong><span>Verified reservations</span></div>
         {%- else -%}
           <p>Referral access becomes available after reservation. Sign in when your collector account is activated.</p>
