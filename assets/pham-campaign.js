@@ -13,21 +13,74 @@ function captureReferral(){
   try {
     var params = new URLSearchParams(window.location.search);
     var ref = safeReferralCode(params.get('ref') || '');
-    if (ref) localStorage.setItem('pham_referral_code', ref);
+    if(ref) localStorage.setItem('pham_referral_code', ref);
   } catch (e) { /* ignore storage/query failures */ }
 }
 
 function storedReferral(){
-  try { return safeReferralCode(localStorage.getItem('pham_referral_code') || ''); }
-  catch (e) { return ''; }
+  try {
+    return safeReferralCode(localStorage.getItem('pham_referral_code') || '');
+  } catch (e) {
+    return '';
+  }
 }
 
 function formatMoney(cents, currency){
   var amount = (Number(cents) || 0) / 100;
   try {
-    return new Intl.NumberFormat(undefined, { style:'currency', currency: currency || 'USD' }).format(amount);
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: currency || 'USD'
+    }).format(amount);
   } catch (e) {
-    return '
+    return '$' + amount.toFixed(2);
+  }
+}
+
+function engineErrorMessage(code){
+  var messages = {
+    object_number_taken: 'That object number was just claimed. Select another number.',
+    object_number_out_of_range: 'Select a valid object number for this edition.',
+    identity_not_claimed: 'Object Identity is not unlocked for this collector.',
+    customer_login_required: 'Sign in with the collector account linked to your reservation.',
+    reservation_not_found: 'No active reservation was found for this collector account.',
+    standby_not_open: 'Standby is not open yet.',
+    standby_already_joined: 'This collector is already in the standby queue.',
+    invalid_email: 'Enter a valid email address.',
+    invalid_signature: 'Collector session verification failed. Refresh the page and try again.',
+    stale_request: 'This collector session expired. Refresh the page and try again.'
+  };
+  return messages[code] || 'Unable to complete this request. Please try again.';
+}
+
+function proxyRequest(root, route, options){
+  var base = (root.dataset.engineProxy || '/apps/pham-edition').replace(/\/$/, '');
+  var requestOptions = Object.assign({
+    method: 'GET',
+    headers: { 'Accept': 'application/json' },
+    credentials: 'same-origin'
+  }, options || {});
+
+  if(requestOptions.body && typeof requestOptions.body !== 'string'){
+    requestOptions.headers = Object.assign({}, requestOptions.headers, {
+      'Content-Type': 'application/json'
+    });
+    requestOptions.body = JSON.stringify(requestOptions.body);
+  }
+
+  return fetch(base + route, requestOptions).then(function(response){
+    return response.json().catch(function(){ return {}; }).then(function(payload){
+      if(!response.ok || payload.ok === false){
+        var error = new Error(payload.error || 'proxy_request_failed');
+        error.code = payload.error || 'proxy_request_failed';
+        error.payload = payload;
+        throw error;
+      }
+      return payload;
+    });
+  });
+}
+
 function mountIdentity(root){
   if(root.dataset.phamMounted === 'true') return;
   root.dataset.phamMounted = 'true';
