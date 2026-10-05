@@ -41,6 +41,8 @@ create table if not exists reservations (
   ),
   reservation_paid_cents integer not null check (reservation_paid_cents >= 0),
   balance_due_cents integer check (balance_due_cents is null or balance_due_cents >= 0),
+  size_preference text,
+  final_variant_id text,
   referral_code_used text,
   collector_referral_code text not null,
   digital_lookbook_status text not null default 'pending' check (
