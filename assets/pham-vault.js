@@ -43,7 +43,7 @@
     let progress = 0;
     let smoothProgress = 0;
     let currentChapter = -1;
-    let rotation = 0.34;
+    let rotation = 0.08;
     let currentTilt = baseTilt;
     let targetTilt = baseTilt;
     let targetPointerX = 0;
@@ -436,7 +436,7 @@
           velocity *= Math.exp(-3.0 * delta);
         }
 
-        targetTilt = baseTilt - currentPointerY * 12.5 * currentPointerPresence;
+        targetTilt = baseTilt - currentPointerY * 15.5 * currentPointerPresence;
         currentTilt = damp(currentTilt, targetTilt, 5.2, delta);
       } else {
         currentPointerX = 0;
@@ -466,9 +466,9 @@
         6 +
         Math.sin(smoothProgress * Math.PI * 2) * 0.3 +
         currentPointerX * 2.2 * currentPointerPresence;
-      const ringTiltY = currentPointerX * 14.5 * currentPointerPresence;
-      const pointerShiftX = currentPointerX * 11 * currentPointerPresence;
-      const pointerShiftY = currentPointerY * 8 * currentPointerPresence;
+      const ringTiltY = currentPointerX * 18.5 * currentPointerPresence;
+      const pointerShiftX = currentPointerX * 22 * currentPointerPresence;
+      const pointerShiftY = currentPointerY * 12 * currentPointerPresence;
 
       // Counter-parallax keeps the copy feeling suspended in the centre,
       // rather than printed onto the same plane as the cards.
@@ -639,9 +639,9 @@
       event.preventDefault();
 
       dragTargetRotation = dragStartRotation + deltaX * 0.0105;
-      targetPointerX = clamp(deltaX / Math.max(orbit.clientWidth * 0.34, 1), -1, 1);
-      targetPointerY = clamp(deltaY / Math.max(orbit.clientHeight * 0.34, 1), -1, 1);
-      targetPointerPresence = 0.82;
+      targetPointerX = clamp(deltaX / Math.max(orbit.clientWidth * 0.30, 1), -1, 1);
+      targetPointerY = clamp(deltaY / Math.max(orbit.clientHeight * 0.30, 1), -1, 1);
+      targetPointerPresence = 0.94;
 
       const now = performance.now();
       const elapsed = Math.max((now - lastPointerTime) / 1000, 0.012);
