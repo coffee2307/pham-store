@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS editions (
   identity_limit INTEGER NOT NULL,
   payment_window_hours INTEGER NOT NULL DEFAULT 72,
   standby_window_hours INTEGER NOT NULL DEFAULT 48,
+  final_product_variant_id TEXT,
+  currency_code TEXT NOT NULL DEFAULT 'USD',
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -30,6 +32,8 @@ CREATE TABLE IF NOT EXISTS reservations (
   payment_deadline TEXT,
   final_payment_status TEXT NOT NULL DEFAULT 'pending',
   digital_lookbook_status TEXT NOT NULL DEFAULT 'pending',
+  final_draft_order_id TEXT,
+  final_invoice_url TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (edition_id) REFERENCES editions(id),
@@ -111,8 +115,10 @@ CREATE INDEX IF NOT EXISTS idx_standby_queue
 INSERT OR IGNORE INTO editions (
   id, label, product_code, edition_size, state,
   reservation_price_cents, final_price_cents, identity_limit,
-  payment_window_hours, standby_window_hours
+  payment_window_hours, standby_window_hours,
+  final_product_variant_id, currency_code
 ) VALUES (
   'edition-01', 'EDITION 01', 'PHAM-001', 50, 'prelaunch',
-  2499, 19900, 15, 72, 48
+  2499, 19900, 15, 72, 48,
+  'gid://shopify/ProductVariant/50501819662592', 'USD'
 );
