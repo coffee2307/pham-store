@@ -123,6 +123,26 @@ switch(command){
     break;
   }
 
+  case 'set-size-options': {
+    if(!hasFlag('--confirm')){
+      fail('Refusing to change edition size options without --confirm.');
+    }
+    const raw = valueArg('--sizes');
+    if(!raw){
+      fail('Provide --sizes=XS,S,M,L,XL.');
+    }
+    const sizes = raw.split(',').map(value => value.trim()).filter(Boolean);
+    await request('/internal/edition/size-options', {
+      method:'POST',
+      body:{
+        editionId:editionArg(),
+        sizes,
+        confirm:'SET_SIZE_OPTIONS'
+      }
+    });
+    break;
+  }
+
   case 'open-final-payment':
     await request('/internal/final-payment/open', {
       method:'POST',
@@ -182,6 +202,7 @@ Commands:
   node admin.mjs set-state --state=reservation_open --confirm [--edition=edition-01]
   node admin.mjs mark-lookbook --reservation=PHAM-R-... --status=delivered
   node admin.mjs assign-variant --reservation=PHAM-R-... --variant=gid://shopify/ProductVariant/...
+  node admin.mjs set-size-options --sizes=XS,S,M,L,XL --confirm [--edition=edition-01]
   node admin.mjs open-final-payment [--edition=edition-01]
   node admin.mjs promote-standby [--edition=edition-01]
   node admin.mjs finalize-objects --confirm [--edition=edition-01]
