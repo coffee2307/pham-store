@@ -1,0 +1,18 @@
+{%- capture pham_campaign_state_raw -%}{%- render 'pham-campaign-state' -%}{%- endcapture -%}
+{%- assign pham_campaign_state = pham_campaign_state_raw | strip -%}
+<script type="application/json" data-pham-campaign-context>
+{
+  "state": {{ pham_campaign_state | json }},
+  "edition": {{ settings.pham_campaign_edition_label | default: 'EDITION 01' | json }},
+  "product": {{ settings.pham_campaign_product_code | default: 'PHAM-001' | json }},
+  "editionSize": {{ settings.pham_campaign_edition_size | default: 50 | json }},
+  "reservationsClaimed": {{ settings.pham_campaign_reservations_claimed | default: 0 | json }},
+  "identityLimit": {{ settings.pham_campaign_identity_limit | default: 15 | json }},
+  "identityClaimed": {{ settings.pham_campaign_identity_claimed | default: 0 | json }},
+  "standbyCount": {{ settings.pham_campaign_standby_count | default: 0 | json }},
+  "reservationPrice": {{ settings.pham_campaign_reservation_price | default: '$24.99' | json }},
+  "identityPrice": {{ settings.pham_campaign_identity_price | default: '$5.00' | json }},
+  "finalPrice": {{ settings.pham_campaign_final_price | default: '$199.00' | json }},
+  "balanceDue": {{ settings.pham_campaign_balance_due | default: '$174.01' | json }}
+}
+</script>
