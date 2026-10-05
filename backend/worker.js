@@ -331,38 +331,203 @@ async function openFinalPayment(request, env) {
   const edition = await env.PHAM_CAMPAIGN_DB.prepare(
     'SELECT * FROM editions WHERE id = ?'
   ).bind(editionId).first();
+
   if (!edition) return json({ error: 'Edition not found' }, 404);
+  if (!edition.final_product_variant_id) {
+    return json({ error: 'Final product variant is not configured for this edition' }, 409);
+  }
 
   const now = new Date();
   const deadline = new Date(now.getTime() + edition.payment_window_hours * 3600000).toISOString();
 
   const rows = await env.PHAM_CAMPAIGN_DB.prepare(
-    "SELECT id, shopify_customer_id, shopify_order_id FROM reservations WHERE edition_id = ? AND status = 'active'"
+    `SELECT id, email, shopify_customer_id, shopify_order_id, final_draft_order_id, final_invoice_url
+     FROM reservations
+     WHERE edition_id = ? AND status = 'active'`
   ).bind(editionId).all();
 
-  for (const row of rows.results || []) {
-    await env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE reservations SET status = 'final_payment_open', final_payment_status = 'open', payment_deadline = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
-    ).bind(deadline, row.id).run();
+  const results = [];
 
-    const fields = [
-      metafield(row.shopify_order_id, 'final_payment_status', 'single_line_text_field', 'open'),
-      metafield(row.shopify_order_id, 'payment_deadline', 'date_time', deadline)
-    ];
-    if (row.shopify_customer_id) {
-      fields.push(
-        metafield(row.shopify_customer_id, 'current_reservation_status', 'single_line_text_field', 'final_payment_open'),
-        metafield(row.shopify_customer_id, 'payment_deadline', 'date_time', deadline)
-      );
+  for (const row of rows.results || []) {
+    try {
+      let draftOrderId = row.final_draft_order_id;
+      let invoiceUrl = row.final_invoice_url;
+
+      if (!draftOrderId) {
+        const draft = await createFinalAcquisitionDraft(env, {
+          edition,
+          reservation: row,
+          deadline
+        });
+        draftOrderId = draft.id;
+        invoiceUrl = draft.invoiceUrl;
+
+        await env.PHAM_CAMPAIGN_DB.prepare(
+          `UPDATE reservations
+           SET final_draft_order_id = ?, final_invoice_url = ?, updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?`
+        ).bind(draftOrderId, invoiceUrl || null, row.id).run();
+      }
+
+      await sendFinalAcquisitionInvoice(env, {
+        draftOrderId,
+        email: row.email,
+        edition,
+        reservationId: row.id,
+        deadline
+      });
+
+      await env.PHAM_CAMPAIGN_DB.prepare(
+        `UPDATE reservations
+         SET status = 'final_payment_open',
+             final_payment_status = 'open',
+             payment_deadline = ?,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`
+      ).bind(deadline, row.id).run();
+
+      const fields = [
+        metafield(row.shopify_order_id, 'final_payment_status', 'single_line_text_field', 'open'),
+        metafield(row.shopify_order_id, 'payment_deadline', 'date_time', deadline)
+      ];
+
+      if (row.shopify_customer_id) {
+        fields.push(
+          metafield(row.shopify_customer_id, 'current_reservation_status', 'single_line_text_field', 'final_payment_open'),
+          metafield(row.shopify_customer_id, 'payment_deadline', 'date_time', deadline)
+        );
+      }
+
+      await setMetafields(env, fields);
+
+      results.push({
+        reservationId: row.id,
+        ok: true,
+        draftOrderId,
+        invoiceUrl,
+        deadline
+      });
+    } catch (error) {
+      console.error('Final payment opening failed', row.id, error);
+      results.push({
+        reservationId: row.id,
+        ok: false,
+        error: error.message || 'Unknown final payment error'
+      });
     }
-    await setMetafields(env, fields);
   }
 
-  await env.PHAM_CAMPAIGN_DB.prepare(
-    "UPDATE editions SET state = 'final_payment', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
-  ).bind(editionId).run();
+  const opened = results.filter(item => item.ok).length;
+  const failed = results.length - opened;
 
-  return json({ ok: true, editionId, opened: (rows.results || []).length, deadline });
+  if (opened > 0) {
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      "UPDATE editions SET state = 'final_payment', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+    ).bind(editionId).run();
+  }
+
+  return json({ ok: failed === 0, editionId, opened, failed, deadline, results });
+}
+
+async function createFinalAcquisitionDraft(env, { edition, reservation, deadline }) {
+  const mutation = `mutation CreateFinalAcquisitionDraft($input: DraftOrderInput!) {
+    draftOrderCreate(input: $input) {
+      draftOrder {
+        id
+        name
+        invoiceUrl
+        totalPriceSet { shopMoney { amount currencyCode } }
+        subtotalPriceSet { shopMoney { amount currencyCode } }
+      }
+      userErrors { field message }
+    }
+  }`;
+
+  const currencyCode = edition.currency_code || 'USD';
+  const reservationCredit = centsToMoney(edition.reservation_price_cents);
+
+  const input = {
+    email: reservation.email || undefined,
+    lineItems: [{
+      variantId: edition.final_product_variant_id,
+      quantity: 1
+    }],
+    appliedDiscount: {
+      title: 'Priority Reservation Credit',
+      description: `${edition.label} reservation already paid`,
+      valueType: 'FIXED_AMOUNT',
+      value: reservationCredit
+    },
+    acceptAutomaticDiscounts: false,
+    allowDiscountCodesInCheckout: false,
+    customAttributes: [
+      { key: 'PHAM Reservation ID', value: reservation.id },
+      { key: 'PHAM Edition', value: edition.label },
+      { key: 'PHAM Product', value: edition.product_code },
+      { key: 'PHAM Payment Deadline', value: deadline }
+    ],
+    note: `${edition.label} final acquisition. Reservation credit applied: ${reservationCredit} ${currencyCode}.`,
+    tags: ['PHAM', edition.label, 'Final Acquisition', reservation.id]
+  };
+
+  const result = await shopifyGraphQL(env, mutation, { input });
+  const payload = result && result.data && result.data.draftOrderCreate;
+  const errors = payload && payload.userErrors || [];
+
+  if (errors.length) {
+    throw new Error('Draft order creation failed: ' + JSON.stringify(errors));
+  }
+  if (!payload || !payload.draftOrder) {
+    throw new Error('Draft order creation returned no draft order');
+  }
+
+  return payload.draftOrder;
+}
+
+async function sendFinalAcquisitionInvoice(env, { draftOrderId, email, edition, reservationId, deadline }) {
+  const mutation = `mutation SendFinalAcquisitionInvoice($id: ID!, $email: EmailInput) {
+    draftOrderInvoiceSend(id: $id, email: $email) {
+      draftOrder { id name invoiceUrl email status }
+      userErrors { field message }
+    }
+  }`;
+
+  const subject = `${edition.product_code} · Your acquisition window is open`;
+  const customMessage = [
+    `Your ${edition.label} allocation is ready to be completed.`,
+    '',
+    `Reservation: ${reservationId}`,
+    `Reservation credit: ${centsToMoney(edition.reservation_price_cents)} ${edition.currency_code || 'USD'}`,
+    `Remaining object balance: ${centsToMoney(edition.final_price_cents - edition.reservation_price_cents)} ${edition.currency_code || 'USD'}`,
+    `Payment deadline: ${deadline}`,
+    '',
+    'If payment is not completed within the active window, PHAM may release the allocation according to the published edition terms and applicable law.'
+  ].join('\n');
+
+  const emailInput = {
+    subject,
+    customMessage
+  };
+
+  if (email) emailInput.to = email;
+
+  const result = await shopifyGraphQL(env, mutation, {
+    id: draftOrderId,
+    email: emailInput
+  });
+
+  const payload = result && result.data && result.data.draftOrderInvoiceSend;
+  const errors = payload && payload.userErrors || [];
+
+  if (errors.length) {
+    throw new Error('Draft order invoice send failed: ' + JSON.stringify(errors));
+  }
+
+  return payload && payload.draftOrder;
+}
+
+function centsToMoney(cents) {
+  return (Number(cents || 0) / 100).toFixed(2);
 }
 
 async function expireReservationsAndPromote(env) {
