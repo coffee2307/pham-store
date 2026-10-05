@@ -1,15 +1,58 @@
+{%- capture pham_campaign_state_raw -%}{%- render 'pham-campaign-state' -%}{%- endcapture -%}
 {%- liquid
+  assign pham_campaign_state = pham_campaign_state_raw | strip
   assign edition_product = section.settings.product
   if edition_product == blank
     assign edition_product = collections.all.products.first
   endif
 
   assign edition_url = section.settings.product_link
-  if edition_url == blank and edition_product != blank
+  if settings.pham_campaign_enabled and settings.pham_campaign_edition_page_url != blank
+    assign edition_url = settings.pham_campaign_edition_page_url
+  elsif edition_url == blank and edition_product != blank
     assign edition_url = edition_product.url
   endif
   if edition_url == blank
     assign edition_url = routes.all_products_collection_url
+  endif
+
+  assign edition_heading = section.settings.heading
+  assign edition_object_name = section.settings.object_name
+  assign edition_object_count = section.settings.object_count
+  assign edition_origin = section.settings.release_year
+  assign edition_status = edition_status
+  assign protocol_step_1 = section.settings.step_1
+  assign protocol_step_2 = section.settings.step_2
+  assign protocol_step_3 = section.settings.step_3
+  assign protocol_step_4 = section.settings.step_4
+  assign protocol_step_5 = section.settings.step_5
+
+  if settings.pham_campaign_enabled
+    assign edition_heading = settings.pham_campaign_edition_label
+    assign edition_object_name = settings.pham_campaign_product_code
+    assign edition_object_count = settings.pham_campaign_edition_size | append: ' OBJECTS'
+    assign edition_origin = settings.pham_campaign_origin_label
+
+    case pham_campaign_state
+      when 'reservation_open'
+        assign edition_status = 'RESERVATION OPEN'
+      when 'reservation_full'
+        assign edition_status = 'RESERVED / STANDBY'
+      when 'final_payment'
+        assign edition_status = 'ACQUISITION OPEN'
+      when 'sold_out'
+        assign edition_status = 'CLOSED'
+      when 'archived'
+        assign edition_status = 'ARCHIVED'
+      else
+        assign edition_status = 'PRELAUNCH'
+    endcase
+
+    assign protocol_step_1 = 'Priority Reservation secures one allocation. The reservation amount is credited toward the final object price.'
+    assign protocol_step_2 = 'Object Identity can be claimed through the paid upgrade or one verified reservation referral while the shared privilege pool remains open.'
+    assign protocol_step_3 = 'When the acquisition window opens, reserved collectors complete the remaining balance within the published payment window.'
+    assign protocol_step_4 = 'Confirmed objects receive a numbered identity and provenance record covering origin, production and quality control.'
+    assign protocol_step_5 = 'Once the edition closes, its objects remain in the PHAM archive and the edition does not return to production.'
   endif
 -%}
 
@@ -21,7 +64,7 @@
         <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
 
         <div class="pham-edition-index__archive-head">
-          <h2 id="pham-edition-index-{{ section.id }}" class="pham-edition-index__title">{{ section.settings.heading }}</h2>
+          <h2 id="pham-edition-index-{{ section.id }}" class="pham-edition-index__title">{{ edition_heading }}</h2>
           <p class="pham-edition-index__intro">{{ section.settings.intro }}</p>
         </div>
 
@@ -30,16 +73,16 @@
 
           <div class="pham-edition-index__record-main">
             <strong class="pham-edition-index__record-object">
-              {%- if edition_product != blank -%}{{ edition_product.title }}{%- else -%}{{ section.settings.object_name }}{%- endif -%}
+              {{ edition_object_name }}
             </strong>
             <span class="pham-edition-index__record-meta">
-              <span>{{ section.settings.object_count }}</span>
-              <span>{{ section.settings.release_year }}</span>
+              <span>{{ edition_object_count }}</span>
+              <span>{{ edition_origin }}</span>
             </span>
           </div>
 
-          <span class="pham-edition-index__status pham-edition-index__status--{{ section.settings.status | handleize }}">
-            <i aria-hidden="true"></i>{{ section.settings.status }}
+          <span class="pham-edition-index__status pham-edition-index__status--{{ edition_status | handleize }}">
+            <i aria-hidden="true"></i>{{ edition_status }}
           </span>
 
           <span class="pham-edition-index__record-arrow" aria-hidden="true">↗</span>
@@ -55,23 +98,23 @@
         <ol class="pham-edition-index__steps" role="list">
           <li>
             <span>01</span>
-            <div><strong>ACCESS</strong><p>{{ section.settings.step_1 }}</p></div>
+            <div><strong>RESERVE</strong><p>{{ protocol_step_1 }}</p></div>
           </li>
           <li>
             <span>02</span>
-            <div><strong>ORDER</strong><p>{{ section.settings.step_2 }}</p></div>
+            <div><strong>IDENTITY</strong><p>{{ protocol_step_2 }}</p></div>
           </li>
           <li>
             <span>03</span>
-            <div><strong>PRODUCTION</strong><p>{{ section.settings.step_3 }}</p></div>
+            <div><strong>ACQUIRE</strong><p>{{ protocol_step_3 }}</p></div>
           </li>
           <li>
             <span>04</span>
-            <div><strong>DELIVERY</strong><p>{{ section.settings.step_4 }}</p></div>
+            <div><strong>PROVENANCE</strong><p>{{ protocol_step_4 }}</p></div>
           </li>
           <li>
             <span>05</span>
-            <div><strong>ARCHIVE</strong><p>{{ section.settings.step_5 }}</p></div>
+            <div><strong>ARCHIVE</strong><p>{{ protocol_step_5 }}</p></div>
           </li>
         </ol>
       </div>
@@ -93,8 +136,8 @@
 
     <div class="pham-edition-index__footerline" aria-label="PHAM archive note">
       <span>PHAM ATELIER</span>
-      <span>EDITION 01</span>
-      <span>VIETNAM / 2026</span>
+      <span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span>
+      <span>{{ settings.pham_campaign_origin_label | default: 'VIETNAM / 2026' }}</span>
     </div>
   </div>
 </section>
@@ -479,14 +522,17 @@
     { "type": "text", "id": "object_name", "label": "Fallback object name", "default": "PHAM-001" },
     { "type": "text", "id": "object_count", "label": "Object count", "default": "50 OBJECTS" },
     { "type": "text", "id": "release_year", "label": "Release year", "default": "2026" },
-    { "type": "select", "id": "status", "label": "Edition status", "default": "WAITLIST OPEN", "options": [
-      { "value": "WAITLIST OPEN", "label": "Waitlist open" },
+    { "type": "select", "id": "status", "label": "Edition status", "default": "PRELAUNCH", "options": [
+      { "value": "PRELAUNCH", "label": "Prelaunch" },
+      { "value": "RESERVATION OPEN", "label": "Reservation open" },
+      { "value": "RESERVED / STANDBY", "label": "Reserved / standby" },
+      { "value": "ACQUISITION OPEN", "label": "Acquisition open" },
       { "value": "OPEN", "label": "Open" },
       { "value": "CLOSED", "label": "Closed" },
       { "value": "ARCHIVED", "label": "Archived" }
     ]},
     { "type": "text", "id": "protocol_heading", "label": "Protocol heading", "default": "FROM ACCESS TO ARCHIVE" },
-    { "type": "textarea", "id": "step_1", "label": "01 · Access", "default": "Join the waitlist. Release access is communicated when the edition is ready." },
+    { "type": "textarea", "id": "step_1", "label": "01 · Access", "default": "Priority Reservation opens when the edition is ready. The reservation amount is credited toward the final object price." },
     { "type": "textarea", "id": "step_2", "label": "02 · Order", "default": "When access opens, the object can be acquired within the active edition window." },
     { "type": "textarea", "id": "step_3", "label": "03 · Production", "default": "The edition moves through controlled production and final quality inspection." },
     { "type": "textarea", "id": "step_4", "label": "04 · Delivery", "default": "Each released piece travels with its own identity card and edition identifier." },
