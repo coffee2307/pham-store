@@ -459,7 +459,7 @@
       const pointerSpacing = reducedMotion
         ? 1
         : 1 + currentPointerPresence * (0.012 + pointerMagnitude * 0.055);
-      const orbitRadius = radius * scrollSpacing * pointerSpacing;
+      const orbitRadius = radius * scrollSpacing * pointerSpacing * introRadiusBoost;
       const step = Math.PI * 2 / cards.length;
       const responsiveRotation = rotation + currentPointerX * 0.12 * currentPointerPresence;
       // Initial composition: let the card ring sit lower and lean slightly
@@ -468,8 +468,9 @@
       // visitor begins scrolling through the vault.
       const introRelease = clamp(smoothProgress / 0.24, 0, 1);
       const introEase = introRelease * introRelease * (3 - 2 * introRelease);
-      const introRingDrop = (1 - introEase) * 46;
-      const introLean = -4.5 * (1 - introEase);
+      const introRingDrop = (1 - introEase) * 74;
+      const introLean = -2.1 * (1 - introEase);
+      const introRadiusBoost = 1 + (1 - introEase) * 0.14;
       const orbitLean =
         6 * introEase +
         introLean +
@@ -564,7 +565,7 @@
         card.style.transform =
           'translate3d(-50%, -50%, 0) ' +
           'rotateY(' + state.visualAngle.toFixed(5) + 'rad) ' +
-          'translateZ(' + orbitRadius.toFixed(2) + 'px) rotateZ(' + cardLean.toFixed(2) + 'deg) ' +
+          'translateZ(' + (orbitRadius + (1 - introEase) * 42).toFixed(2) + 'px) rotateZ(' + cardLean.toFixed(2) + 'deg) ' +
           'translate3d(0,' + (introRingDrop - lift).toFixed(2) + 'px,0) scale(' + cardScale.toFixed(3) + ')';
       });
 
