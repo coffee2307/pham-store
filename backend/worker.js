@@ -925,8 +925,9 @@ async function handleOrdersPaid(request, env) {
   const order = JSON.parse(new TextDecoder().decode(raw));
   const reservationLine = findLineBySku(order, 'PHAM-001-RES-E01');
   const finalLine = findLineBySku(order, 'PHAM-001-E01');
+  const finalReservationId = orderAttribute(order, 'PHAM Reservation ID');
 
-  if (!reservationLine && finalLine) {
+  if (!reservationLine && (finalReservationId || finalLine)) {
     const finalResult = await handleFinalAcquisitionPaid(env, order);
     if (webhookId) await recordWebhook(env, webhookId, topic);
     return json(finalResult);
@@ -1077,14 +1078,53 @@ async function handleFinalAcquisitionPaid(env, order) {
 
   const finalOrderId = toGid('Order', order.id);
 
+  if (reservation.status === 'final_paid') {
+    if (!reservation.final_shopify_order_id || reservation.final_shopify_order_id === finalOrderId) {
+      return {
+        ok: true,
+        duplicate: true,
+        type: 'final_acquisition_paid',
+        reservationId,
+        finalOrderId: reservation.final_shopify_order_id || finalOrderId
+      };
+    }
+    return {
+      ok: false,
+      reason: 'final_payment_already_recorded',
+      reservationId,
+      finalOrderId: reservation.final_shopify_order_id
+    };
+  }
+
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM editions WHERE id = ?'
+  ).bind(reservation.edition_id).first();
+
+  if (!edition) {
+    return { ok: false, reason: 'edition_not_found', reservationId };
+  }
+
+  let validation;
+  try {
+    validation = validateFinalAcquisitionOrder({ order, reservation, edition });
+  } catch (error) {
+    return {
+      ok: false,
+      reason: error && error.message ? error.message : 'final_payment_validation_failed',
+      reservationId,
+      finalOrderId
+    };
+  }
+
   await env.PHAM_CAMPAIGN_DB.prepare(
     `UPDATE reservations
      SET status = 'final_paid',
          final_payment_status = 'paid',
+         final_shopify_order_id = ?,
          payment_deadline = NULL,
          updated_at = CURRENT_TIMESTAMP
      WHERE id = ?`
-  ).bind(reservationId).run();
+  ).bind(finalOrderId, reservationId).run();
 
   const fields = [
     metafield(reservation.shopify_order_id, 'final_payment_status', 'single_line_text_field', 'paid')
@@ -1102,7 +1142,8 @@ async function handleFinalAcquisitionPaid(env, order) {
     ok: true,
     type: 'final_acquisition_paid',
     reservationId,
-    finalOrderId
+    finalOrderId,
+    variantId: validation.variantId
   };
 }
 
@@ -1864,6 +1905,14 @@ export function buildFinalAcquisitionDraftInput({ edition, reservation, deadline
     note: `${edition.label} final acquisition. Reservation credit applied: ${reservationCredit} ${currencyCode}.`,
     tags: ['PHAM', edition.label, 'Final Acquisition', reservation.id]
   };
+
+  if (reservation.shopify_customer_id) {
+    input.purchasingEntity = {
+      customerId: reservation.shopify_customer_id
+    };
+  }
+
+  return input;
 }
 
 async function createFinalAcquisitionDraft(env, { edition, reservation, deadline, variantId }) {
@@ -2228,6 +2277,71 @@ async function deleteDraftOrder(env, draftOrderId) {
   } catch (error) {
     return { ok: false, error: error.message || String(error) };
   }
+}
+
+export function validateFinalAcquisitionOrder({ order, reservation, edition }) {
+  if (!order || !reservation || !edition) throw new Error('final_payment_validation_missing_input');
+  if (reservation.status !== 'final_payment_open') throw new Error('final_payment_not_open');
+
+  const paidAtValue = order.processed_at || order.created_at || '';
+  const paidAt = new Date(paidAtValue);
+  if (!paidAtValue || Number.isNaN(paidAt.getTime())) throw new Error('final_payment_timestamp_missing');
+
+  if (
+    reservation.payment_deadline &&
+    paidAt.getTime() > new Date(reservation.payment_deadline).getTime()
+  ) {
+    throw new Error('payment_window_expired');
+  }
+
+  const currencyCode = String(edition.currency_code || 'USD');
+  if (String(order.currency || '') !== currencyCode) {
+    throw new Error('final_payment_currency_mismatch');
+  }
+
+  const expectedVariantId = reservation.final_variant_id || edition.final_product_variant_id;
+  if (!expectedVariantId) throw new Error('missing_final_variant_id');
+
+  const activeLines = (order.line_items || []).filter(function(line) {
+    return Number(line && line.quantity || 0) > 0;
+  });
+  if (activeLines.length !== 1) throw new Error('unexpected_final_line_item_count');
+
+  const line = activeLines[0];
+  if (Number(line.quantity) !== 1) throw new Error('invalid_final_quantity');
+
+  const actualVariantId = line.variant_id ? toGid('ProductVariant', line.variant_id) : '';
+  if (!actualVariantId || actualVariantId !== expectedVariantId) {
+    throw new Error('final_variant_mismatch');
+  }
+
+  if (moneyToCents(line.price) !== Number(edition.final_price_cents)) {
+    throw new Error('final_product_price_mismatch');
+  }
+
+  const totalDiscountCents = moneyToCents(
+    order.current_total_discounts !== undefined
+      ? order.current_total_discounts
+      : order.total_discounts
+  );
+  if (totalDiscountCents !== Number(edition.reservation_price_cents)) {
+    throw new Error('reservation_credit_mismatch');
+  }
+
+  const expectedCustomerId = reservation.shopify_customer_id || '';
+  const actualCustomerId = order.customer && order.customer.id
+    ? toGid('Customer', order.customer.id)
+    : '';
+  if (expectedCustomerId && actualCustomerId !== expectedCustomerId) {
+    throw new Error('final_payment_customer_mismatch');
+  }
+
+  return {
+    ok: true,
+    variantId: actualVariantId,
+    paidAt: paidAt.toISOString(),
+    discountCents: totalDiscountCents
+  };
 }
 
 function findLineBySku(order, sku) {
