@@ -8,7 +8,11 @@
   {%- assign successful_referrals = customer.metafields.pham.successful_referrals.value | default: 0 -%}
 {%- endif -%}
 
-<section class="pham-campaign-shell" data-pham-referral-hub>
+<section class="pham-campaign-shell"
+  data-pham-referral-hub
+  data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
+  data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}"
+  data-referral-target="{{ shop.url }}{{ referral_target }}?ref=">
   <div class="pham-campaign-inner">
     <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · REFERRAL ACCESS</p>
     <h1 class="pham-campaign-title">One verified<br>introduction.</h1>
@@ -19,7 +23,7 @@
         <h2>Your referral</h2>
         {%- if customer -%}
           <div class="pham-referral-code"><span data-pham-referral-value>{% if referral_code != blank %}{{ shop.url }}{{ referral_target }}?ref={{ referral_code | url_encode }}{% else %}PENDING{% endif %}</span><button type="button" class="pham-campaign-btn pham-campaign-btn--ghost" data-pham-copy-referral>COPY</button></div>
-          <div class="pham-campaign-stat"><strong>{{ successful_referrals }} / 1</strong><span>Verified reservations</span></div>
+          <div class="pham-campaign-stat"><strong data-pham-referral-count>{{ successful_referrals }} / 1</strong><span>Verified reservations</span></div>
         {%- else -%}
           <p>Referral access becomes available after reservation. Sign in when your collector account is activated.</p>
           <div class="pham-campaign-actions"><a class="pham-campaign-btn pham-campaign-btn--ghost" href="{{ routes.account_login_url }}">Sign in</a></div>
