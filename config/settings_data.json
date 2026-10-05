@@ -355,7 +355,32 @@
       }
     },
     "logo_height": 36,
-    "logo_height_mobile": 28
+    "logo_height_mobile": 28,
+    "pham_campaign_enabled": true,
+    "pham_campaign_state": "prelaunch",
+    "pham_campaign_edition_label": "EDITION 01",
+    "pham_campaign_product_code": "PHAM-001",
+    "pham_campaign_origin_label": "VIETNAM / 2026",
+    "pham_campaign_edition_size": 50,
+    "pham_campaign_reservations_claimed": 0,
+    "pham_campaign_identity_limit": 15,
+    "pham_campaign_identity_claimed": 0,
+    "pham_campaign_standby_count": 0,
+    "pham_campaign_reservation_price": "$24.99",
+    "pham_campaign_identity_price": "$5.00",
+    "pham_campaign_final_price": "$199.00",
+    "pham_campaign_balance_due": "$174.01",
+    "pham_campaign_payment_window_hours": 72,
+    "pham_campaign_standby_window_hours": 48,
+    "pham_campaign_include_digital_lookbook": true,
+    "pham_campaign_digital_lookbook_label": "Edition-exclusive digital lookbook",
+    "pham_campaign_edition_page_url": "/pages/edition-01",
+    "pham_campaign_reservation_page_url": "/pages/reserve-edition-01",
+    "pham_campaign_identity_page_url": "/pages/object-identity",
+    "pham_campaign_referral_page_url": "/pages/referral",
+    "pham_campaign_collector_page_url": "/pages/reservation-status",
+    "pham_campaign_standby_page_url": "/pages/standby",
+    "pham_campaign_terms_page_url": "/pages/edition-01-terms"
   },
   "presets": {
     "Horizon": {
