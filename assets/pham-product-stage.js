@@ -79,13 +79,18 @@
     let defaultModelTimer = 0;
     let defaultModelIdleHandle = 0;
     let defaultModelLoadHandler = null;
+    let displayedProgress = 0;
 
     function setModeLabel(label) {
       if (mode) mode.textContent = label || '';
     }
 
-    function setProgress(value) {
-      const normalized = Math.max(0, Math.min(1, Number(value) || 0));
+    function setProgress(value, reset) {
+      let normalized = Math.max(0, Math.min(1, Number(value) || 0));
+      if (reset) displayedProgress = 0;
+      normalized = Math.max(displayedProgress, normalized);
+      displayedProgress = normalized;
+
       const percent = Math.round(normalized * 100);
       if (progressBar) progressBar.style.transform = 'scaleX(' + normalized.toFixed(4) + ')';
       if (progressValue) progressValue.textContent = String(percent).padStart(2, '0') + '%';
@@ -142,7 +147,11 @@
     function showImage() {
       hideRotateHint();
       if (image) image.hidden = false;
-      if (model) model.hidden = true;
+      if (model) {
+        model.hidden = true;
+        model.classList.remove('is-preloading');
+        model.removeAttribute('aria-hidden');
+      }
       syncSwitcher('image');
       setLoaderVisible(false);
       setErrorVisible(false);
@@ -154,6 +163,8 @@
       if (!ready || !model) return;
       if (image) image.hidden = true;
       model.hidden = false;
+      model.classList.remove('is-preloading');
+      model.removeAttribute('aria-hidden');
       syncSwitcher('model');
       setLoaderVisible(false);
       setErrorVisible(false);
@@ -167,7 +178,14 @@
     function showModelLoading() {
       hideRotateHint();
       if (image) image.hidden = false;
-      if (model) model.hidden = true;
+      if (model) {
+        // Keep the model connected and laid out while loading. A hidden
+        // lazy-loaded <model-viewer> can otherwise wait forever for viewport
+        // intersection and leave the loader stuck at 00%.
+        model.hidden = false;
+        model.classList.add('is-preloading');
+        model.setAttribute('aria-hidden', 'true');
+      }
       syncSwitcher('model');
       setErrorVisible(false);
       setLoaderVisible(true);
@@ -179,18 +197,18 @@
     function showModelError() {
       hideRotateHint();
       if (image) image.hidden = false;
-      if (model) model.hidden = true;
+      if (model) {
+        model.hidden = true;
+        model.classList.remove('is-preloading');
+        model.removeAttribute('aria-hidden');
+      }
       setLoaderVisible(false);
       setErrorVisible(true);
       setModeLabel(stage.dataset.errorModeLabel || stage.dataset.imageModeLabel);
       stage.classList.add('is-model-error');
       stage.classList.remove('is-model-loading', 'is-model-ready');
-      switches.forEach(function (button) {
-        if (button.dataset.phamStageSwitch === 'model') {
-          button.disabled = true;
-          button.setAttribute('aria-disabled', 'true');
-        }
-      });
+      // Keep the 3D control available so a transient network failure can be
+      // retried without reloading the entire product page.
     }
 
     function clearFailTimer() {
@@ -199,11 +217,48 @@
       failTimer = 0;
     }
 
+    function armFailTimer(delay) {
+      clearFailTimer();
+      failTimer = window.setTimeout(function () {
+        if (ready || failed) return;
+        failed = true;
+        ready = false;
+        showModelError();
+      }, delay || 22000);
+    }
+
+    function resetModelAttempt() {
+      clearFailTimer();
+      failed = false;
+      ready = false;
+      requested = false;
+      displayedProgress = 0;
+      setProgress(0, true);
+
+      if (viewerEl && viewerEl.parentNode) viewerEl.parentNode.removeChild(viewerEl);
+      viewerEl = null;
+
+      if (model) {
+        model.hidden = true;
+        model.classList.remove('is-preloading');
+        model.removeAttribute('aria-hidden');
+      }
+
+      switches.forEach(function (button) {
+        if (button.dataset.phamStageSwitch === 'model') {
+          button.disabled = false;
+          button.removeAttribute('aria-disabled');
+        }
+      });
+    }
+
     function configureModel(viewer) {
       if (!viewer) return;
       viewerEl = viewer;
       viewer.setAttribute('reveal', 'auto');
-      viewer.setAttribute('loading', 'lazy');
+      // Once 3D has been explicitly requested, load immediately. The model
+      // container is intentionally transparent during preload, not hidden.
+      viewer.setAttribute('loading', 'eager');
       viewer.setAttribute('interaction-prompt', 'none');
       viewer.setAttribute('disable-pan', '');
       viewer.setAttribute('disable-zoom', '');
@@ -216,6 +271,9 @@
         if (event.detail && event.detail.reason && event.detail.reason !== 'model-load') return;
         if (event.detail && typeof event.detail.totalProgress === 'number') {
           setProgress(event.detail.totalProgress);
+          // Treat progress as proof that the transfer is alive. Only fail if
+          // it stalls completely for a sustained period.
+          armFailTimer(22000);
         }
         if (desiredView === 'model' && !ready && !failed) showModelLoading();
       });
@@ -240,19 +298,28 @@
     function requestModel() {
       if (requested || failed || !model || !template) return;
       requested = true;
-      setProgress(0);
 
-      failTimer = window.setTimeout(function () {
-        if (ready || failed) return;
-        failed = true;
-        showModelError();
-      }, 30000);
+      // Start above zero so the interface communicates that the request has
+      // actually been dispatched even before model-viewer emits byte progress.
+      setProgress(0.02, true);
 
-      ensureModelViewerLibrary().then(function () {
+      let libraryTimeout = 0;
+      const libraryDeadline = new Promise(function (_, reject) {
+        libraryTimeout = window.setTimeout(function () {
+          reject(new Error('model-viewer library timeout'));
+        }, 12000);
+      });
+
+      Promise.race([ensureModelViewerLibrary(), libraryDeadline]).then(function () {
+        window.clearTimeout(libraryTimeout);
         if (failed || model.querySelector('model-viewer')) return;
+
+        setProgress(0.06);
         model.appendChild(template.content.cloneNode(true));
         configureModel(model.querySelector('model-viewer'));
+        armFailTimer(22000);
       }).catch(function () {
+        window.clearTimeout(libraryTimeout);
         clearFailTimer();
         failed = true;
         ready = false;
@@ -313,8 +380,7 @@
         return;
       }
       if (failed) {
-        showModelError();
-        return;
+        resetModelAttempt();
       }
       if (ready) {
         showModelReady();
