@@ -1,0 +1,53 @@
+{{ 'pham-campaign.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'pham-campaign.js' | asset_url }}" defer></script>
+{%- assign edition_size = settings.pham_campaign_edition_size | default: 50 -%}
+
+<section class="pham-campaign-shell" data-pham-identity-configurator data-edition-size="{{ edition_size }}">
+  <div class="pham-campaign-inner">
+    <span class="pham-campaign-draft">CONFIGURATOR SKELETON · SAVE API PENDING</span>
+    <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · OBJECT IDENTITY</p>
+    <h1 class="pham-campaign-title">Make it<br>yours.</h1>
+    <p class="pham-campaign-lede">The Identity privilege is shared across paid upgrades and referral unlocks. Only {{ settings.pham_campaign_identity_limit | default: 15 }} privileges exist for the active edition.</p>
+
+    <div class="pham-campaign-grid">
+      <div class="pham-campaign-card pham-campaign-card--full">
+        <div class="pham-config-grid">
+          <div>
+            <div class="pham-config-field">
+              <label for="PhamIdentityName-{{ section.id }}">Identity / alias</label>
+              <input id="PhamIdentityName-{{ section.id }}" data-pham-id-name maxlength="24" placeholder="COLLECTOR ID">
+            </div>
+            <div class="pham-config-field">
+              <label for="PhamIdentityInscription-{{ section.id }}">Inscription · <span data-pham-inscription-count>0/40</span></label>
+              <textarea id="PhamIdentityInscription-{{ section.id }}" data-pham-id-inscription maxlength="40" rows="3" placeholder="YOUR INSCRIPTION"></textarea>
+            </div>
+            <div class="pham-config-field">
+              <label>Preferred object number</label>
+              <div class="pham-number-grid" aria-label="Preferred object number">
+                {%- for i in (1..edition_size) -%}
+                  {%- capture display_number -%}{%- if i < 10 -%}0{%- endif -%}{{ i }}{%- endcapture -%}
+                  <button type="button" data-pham-object-number="{{ i }}" aria-pressed="false">{{ display_number }}</button>
+                {%- endfor -%}
+              </div>
+            </div>
+            <div class="pham-campaign-alert">Live number locking, unavailable-number states and final save are intentionally deferred to the backend phase. Final allocation must lock numbers server-side so two collectors cannot claim the same object.</div>
+          </div>
+
+          <div class="pham-id-preview" aria-label="Identity card preview">
+            <div class="pham-id-preview__brand">PHAM</div>
+            <div class="pham-id-preview__main">
+              <div class="pham-id-preview__object">{{ settings.pham_campaign_product_code | default: 'PHAM-001' }} · <span data-pham-preview-number>??/{{ edition_size }}</span></div>
+              <div class="pham-id-preview__identity"><span data-pham-preview-name>COLLECTOR ID</span>
+<span data-pham-preview-inscription>YOUR INSCRIPTION</span></div>
+            </div>
+            <div class="pham-id-preview__foot"><span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span><span>QR · PROVENANCE</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{"name":"PHAM Identity Card","tag":"section","settings":[],"presets":[{"name":"PHAM Identity Card"}]}
+{% endschema %}
