@@ -1,8 +1,0 @@
-ALTER TABLE editions ADD COLUMN design_origin TEXT NOT NULL DEFAULT 'DESIGNED IN VIETNAM / 2026';
-ALTER TABLE editions ADD COLUMN production_origin TEXT NOT NULL DEFAULT 'PRODUCED IN DONGGUAN, CHINA';
-
-ALTER TABLE objects ADD COLUMN qr_token TEXT;
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_objects_qr_token
-  ON objects(qr_token)
-  WHERE qr_token IS NOT NULL;
