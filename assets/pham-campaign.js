@@ -185,11 +185,55 @@ function mountReservation(root){
   sync();
 }
 
+function mountCollector(root){
+  if(root.dataset.phamCollectorMounted === 'true') return;
+  root.dataset.phamCollectorMounted = 'true';
+
+  var output = root.querySelector('[data-pham-payment-countdown]');
+  var rawDeadline = root.dataset.paymentDeadline || '';
+  if(!output || !rawDeadline) return;
+
+  var deadline = new Date(rawDeadline);
+  if(isNaN(deadline.getTime())){
+    output.textContent = 'SEE DEADLINE ABOVE';
+    return;
+  }
+
+  function renderCountdown(){
+    var diff = deadline.getTime() - Date.now();
+    if(diff <= 0){
+      output.textContent = 'WINDOW EXPIRED';
+      return false;
+    }
+
+    var totalSeconds = Math.floor(diff / 1000);
+    var days = Math.floor(totalSeconds / 86400);
+    var hours = Math.floor((totalSeconds % 86400) / 3600);
+    var minutes = Math.floor((totalSeconds % 3600) / 60);
+    var seconds = totalSeconds % 60;
+
+    var parts = [];
+    if(days > 0) parts.push(days + 'D');
+    parts.push(String(hours).padStart(2,'0') + 'H');
+    parts.push(String(minutes).padStart(2,'0') + 'M');
+    parts.push(String(seconds).padStart(2,'0') + 'S');
+    output.textContent = parts.join(' ');
+    return true;
+  }
+
+  if(renderCountdown()){
+    var timer = window.setInterval(function(){
+      if(!renderCountdown()) window.clearInterval(timer);
+    }, 1000);
+  }
+}
+
 function mount(){
   captureReferral();
   qsa('[data-pham-identity-configurator]').forEach(mountIdentity);
   qsa('[data-pham-referral-hub]').forEach(mountReferral);
   qsa('[data-pham-reservation-gateway]').forEach(mountReservation);
+  qsa('[data-pham-collector-status]').forEach(mountCollector);
 }
 
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount);
