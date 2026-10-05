@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHmac } from 'node:crypto';
 
 import {
   canonicalizeAppProxyParams,
@@ -15,9 +16,13 @@ test('canonicalizes Shopify App Proxy params with repeated values', () => {
 });
 
 test('verifies Shopify App Proxy signature and customer identity payload', () => {
-  const url = new URL('https://example.com/proxy?extra=1&extra=2&shop=%7Bshop%7D.myshopify.com&logged_in_customer_id=1&path_prefix=%2Fapps%2Fawesome_reviews&timestamp=1317327555&signature=4c68c8624d737112c91818c11017d24d334b524cb5c2b8ba08daa056f7395ddb');
+  const secret = 'hush';
+  const url = new URL('https://example.com/proxy?extra=1&extra=2&shop=test.myshopify.com&logged_in_customer_id=1&path_prefix=%2Fapps%2Fawesome_reviews&timestamp=1317327555');
+  const canonical = canonicalizeAppProxyParams(url.searchParams);
+  const signature = createHmac('sha256', secret).update(canonical).digest('hex');
+  url.searchParams.set('signature', signature);
 
-  const result = verifyAppProxyRequest(url, 'hush', {
+  const result = verifyAppProxyRequest(url, secret, {
     nowSeconds: 1317327555,
     maxAgeSeconds: 300,
   });
@@ -35,4 +40,18 @@ test('rejects stale or tampered App Proxy requests', () => {
   });
 
   assert.equal(result.ok, false);
+});
+
+test('rejects repeated App Proxy security parameters', () => {
+  const secret = 'hush';
+  const url = new URL('https://example.com/proxy?shop=test.myshopify.com&shop=evil.myshopify.com&logged_in_customer_id=1&path_prefix=%2Fapps%2Fpham&timestamp=1000');
+  const canonical = canonicalizeAppProxyParams(url.searchParams);
+  url.searchParams.set('signature', createHmac('sha256', secret).update(canonical).digest('hex'));
+
+  const result = verifyAppProxyRequest(url, secret, {
+    nowSeconds: 1000,
+    maxAgeSeconds: 300,
+  });
+
+  assert.deepEqual(result, { ok: false, reason: 'duplicate_security_parameter' });
 });
