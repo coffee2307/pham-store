@@ -361,7 +361,32 @@
 
 @media (max-width: 899px) {
   .pham-vault__orbit-core {
-    display: none !important;
+    display: grid;
+    top: 9%;
+    width: min(78vw, 420px);
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .pham-vault__orbit-core::before {
+    width: min(62vw, 330px);
+    filter: blur(15px);
+  }
+
+  .pham-vault__core-title {
+    font-size: clamp(3rem, 15vw, 5.2rem);
+    letter-spacing: .035em;
+    text-indent: .035em;
+  }
+
+  .pham-vault__core-eyebrow,
+  .pham-vault__core-meta {
+    font-size: clamp(5px, 1.55vw, 7px);
+    letter-spacing: .18em;
+  }
+
+  .pham-vault__core-meta {
+    gap: 10px;
   }
 }
 
@@ -496,7 +521,12 @@
 @media (max-width: 599px) {
   .pham-vault__chrome span:last-child { display: none; }
   .pham-vault__chrome { grid-template-columns: 1fr; }
-  .pham-vault__orbit-stage { top: 27%; width: 100vw; height: 39vh; --orbit-card-width: clamp(94px, 28vw, 124px); }
+  .pham-vault__orbit-stage {
+    top: 22%;
+    width: 100vw;
+    height: 34vh;
+    --orbit-card-width: clamp(88px, 25vw, 112px);
+  }
   .pham-vault__kicker { margin-bottom: 12px; }
   .pham-vault__cue { margin-top: 18px; }
   .pham-vault__chapter { bottom: max(28px, env(safe-area-inset-bottom)); }
