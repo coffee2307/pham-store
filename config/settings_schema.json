@@ -2666,6 +2666,16 @@
         ]
       },
       {
+        "type": "checkbox",
+        "id": "pham_campaign_commerce_ready",
+        "label": "COMMERCE READY — allow reservation checkout",
+        "default": false
+      },
+      {
+        "type": "paragraph",
+        "content": "Safety gate. Keep OFF until products are active, lookbook delivery works, legal text is final, inventory is verified, and checkout has been tested end-to-end."
+      },
+      {
         "type": "text",
         "id": "pham_campaign_edition_label",
         "label": "Edition label",
