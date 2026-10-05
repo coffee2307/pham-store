@@ -40,9 +40,14 @@ create table if not exists reservations (
   balance_due_cents integer check (balance_due_cents is null or balance_due_cents >= 0),
   referral_code_used text,
   collector_referral_code text not null,
+  digital_lookbook_status text not null default 'pending' check (
+    digital_lookbook_status in ('pending','sent','delivered','failed')
+  ),
   paid_at timestamptz not null,
   final_payment_opened_at timestamptz,
   payment_deadline timestamptz,
+  final_payment_shopify_draft_order_id text,
+  final_payment_url text,
   final_paid_at timestamptz,
   expired_at timestamptz,
   created_at timestamptz not null default now(),
