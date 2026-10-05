@@ -94,7 +94,6 @@ CREATE TABLE IF NOT EXISTS standby (
   converted_reservation_id TEXT UNIQUE,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (edition_id) REFERENCES editions(id),
-  UNIQUE (edition_id, email),
   UNIQUE (edition_id, position)
 );
 
@@ -142,6 +141,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_reservations_active_email
 CREATE UNIQUE INDEX IF NOT EXISTS uq_standby_active_customer
   ON standby(edition_id, customer_id)
   WHERE customer_id IS NOT NULL
+    AND status IN ('waiting','promoting','promoted');
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_standby_active_email
+  ON standby(edition_id, email)
+  WHERE email IS NOT NULL
+    AND email <> ''
     AND status IN ('waiting','promoting','promoted');
 
 CREATE INDEX IF NOT EXISTS idx_standby_queue
