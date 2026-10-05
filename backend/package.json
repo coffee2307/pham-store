@@ -10,7 +10,8 @@
     "db:migrate:local": "wrangler d1 migrations apply PHAM_CAMPAIGN_DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply PHAM_CAMPAIGN_DB --remote",
     "webhooks:register": "node register-shopify-webhooks.mjs",
-    "test": "node --test worker.test.mjs"
+    "test": "node --test worker.test.mjs",
+    "admin": "node admin.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
