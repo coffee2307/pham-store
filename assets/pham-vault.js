@@ -17,6 +17,7 @@
     const sticky = root.querySelector('.pham-vault__sticky');
     const orbit = root.querySelector('[data-pham-vault-orbit]');
     const orbitPlane = root.querySelector('[data-pham-vault-orbit-plane]');
+    const orbitCore = root.querySelector('[data-pham-vault-core]');
     const orbitCards = root.querySelector('.pham-vault__orbit-cards');
     const cards = Array.from(root.querySelectorAll('[data-pham-vault-card]'));
     const chapters = Array.from(root.querySelectorAll('[data-pham-vault-chapter]'));
@@ -429,8 +430,20 @@
         currentPointerX * 2.6 * currentPointerPresence;
       const pointerShiftX = currentPointerX * 22 * currentPointerPresence;
       const pointerShiftY = currentPointerY * 14 * currentPointerPresence;
+      const coreShiftX = currentPointerX * -14 * currentPointerPresence;
+      const coreShiftY = currentPointerY * -9 * currentPointerPresence;
+      const coreTiltX = currentPointerY * -2.4 * currentPointerPresence;
+      const coreTiltY = currentPointerX * 3.8 * currentPointerPresence;
+      const coreScale = 1 + pointerEnergy * 0.022;
 
       root.style.setProperty('--vault-pointer-energy', pointerEnergy.toFixed(3));
+
+      if (orbitCore && !cardDialogOpen) {
+        orbitCore.style.transform =
+          'translate3d(calc(-50% + ' + coreShiftX.toFixed(2) + 'px), calc(-50% + ' + coreShiftY.toFixed(2) + 'px), -70px) ' +
+          'rotateX(' + coreTiltX.toFixed(2) + 'deg) rotateY(' + coreTiltY.toFixed(2) + 'deg) ' +
+          'scale(' + coreScale.toFixed(4) + ')';
+      }
 
       if (!cardDialogOpen) {
         orbitPlane.style.transform =
@@ -478,8 +491,6 @@
         const cardScale = baseScale * focusScale;
 
         card.classList.toggle('is-front', isFront);
-        card.style.setProperty('--pham-card-focus', focus.toFixed(3));
-        card.style.setProperty('--pham-card-depth', state.depth.toFixed(3));
         card.style.zIndex = String(Math.round(state.depth * 100) + (isFront ? 2 : 0));
         card.style.opacity = String(Math.min(1, 0.34 + state.depth * 0.66 + focus * 0.04));
         card.style.filter = 'brightness(' + (0.48 + state.depth * 0.58 + focus * 0.05).toFixed(3) + ')';
