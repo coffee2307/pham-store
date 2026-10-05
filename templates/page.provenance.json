@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-provenance-record",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
