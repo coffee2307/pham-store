@@ -60,6 +60,11 @@ export default {
         return getReadiness(env, url.searchParams.get('edition') || 'edition-01');
       }
 
+      if (request.method === 'GET' && url.pathname === '/internal/reviews') {
+        requireInternalKey(request, env);
+        return getWebhookReviews(env, url);
+      }
+
       if (request.method === 'POST' && url.pathname === '/internal/reservation/variant') {
         requireInternalKey(request, env);
         return assignReservationVariant(request, env);
@@ -449,6 +454,39 @@ async function setLookbookStatus(request, env) {
     ok: true,
     reservationId,
     status
+  });
+}
+
+async function getWebhookReviews(env, url) {
+  const requestedLimit = Number(url.searchParams.get('limit') || 50);
+  const limit = Number.isInteger(requestedLimit)
+    ? Math.max(1, Math.min(100, requestedLimit))
+    : 50;
+
+  const rows = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT id, topic, status, detail, processed_at
+     FROM webhook_events
+     WHERE status = 'review_required'
+     ORDER BY processed_at DESC
+     LIMIT ?`
+  ).bind(limit).all();
+
+  return json({
+    ok: true,
+    count: (rows.results || []).length,
+    reviews: (rows.results || []).map(function(row) {
+      let detail = row.detail || null;
+      if (detail) {
+        try { detail = JSON.parse(detail); } catch (_error) {}
+      }
+      return {
+        webhookId: row.id,
+        topic: row.topic,
+        status: row.status,
+        detail,
+        processedAt: row.processed_at
+      };
+    })
   });
 }
 
@@ -978,9 +1016,19 @@ async function joinStandbyRecord(env, input) {
     return { ok: false, error: 'standby_not_open', status: 409 };
   }
 
+  const customerId = input.customerId || null;
   const existing = await env.PHAM_CAMPAIGN_DB.prepare(
-    'SELECT id, position, status FROM standby WHERE edition_id = ? AND email = ?'
-  ).bind(editionId, email).first();
+    `SELECT id, position, status
+     FROM standby
+     WHERE edition_id = ?
+       AND status IN ('waiting','promoting','promoted')
+       AND (
+         email = ?
+         OR (? IS NOT NULL AND customer_id = ?)
+       )
+     ORDER BY position ASC
+     LIMIT 1`
+  ).bind(editionId, email, customerId, customerId).first();
 
   if (existing) {
     return {
@@ -993,24 +1041,53 @@ async function joinStandbyRecord(env, input) {
   }
 
   const id = crypto.randomUUID();
-  const result = await env.PHAM_CAMPAIGN_DB.prepare(
-    `INSERT INTO standby (
-       id, edition_id, email, customer_id, name, country, size_preference,
-       position, status
-     )
-     SELECT ?, ?, ?, ?, ?, ?, ?, COALESCE(MAX(position), 0) + 1, 'waiting'
-     FROM standby
-     WHERE edition_id = ?`
-  ).bind(
-    id,
-    editionId,
-    email,
-    input.customerId || null,
-    name || null,
-    country || null,
-    size,
-    editionId
-  ).run();
+  let result;
+  try {
+    result = await env.PHAM_CAMPAIGN_DB.prepare(
+      `INSERT INTO standby (
+         id, edition_id, email, customer_id, name, country, size_preference,
+         position, status
+       )
+       SELECT ?, ?, ?, ?, ?, ?, ?, COALESCE(MAX(position), 0) + 1, 'waiting'
+       FROM standby
+       WHERE edition_id = ?`
+    ).bind(
+      id,
+      editionId,
+      email,
+      customerId,
+      name || null,
+      country || null,
+      size,
+      editionId
+    ).run();
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      const raced = await env.PHAM_CAMPAIGN_DB.prepare(
+        `SELECT id, position, status
+         FROM standby
+         WHERE edition_id = ?
+           AND status IN ('waiting','promoting','promoted')
+           AND (
+             email = ?
+             OR (? IS NOT NULL AND customer_id = ?)
+           )
+         ORDER BY position ASC
+         LIMIT 1`
+      ).bind(editionId, email, customerId, customerId).first();
+
+      if (raced) {
+        return {
+          ok: true,
+          created: false,
+          standbyId: raced.id,
+          position: raced.position,
+          queueStatus: raced.status
+        };
+      }
+    }
+    throw error;
+  }
 
   if (!(result.meta && result.meta.changes)) {
     return { ok: false, error: 'standby_join_failed', status: 500 };
@@ -1176,24 +1253,59 @@ async function handleOrdersPaid(request, env) {
   const reservationPaidCents = reservationValidation.reservationPaidCents;
   const balanceDueCents = Math.max(0, edition.final_price_cents - edition.reservation_price_cents);
 
-  await env.PHAM_CAMPAIGN_DB.prepare(
-    `INSERT INTO reservations (
-      id, edition_id, shopify_order_id, shopify_customer_id, email, status,
-      reservation_paid_cents, balance_due_cents, referral_code, referred_by_code,
-      size_preference, digital_lookbook_status
-    ) VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, 'entitled')`
-  ).bind(
-    reservationId,
-    edition.id,
-    shopifyOrderId,
-    shopifyCustomerId,
-    email,
-    reservationPaidCents,
-    balanceDueCents,
-    referralCode,
-    referredByCode || null,
-    sizePreference || null
-  ).run();
+  try {
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      `INSERT INTO reservations (
+        id, edition_id, shopify_order_id, shopify_customer_id, email, status,
+        reservation_paid_cents, balance_due_cents, referral_code, referred_by_code,
+        size_preference, digital_lookbook_status
+      ) VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, 'entitled')`
+    ).bind(
+      reservationId,
+      edition.id,
+      shopifyOrderId,
+      shopifyCustomerId,
+      email,
+      reservationPaidCents,
+      balanceDueCents,
+      referralCode,
+      referredByCode || null,
+      sizePreference || null
+    ).run();
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      const duplicateOrder = await env.PHAM_CAMPAIGN_DB.prepare(
+        'SELECT id FROM reservations WHERE shopify_order_id = ?'
+      ).bind(shopifyOrderId).first();
+
+      if (duplicateOrder) {
+        if (webhookId) await recordWebhook(env, webhookId, topic);
+        return json({
+          ok: true,
+          reservationId: duplicateOrder.id,
+          duplicateOrder: true
+        });
+      }
+
+      const raceReview = {
+        ok: false,
+        review: true,
+        reason: 'collector_already_reserved_race',
+        shopifyOrderId
+      };
+      if (webhookId) {
+        await recordWebhook(
+          env,
+          webhookId,
+          topic,
+          'review_required',
+          JSON.stringify(raceReview)
+        );
+      }
+      return json(raceReview);
+    }
+    throw error;
+  }
 
   let identityResult = { claimed: false };
 
@@ -2927,6 +3039,12 @@ function propertyValue(line, name) {
 
 function safeCode(value) {
   return /^[A-Za-z0-9_-]{3,64}$/.test(value || '') ? value : '';
+}
+
+function isUniqueConstraintError(error) {
+  const message = String(error && error.message || error || '');
+  return message.includes('UNIQUE constraint failed') ||
+    message.includes('SQLITE_CONSTRAINT_UNIQUE');
 }
 
 function moneyToCents(value) {
