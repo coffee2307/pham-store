@@ -161,6 +161,21 @@ function applyGlobalCampaignState(context, state){
     if(presentation.status) node.textContent = presentation.status;
   });
 
+  var indexLabels = {
+    reservation_open: ['RESERVATION OPEN', 'reservation-open'],
+    reservation_full: ['RESERVED / STANDBY', 'reserved-standby'],
+    final_payment: ['ACQUISITION OPEN', 'acquisition-open'],
+    sold_out: ['CLOSED', 'closed'],
+    archived: ['ARCHIVED', 'archived']
+  };
+
+  qsa('[data-pham-edition-index-status]').forEach(function(node){
+    var config = indexLabels[state];
+    if(!config) return;
+    node.textContent = config[0];
+    node.className = 'pham-edition-index__status pham-edition-index__status--' + config[1];
+  });
+
   qsa('[data-pham-campaign-cta]').forEach(function(link){
     link.href = presentation.url;
 
