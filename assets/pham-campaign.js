@@ -103,6 +103,9 @@ function mountReservation(root){
   var canCheckout = root.dataset.canCheckout === 'true';
   var reservationVariantId = root.dataset.reservationVariantId || '';
   var identityVariantId = root.dataset.identityVariantId || '';
+  var lookbookVariantId = root.dataset.lookbookVariantId || '';
+  var includeLookbook = root.dataset.includeLookbook === 'true';
+  var lookbookReady = root.dataset.lookbookReady === 'true';
   var reservationPrice = parseInt(root.dataset.reservationPriceCents || '2499', 10);
   var identityPrice = parseInt(root.dataset.identityPriceCents || '500', 10);
   var currency = root.dataset.currency || 'USD';
@@ -118,7 +121,8 @@ function mountReservation(root){
     if(total) total.textContent = formatMoney(reservationPrice + (addIdentity ? identityPrice : 0), currency);
 
     if(submit){
-      var ready = canCheckout && consentReady() && reservationVariantId !== '';
+      var lookbookValid = !includeLookbook || (lookbookReady && lookbookVariantId !== '');
+      var ready = canCheckout && consentReady() && reservationVariantId !== '' && lookbookValid;
       submit.disabled = !ready;
       submit.setAttribute('aria-disabled', ready ? 'false' : 'true');
       submit.classList.toggle('is-disabled', !ready);
@@ -141,9 +145,22 @@ function mountReservation(root){
           '_PHAM Product': productCode,
           '_PHAM Referral Code': referral,
           'Reservation terms': 'Accepted',
-          'Digital lookbook delivery': 'Requested'
+          'Digital lookbook delivery': includeLookbook ? 'Included' : 'Not included'
         }
       }];
+
+      if(includeLookbook && lookbookReady && lookbookVariantId){
+        items.push({
+          id: Number(lookbookVariantId),
+          quantity: 1,
+          properties: {
+            '_PHAM Edition': edition,
+            '_PHAM Product': productCode,
+            '_PHAM Benefit': 'Collector Lookbook',
+            'Digital delivery': 'Included with Priority Reservation'
+          }
+        });
+      }
 
       if(identity && identity.checked && !identity.disabled && identityVariantId){
         items.push({
