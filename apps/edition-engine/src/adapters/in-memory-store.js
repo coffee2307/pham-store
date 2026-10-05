@@ -371,6 +371,137 @@ export class InMemoryStore {
     return clone(next);
   }
 
+  async markFinalPaidAtomic({
+    editionId,
+    reservationId,
+    shopifyOrderId,
+    paidAt,
+  }) {
+    const reservation = this.reservations.get(reservationId);
+    if (!reservation || reservation.editionId !== editionId) {
+      throw new Error('reservation_not_found');
+    }
+
+    if (reservation.status === ReservationStatus.FINAL_PAID) {
+      if (
+        !reservation.finalPaymentShopifyOrderId ||
+        reservation.finalPaymentShopifyOrderId === shopifyOrderId
+      ) {
+        return clone(reservation);
+      }
+      throw new Error('final_payment_already_recorded');
+    }
+
+    if (reservation.status !== ReservationStatus.FINAL_PAYMENT_OPEN) {
+      throw new Error('final_payment_not_open');
+    }
+
+    if (
+      reservation.paymentDeadline &&
+      new Date(reservation.paymentDeadline).getTime() < new Date(paidAt).getTime()
+    ) {
+      throw new Error('payment_window_expired');
+    }
+
+    for (const existing of this.reservations.values()) {
+      if (
+        existing.id !== reservationId &&
+        existing.finalPaymentShopifyOrderId === shopifyOrderId
+      ) {
+        throw new Error('final_order_already_used');
+      }
+    }
+
+    reservation.status = ReservationStatus.FINAL_PAID;
+    reservation.finalPaidAt = new Date(paidAt).toISOString();
+    reservation.finalPaymentShopifyOrderId = shopifyOrderId;
+    reservation.updatedAt = new Date().toISOString();
+    return clone(reservation);
+  }
+
+  async getStandbyEntryById(editionId, standbyEntryId) {
+    const queue = this.standby.get(editionId) || [];
+    const entry = queue.find((item) => String(item.id) === String(standbyEntryId));
+    return clone(entry || null);
+  }
+
+  async convertStandbyToReservation({
+    editionId,
+    standbyEntryId,
+    reservationId,
+    customerId,
+    shopifyOrderId,
+    finalPriceCents,
+    collectorReferralCode,
+    paidAt,
+  }) {
+    const queue = this.standby.get(editionId) || [];
+    const entry = queue.find((item) => String(item.id) === String(standbyEntryId));
+    if (!entry) throw new Error('standby_entry_not_found');
+
+    if (entry.status === 'converted') {
+      const existing = Array.from(this.reservations.values()).find(
+        (item) => item.shopifyOrderId === shopifyOrderId
+      );
+      if (existing) return clone(existing);
+      throw new Error('standby_already_converted');
+    }
+
+    if (entry.status !== 'offered') throw new Error('standby_offer_not_active');
+    if (
+      entry.offerDeadline &&
+      new Date(entry.offerDeadline).getTime() < new Date(paidAt).getTime()
+    ) {
+      throw new Error('standby_offer_expired');
+    }
+
+    const edition = this.editions.get(editionId);
+    if (!edition) throw new Error('edition_not_found');
+    if (edition.reservationsClaimed >= edition.editionSize) {
+      throw new Error('edition_full');
+    }
+
+    const customerKey = `${editionId}:${customerId}`;
+    if (this.customerReservations.has(customerKey)) {
+      throw new Error('customer_already_reserved');
+    }
+
+    for (const existing of this.reservations.values()) {
+      if (existing.shopifyOrderId === shopifyOrderId) return clone(existing);
+      if (existing.collectorReferralCode === collectorReferralCode) {
+        throw new Error('referral_code_exists');
+      }
+    }
+
+    const reservation = {
+      id: reservationId,
+      editionId,
+      customerId,
+      shopifyOrderId,
+      status: ReservationStatus.FINAL_PAID,
+      acquisitionType: 'standby',
+      reservationPaidCents: 0,
+      balanceDueCents: finalPriceCents,
+      collectorReferralCode,
+      referralCode: '',
+      paidAt: new Date(paidAt).toISOString(),
+      finalPaidAt: new Date(paidAt).toISOString(),
+      finalPaymentShopifyOrderId: shopifyOrderId,
+      lookbookStatus: 'not_included',
+      createdAt: new Date().toISOString(),
+    };
+
+    this.reservations.set(reservationId, reservation);
+    this.customerReservations.set(customerKey, reservationId);
+
+    edition.reservationsClaimed += 1;
+    entry.status = 'converted';
+    entry.convertedOrderId = shopifyOrderId;
+    entry.convertedAt = new Date(paidAt).toISOString();
+
+    return clone(reservation);
+  }
+
   async recordEvent(type, payload) {
     const event = {
       id: this.events.length + 1,
