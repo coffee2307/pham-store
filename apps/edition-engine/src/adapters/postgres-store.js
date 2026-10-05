@@ -30,6 +30,8 @@ function mapReservation(row) {
     acquisitionType: row.acquisition_type,
     reservationPaidCents: row.reservation_paid_cents,
     balanceDueCents: row.balance_due_cents,
+    sizePreference: row.size_preference || '',
+    finalVariantId: row.final_variant_id || '',
     referralCode: row.referral_code_used || '',
     collectorReferralCode: row.collector_referral_code,
     lookbookStatus: row.digital_lookbook_status,
@@ -163,10 +165,11 @@ export class PostgresStore {
             shopify_order_id,
             status,
             reservation_paid_cents,
+            size_preference,
             referral_code_used,
             collector_referral_code,
             paid_at
-          ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+          ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
           returning *`,
           [
             input.id,
@@ -175,6 +178,7 @@ export class PostgresStore {
             input.shopifyOrderId,
             input.status || 'active',
             input.reservationPaidCents,
+            input.sizePreference || null,
             input.referralCode || null,
             input.collectorReferralCode,
             input.paidAt,
@@ -243,6 +247,8 @@ export class PostgresStore {
     const columns = {
       status: 'status',
       balanceDueCents: 'balance_due_cents',
+      sizePreference: 'size_preference',
+      finalVariantId: 'final_variant_id',
       lookbookStatus: 'digital_lookbook_status',
       finalPaymentOpenedAt: 'final_payment_opened_at',
       paymentDeadline: 'payment_deadline',
@@ -851,6 +857,7 @@ export class PostgresStore {
     shopifyOrderId,
     finalPriceCents,
     collectorReferralCode,
+    finalVariantId = '',
     paidAt,
   }) {
     try {
@@ -901,13 +908,15 @@ export class PostgresStore {
             acquisition_type,
             reservation_paid_cents,
             balance_due_cents,
+            size_preference,
+            final_variant_id,
             collector_referral_code,
             digital_lookbook_status,
             paid_at,
             final_paid_at,
             final_payment_shopify_order_id
           ) values (
-            $1,$2,$3,$4,'final_paid','standby',0,$5,$6,'not_included',$7,$7,$4
+            $1,$2,$3,$4,'final_paid','standby',0,$5,$6,$7,$8,'not_included',$9,$9,$4
           )
           returning *`,
           [
@@ -916,6 +925,8 @@ export class PostgresStore {
             customerId,
             shopifyOrderId,
             finalPriceCents,
+            entry.size_preference || null,
+            finalVariantId || null,
             collectorReferralCode,
             paidAt,
           ]
