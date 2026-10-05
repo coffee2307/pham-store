@@ -419,9 +419,9 @@
       setChapter(Math.min(chapters.length - 1, Math.floor(smoothProgress * chapters.length)));
 
       if (!reducedMotion) {
-        currentPointerX = damp(currentPointerX, targetPointerX, 4.8, delta);
-        currentPointerY = damp(currentPointerY, targetPointerY, 4.8, delta);
-        currentPointerPresence = damp(currentPointerPresence, targetPointerPresence, 4.0, delta);
+        currentPointerX = damp(currentPointerX, targetPointerX, 5.6, delta);
+        currentPointerY = damp(currentPointerY, targetPointerY, 5.6, delta);
+        currentPointerPresence = damp(currentPointerPresence, targetPointerPresence, 4.8, delta);
 
         if (dragging) {
           rotation = damp(rotation, dragTargetRotation, 24, delta);
@@ -436,7 +436,7 @@
           velocity *= Math.exp(-3.0 * delta);
         }
 
-        targetTilt = baseTilt - currentPointerY * 7.5 * currentPointerPresence;
+        targetTilt = baseTilt - currentPointerY * 12.5 * currentPointerPresence;
         currentTilt = damp(currentTilt, targetTilt, 5.2, delta);
       } else {
         currentPointerX = 0;
@@ -466,9 +466,9 @@
         6 +
         Math.sin(smoothProgress * Math.PI * 2) * 0.3 +
         currentPointerX * 2.2 * currentPointerPresence;
-      const ringTiltY = currentPointerX * 7.2 * currentPointerPresence;
-      const pointerShiftX = currentPointerX * 18 * currentPointerPresence;
-      const pointerShiftY = currentPointerY * 12 * currentPointerPresence;
+      const ringTiltY = currentPointerX * 14.5 * currentPointerPresence;
+      const pointerShiftX = currentPointerX * 11 * currentPointerPresence;
+      const pointerShiftY = currentPointerY * 8 * currentPointerPresence;
 
       // Counter-parallax keeps the copy feeling suspended in the centre,
       // rather than printed onto the same plane as the cards.
@@ -639,8 +639,9 @@
       event.preventDefault();
 
       dragTargetRotation = dragStartRotation + deltaX * 0.0105;
-      targetPointerY = clamp(deltaY / Math.max(orbit.clientHeight * 0.42, 1), -1, 1);
-      targetPointerPresence = 0.3;
+      targetPointerX = clamp(deltaX / Math.max(orbit.clientWidth * 0.34, 1), -1, 1);
+      targetPointerY = clamp(deltaY / Math.max(orbit.clientHeight * 0.34, 1), -1, 1);
+      targetPointerPresence = 0.82;
 
       const now = performance.now();
       const elapsed = Math.max((now - lastPointerTime) / 1000, 0.012);
