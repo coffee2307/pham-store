@@ -5,7 +5,7 @@ export default {
     try {
       const url = new URL(request.url);
 
-      if (['/campaign', '/status', '/identity/configure', '/standby/join'].includes(url.pathname)) {
+      if (['/campaign', '/status', '/identity/configure', '/standby/join', '/provenance'].includes(url.pathname)) {
         const proxyAuth = await verifyAppProxyRequest(url, env.SHOPIFY_API_SECRET, env.SHOPIFY_SHOP_DOMAIN);
         if (!proxyAuth.ok) return json({ ok: false, error: proxyAuth.error }, proxyAuth.status);
 
@@ -25,6 +25,10 @@ export default {
           return joinStandbyProxy(request, env, proxyAuth.customerId, url.searchParams.get('edition') || 'edition-01');
         }
 
+        if (request.method === 'GET' && url.pathname === '/provenance') {
+          return getPublicProvenance(env, url.searchParams.get('token') || '');
+        }
+
         return json({ ok: false, error: 'method_not_allowed' }, 405);
       }
 
@@ -39,6 +43,11 @@ export default {
       if (request.method === 'POST' && url.pathname === '/internal/final-payment/open') {
         requireInternalKey(request, env);
         return openFinalPayment(request, env);
+      }
+
+      if (request.method === 'POST' && url.pathname === '/internal/objects/finalize') {
+        requireInternalKey(request, env);
+        return finalizeObjectNumbers(request, env);
       }
 
       if (request.method === 'POST' && url.pathname === '/internal/standby/promote') {
@@ -672,6 +681,226 @@ async function handleStandbyAcquisitionPaid(env, order, standbyId) {
     standbyId,
     finalOrderId: shopifyOrderId
   };
+}
+
+async function getPublicProvenance(env, token) {
+  const normalized = String(token || '').trim();
+  if (!/^[A-Za-z0-9_-]{20,96}$/.test(normalized)) {
+    return json({ ok: false, error: 'invalid_provenance_token' }, 422);
+  }
+
+  const tokenHash = await sha256Hex(normalized);
+
+  const row = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT
+       o.object_number,
+       o.token_type,
+       o.provenance_status,
+       e.label AS edition_label,
+       e.product_code,
+       e.edition_size,
+       e.design_origin,
+       e.production_origin,
+       i.public_identity,
+       i.engraving_name
+     FROM objects o
+     JOIN editions e ON e.id = o.edition_id
+     LEFT JOIN identity_claims i ON i.reservation_id = o.reservation_id
+     WHERE o.auth_token_hash = ?
+     LIMIT 1`
+  ).bind(tokenHash).first();
+
+  if (!row) {
+    return json({ ok: false, error: 'provenance_not_found' }, 404);
+  }
+
+  return json({
+    ok: true,
+    authenticated: true,
+    object: {
+      productCode: row.product_code,
+      editionLabel: row.edition_label,
+      editionSize: row.edition_size,
+      objectNumber: row.object_number,
+      designOrigin: row.design_origin,
+      productionOrigin: row.production_origin,
+      provenanceStatus: row.provenance_status,
+      tokenType: row.token_type || 'pending_allocation',
+      publicIdentity: row.public_identity ? String(row.engraving_name || '') : null
+    }
+  });
+}
+
+async function finalizeObjectNumbers(request, env) {
+  const body = await request.json();
+  const editionId = String(body.editionId || 'edition-01');
+
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM editions WHERE id = ?'
+  ).bind(editionId).first();
+  if (!edition) return json({ ok: false, error: 'edition_not_found' }, 404);
+
+  const finalPaidCount = await scalar(
+    env,
+    "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status = 'final_paid'",
+    editionId
+  );
+
+  if (finalPaidCount !== Number(edition.edition_size)) {
+    return json({
+      ok: false,
+      error: 'edition_not_fully_acquired',
+      finalPaidCount,
+      editionSize: Number(edition.edition_size)
+    }, 409);
+  }
+
+  const unconfigured = await scalar(
+    env,
+    `SELECT COUNT(*) AS count
+     FROM identity_claims i
+     JOIN reservations r ON r.id = i.reservation_id
+     WHERE i.edition_id = ?
+       AND r.status = 'final_paid'
+       AND i.status NOT IN ('configured','revoked')`,
+    editionId
+  );
+
+  if (unconfigured > 0) {
+    return json({
+      ok: false,
+      error: 'identity_configuration_incomplete',
+      unconfigured
+    }, 409);
+  }
+
+  const usedRows = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT object_number
+     FROM reservations
+     WHERE edition_id = ?
+       AND status = 'final_paid'
+       AND object_number IS NOT NULL
+     ORDER BY object_number ASC`
+  ).bind(editionId).all();
+
+  const used = new Set((usedRows.results || []).map(function(row) {
+    return Number(row.object_number);
+  }));
+
+  const available = [];
+  for (let i = 1; i <= Number(edition.edition_size); i++) {
+    if (!used.has(i)) available.push(i);
+  }
+
+  const unnumbered = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT id, shopify_customer_id
+     FROM reservations
+     WHERE edition_id = ?
+       AND status = 'final_paid'
+       AND object_number IS NULL
+     ORDER BY created_at ASC, id ASC`
+  ).bind(editionId).all();
+
+  if ((unnumbered.results || []).length !== available.length) {
+    return json({
+      ok: false,
+      error: 'object_number_allocation_mismatch',
+      available: available.length,
+      unnumbered: (unnumbered.results || []).length
+    }, 409);
+  }
+
+  const assignments = [];
+
+  for (let index = 0; index < (unnumbered.results || []).length; index++) {
+    const reservation = unnumbered.results[index];
+    const number = available[index];
+
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      `UPDATE reservations
+       SET object_number = ?, updated_at = CURRENT_TIMESTAMP
+       WHERE id = ? AND object_number IS NULL`
+    ).bind(number, reservation.id).run();
+
+    if (reservation.shopify_customer_id) {
+      await setMetafields(env, [
+        metafield(reservation.shopify_customer_id, 'current_object_number', 'number_integer', String(number))
+      ]);
+    }
+
+    assignments.push({
+      reservationId: reservation.id,
+      objectNumber: number
+    });
+  }
+
+  const finalRows = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT id, object_number
+     FROM reservations
+     WHERE edition_id = ? AND status = 'final_paid'
+     ORDER BY object_number ASC`
+  ).bind(editionId).all();
+
+  const objects = [];
+
+  for (const reservation of finalRows.results || []) {
+    let object = await env.PHAM_CAMPAIGN_DB.prepare(
+      'SELECT id, object_number, qr_token FROM objects WHERE reservation_id = ?'
+    ).bind(reservation.id).first();
+
+    if (!object) {
+      const qrToken = randomToken(40);
+      const authHash = await sha256Hex(qrToken);
+      const objectId = editionId + '-object-' + String(reservation.object_number).padStart(3, '0');
+
+      await env.PHAM_CAMPAIGN_DB.prepare(
+        `INSERT INTO objects (
+          id, edition_id, object_number, reservation_id,
+          auth_token_hash, qr_token, provenance_status, token_type
+        ) VALUES (?, ?, ?, ?, ?, ?, 'confirmed', NULL)`
+      ).bind(
+        objectId,
+        editionId,
+        reservation.object_number,
+        reservation.id,
+        authHash,
+        qrToken
+      ).run();
+
+      object = {
+        id: objectId,
+        object_number: reservation.object_number,
+        qr_token: qrToken
+      };
+    }
+
+    const storefront = String(env.STOREFRONT_ORIGIN || 'https://phamofficial.com').replace(/\/$/, '');
+    objects.push({
+      objectId: object.id,
+      objectNumber: Number(object.object_number),
+      qrUrl: storefront + '/pages/provenance?token=' + encodeURIComponent(object.qr_token)
+    });
+  }
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    "UPDATE editions SET state = 'sold_out', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+  ).bind(editionId).run();
+
+  return json({
+    ok: true,
+    editionId,
+    state: 'sold_out',
+    assignedCount: assignments.length,
+    objects
+  });
+}
+
+async function sha256Hex(value) {
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(String(value))
+  );
+  return bytesToHex(new Uint8Array(digest));
 }
 
 async function claimIdentity(env, { editionId, reservationId, source }) {
