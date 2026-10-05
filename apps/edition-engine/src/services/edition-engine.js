@@ -126,23 +126,21 @@ export class EditionEngine {
     const safeAlias = String(alias).trim().slice(0, 24);
     const safeInscription = String(inscription).trim().slice(0, 40);
 
-    const object = await this.store.claimObjectNumber({
+    const configured = await this.store.configureIdentityWithObject({
       editionId,
       reservationId,
       number: Number(preferredNumber),
-    });
-
-    const configured = await this.store.configureIdentity(reservationId, {
-      alias: safeAlias,
-      inscription: safeInscription,
-      preferredNumber: object.number,
-      publicIdentity: Boolean(publicIdentity),
+      configuration: {
+        alias: safeAlias,
+        inscription: safeInscription,
+        publicIdentity: Boolean(publicIdentity),
+      },
     });
 
     await this.store.recordEvent('identity.configured', {
       editionId,
       reservationId,
-      objectNumber: object.number,
+      objectNumber: configured.preferredNumber,
     });
 
     return configured;
