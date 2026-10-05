@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   buildFinalAcquisitionDraftInput,
   canonicalizeAppProxyParams,
+  validateFinalAcquisitionOrder,
   verifyAppProxyRequest,
   verifyShopifyWebhook,
 } from './worker.js';
@@ -177,6 +178,7 @@ test('final acquisition draft uses the reservation-specific mapped variant', () 
     reservation: {
       id: 'PHAM-R-TEST',
       email: 'collector@example.com',
+      shopify_customer_id: 'gid://shopify/Customer/42',
       size_preference: 'M',
     },
     deadline: '2026-11-13T11:00:00.000Z',
@@ -195,6 +197,9 @@ test('final acquisition draft uses the reservation-specific mapped variant', () 
     input.customAttributes.find(attribute => attribute.key === 'PHAM Size Preference'),
     { key: 'PHAM Size Preference', value: 'M' }
   );
+  assert.deepEqual(input.purchasingEntity, {
+    customerId: 'gid://shopify/Customer/42'
+  });
 });
 
 test('final acquisition draft fails closed when no final variant is available', () => {
@@ -210,5 +215,88 @@ test('final acquisition draft fails closed when no final variant is available', 
       variantId: '',
     }),
     /missing_final_variant_id/
+  );
+});
+
+
+function finalPaymentFixture() {
+  return {
+    edition: {
+      currency_code: 'USD',
+      final_price_cents: 19900,
+      reservation_price_cents: 2499,
+      final_product_variant_id: 'gid://shopify/ProductVariant/100',
+    },
+    reservation: {
+      id: 'PHAM-R-TEST',
+      status: 'final_payment_open',
+      shopify_customer_id: 'gid://shopify/Customer/42',
+      final_variant_id: 'gid://shopify/ProductVariant/200',
+      payment_deadline: '2026-11-13T11:00:00.000Z',
+    },
+    order: {
+      id: 900,
+      currency: 'USD',
+      processed_at: '2026-11-13T10:59:00.000Z',
+      current_total_discounts: '24.99',
+      customer: { id: 42 },
+      line_items: [
+        {
+          variant_id: 200,
+          quantity: 1,
+          price: '199.00',
+          sku: 'PHAM-001-E01-M',
+        },
+      ],
+    },
+  };
+}
+
+test('validates final acquisition against mapped variant, collector, price, credit and deadline', () => {
+  const fixture = finalPaymentFixture();
+  const result = validateFinalAcquisitionOrder(fixture);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.variantId, 'gid://shopify/ProductVariant/200');
+  assert.equal(result.discountCents, 2499);
+});
+
+test('rejects final acquisition paid after the reservation deadline', () => {
+  const fixture = finalPaymentFixture();
+  fixture.order.processed_at = '2026-11-13T11:00:01.000Z';
+
+  assert.throws(
+    () => validateFinalAcquisitionOrder(fixture),
+    /payment_window_expired/
+  );
+});
+
+test('rejects a final acquisition for the wrong size-mapped variant', () => {
+  const fixture = finalPaymentFixture();
+  fixture.order.line_items[0].variant_id = 100;
+
+  assert.throws(
+    () => validateFinalAcquisitionOrder(fixture),
+    /final_variant_mismatch/
+  );
+});
+
+test('rejects a final acquisition when reservation credit was not applied exactly once', () => {
+  const fixture = finalPaymentFixture();
+  fixture.order.current_total_discounts = '0.00';
+
+  assert.throws(
+    () => validateFinalAcquisitionOrder(fixture),
+    /reservation_credit_mismatch/
+  );
+});
+
+test('rejects a final acquisition paid by a different Shopify customer', () => {
+  const fixture = finalPaymentFixture();
+  fixture.order.customer.id = 99;
+
+  assert.throws(
+    () => validateFinalAcquisitionOrder(fixture),
+    /final_payment_customer_mismatch/
   );
 });
