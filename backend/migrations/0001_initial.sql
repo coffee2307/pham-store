@@ -33,6 +33,8 @@ CREATE TABLE IF NOT EXISTS reservations (
   referral_code TEXT UNIQUE NOT NULL,
   referred_by_code TEXT,
   standby_id TEXT UNIQUE,
+  size_preference TEXT,
+  final_variant_id TEXT,
   object_number INTEGER,
   payment_deadline TEXT,
   final_payment_status TEXT NOT NULL DEFAULT 'pending',
