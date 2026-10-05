@@ -44,6 +44,9 @@ jobs:
       - name: Run PHAM backend tests
         run: node --test backend/worker.test.mjs
 
+      - name: Check PHAM D1 migration drift
+        run: python backend/check-schema.py
+
       - name: Check PHAM campaign launch gates
         run: node scripts/check-campaign-safety.mjs
 
