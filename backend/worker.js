@@ -125,7 +125,7 @@ export function canonicalizeAppProxyParams(url) {
     .join('');
 }
 
-async function verifyAppProxyRequest(url, secret, expectedShop) {
+export async function verifyAppProxyRequest(url, secret, expectedShop) {
   if (!secret) return { ok: false, error: 'proxy_not_configured', status: 503 };
 
   const provided = url.searchParams.get('signature') || '';
@@ -2070,7 +2070,7 @@ async function recordWebhook(env, id, topic) {
   ).bind(id, topic).run();
 }
 
-async function verifyShopifyWebhook(rawBody, provided, secret) {
+export async function verifyShopifyWebhook(rawBody, provided, secret) {
   if (!secret || !provided) return false;
   const key = await crypto.subtle.importKey(
     'raw',
