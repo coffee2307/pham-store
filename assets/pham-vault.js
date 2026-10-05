@@ -77,6 +77,7 @@
     let sourceCardTransform = '';
     let dialogOpenScrollY = 0;
     let dialogPlaneTilt = 0;
+    let dialogPlaneYaw = 0;
     let dialogPlaneLean = 0;
     let mobileOrbitResume = 1;
 
@@ -265,6 +266,7 @@
       sourceCardTransform = '';
       dialogOpenScrollY = 0;
       dialogPlaneTilt = 0;
+      dialogPlaneYaw = 0;
       dialogPlaneLean = 0;
 
       if (dialogReturnFocus && typeof dialogReturnFocus.focus === 'function') {
@@ -342,11 +344,21 @@
       targetPointerX = 0;
       targetPointerY = 0;
       targetPointerPresence = 0;
-      dialogPlaneTilt = currentTilt;
+      const dialogIntroRelease = clamp(smoothProgress / 0.24, 0, 1);
+      const dialogIntroEase = dialogIntroRelease * dialogIntroRelease * (3 - 2 * dialogIntroRelease);
+      const dialogOutroRelease = clamp((smoothProgress - 0.76) / 0.24, 0, 1);
+      const dialogOutroEase = dialogOutroRelease * dialogOutroRelease * (3 - 2 * dialogOutroRelease);
+      const dialogIntroLean = -2.1 * (1 - dialogIntroEase);
+
+      dialogPlaneTilt = currentTilt * (1 - dialogOutroEase);
+      dialogPlaneYaw = currentPointerX * 18.5 * currentPointerPresence * (1 - dialogOutroEase);
       dialogPlaneLean =
-        6 +
-        Math.sin(smoothProgress * Math.PI * 2) * 0.35 +
-        currentPointerX * 2.6 * currentPointerPresence;
+        (
+          6 * dialogIntroEase +
+          dialogIntroLean +
+          Math.sin(smoothProgress * Math.PI * 2) * 0.3 +
+          currentPointerX * 2.2 * currentPointerPresence
+        ) * (1 - dialogOutroEase);
 
       const mobileDialog = window.innerWidth < 600;
       const targetScale = getExpandedCardScale(card);
@@ -363,6 +375,7 @@
       const targetCardTransform = mobileDialog
         ? 'translate3d(-50%, -50%, 0) ' +
           'rotateZ(' + (-dialogPlaneLean).toFixed(3) + 'deg) ' +
+          'rotateY(' + (-dialogPlaneYaw).toFixed(3) + 'deg) ' +
           'rotateX(' + (-dialogPlaneTilt).toFixed(3) + 'deg) ' +
           'translate3d(' +
           mobileOffsetX.toFixed(2) + 'px,' +
@@ -372,6 +385,7 @@
           ')'
         : 'translate3d(-50%, -50%, 0) ' +
           'rotateZ(' + (-dialogPlaneLean).toFixed(3) + 'deg) ' +
+          'rotateY(' + (-dialogPlaneYaw).toFixed(3) + 'deg) ' +
           'rotateX(' + (-dialogPlaneTilt).toFixed(3) + 'deg) ' +
           'rotateY(0rad) translateZ(0px) rotateZ(0deg) translate3d(0,0,0) scale(' +
           targetScale.toFixed(4) +
