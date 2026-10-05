@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-identity-configurator",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
