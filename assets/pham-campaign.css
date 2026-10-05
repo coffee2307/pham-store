@@ -36,3 +36,12 @@
 .pham-status-row{display:grid;grid-template-columns:1fr auto;gap:20px;padding:18px 0;border-bottom:1px solid var(--pc-line)}.pham-status-row span{color:var(--pc-dim);font:500 9px/1.3 var(--font-mono,monospace);letter-spacing:.15em;text-transform:uppercase}.pham-status-row strong{font:500 12px/1.3 var(--font-mono,monospace);letter-spacing:.08em;text-transform:uppercase;text-align:right}
 .pham-provenance-timeline{display:grid;gap:0;margin-top:16px}.pham-provenance-timeline div{display:grid;grid-template-columns:120px 1fr;gap:24px;padding:16px 0;border-bottom:1px solid var(--pc-line)}.pham-provenance-timeline dt{color:var(--pc-dim);font:500 9px/1.4 var(--font-mono,monospace);letter-spacing:.12em;text-transform:uppercase}.pham-provenance-timeline dd{margin:0;color:var(--pc-soft);line-height:1.55}
 @media(max-width:800px){.pham-campaign-card,.pham-campaign-card--wide{grid-column:1/-1}.pham-config-grid{grid-template-columns:1fr}.pham-number-grid{grid-template-columns:repeat(5,1fr)}.pham-campaign-title{font-size:clamp(2.8rem,15vw,5.4rem)}}
+.pham-reservation-upgrade{margin-top:22px;border-top:1px solid var(--pc-line);border-bottom:1px solid var(--pc-line)}
+.pham-reservation-upgrade__choice{display:flex;align-items:flex-start;justify-content:space-between;gap:22px;padding:20px 0;cursor:pointer}
+.pham-reservation-upgrade__choice>span{display:flex;align-items:flex-start;gap:12px}
+.pham-reservation-upgrade__choice input{margin-top:2px}
+.pham-reservation-upgrade__choice small{display:block;margin-top:7px;color:var(--pc-dim);font:400 .78rem/1.5 var(--font-body,Arial,sans-serif)}
+.pham-reservation-upgrade__choice.is-closed{opacity:.42;cursor:not-allowed}
+.pham-reservation-upgrade__meta{padding:0 0 16px!important;color:var(--pc-dim)!important;font:500 8px/1.5 var(--font-mono,monospace)!important;letter-spacing:.12em;text-transform:uppercase}
+.pham-campaign-error{margin:18px 0 0;color:#ff9898!important;font-size:.86rem;line-height:1.5}
+.pham-campaign-btn.is-busy{opacity:.55;cursor:wait}
