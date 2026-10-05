@@ -546,9 +546,14 @@ async function handleOrdersPaid(request, env) {
 }
 
 async function handleFinalAcquisitionPaid(env, order) {
+  const standbyId = orderAttribute(order, 'PHAM Standby ID');
+  if (standbyId) {
+    return handleStandbyAcquisitionPaid(env, order, standbyId);
+  }
+
   const reservationId = orderAttribute(order, 'PHAM Reservation ID');
   if (!reservationId) {
-    return { ok: true, ignored: true, reason: 'final_order_without_reservation_id' };
+    return { ok: true, ignored: true, reason: 'final_order_without_campaign_id' };
   }
 
   const reservation = await env.PHAM_CAMPAIGN_DB.prepare(
@@ -587,6 +592,85 @@ async function handleFinalAcquisitionPaid(env, order) {
     type: 'final_acquisition_paid',
     reservationId,
     finalOrderId
+  };
+}
+
+async function handleStandbyAcquisitionPaid(env, order, standbyId) {
+  const standby = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM standby WHERE id = ?'
+  ).bind(standbyId).first();
+
+  if (!standby) {
+    return { ok: false, reason: 'unknown_standby_id', standbyId };
+  }
+
+  if (standby.converted_reservation_id) {
+    return {
+      ok: true,
+      duplicate: true,
+      type: 'standby_acquisition_paid',
+      reservationId: standby.converted_reservation_id,
+      standbyId
+    };
+  }
+
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM editions WHERE id = ?'
+  ).bind(standby.edition_id).first();
+  if (!edition) return { ok: false, reason: 'edition_not_found', standbyId };
+
+  const shopifyOrderId = toGid('Order', order.id);
+  const shopifyCustomerId = order.customer && order.customer.id ? toGid('Customer', order.customer.id) : standby.customer_id;
+  const email = String(order.email || (order.customer && order.customer.email) || standby.email || '').toLowerCase();
+  const reservationId = await uniqueReservationId(env);
+  const referralCode = await uniqueReferralCode(env);
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    `INSERT INTO reservations (
+      id, edition_id, shopify_order_id, shopify_customer_id, email, status,
+      reservation_paid_cents, balance_due_cents, referral_code, standby_id,
+      final_payment_status, digital_lookbook_status
+    ) VALUES (?, ?, ?, ?, ?, 'final_paid', 0, 0, ?, ?, 'paid', 'not_included')`
+  ).bind(
+    reservationId,
+    edition.id,
+    shopifyOrderId,
+    shopifyCustomerId || null,
+    email,
+    referralCode,
+    standbyId
+  ).run();
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE standby
+     SET status = 'converted',
+         converted_reservation_id = ?
+     WHERE id = ?`
+  ).bind(reservationId, standbyId).run();
+
+  await setMetafields(env, [
+    metafield(shopifyOrderId, 'edition_label', 'single_line_text_field', edition.label),
+    metafield(shopifyOrderId, 'reservation_id', 'single_line_text_field', reservationId),
+    metafield(shopifyOrderId, 'final_payment_status', 'single_line_text_field', 'paid')
+  ]);
+
+  if (shopifyCustomerId) {
+    await setMetafields(env, [
+      metafield(shopifyCustomerId, 'referral_code', 'single_line_text_field', referralCode),
+      metafield(shopifyCustomerId, 'successful_referrals', 'number_integer', '0'),
+      metafield(shopifyCustomerId, 'current_reservation_status', 'single_line_text_field', 'final_paid'),
+      metafield(shopifyCustomerId, 'identity_status', 'single_line_text_field', 'locked'),
+      metafield(shopifyCustomerId, 'reservation_id', 'single_line_text_field', reservationId),
+      metafield(shopifyCustomerId, 'digital_lookbook_status', 'single_line_text_field', 'not_included')
+    ]);
+  }
+
+  return {
+    ok: true,
+    type: 'standby_acquisition_paid',
+    reservationId,
+    standbyId,
+    finalOrderId: shopifyOrderId
   };
 }
 
@@ -962,19 +1046,36 @@ function centsToMoney(cents) {
 }
 
 async function expireReservationsAndPromote(env) {
-  const expired = await env.PHAM_CAMPAIGN_DB.prepare(
-    `SELECT id, edition_id, shopify_customer_id, shopify_order_id
+  const nowIso = new Date().toISOString();
+
+  const expiredReservations = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT id, edition_id, shopify_customer_id, shopify_order_id, final_draft_order_id
      FROM reservations
      WHERE status = 'final_payment_open'
        AND payment_deadline IS NOT NULL
        AND payment_deadline <= ?`
-  ).bind(new Date().toISOString()).all();
+  ).bind(nowIso).all();
 
   const touchedEditions = new Set();
 
-  for (const row of expired.results || []) {
+  for (const row of expiredReservations.results || []) {
+    if (row.final_draft_order_id) {
+      const closed = await deleteDraftOrder(env, row.final_draft_order_id);
+      if (!closed.ok) {
+        console.error('Reservation expiry deferred because draft order could not be closed', row.id, closed.error);
+        continue;
+      }
+    }
+
+    await releaseIdentityOnExpiry(env, row.edition_id, row.id);
+
     await env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE reservations SET status = 'expired', final_payment_status = 'expired', object_number = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+      `UPDATE reservations
+       SET status = 'expired',
+           final_payment_status = 'expired',
+           object_number = NULL,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`
     ).bind(row.id).run();
 
     const fields = [
@@ -982,16 +1083,63 @@ async function expireReservationsAndPromote(env) {
     ];
     if (row.shopify_customer_id) {
       fields.push(
-        metafield(row.shopify_customer_id, 'current_reservation_status', 'single_line_text_field', 'expired')
+        metafield(row.shopify_customer_id, 'current_reservation_status', 'single_line_text_field', 'expired'),
+        metafield(row.shopify_customer_id, 'identity_status', 'single_line_text_field', 'released_on_expiry')
       );
     }
     await setMetafields(env, fields);
     touchedEditions.add(row.edition_id);
   }
 
+  const expiredStandby = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT id, edition_id, draft_order_id
+     FROM standby
+     WHERE status = 'promoted'
+       AND offer_deadline IS NOT NULL
+       AND offer_deadline <= ?`
+  ).bind(nowIso).all();
+
+  for (const row of expiredStandby.results || []) {
+    if (row.draft_order_id) {
+      const closed = await deleteDraftOrder(env, row.draft_order_id);
+      if (!closed.ok) {
+        console.error('Standby expiry deferred because draft order could not be closed', row.id, closed.error);
+        continue;
+      }
+    }
+
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      "UPDATE standby SET status = 'expired' WHERE id = ? AND status = 'promoted'"
+    ).bind(row.id).run();
+
+    touchedEditions.add(row.edition_id);
+  }
+
   for (const editionId of touchedEditions) {
     await promoteNextStandby(env, editionId);
   }
+}
+
+async function releaseIdentityOnExpiry(env, editionId, reservationId) {
+  const claim = await env.PHAM_CAMPAIGN_DB.prepare(
+    "SELECT source, status FROM identity_claims WHERE reservation_id = ? AND status != 'revoked'"
+  ).bind(reservationId).first();
+
+  if (!claim) return { released: false };
+
+  await adjustIdentityInventory(env, editionId, reservationId + '-release', 1);
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE identity_claims
+     SET status = 'revoked'
+     WHERE reservation_id = ?`
+  ).bind(reservationId).run();
+
+  if (claim.source === 'paid') {
+    console.warn('Paid Identity released after reservation expiry; financial review may be required', reservationId);
+  }
+
+  return { released: true, source: claim.source };
 }
 
 async function promoteNextStandby(env, editionId) {
@@ -1009,9 +1157,42 @@ async function promoteNextStandby(env, editionId) {
   const promotedAt = new Date();
   const deadline = new Date(promotedAt.getTime() + edition.standby_window_hours * 3600000).toISOString();
 
-  await env.PHAM_CAMPAIGN_DB.prepare(
-    "UPDATE standby SET status = 'promoted', promoted_at = ?, offer_deadline = ? WHERE id = ? AND status = 'waiting'"
+  let draftOrderId = next.draft_order_id;
+  let invoiceUrl = next.invoice_url;
+
+  if (!draftOrderId) {
+    const draft = await createStandbyAcquisitionDraft(env, {
+      edition,
+      standby: next,
+      deadline
+    });
+    draftOrderId = draft.id;
+    invoiceUrl = draft.invoiceUrl;
+
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      `UPDATE standby
+       SET draft_order_id = ?, invoice_url = ?
+       WHERE id = ?`
+    ).bind(draftOrderId, invoiceUrl || null, next.id).run();
+  }
+
+  await sendStandbyAcquisitionInvoice(env, {
+    draftOrderId,
+    email: next.email,
+    edition,
+    standbyId: next.id,
+    deadline
+  });
+
+  const update = await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE standby
+     SET status = 'promoted', promoted_at = ?, offer_deadline = ?
+     WHERE id = ? AND status = 'waiting'`
   ).bind(promotedAt.toISOString(), deadline, next.id).run();
+
+  if (!(update.meta && update.meta.changes)) {
+    return { ok: false, promoted: false, reason: 'standby_state_changed' };
+  }
 
   return {
     ok: true,
@@ -1019,8 +1200,102 @@ async function promoteNextStandby(env, editionId) {
     standbyId: next.id,
     email: next.email,
     offerDeadline: deadline,
-    priceCents: edition.final_price_cents
+    priceCents: edition.final_price_cents,
+    draftOrderId,
+    invoiceUrl
   };
+}
+
+async function createStandbyAcquisitionDraft(env, { edition, standby, deadline }) {
+  const mutation = `mutation CreateStandbyAcquisitionDraft($input: DraftOrderInput!) {
+    draftOrderCreate(input: $input) {
+      draftOrder {
+        id
+        name
+        invoiceUrl
+        totalPriceSet { shopMoney { amount currencyCode } }
+      }
+      userErrors { field message }
+    }
+  }`;
+
+  const input = {
+    email: standby.email,
+    lineItems: [{
+      variantId: edition.final_product_variant_id,
+      quantity: 1
+    }],
+    acceptAutomaticDiscounts: false,
+    allowDiscountCodesInCheckout: false,
+    customAttributes: [
+      { key: 'PHAM Standby ID', value: standby.id },
+      { key: 'PHAM Edition', value: edition.label },
+      { key: 'PHAM Product', value: edition.product_code },
+      { key: 'PHAM Standby Deadline', value: deadline }
+    ],
+    note: `${edition.label} standby acquisition at the full object price. No Priority Reservation credit applies.`,
+    tags: ['PHAM', edition.label, 'Standby Acquisition', standby.id]
+  };
+
+  const result = await shopifyGraphQL(env, mutation, { input });
+  const payload = result && result.data && result.data.draftOrderCreate;
+  const errors = payload && payload.userErrors || [];
+
+  if (errors.length) throw new Error('Standby draft order creation failed: ' + JSON.stringify(errors));
+  if (!payload || !payload.draftOrder) throw new Error('Standby draft order creation returned no draft order');
+  return payload.draftOrder;
+}
+
+async function sendStandbyAcquisitionInvoice(env, { draftOrderId, email, edition, standbyId, deadline }) {
+  const mutation = `mutation SendStandbyAcquisitionInvoice($id: ID!, $email: EmailInput) {
+    draftOrderInvoiceSend(id: $id, email: $email) {
+      draftOrder { id name invoiceUrl email status }
+      userErrors { field message }
+    }
+  }`;
+
+  const result = await shopifyGraphQL(env, mutation, {
+    id: draftOrderId,
+    email: {
+      to: email,
+      subject: `${edition.product_code} · A standby object is available`,
+      customMessage: [
+        `A ${edition.label} allocation has become available.`,
+        '',
+        `Standby reference: ${standbyId}`,
+        `Object price: ${centsToMoney(edition.final_price_cents)} ${edition.currency_code || 'USD'}`,
+        `Payment deadline: ${deadline}`,
+        '',
+        'This standby offer does not include a Priority Reservation credit because no reservation amount was previously paid.'
+      ].join('\n')
+    }
+  });
+
+  const payload = result && result.data && result.data.draftOrderInvoiceSend;
+  const errors = payload && payload.userErrors || [];
+  if (errors.length) throw new Error('Standby invoice send failed: ' + JSON.stringify(errors));
+  return payload && payload.draftOrder;
+}
+
+async function deleteDraftOrder(env, draftOrderId) {
+  const mutation = `mutation DeleteExpiredDraftOrder($input: DraftOrderDeleteInput!) {
+    draftOrderDelete(input: $input) {
+      deletedId
+      userErrors { field message }
+    }
+  }`;
+
+  try {
+    const result = await shopifyGraphQL(env, mutation, {
+      input: { id: draftOrderId }
+    });
+    const payload = result && result.data && result.data.draftOrderDelete;
+    const errors = payload && payload.userErrors || [];
+    if (errors.length) return { ok: false, error: JSON.stringify(errors) };
+    return { ok: Boolean(payload && payload.deletedId) };
+  } catch (error) {
+    return { ok: false, error: error.message || String(error) };
+  }
 }
 
 function findLineBySku(order, sku) {
