@@ -1,0 +1,14 @@
+name = "pham-campaign"
+main = "backend/worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+SHOPIFY_SHOP_DOMAIN = "yszwe3-yd.myshopify.com"
+
+[[d1_databases]]
+binding = "PHAM_CAMPAIGN_DB"
+database_name = "pham-campaign"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+[triggers]
+crons = ["*/15 * * * *"]
