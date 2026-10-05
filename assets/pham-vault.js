@@ -462,8 +462,17 @@
       const orbitRadius = radius * scrollSpacing * pointerSpacing;
       const step = Math.PI * 2 / cards.length;
       const responsiveRotation = rotation + currentPointerX * 0.12 * currentPointerPresence;
+      // Initial composition: let the card ring sit lower and lean slightly
+      // left so the PHAM wordmark remains visually dominant on first load.
+      // Both offsets ease back into the normal orbit choreography as the
+      // visitor begins scrolling through the vault.
+      const introRelease = clamp(smoothProgress / 0.24, 0, 1);
+      const introEase = introRelease * introRelease * (3 - 2 * introRelease);
+      const introRingDrop = (1 - introEase) * 46;
+      const introLean = -4.5 * (1 - introEase);
       const orbitLean =
-        6 +
+        6 * introEase +
+        introLean +
         Math.sin(smoothProgress * Math.PI * 2) * 0.3 +
         currentPointerX * 2.2 * currentPointerPresence;
       const ringTiltY = currentPointerX * 18.5 * currentPointerPresence;
@@ -556,7 +565,7 @@
           'translate3d(-50%, -50%, 0) ' +
           'rotateY(' + state.visualAngle.toFixed(5) + 'rad) ' +
           'translateZ(' + orbitRadius.toFixed(2) + 'px) rotateZ(' + cardLean.toFixed(2) + 'deg) ' +
-          'translate3d(0,' + (-lift).toFixed(2) + 'px,0) scale(' + cardScale.toFixed(3) + ')';
+          'translate3d(0,' + (introRingDrop - lift).toFixed(2) + 'px,0) scale(' + cardScale.toFixed(3) + ')';
       });
 
       if (orbitCards && !orbitCards.classList.contains('is-positioned')) {
