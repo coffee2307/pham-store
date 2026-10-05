@@ -469,6 +469,7 @@ function mountCollector(root){
       var identityEl = root.querySelector('[data-pham-live-identity-status]');
       var referralEl = root.querySelector('[data-pham-live-referral]');
       var lookbookEl = root.querySelector('[data-pham-live-lookbook]');
+      var founderTokenEl = root.querySelector('[data-pham-live-founder-token]');
       var lookbookCopyEl = root.querySelector('[data-pham-live-lookbook-copy]');
       var balanceEl = root.querySelector('[data-pham-live-balance]');
       var finalPaymentLink = root.querySelector('[data-pham-final-payment-link]');
@@ -485,6 +486,7 @@ function mountCollector(root){
           String(referral.requiredCount || 1) + ' VERIFIED';
       }
       if(lookbookEl) lookbookEl.textContent = displayState(reservation.lookbookStatus);
+      if(founderTokenEl) founderTokenEl.textContent = displayState(reservation.founderTokenType || 'pending_allocation');
       if(lookbookCopyEl) lookbookCopyEl.textContent = displayState(reservation.lookbookStatus);
       if(balanceEl && reservation.balanceDueCents != null){
         balanceEl.textContent = formatMoney(
