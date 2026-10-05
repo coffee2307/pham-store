@@ -70,6 +70,9 @@
     let observer = null;
     let viewerEl = null;
     let stageInViewport = true;
+    let defaultModelTimer = 0;
+    let defaultModelIdleHandle = 0;
+    let defaultModelLoadHandler = null;
 
     function setModeLabel(label) {
       if (mode) mode.textContent = label || '';
@@ -194,7 +197,7 @@
       if (!viewer) return;
       viewerEl = viewer;
       viewer.setAttribute('reveal', 'auto');
-      viewer.setAttribute('loading', 'eager');
+      viewer.setAttribute('loading', 'lazy');
       viewer.setAttribute('interaction-prompt', 'none');
       viewer.setAttribute('disable-pan', '');
       viewer.setAttribute('disable-zoom', '');
@@ -251,8 +254,53 @@
       });
     }
 
-    function show(view) {
+    function cancelDeferredDefaultModel() {
+      if (defaultModelTimer) {
+        window.clearTimeout(defaultModelTimer);
+        defaultModelTimer = 0;
+      }
+      if (defaultModelIdleHandle && 'cancelIdleCallback' in window) {
+        window.cancelIdleCallback(defaultModelIdleHandle);
+        defaultModelIdleHandle = 0;
+      }
+      if (defaultModelLoadHandler) {
+        window.removeEventListener('load', defaultModelLoadHandler);
+        defaultModelLoadHandler = null;
+      }
+    }
+
+    function scheduleDefaultModel() {
+      if (requested || failed || !model || !template) return;
+
+      function queueAfterLoad() {
+        defaultModelLoadHandler = null;
+        const fallbackDelay = window.innerWidth < 600 ? 700 : 320;
+
+        if ('requestIdleCallback' in window) {
+          defaultModelIdleHandle = window.requestIdleCallback(function () {
+            defaultModelIdleHandle = 0;
+            if (desiredView === 'model' && !requested && !failed) show('model', true);
+          }, { timeout: window.innerWidth < 600 ? 1800 : 1200 });
+        } else {
+          defaultModelTimer = window.setTimeout(function () {
+            defaultModelTimer = 0;
+            if (desiredView === 'model' && !requested && !failed) show('model', true);
+          }, fallbackDelay);
+        }
+      }
+
+      if (document.readyState === 'complete') {
+        queueAfterLoad();
+      } else {
+        defaultModelLoadHandler = queueAfterLoad;
+        window.addEventListener('load', defaultModelLoadHandler, { once: true });
+      }
+    }
+
+    function show(view, deferred) {
       desiredView = view === 'model' ? 'model' : 'image';
+
+      if (!deferred) cancelDeferredDefaultModel();
 
       if (desiredView === 'image') {
         showImage();
@@ -288,13 +336,21 @@
 
     document.addEventListener('visibilitychange', syncViewerActivity);
 
+    stage.addEventListener('shopify:section:unload', function () {
+      cancelDeferredDefaultModel();
+      clearFailTimer();
+      window.clearTimeout(rotateHintTimer);
+      if (observer) observer.disconnect();
+      document.removeEventListener('visibilitychange', syncViewerActivity);
+    }, { once: true });
+
     if (defaultView === 'model' && model && template) {
       if ('IntersectionObserver' in window) {
         observer = new IntersectionObserver(function (entries) {
           if (!entries[0] || !entries[0].isIntersecting) return;
           observer.disconnect();
           observer = null;
-          show('model');
+          scheduleDefaultModel();
         }, { rootMargin: '240px 0px', threshold: 0.01 });
         observer.observe(stage);
       } else {
