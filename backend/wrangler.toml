@@ -4,6 +4,7 @@ compatibility_date = "2026-10-01"
 
 [vars]
 SHOPIFY_SHOP_DOMAIN = "yszwe3-yd.myshopify.com"
+STOREFRONT_ORIGIN = "https://phamofficial.com"
 
 [[d1_databases]]
 binding = "PHAM_CAMPAIGN_DB"
