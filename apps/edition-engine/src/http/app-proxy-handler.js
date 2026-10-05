@@ -48,9 +48,7 @@ export async function handleCollectorProxyRequest({
       }
 
       const identity = await store.getIdentityPrivilege(reservation.id);
-      const referralConversionCount = Array.from(store.referralConversions?.values?.() || [])
-        .filter((item) => item.referrerReservationId === reservation.id && item.status !== 'revoked')
-        .length;
+      const referralConversionCount = await store.countVerifiedReferrals(reservation.id);
 
       return {
         status: 200,
