@@ -18,6 +18,17 @@ export function verifyShopifyWebhook(rawBody, hmacHeader, secret) {
   return timingSafeEqual(expected, provided);
 }
 
+export function normalizeShopifyCustomerId(customer) {
+  if (!customer) return '';
+  if (customer.id != null && String(customer.id).trim() !== '') {
+    return String(customer.id);
+  }
+
+  const gid = String(customer.admin_graphql_api_id || '').trim();
+  const match = gid.match(/\/Customer\/(\d+)$/);
+  return match ? match[1] : gid;
+}
+
 function propertyMap(properties = []) {
   const out = {};
   for (const property of properties || []) {
@@ -51,7 +62,7 @@ export function extractReservationOrder(order, {
 
   return {
     shopifyOrderId: String(order.admin_graphql_api_id || order.id || ''),
-    shopifyCustomerId: String(order.customer?.admin_graphql_api_id || order.customer?.id || ''),
+    shopifyCustomerId: normalizeShopifyCustomerId(order.customer),
     email: order.email || order.customer?.email || '',
     financialStatus: order.financial_status || '',
     currency: order.currency || '',
