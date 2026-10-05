@@ -48,6 +48,7 @@ export async function handleCollectorProxyRequest({
       }
 
       const identity = await store.getIdentityPrivilege(reservation.id);
+      const objectNumber = await store.getObjectNumberByReservation(reservation.id);
       const referralConversionCount = await store.countVerifiedReferrals(reservation.id);
 
       return {
@@ -65,6 +66,8 @@ export async function handleCollectorProxyRequest({
             collectorReferralCode: reservation.collectorReferralCode,
             paymentDeadline: reservation.paymentDeadline || null,
             balanceDueCents: reservation.balanceDueCents ?? null,
+            objectNumber,
+            lookbookStatus: reservation.lookbookStatus || 'pending',
           },
           identity: identity
             ? {
