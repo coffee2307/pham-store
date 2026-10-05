@@ -498,6 +498,48 @@ function mountCollector(root){
       // Keep Shopify metafield fallback visible if the engine is temporarily unavailable.
     });
 }
+function mountLiveCampaign(root){
+  if(root.dataset.phamLiveMounted === 'true') return;
+  root.dataset.phamLiveMounted = 'true';
+
+  var base = (root.dataset.backendUrl || '').replace(/\/$/, '');
+  var editionId = root.dataset.editionId || 'edition-01';
+  if(!base) return;
+
+  fetch(base + '/api/campaign?edition=' + encodeURIComponent(editionId), {
+    method:'GET',
+    headers:{'Accept':'application/json'}
+  })
+  .then(function(response){
+    if(!response.ok) throw new Error('Campaign backend unavailable');
+    return response.json();
+  })
+  .then(function(payload){
+    if(!payload || !payload.edition || !payload.counters) return;
+
+    var reservations = Number(payload.counters.reserved || 0);
+    var editionSize = Number(payload.edition.editionSize || 0);
+    var identities = Number(payload.counters.identityClaimed || 0);
+    var identityLimit = Number(payload.edition.identityLimit || 0);
+
+    var reservationText = root.querySelector('[data-pham-live-reservations]');
+    var identityText = root.querySelector('[data-pham-live-identity]');
+    var reservationMeter = root.querySelector('[data-pham-live-reservation-meter]');
+    var identityMeter = root.querySelector('[data-pham-live-identity-meter]');
+
+    if(reservationText) reservationText.textContent = reservations + ' / ' + editionSize;
+    if(identityText) identityText.textContent = identities + ' / ' + identityLimit;
+
+    if(reservationMeter && editionSize > 0){
+      reservationMeter.style.setProperty('--pc-progress', Math.min(100, reservations / editionSize * 100) + '%');
+    }
+    if(identityMeter && identityLimit > 0){
+      identityMeter.style.setProperty('--pc-progress', Math.min(100, identities / identityLimit * 100) + '%');
+    }
+  })
+  .catch(function(){ /* Theme settings remain the safe fallback. */ });
+}
+
 function mount(){
   captureReferral();
   qsa('[data-pham-identity-configurator]').forEach(mountIdentity);
@@ -505,6 +547,7 @@ function mount(){
   qsa('[data-pham-reservation-gateway]').forEach(mountReservation);
   qsa('[data-pham-standby]').forEach(mountStandby);
   qsa('[data-pham-collector-status]').forEach(mountCollector);
+  qsa('[data-pham-edition-campaign]').forEach(mountLiveCampaign);
 }
 
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount);
