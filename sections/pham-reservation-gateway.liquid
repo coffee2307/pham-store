@@ -3,10 +3,11 @@
 {%- capture state_raw -%}{%- render 'pham-campaign-state' -%}{%- endcapture -%}
 {%- assign state = state_raw | strip -%}
 {%- assign reservation_product = settings.pham_campaign_reservation_product -%}
+{%- assign commerce_ready = settings.pham_campaign_commerce_ready | default: false -%}
 
 <section class="pham-campaign-shell" data-pham-reservation-gateway>
   <div class="pham-campaign-inner">
-    {%- if state == 'prelaunch' -%}<span class="pham-campaign-draft">PRELAUNCH SKELETON · PAYMENT DISABLED</span>{%- endif -%}
+    {%- if state == 'prelaunch' or commerce_ready == false -%}<span class="pham-campaign-draft">PRELAUNCH SKELETON · PAYMENT DISABLED</span>{%- endif -%}
     <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · PRIORITY RESERVATION</p>
     <h1 class="pham-campaign-title">Reserve<br>{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</h1>
     <p class="pham-campaign-lede">Priority Reservation is designed as a paid allocation toward a numbered object, not a standard free mailing-list signup.</p>
@@ -33,10 +34,10 @@
         </div>
 
         <div class="pham-campaign-actions">
-          {%- if state == 'reservation_open' and reservation_product != blank -%}
+          {%- if state == 'reservation_open' and commerce_ready and reservation_product != blank -%}
             <a class="pham-campaign-btn is-disabled" data-pham-consent-action aria-disabled="true" tabindex="-1" href="{{ reservation_product.url }}">Continue to reservation</a>
           {%- else -%}
-            <span class="pham-campaign-btn" aria-disabled="true">{% if state == 'reservation_full' %}Reservation full{% else %}Reservation not open{% endif %}</span>
+            <span class="pham-campaign-btn" aria-disabled="true">{% if state == 'reservation_full' %}Reservation full{% elsif commerce_ready == false %}Commerce not ready{% else %}Reservation not open{% endif %}</span>
           {%- endif -%}
           {%- if settings.pham_campaign_terms_page_url != blank -%}<a class="pham-campaign-btn pham-campaign-btn--ghost" href="{{ settings.pham_campaign_terms_page_url }}">Edition terms</a>{%- endif -%}
         </div>
