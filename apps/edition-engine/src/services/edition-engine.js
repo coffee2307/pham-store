@@ -166,23 +166,75 @@ export class EditionEngine {
     return updated;
   }
 
-  async markFinalPaid({ editionId, reservationId, paidAt = new Date() }) {
-    const reservation = await this.store.getReservation(reservationId);
-    if (!reservation || reservation.editionId !== editionId) throw new Error('reservation_not_found');
-    if (reservation.status !== ReservationStatus.FINAL_PAYMENT_OPEN) {
-      throw new Error('final_payment_not_open');
-    }
-    if (reservation.paymentDeadline && isDeadlineExpired(reservation.paymentDeadline, new Date(paidAt))) {
-      throw new Error('payment_window_expired');
-    }
+  async markFinalPaid({
+    editionId,
+    reservationId,
+    shopifyOrderId,
+    paidAt = new Date(),
+  }) {
+    if (!shopifyOrderId) throw new Error('missing_final_shopify_order_id');
 
-    const updated = await this.store.updateReservation(reservationId, {
-      status: ReservationStatus.FINAL_PAID,
-      finalPaidAt: new Date(paidAt).toISOString(),
+    const updated = await this.store.markFinalPaidAtomic({
+      editionId,
+      reservationId,
+      shopifyOrderId,
+      paidAt: new Date(paidAt).toISOString(),
     });
 
-    await this.store.recordEvent('final_payment.paid', { editionId, reservationId });
+    await this.store.recordEvent('final_payment.paid', {
+      editionId,
+      reservationId,
+      shopifyOrderId,
+    });
     return updated;
+  }
+
+  async convertStandbyPayment({
+    editionId,
+    standbyEntryId,
+    customerId,
+    shopifyOrderId,
+    finalPriceCents,
+    paidAt = new Date(),
+  }) {
+    if (!standbyEntryId) throw new Error('missing_standby_entry_id');
+    if (!customerId) throw new Error('missing_customer_id');
+    if (!shopifyOrderId) throw new Error('missing_shopify_order_id');
+
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const collectorReferralCode = generateReferralCode();
+
+      try {
+        const reservation = await this.store.convertStandbyToReservation({
+          editionId,
+          standbyEntryId,
+          reservationId:
+            'PHAM-S-' + Date.now().toString(36).toUpperCase() + '-' +
+            collectorReferralCode.slice(0, 4),
+          customerId,
+          shopifyOrderId,
+          finalPriceCents,
+          collectorReferralCode,
+          paidAt: new Date(paidAt).toISOString(),
+        });
+
+        await this.store.recordEvent('standby.converted', {
+          editionId,
+          reservationId: reservation.id,
+          standbyEntryId,
+          customerId,
+          shopifyOrderId,
+        });
+
+        return reservation;
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : '';
+        if (reason === 'referral_code_exists') continue;
+        throw error;
+      }
+    }
+
+    throw new Error('referral_code_generation_failed');
   }
 
   async expireReservation({
