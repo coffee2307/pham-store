@@ -41,6 +41,8 @@ function mountIdentity(root){
   var outInscription = root.querySelector('[data-pham-preview-inscription]');
   var outNumber = root.querySelector('[data-pham-preview-number]');
   var count = root.querySelector('[data-pham-inscription-count]');
+  var numberInput = root.querySelector('[data-pham-id-number-input]');
+  var submit = root.querySelector('[data-pham-identity-submit]');
   var buttons = qsa('[data-pham-object-number]', root);
 
   function sync(){
@@ -61,9 +63,12 @@ function mountIdentity(root){
       btn.classList.add('is-selected');
       btn.setAttribute('aria-pressed', 'true');
       if(outNumber) outNumber.textContent = btn.dataset.phamObjectNumber + '/' + (root.dataset.editionSize || '50');
+      if(numberInput) numberInput.value = btn.dataset.phamObjectNumber || '';
+      if(submit) submit.disabled = !numberInput || numberInput.value === '';
     });
   });
 
+  if(submit) submit.disabled = !numberInput || numberInput.value === '';
   sync();
 }
 
