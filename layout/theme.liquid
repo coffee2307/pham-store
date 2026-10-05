@@ -103,6 +103,10 @@
     </footer>
 
     {% comment %}CUSTOM_PHAM_SCRIPTS_START{% endcomment %}
+    {%- if settings.pham_campaign_enabled -%}
+      {%- render 'pham-campaign-context' -%}
+      <script src="{{ 'pham-campaign.js' | asset_url }}" defer></script>
+    {%- endif -%}
     {%- render 'pham-post-login-redirect' -%}
     {% if request.page_type == 'policy' or request.path contains '/policies/' %}
       {% # theme-check-disable ParserBlockingScript %}
