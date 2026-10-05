@@ -1,0 +1,89 @@
+{{ 'pham-campaign.css' | asset_url | stylesheet_tag }}
+{%- capture state_raw -%}{%- render 'pham-campaign-state' -%}{%- endcapture -%}
+{%- assign state = state_raw | strip -%}
+{%- assign edition_size = settings.pham_campaign_edition_size | default: 50 -%}
+{%- assign claimed = settings.pham_campaign_reservations_claimed | default: 0 -%}
+{%- assign identity_limit = settings.pham_campaign_identity_limit | default: 15 -%}
+{%- assign identity_claimed = settings.pham_campaign_identity_claimed | default: 0 -%}
+{%- assign reservation_progress = 0 -%}
+{%- if edition_size > 0 -%}{%- assign reservation_progress = claimed | times: 100.0 | divided_by: edition_size -%}{%- endif -%}
+{%- assign identity_progress = 0 -%}
+{%- if identity_limit > 0 -%}{%- assign identity_progress = identity_claimed | times: 100.0 | divided_by: identity_limit -%}{%- endif -%}
+{%- case state -%}
+  {%- when 'reservation_open' -%}{%- assign state_label = 'PRIORITY RESERVATION OPEN' -%}
+  {%- when 'reservation_full' -%}{%- assign state_label = 'PRIORITY RESERVATION CLOSED · STANDBY OPEN' -%}
+  {%- when 'final_payment' -%}{%- assign state_label = 'ACQUISITION WINDOW OPEN' -%}
+  {%- when 'sold_out' -%}{%- assign state_label = 'EDITION CLOSED' -%}
+  {%- when 'archived' -%}{%- assign state_label = 'ARCHIVED' -%}
+  {%- else -%}{%- assign state_label = 'PRELAUNCH · SYSTEM IN PREPARATION' -%}
+{%- endcase -%}
+
+<section class="pham-campaign-shell" data-pham-edition-campaign>
+  <div class="pham-campaign-inner">
+    <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · {{ state_label }}</p>
+    <h1 class="pham-campaign-title">{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</h1>
+    <p class="pham-campaign-lede">{{ section.settings.intro }}</p>
+
+    <div class="pham-campaign-grid">
+      <article class="pham-campaign-card pham-campaign-card--wide">
+        <p class="pham-campaign-mono">Edition allocation</p>
+        <div class="pham-campaign-stat"><strong>{{ claimed }} / {{ edition_size }}</strong><span>Reserved</span></div>
+        <div class="pham-campaign-meter" style="--pc-progress: {{ reservation_progress | at_most: 100 }}%"><i></i></div>
+        <div class="pham-campaign-actions">
+          {%- if state == 'reservation_open' and settings.pham_campaign_reservation_page_url != blank -%}
+            <a class="pham-campaign-btn" href="{{ settings.pham_campaign_reservation_page_url }}">Reserve {{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</a>
+          {%- elsif state == 'reservation_full' and settings.pham_campaign_standby_page_url != blank -%}
+            <a class="pham-campaign-btn" href="{{ settings.pham_campaign_standby_page_url }}">Join standby · free</a>
+          {%- elsif state == 'final_payment' and settings.pham_campaign_collector_page_url != blank -%}
+            <a class="pham-campaign-btn" href="{{ settings.pham_campaign_collector_page_url }}">Collector access</a>
+          {%- else -%}
+            <span class="pham-campaign-btn" aria-disabled="true">Not yet open</span>
+          {%- endif -%}
+        </div>
+      </article>
+
+      <article class="pham-campaign-card">
+        <p class="pham-campaign-mono">Object Identity</p>
+        <div class="pham-campaign-stat"><strong>{{ identity_claimed }} / {{ identity_limit }}</strong><span>Privileges</span></div>
+        <div class="pham-campaign-meter" style="--pc-progress: {{ identity_progress | at_most: 100 }}%"><i></i></div>
+        <p style="margin-top:20px">Custom stainless-steel identity, preferred object-number request and QR provenance. Unlock by paid upgrade or one verified reservation referral while the shared pool remains available.</p>
+      </article>
+
+      <article class="pham-campaign-card">
+        <h2>Reserve</h2>
+        <ul class="pham-campaign-list">
+          <li><span>Due at reservation</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></li>
+          <li><span>Edition price</span><strong>{{ settings.pham_campaign_final_price | default: '$199.00' }}</strong></li>
+          <li><span>Balance after credit</span><strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></li>
+        </ul>
+      </article>
+
+      <article class="pham-campaign-card">
+        <h2>Digital Access</h2>
+        <p>{% if settings.pham_campaign_include_digital_lookbook %}A confirmed reservation includes the {{ settings.pham_campaign_digital_lookbook_label | default: 'edition-exclusive digital lookbook' }}, delivered by email after payment confirmation.{% else %}Digital collector material can be attached to this edition later.{% endif %}</p>
+      </article>
+
+      <article class="pham-campaign-card">
+        <h2>Founder’s Token</h2>
+        <p>Edition 01 is designed around 50 collector tokens: 49 silver-tone and one gold-tone token. Final allocation mechanics remain prelaunch until legal and fulfillment review are complete.</p>
+      </article>
+    </div>
+  </div>
+</section>
+{%- render 'pham-campaign-context' -%}
+
+{% schema %}
+{
+  "name": "PHAM Edition Campaign",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro",
+      "default": "A numbered PHAM object released through a controlled reservation, identity and provenance system. The same architecture is designed to continue across future editions."
+    }
+  ],
+  "presets": [{"name": "PHAM Edition Campaign"}]
+}
+{% endschema %}
