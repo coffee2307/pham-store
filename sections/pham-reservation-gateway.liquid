@@ -47,7 +47,7 @@
         <ul class="pham-campaign-list">
           <li><span>Due today</span><strong data-pham-reservation-total>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></li>
           <li><span>Credited toward object</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></li>
-          <li><span>Remaining at release</span><strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></li>
+          <li><span>Remaining product balance</span><strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></li>
           <li><span>Acquisition window</span><strong>{{ settings.pham_campaign_payment_window_hours | default: 72 }} HOURS</strong></li>
         </ul>
 
@@ -82,7 +82,7 @@
         </div>
 
         <div class="pham-campaign-consent">
-          <label><input type="checkbox" data-pham-required-consent> <span>I understand the reservation credit, final balance and {{ settings.pham_campaign_payment_window_hours | default: 72 }}-hour acquisition window.</span></label>
+          <label><input type="checkbox" data-pham-required-consent> <span>I understand the reservation credit, remaining product balance and {{ settings.pham_campaign_payment_window_hours | default: 72 }}-hour acquisition window. Shipping, taxes and duties may apply at final checkout.</span></label>
           {%- if settings.pham_campaign_include_digital_lookbook -%}
             <label><input type="checkbox" data-pham-required-consent> <span>I request delivery of the digital lookbook after payment and understand that digital-content rights can vary by jurisdiction.</span></label>
           {%- endif -%}
@@ -105,7 +105,7 @@
 
       <article class="pham-campaign-card">
         <h2>Object Identity</h2>
-        <p>Add the stainless-steel Object Identity privilege for {{ settings.pham_campaign_identity_price | default: '$5.00' }}, subject to the shared {{ settings.pham_campaign_identity_limit | default: 15 }}-privilege cap. The same privilege can be unlocked through one verified successful reservation referral.</p>
+        <p>Add the stainless-steel Object Identity privilege for {{ settings.pham_campaign_identity_price | default: '$5.00' }}, subject to the shared {{ settings.pham_campaign_identity_limit | default: 15 }}-privilege cap. This add-on is separate from the {{ settings.pham_campaign_reservation_price | default: '$24.99' }} product credit and is not deducted from the final object price. The same privilege can be unlocked through one verified successful reservation referral.</p>
       </article>
 
       <article class="pham-campaign-card">
