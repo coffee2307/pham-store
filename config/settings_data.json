@@ -380,7 +380,10 @@
     "pham_campaign_referral_page_url": "/pages/referral",
     "pham_campaign_collector_page_url": "/pages/reservation-status",
     "pham_campaign_standby_page_url": "/pages/standby",
-    "pham_campaign_terms_page_url": "/pages/edition-01-terms"
+    "pham_campaign_terms_page_url": "/pages/edition-01-terms",
+    "pham_campaign_commerce_ready": false,
+    "pham_campaign_reservation_product": "pham-001-priority-reservation",
+    "pham_campaign_identity_product": "pham-object-identity"
   },
   "presets": {
     "Horizon": {
