@@ -28,6 +28,8 @@ The active state is controlled under Theme Settings → PHAM · Current Edition 
 - Standby: free
 - Standby promoted price: full $199.00
 - Planned standby offer window: 48 hours
+- Canonical size set: XS / S / M / L / XL
+- Final payment: exact Shopify variant must match the collector's stored Size Preference
 
 All values remain configurable for future editions.
 
@@ -123,7 +125,10 @@ Core entities:
 - status
 - reservation_paid
 - balance_due
+- size_preference
+- final_variant_id
 - payment_deadline
+- final_shopify_order_id
 - object_id
 - created_at
 
@@ -146,6 +151,10 @@ Core entities:
 ### Standby
 - edition_id
 - customer_id
+- email
+- country
+- size_preference
+- final_variant_id
 - position
 - status
 - promoted_at
@@ -167,6 +176,9 @@ Core entities:
 - One referred reservation can reward one referrer only.
 - Standby is FIFO unless a future edition publishes another rule.
 - A promoted standby customer receives no reservation credit and pays full price.
+- Size options published by the live Edition Engine are the runtime source of truth when ENGINE ENABLED is on.
+- A final or standby invoice must use the exact Shopify variant mapped to the stored Size Preference; missing or ambiguous mappings fail closed.
+- Campaign payment webhooks must validate quantities, expected prices, discounts, customer binding and active deadlines before changing reservation state.
 - QR authentication must use an unpredictable signed/tokenized route; sequential URLs alone are not proof of authenticity.
 
 ## Theme-read customer metafields
@@ -178,6 +190,7 @@ The MVP UI is ready to read:
 - pham.current_reservation_status
 - pham.current_object_number
 - pham.identity_status
+- pham.size_preference
 - pham.payment_deadline
 
 ## Provenance page metafields
