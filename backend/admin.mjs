@@ -104,6 +104,25 @@ switch(command){
     break;
   }
 
+  case 'assign-variant': {
+    const reservationId = valueArg('--reservation');
+    const variantId = valueArg('--variant');
+    if(!reservationId){
+      fail('Provide --reservation=<PHAM reservation ID>.');
+    }
+    if(!variantId){
+      fail('Provide --variant=<Shopify ProductVariant GID>.');
+    }
+    await request('/internal/reservation/variant', {
+      method:'POST',
+      body:{
+        reservationId,
+        variantId
+      }
+    });
+    break;
+  }
+
   case 'open-final-payment':
     await request('/internal/final-payment/open', {
       method:'POST',
@@ -162,6 +181,7 @@ Commands:
   node admin.mjs readiness [--edition=edition-01]
   node admin.mjs set-state --state=reservation_open --confirm [--edition=edition-01]
   node admin.mjs mark-lookbook --reservation=PHAM-R-... --status=delivered
+  node admin.mjs assign-variant --reservation=PHAM-R-... --variant=gid://shopify/ProductVariant/...
   node admin.mjs open-final-payment [--edition=edition-01]
   node admin.mjs promote-standby [--edition=edition-01]
   node admin.mjs finalize-objects --confirm [--edition=edition-01]
