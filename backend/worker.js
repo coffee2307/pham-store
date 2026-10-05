@@ -2762,7 +2762,7 @@ export function assertDraftOrderPricing(draftOrder, {
 
 export function validatePriorityReservationOrder({ order, edition }) {
   if (!order || !edition) throw new Error('reservation_payment_validation_missing_input');
-  if (order.financial_status && order.financial_status !== 'paid') {
+  if (String(order.financial_status || '').toLowerCase() !== 'paid') {
     throw new Error('reservation_order_not_paid');
   }
 
@@ -2878,6 +2878,9 @@ export function validatePriorityReservationOrder({ order, edition }) {
 
 export function validateStandbyAcquisitionOrder({ order, standby, edition }) {
   if (!order || !standby || !edition) throw new Error('standby_payment_validation_missing_input');
+  if (String(order.financial_status || '').toLowerCase() !== 'paid') {
+    throw new Error('standby_order_not_paid');
+  }
   if (standby.status !== 'promoted') throw new Error('standby_offer_not_active');
 
   const paidAtValue = order.processed_at || order.created_at || '';
@@ -2958,6 +2961,9 @@ export function validateStandbyAcquisitionOrder({ order, standby, edition }) {
 
 export function validateFinalAcquisitionOrder({ order, reservation, edition }) {
   if (!order || !reservation || !edition) throw new Error('final_payment_validation_missing_input');
+  if (String(order.financial_status || '').toLowerCase() !== 'paid') {
+    throw new Error('final_order_not_paid');
+  }
   if (reservation.status !== 'final_payment_open') throw new Error('final_payment_not_open');
 
   const paidAtValue = order.processed_at || order.created_at || '';
