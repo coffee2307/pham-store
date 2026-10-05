@@ -51,7 +51,7 @@ test('reservation order mapper extracts reservation, identity, lookbook and refe
   });
 
   assert.equal(mapped.shopifyOrderId, 'gid://shopify/Order/1');
-  assert.equal(mapped.shopifyCustomerId, 'gid://shopify/Customer/1');
+  assert.equal(mapped.shopifyCustomerId, '1');
   assert.equal(mapped.reservationAmount, '24.99');
   assert.equal(mapped.editionLabel, 'EDITION 01');
   assert.equal(mapped.productCode, 'PHAM-001');
