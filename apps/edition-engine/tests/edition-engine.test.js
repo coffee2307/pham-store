@@ -232,6 +232,7 @@ test('standby full-price payment converts offered entry into final-paid collecto
     editionId: 'edition-01',
     customerId: 'STANDBY-1',
     email: 'standby@example.com',
+    size: 'L',
   });
 
   const queue = store.standby.get('edition-01');
@@ -247,6 +248,7 @@ test('standby full-price payment converts offered entry into final-paid collecto
     customerId: 'gid://shopify/Customer/99',
     shopifyOrderId: 'gid://shopify/Order/99',
     finalPriceCents: 19900,
+    finalVariantId: 'gid://shopify/ProductVariant/L',
     paidAt: new Date('2026-10-09T00:00:00.000Z'),
   });
 
@@ -254,6 +256,8 @@ test('standby full-price payment converts offered entry into final-paid collecto
   assert.equal(converted.acquisitionType, 'standby');
   assert.equal(converted.reservationPaidCents, 0);
   assert.equal(converted.balanceDueCents, 19900);
+  assert.equal(converted.sizePreference, 'L');
+  assert.equal(converted.finalVariantId, 'gid://shopify/ProductVariant/L');
   assert.equal(converted.lookbookStatus, 'not_included');
 
   const edition = await store.getEdition('edition-01');
