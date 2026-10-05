@@ -330,6 +330,87 @@ export class PostgresStore {
     return mapIdentity(result.rows[0]);
   }
 
+  async configureIdentityWithObject({
+    editionId,
+    reservationId,
+    number,
+    configuration,
+  }) {
+    try {
+      return await this.withTransaction(async (client) => {
+        const privilegeResult = await client.query(
+          `select * from identity_privileges
+            where reservation_id = $1
+            for update`,
+          [reservationId]
+        );
+        const privilege = privilegeResult.rows[0];
+        if (!privilege) throw new Error('identity_not_claimed');
+
+        const editionResult = await client.query(
+          'select edition_size from editions where id = $1',
+          [editionId]
+        );
+        const edition = editionResult.rows[0];
+        if (!edition) throw new Error('edition_not_found');
+
+        if (!Number.isInteger(number) || number < 1 || number > edition.edition_size) {
+          throw new Error('object_number_out_of_range');
+        }
+
+        const existingObject = await client.query(
+          `select object_number from objects
+            where reservation_id = $1
+            for update`,
+          [reservationId]
+        );
+
+        if (
+          existingObject.rows[0] &&
+          existingObject.rows[0].object_number !== number
+        ) {
+          throw new Error('reservation_already_has_object');
+        }
+
+        if (!existingObject.rows[0]) {
+          await client.query(
+            `insert into objects (
+              edition_id,
+              object_number,
+              reservation_id,
+              assigned_at
+            ) values ($1,$2,$3,now())`,
+            [editionId, number, reservationId]
+          );
+        }
+
+        const updated = await client.query(
+          `update identity_privileges
+              set alias = $2,
+                  inscription = $3,
+                  public_identity = $4,
+                  status = 'configured',
+                  configured_at = now()
+            where reservation_id = $1
+            returning *`,
+          [
+            reservationId,
+            configuration.alias || '',
+            configuration.inscription || '',
+            Boolean(configuration.publicIdentity),
+          ]
+        );
+
+        return mapIdentity({
+          ...updated.rows[0],
+          object_number: number,
+        });
+      });
+    } catch (error) {
+      throw translateUnique(error);
+    }
+  }
+
   async configureIdentity(reservationId, configuration) {
     const result = await this.db.query(
       `update identity_privileges
