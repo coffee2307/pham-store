@@ -515,6 +515,74 @@ function mountCollector(root){
       // Keep Shopify metafield fallback visible if the engine is temporarily unavailable.
     });
 }
+function mountProvenance(root){
+  if(root.dataset.phamProvenanceMounted === 'true') return;
+  root.dataset.phamProvenanceMounted = 'true';
+
+  if(root.dataset.engineEnabled !== 'true') return;
+
+  var params = new URLSearchParams(window.location.search);
+  var token = params.get('token') || '';
+  if(!token) return;
+
+  var result = root.querySelector('[data-pham-provenance-result]');
+
+  proxyRequest(root, '/provenance?token=' + encodeURIComponent(token))
+    .then(function(payload){
+      var object = payload.object || {};
+      var product = root.querySelector('[data-pham-provenance-product]');
+      var number = root.querySelector('[data-pham-provenance-number]');
+      var auth = root.querySelector('[data-pham-provenance-auth]');
+      var edition = root.querySelector('[data-pham-provenance-edition]');
+      var design = root.querySelector('[data-pham-provenance-design-origin]');
+      var designCopy = root.querySelector('[data-pham-provenance-design-origin-copy]');
+      var production = root.querySelector('[data-pham-provenance-production-origin]');
+      var assignment = root.querySelector('[data-pham-provenance-assignment]');
+      var identity = root.querySelector('[data-pham-provenance-identity]');
+      var tokenType = root.querySelector('[data-pham-provenance-token]');
+
+      if(product) product.textContent = object.productCode || 'PHAM OBJECT';
+      if(number){
+        number.textContent = 'OBJECT ' +
+          String(object.objectNumber || '—').padStart(2,'0') +
+          ' / ' + String(object.editionSize || '—');
+      }
+      if(auth) auth.textContent = payload.authenticated ? 'AUTHENTICATED' : 'UNVERIFIED';
+      if(edition) edition.textContent = object.editionLabel || '';
+      if(design) design.textContent = object.designOrigin || '';
+      if(designCopy) designCopy.textContent = object.designOrigin || '';
+      if(production) production.textContent = object.productionOrigin || '';
+      if(assignment){
+        assignment.textContent = 'Assigned as Object ' +
+          String(object.objectNumber || '—').padStart(2,'0') +
+          ' / ' + String(object.editionSize || '—') + '.';
+      }
+      if(identity){
+        identity.textContent = object.publicIdentity ||
+          'Collector identity is private unless the collector explicitly opts into public display.';
+      }
+      if(tokenType){
+        tokenType.textContent = String(object.tokenType || 'pending_allocation')
+          .replace(/_/g,' ')
+          .toUpperCase();
+      }
+      if(result){
+        result.textContent = 'AUTHENTIC PROVENANCE RECORD · TOKEN VERIFIED';
+        result.hidden = false;
+      }
+    })
+    .catch(function(error){
+      if(result){
+        result.textContent = 'PROVENANCE NOT VERIFIED · ' +
+          (error.code === 'provenance_not_found' ? 'TOKEN NOT RECOGNIZED' : 'UNABLE TO VERIFY TOKEN');
+        result.hidden = false;
+      }
+
+      var auth = root.querySelector('[data-pham-provenance-auth]');
+      if(auth) auth.textContent = 'UNVERIFIED';
+    });
+}
+
 function mountLiveCampaign(root){
   if(root.dataset.phamLiveMounted === 'true') return;
   root.dataset.phamLiveMounted = 'true';
@@ -558,6 +626,7 @@ function mount(){
   qsa('[data-pham-standby]').forEach(mountStandby);
   qsa('[data-pham-collector-status]').forEach(mountCollector);
   qsa('[data-pham-edition-campaign]').forEach(mountLiveCampaign);
+  qsa('[data-pham-provenance-record]').forEach(mountProvenance);
 }
 
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount);
