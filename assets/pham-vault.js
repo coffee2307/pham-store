@@ -476,9 +476,18 @@
       const coreShiftY = currentPointerY * -6 * currentPointerPresence;
       const coreTiltX = currentPointerY * -1.8 * currentPointerPresence;
       const coreTiltY = currentPointerX * 2.8 * currentPointerPresence;
-      const coreScale = 1 + pointerEnergy * 0.012 + (scrollZoom - 1) * 0.16;
+      // One restrained scroll pulse: PHAM grows slightly while the card
+      // surfaces become translucent, then both return to their neutral state.
+      const scrollEmphasis = reducedMotion ? 0 : Math.sin(Math.PI * smoothProgress);
+      const coreScale =
+        1 +
+        pointerEnergy * 0.012 +
+        (scrollZoom - 1) * 0.16 +
+        scrollEmphasis * 0.085;
+      const cardContentOpacity = 1 - scrollEmphasis * 0.48;
 
       root.style.setProperty('--vault-pointer-energy', pointerEnergy.toFixed(3));
+      root.style.setProperty('--vault-card-content-opacity', cardContentOpacity.toFixed(3));
       root.style.setProperty('--vault-scroll-zoom', scrollZoom.toFixed(4));
       root.style.setProperty('--vault-scroll-spacing', scrollSpacing.toFixed(4));
 
