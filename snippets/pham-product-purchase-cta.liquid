@@ -8,7 +8,41 @@
   @param section {Section} — for section-level labels
   @param style {String} — "main" (default) | "spotlight"
 {%- endcomment -%}
+{%- capture pham_campaign_state_raw -%}{%- render 'pham-campaign-state' -%}{%- endcapture -%}
 {%- liquid
+  assign pham_campaign_state = pham_campaign_state_raw | strip
+  assign campaign_cta_active = false
+  assign campaign_cta_url = blank
+  assign campaign_cta_label = blank
+  assign campaign_cta_price = blank
+
+  if settings.pham_campaign_enabled and pham_campaign_state != 'prelaunch'
+    assign campaign_cta_active = true
+    case pham_campaign_state
+      when 'reservation_open'
+        assign campaign_cta_url = settings.pham_campaign_reservation_page_url
+        assign campaign_cta_label = 'RESERVE PRIORITY ACCESS'
+        assign campaign_cta_price = settings.pham_campaign_reservation_price
+      when 'reservation_full'
+        assign campaign_cta_url = settings.pham_campaign_standby_page_url
+        assign campaign_cta_label = 'JOIN STANDBY'
+        assign campaign_cta_price = 'FREE'
+      when 'final_payment'
+        assign campaign_cta_url = settings.pham_campaign_collector_page_url
+        assign campaign_cta_label = 'COLLECTOR ACCESS'
+        assign campaign_cta_price = settings.pham_campaign_balance_due
+      when 'sold_out'
+        assign campaign_cta_url = settings.pham_campaign_edition_page_url
+        assign campaign_cta_label = 'VIEW EDITION'
+      when 'archived'
+        assign campaign_cta_url = settings.pham_campaign_edition_page_url
+        assign campaign_cta_label = 'VIEW ARCHIVE'
+    endcase
+    if campaign_cta_url == blank
+      assign campaign_cta_active = false
+    endif
+  endif
+
   assign cta_style = style | default: 'main'
   assign direct_purchase = settings.pham_direct_purchase_when_closed
   if direct_purchase == nil
@@ -39,7 +73,30 @@
   endcapture
 -%}
 
-{%- if pham_preorder_open -%}
+{%- if campaign_cta_active -%}
+  {%- if cta_style == 'spotlight' -%}
+    <a href="{{ campaign_cta_url }}"
+       class="pham-product-spotlight__add"
+       data-pham-campaign-cta>
+      <span class="pham-product-spotlight__add-fill" aria-hidden="true"></span>
+      <span class="pham-product-spotlight__add-text">
+        <span class="pham-product-spotlight__add-label">{{ campaign_cta_label }}</span>
+        <span class="pham-product-spotlight__add-price">{% if campaign_cta_price != blank %}{{ campaign_cta_price }}{% else %}{{ current_variant.price | money }}{% endif %}</span>
+      </span>
+    </a>
+  {%- else -%}
+    <a href="{{ campaign_cta_url }}"
+       class="pham-product-main__cta pham-product-main__cta--preorder"
+       data-pham-campaign-cta>
+      <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
+      <span class="pham-product-main__cta-inner">
+        <span class="pham-product-main__cta-label">{{ campaign_cta_label }}</span>
+        <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
+      </span>
+    </a>
+  {%- endif -%}
+
+{%- elsif pham_preorder_open -%}
   {%- if cta_style == 'spotlight' -%}
     <a href="{{ waitlist_variant_url | escape }}"
        class="pham-product-spotlight__add"
