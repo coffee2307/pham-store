@@ -34,7 +34,10 @@
   data-identity-price-cents="{{ identity_variant.price | default: 500 }}"
   data-currency="{{ cart.currency.iso_code | default: localization.country.currency.iso_code | default: 'USD' }}"
   data-edition="{{ settings.pham_campaign_edition_label | default: 'EDITION 01' | escape }}"
-  data-product-code="{{ settings.pham_campaign_product_code | default: 'PHAM-001' | escape }}">
+  data-product-code="{{ settings.pham_campaign_product_code | default: 'PHAM-001' | escape }}"
+  data-edition-id="{{ settings.pham_campaign_edition_id | default: 'edition-01' | escape }}"
+  data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
+  data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
     {%- if state == 'prelaunch' or commerce_ready == false -%}<span class="pham-campaign-draft">PRELAUNCH SKELETON · PAYMENT DISABLED</span>{%- endif -%}
     <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · PRIORITY RESERVATION</p>
