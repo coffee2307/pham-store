@@ -16,7 +16,7 @@
 {%- assign identity_limit = settings.pham_campaign_identity_limit | default: 15 -%}
 {%- assign identity_claimed = settings.pham_campaign_identity_claimed | default: 0 -%}
 {%- assign identity_open = true -%}
-{%- if identity_claimed >= identity_limit or identity_product == blank or identity_variant == blank -%}{%- assign identity_open = false -%}{%- endif -%}
+{%- if identity_claimed >= identity_limit or identity_product == blank or identity_variant == blank or identity_variant.available == false -%}{%- assign identity_open = false -%}{%- endif -%}
 {%- assign can_checkout = false -%}
 {%- if commerce_ready and digital_delivery_ready and reservation_variant != blank -%}
   {%- if settings.pham_campaign_engine_enabled or state == 'reservation_open' -%}
