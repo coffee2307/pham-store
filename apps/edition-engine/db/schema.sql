@@ -36,6 +36,9 @@ create table if not exists reservations (
   status text not null check (status in (
     'active','final_payment_open','final_paid','expired','cancelled','fulfilled','archived'
   )),
+  acquisition_type text not null default 'priority_reservation' check (
+    acquisition_type in ('priority_reservation','standby')
+  ),
   reservation_paid_cents integer not null check (reservation_paid_cents >= 0),
   balance_due_cents integer check (balance_due_cents is null or balance_due_cents >= 0),
   referral_code_used text,
@@ -47,6 +50,7 @@ create table if not exists reservations (
   final_payment_opened_at timestamptz,
   payment_deadline timestamptz,
   final_payment_shopify_draft_order_id text,
+  final_payment_shopify_order_id text unique,
   final_payment_url text,
   final_paid_at timestamptz,
   expired_at timestamptz,
