@@ -9,6 +9,29 @@ export default {
         return new Response(null, { status: 204, headers: corsHeaders() });
       }
 
+      if (['/campaign', '/status', '/identity/configure', '/standby/join'].includes(url.pathname)) {
+        const proxyAuth = await verifyAppProxyRequest(url, env.SHOPIFY_API_SECRET);
+        if (!proxyAuth.ok) return json({ ok: false, error: proxyAuth.error }, proxyAuth.status);
+
+        if (request.method === 'GET' && url.pathname === '/campaign') {
+          return getCampaign(env, url.searchParams.get('edition') || 'edition-01');
+        }
+
+        if (request.method === 'GET' && url.pathname === '/status') {
+          return getCollectorStatus(env, proxyAuth.customerId, url.searchParams.get('edition') || 'edition-01');
+        }
+
+        if (request.method === 'POST' && url.pathname === '/identity/configure') {
+          return configureIdentity(request, env, proxyAuth.customerId, url.searchParams.get('edition') || 'edition-01');
+        }
+
+        if (request.method === 'POST' && url.pathname === '/standby/join') {
+          return joinStandbyProxy(request, env, proxyAuth.customerId, url.searchParams.get('edition') || 'edition-01');
+        }
+
+        return json({ ok: false, error: 'method_not_allowed' }, 405);
+      }
+
       if (request.method === 'GET' && url.pathname === '/health') {
         return json({ ok: true, service: 'pham-campaign' });
       }
@@ -72,6 +95,210 @@ function requireInternalKey(request, env) {
   }
 }
 
+async function verifyAppProxyRequest(url, secret) {
+  if (!secret) return { ok: false, error: 'proxy_not_configured', status: 503 };
+
+  const provided = url.searchParams.get('signature') || '';
+  if (!provided) return { ok: false, error: 'invalid_signature', status: 401 };
+
+  const timestamp = Number(url.searchParams.get('timestamp') || 0);
+  const now = Math.floor(Date.now() / 1000);
+  if (!timestamp || Math.abs(now - timestamp) > 300) {
+    return { ok: false, error: 'stale_request', status: 401 };
+  }
+
+  const pairs = [];
+  for (const [key, value] of url.searchParams.entries()) {
+    if (key === 'signature') continue;
+    pairs.push([key, value]);
+  }
+  pairs.sort(function(a, b) {
+    if (a[0] === b[0]) return a[1].localeCompare(b[1]);
+    return a[0].localeCompare(b[0]);
+  });
+
+  const message = pairs.map(function(pair) {
+    return pair[0] + '=' + pair[1];
+  }).join('');
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message));
+  const expected = bytesToHex(new Uint8Array(signature));
+
+  if (!timingSafeEqual(expected, provided.toLowerCase())) {
+    return { ok: false, error: 'invalid_signature', status: 401 };
+  }
+
+  const rawCustomerId = url.searchParams.get('logged_in_customer_id') || '';
+  return {
+    ok: true,
+    customerId: rawCustomerId ? toGid('Customer', rawCustomerId) : null,
+    shop: url.searchParams.get('shop') || ''
+  };
+}
+
+async function getCollectorStatus(env, customerId, editionId) {
+  if (!customerId) return json({ ok: false, error: 'customer_login_required' }, 401);
+
+  const reservation = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT *
+     FROM reservations
+     WHERE edition_id = ? AND shopify_customer_id = ?
+     ORDER BY created_at DESC
+     LIMIT 1`
+  ).bind(editionId, customerId).first();
+
+  if (!reservation) return json({ ok: false, error: 'reservation_not_found' }, 404);
+
+  const identity = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM identity_claims WHERE reservation_id = ?'
+  ).bind(reservation.id).first();
+
+  const verifiedCount = await scalar(
+    env,
+    "SELECT COUNT(*) AS count FROM referrals WHERE referrer_reservation_id = ? AND status = 'verified'",
+    reservation.id
+  );
+
+  return json({
+    ok: true,
+    reservation: {
+      id: reservation.id,
+      status: reservation.status,
+      objectNumber: reservation.object_number,
+      balanceDueCents: reservation.balance_due_cents,
+      paymentDeadline: reservation.payment_deadline,
+      lookbookStatus: reservation.digital_lookbook_status,
+      collectorReferralCode: reservation.referral_code,
+      invoiceUrl: reservation.final_invoice_url
+    },
+    identity: {
+      status: identity ? identity.status : 'locked',
+      source: identity ? identity.source : null,
+      preferredNumber: identity ? identity.preferred_number : null,
+      configuredAt: identity ? identity.configured_at : null
+    },
+    referral: {
+      verifiedCount,
+      requiredCount: 1
+    }
+  });
+}
+
+async function configureIdentity(request, env, customerId, editionId) {
+  if (!customerId) return json({ ok: false, error: 'customer_login_required' }, 401);
+
+  const reservation = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT *
+     FROM reservations
+     WHERE edition_id = ? AND shopify_customer_id = ?
+       AND status NOT IN ('cancelled','expired')
+     ORDER BY created_at DESC
+     LIMIT 1`
+  ).bind(editionId, customerId).first();
+
+  if (!reservation) return json({ ok: false, error: 'reservation_not_found' }, 404);
+
+  const claim = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM identity_claims WHERE reservation_id = ?'
+  ).bind(reservation.id).first();
+
+  if (!claim || claim.status === 'revoked') {
+    return json({ ok: false, error: 'identity_not_claimed' }, 403);
+  }
+
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM editions WHERE id = ?'
+  ).bind(editionId).first();
+
+  const body = await request.json();
+  const preferredNumber = Number(body.preferredNumber);
+  const alias = String(body.alias || '').trim().slice(0, 24);
+  const inscription = String(body.inscription || '').trim().slice(0, 40);
+  const publicIdentity = body.publicIdentity === true ? 1 : 0;
+
+  if (!Number.isInteger(preferredNumber) || preferredNumber < 1 || preferredNumber > edition.edition_size) {
+    return json({ ok: false, error: 'object_number_out_of_range' }, 422);
+  }
+
+  const taken = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT id FROM reservations
+     WHERE edition_id = ? AND object_number = ? AND id != ?`
+  ).bind(editionId, preferredNumber, reservation.id).first();
+
+  if (taken) return json({ ok: false, error: 'object_number_taken' }, 409);
+
+  try {
+    await env.PHAM_CAMPAIGN_DB.batch([
+      env.PHAM_CAMPAIGN_DB.prepare(
+        `UPDATE reservations
+         SET object_number = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`
+      ).bind(preferredNumber, reservation.id),
+      env.PHAM_CAMPAIGN_DB.prepare(
+        `UPDATE identity_claims
+         SET preferred_number = ?,
+             engraving_name = ?,
+             engraving_text = ?,
+             public_identity = ?,
+             configured_at = CURRENT_TIMESTAMP,
+             status = 'configured'
+         WHERE reservation_id = ?`
+      ).bind(preferredNumber, alias, inscription, publicIdentity, reservation.id)
+    ]);
+  } catch (error) {
+    if (/UNIQUE|constraint/i.test(String(error && error.message || error))) {
+      return json({ ok: false, error: 'object_number_taken' }, 409);
+    }
+    throw error;
+  }
+
+  await setMetafields(env, [
+    metafield(customerId, 'current_object_number', 'number_integer', String(preferredNumber)),
+    metafield(customerId, 'identity_status', 'single_line_text_field', 'configured')
+  ]);
+
+  return json({
+    ok: true,
+    identity: {
+      status: 'configured',
+      preferredNumber,
+      alias,
+      inscription,
+      publicIdentity: Boolean(publicIdentity)
+    }
+  });
+}
+
+async function joinStandbyProxy(request, env, customerId, editionId) {
+  const body = await request.json();
+  const payload = await joinStandbyRecord(env, {
+    editionId,
+    customerId,
+    email: body.email,
+    name: body.name,
+    country: body.country,
+    size: body.size
+  });
+
+  if (!payload.ok) return json({ ok: false, error: payload.error }, payload.status || 400);
+
+  return json({
+    ok: true,
+    standby: {
+      id: payload.standbyId,
+      sequence: payload.position,
+      status: payload.queueStatus
+    }
+  }, payload.created ? 201 : 200);
+}
+
 async function getCampaign(env, editionId) {
   const edition = await env.PHAM_CAMPAIGN_DB.prepare(
     'SELECT * FROM editions WHERE id = ?'
@@ -116,23 +343,44 @@ async function getCampaign(env, editionId) {
 
 async function joinStandby(request, env) {
   const body = await request.json();
-  const editionId = String(body.editionId || 'edition-01');
-  const email = String(body.email || '').trim().toLowerCase();
-  const name = String(body.name || '').trim().slice(0, 120);
-  const country = String(body.country || '').trim().slice(0, 120);
-  const size = String(body.size || '').trim().slice(0, 40);
+  const payload = await joinStandbyRecord(env, {
+    editionId: String(body.editionId || 'edition-01'),
+    customerId: null,
+    email: body.email,
+    name: body.name,
+    country: body.country,
+    size: body.size
+  });
+
+  if (!payload.ok) return json({ error: payload.error }, payload.status || 400);
+
+  return json({
+    ok: true,
+    existing: !payload.created,
+    standbyId: payload.standbyId,
+    position: payload.position,
+    status: payload.queueStatus
+  }, payload.created ? 201 : 200);
+}
+
+async function joinStandbyRecord(env, input) {
+  const editionId = String(input.editionId || 'edition-01');
+  const email = String(input.email || '').trim().toLowerCase();
+  const name = String(input.name || '').trim().slice(0, 120);
+  const country = String(input.country || '').trim().slice(0, 120);
+  const size = String(input.size || '').trim().slice(0, 40);
 
   if (!/^\S+@\S+\.\S+$/.test(email)) {
-    return json({ error: 'A valid email is required.' }, 422);
+    return { ok: false, error: 'invalid_email', status: 422 };
   }
 
   const edition = await env.PHAM_CAMPAIGN_DB.prepare(
     'SELECT * FROM editions WHERE id = ?'
   ).bind(editionId).first();
 
-  if (!edition) return json({ error: 'Edition not found.' }, 404);
+  if (!edition) return { ok: false, error: 'edition_not_found', status: 404 };
   if (edition.state !== 'reservation_full') {
-    return json({ error: 'Standby is not open for this edition.' }, 409);
+    return { ok: false, error: 'standby_not_open', status: 409 };
   }
 
   const existing = await env.PHAM_CAMPAIGN_DB.prepare(
@@ -140,40 +388,48 @@ async function joinStandby(request, env) {
   ).bind(editionId, email).first();
 
   if (existing) {
-    return json({
+    return {
       ok: true,
-      existing: true,
+      created: false,
       standbyId: existing.id,
       position: existing.position,
-      status: existing.status
-    });
+      queueStatus: existing.status
+    };
   }
 
   const id = crypto.randomUUID();
   const result = await env.PHAM_CAMPAIGN_DB.prepare(
-    `INSERT INTO standby (id, edition_id, email, position, status)
-     SELECT ?, ?, ?, COALESCE(MAX(position), 0) + 1, 'waiting'
+    `INSERT INTO standby (id, edition_id, email, customer_id, position, status)
+     SELECT ?, ?, ?, ?, COALESCE(MAX(position), 0) + 1, 'waiting'
      FROM standby
      WHERE edition_id = ?`
-  ).bind(id, editionId, email, editionId).run();
+  ).bind(id, editionId, email, input.customerId || null, editionId).run();
 
   if (!(result.meta && result.meta.changes)) {
-    return json({ error: 'Unable to join standby.' }, 500);
+    return { ok: false, error: 'standby_join_failed', status: 500 };
   }
 
   const row = await env.PHAM_CAMPAIGN_DB.prepare(
     'SELECT id, position, status FROM standby WHERE id = ?'
   ).bind(id).first();
 
-  console.log('Standby joined', { editionId, email, name, country, size, position: row.position });
+  console.log('Standby joined', {
+    editionId,
+    email,
+    name,
+    country,
+    size,
+    customerId: input.customerId || null,
+    position: row.position
+  });
 
-  return json({
+  return {
     ok: true,
-    existing: false,
+    created: true,
     standbyId: row.id,
     position: row.position,
-    status: row.status
-  }, 201);
+    queueStatus: row.status
+  };
 }
 
 async function handleOrdersPaid(request, env) {
@@ -851,6 +1107,12 @@ function timingSafeEqual(a, b) {
     mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
   return mismatch === 0;
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes, function(byte) {
+    return byte.toString(16).padStart(2, '0');
+  }).join('');
 }
 
 function bytesToBase64(bytes) {
