@@ -1,16 +1,25 @@
 {{ 'pham-campaign.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'pham-campaign.js' | asset_url }}" defer></script>
 {%- assign reservation_status = 'NOT ACTIVE' -%}
 {%- assign object_number = blank -%}
 {%- assign identity_status = 'LOCKED' -%}
 {%- assign payment_deadline = blank -%}
+{%- assign referral_code = blank -%}
+{%- assign successful_referrals = 0 -%}
+{%- assign identity_status_key = 'locked' -%}
 {%- if customer -%}
   {%- assign reservation_status = customer.metafields.pham.current_reservation_status.value | default: 'PENDING' -%}
   {%- assign object_number = customer.metafields.pham.current_object_number.value -%}
   {%- assign identity_status = customer.metafields.pham.identity_status.value | default: 'LOCKED' -%}
   {%- assign payment_deadline = customer.metafields.pham.payment_deadline.value -%}
+  {%- assign referral_code = customer.metafields.pham.referral_code.value -%}
+  {%- assign successful_referrals = customer.metafields.pham.successful_referrals.value | default: 0 -%}
+  {%- assign identity_status_key = identity_status | downcase -%}
 {%- endif -%}
 
-<section class="pham-campaign-shell" data-pham-collector-status>
+<section class="pham-campaign-shell"
+  data-pham-collector-status
+  {% if payment_deadline != blank %}data-payment-deadline="{{ payment_deadline | escape }}"{% endif %}>
   <div class="pham-campaign-inner">
     <p class="pham-campaign-kicker">PHAM · COLLECTOR ACCESS</p>
     <h1 class="pham-campaign-title">{% if customer %}{{ customer.first_name | default: 'Collector' | escape }}{% else %}Collector{% endif %}<br>status.</h1>
@@ -26,9 +35,23 @@
           <div class="pham-status-row"><span>Reservation</span><strong>{{ reservation_status }}</strong></div>
           <div class="pham-status-row"><span>Object</span><strong>{% if object_number != blank %}{{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}{% else %}PENDING ASSIGNMENT{% endif %}</strong></div>
           <div class="pham-status-row"><span>Identity</span><strong>{{ identity_status }}</strong></div>
+          <div class="pham-status-row"><span>Referral</span><strong>{{ successful_referrals }} / 1 VERIFIED</strong></div>
           <div class="pham-status-row"><span>Reservation paid</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
           <div class="pham-status-row"><span>Balance</span><strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></div>
-          {%- if payment_deadline != blank -%}<div class="pham-status-row"><span>Payment deadline</span><strong>{{ payment_deadline }}</strong></div>{%- endif -%}
+          {%- if payment_deadline != blank -%}
+            <div class="pham-status-row"><span>Payment deadline</span><strong>{{ payment_deadline }}</strong></div>
+            <div class="pham-status-row"><span>Time remaining</span><strong data-pham-payment-countdown>CALCULATING…</strong></div>
+          {%- endif -%}
+          <div class="pham-campaign-actions">
+            {%- if identity_status_key != 'locked' and settings.pham_campaign_identity_page_url != blank -%}
+              <a class="pham-campaign-btn" href="{{ settings.pham_campaign_identity_page_url }}">Customize Object Identity</a>
+            {%- elsif settings.pham_campaign_referral_page_url != blank -%}
+              <a class="pham-campaign-btn" href="{{ settings.pham_campaign_referral_page_url }}">Unlock Identity by referral</a>
+            {%- endif -%}
+            {%- if settings.pham_campaign_referral_page_url != blank and referral_code != blank -%}
+              <a class="pham-campaign-btn pham-campaign-btn--ghost" href="{{ settings.pham_campaign_referral_page_url }}">Referral access</a>
+            {%- endif -%}
+          </div>
         {%- endunless -%}
       </article>
 
