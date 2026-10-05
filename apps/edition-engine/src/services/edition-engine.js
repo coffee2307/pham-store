@@ -18,6 +18,7 @@ export class EditionEngine {
     shopifyOrderId,
     reservationPaidCents,
     referralCode = '',
+    sizePreference = '',
     paidAt = new Date(),
   }) {
     for (let attempt = 0; attempt < 8; attempt += 1) {
@@ -31,6 +32,7 @@ export class EditionEngine {
           shopifyOrderId,
           reservationPaidCents,
           referralCode,
+          sizePreference: String(sizePreference || '').trim(),
           paidAt: new Date(paidAt).toISOString(),
           status: ReservationStatus.ACTIVE,
           collectorReferralCode,
