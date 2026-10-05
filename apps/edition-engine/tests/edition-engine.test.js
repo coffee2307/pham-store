@@ -48,43 +48,18 @@ test('reservation allocation cannot exceed edition size', async () => {
   await assert.rejects(() => reserve(engine, 3), /reservation_closed|reservation_full/);
 });
 
-test('self referral is rejected', async () => {
-  const store = new InMemoryStore({ editions: [makeEdition()] });
-  const engine = new EditionEngine(store);
+test('self referral is rejected by referral rules', async () => {
+  const { validateReferral } = await import('../src/domain/referral.js');
 
-  await engine.activateReservation({
-    editionId: 'edition-01',
-    reservationId: 'R-A',
-    customerId: 'SAME',
-    shopifyOrderId: 'O-A',
-    reservationPaidCents: 2499,
+  const result = validateReferral({
+    referrerCustomerId: 'SAME',
+    referredCustomerId: 'SAME',
+    referredReservationPaid: true,
+    alreadyRewarded: false,
+    flagged: false,
   });
-  await engine.activateReservation({
-    editionId: 'edition-01',
-    reservationId: 'R-B',
-    customerId: 'SAME',
-    shopifyOrderId: 'O-B',
-    reservationPaidCents: 2499,
-  }).catch(() => {});
 
-  // Force the second reservation with another ID into the store to isolate referral validation.
-  await store.createReservation({
-    id: 'R-B',
-    editionId: 'edition-01',
-    customerId: 'SAME',
-    shopifyOrderId: 'O-B',
-    reservationPaidCents: 2499,
-    status: ReservationStatus.ACTIVE,
-  }).catch(() => {});
-
-  await assert.rejects(
-    () => engine.verifyReferral({
-      editionId: 'edition-01',
-      referrerReservationId: 'R-A',
-      referredReservationId: 'R-B',
-    }),
-    /self_referral|reservation_not_found/
-  );
+  assert.deepEqual(result, { ok: false, reason: 'self_referral' });
 });
 
 test('paid and referral identity claims share one edition-wide pool', async () => {
