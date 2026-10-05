@@ -466,9 +466,12 @@
       // visitor begins scrolling through the vault.
       const introRelease = clamp(smoothProgress / 0.24, 0, 1);
       const introEase = introRelease * introRelease * (3 - 2 * introRelease);
-      const introRingDrop = (1 - introEase) * 74;
+      const compactIntro = window.innerWidth < 600;
+      const tabletIntro = window.innerWidth >= 600 && window.innerWidth < 900;
+      const introRingDrop = (1 - introEase) * (compactIntro ? 18 : tabletIntro ? 34 : 74);
       const introLean = -2.1 * (1 - introEase);
-      const introRadiusBoost = 1 + (1 - introEase) * 0.14;
+      const introRadiusBoost = 1 + (1 - introEase) * (compactIntro ? 0.04 : tabletIntro ? 0.08 : 0.14);
+      const introDepthBoost = (1 - introEase) * (compactIntro ? 10 : tabletIntro ? 22 : 42);
 
       const orbitRadius = radius * scrollSpacing * pointerSpacing * introRadiusBoost;
       const step = Math.PI * 2 / cards.length;
@@ -503,7 +506,7 @@
       root.style.setProperty('--vault-scroll-zoom', scrollZoom.toFixed(4));
       root.style.setProperty('--vault-scroll-spacing', scrollSpacing.toFixed(4));
 
-      if (orbitCore && !cardDialogOpen && window.innerWidth >= 900) {
+      if (orbitCore && !cardDialogOpen) {
         orbitCore.style.transform =
           'translate3d(calc(-50% + ' + coreShiftX.toFixed(2) + 'px), calc(-50% + ' + coreShiftY.toFixed(2) + 'px), 0) ' +
           'rotateX(' + coreTiltX.toFixed(2) + 'deg) rotateY(' + coreTiltY.toFixed(2) + 'deg) ' +
@@ -567,7 +570,7 @@
         card.style.transform =
           'translate3d(-50%, -50%, 0) ' +
           'rotateY(' + state.visualAngle.toFixed(5) + 'rad) ' +
-          'translateZ(' + (orbitRadius + (1 - introEase) * 42).toFixed(2) + 'px) rotateZ(' + cardLean.toFixed(2) + 'deg) ' +
+          'translateZ(' + (orbitRadius + introDepthBoost).toFixed(2) + 'px) rotateZ(' + cardLean.toFixed(2) + 'deg) ' +
           'translate3d(0,' + (introRingDrop - lift).toFixed(2) + 'px,0) scale(' + cardScale.toFixed(3) + ')';
       });
 
