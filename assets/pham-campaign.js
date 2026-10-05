@@ -364,6 +364,7 @@ function mountReservation(root){
   var checks = qsa('[data-pham-required-consent]', root);
   var submit = root.querySelector('[data-pham-reservation-submit]');
   var identity = root.querySelector('[data-pham-identity-upgrade]');
+  var sizePreference = root.querySelector('[data-pham-size-preference]');
   var total = root.querySelector('[data-pham-reservation-total]');
   var error = root.querySelector('[data-pham-reservation-error]');
 
@@ -400,6 +401,7 @@ function mountReservation(root){
 
   checks.forEach(function(x){ x.addEventListener('change', sync); });
   if(identity) identity.addEventListener('change', sync);
+  if(sizePreference) sizePreference.addEventListener('change', sync);
 
   if(submit){
     submit.addEventListener('click', function(){
@@ -413,6 +415,7 @@ function mountReservation(root){
           '_PHAM Edition': edition,
           '_PHAM Product': productCode,
           '_PHAM Referral Code': referral,
+          '_PHAM Size Preference': sizePreference ? sizePreference.value : '',
           'Reservation terms': 'Accepted',
           'Digital lookbook delivery': includeLookbook ? 'Included' : 'Not included'
         }
