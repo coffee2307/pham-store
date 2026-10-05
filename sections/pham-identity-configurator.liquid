@@ -16,7 +16,9 @@
 <section class="pham-campaign-shell"
   data-pham-identity-configurator
   data-edition-size="{{ edition_size }}"
-  data-submit-enabled="{% if submit_enabled %}true{% else %}false{% endif %}">
+  data-submit-enabled="{% if submit_enabled %}true{% else %}false{% endif %}"
+  data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
+  data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
     {%- unless commerce_ready -%}<span class="pham-campaign-draft">PRELAUNCH CONFIGURATOR · SUBMISSION DISABLED</span>{%- endunless -%}
     <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · OBJECT IDENTITY</p>
@@ -35,7 +37,8 @@
           {%- endif -%}
         {%- endif -%}
 
-        {%- form 'contact', id: 'PhamIdentityForm' -%}
+        {%- form 'contact', id: 'PhamIdentityForm', class: 'pham-identity-form' -%}
+          <div data-pham-identity-form>
           <input type="hidden" name="contact[Source]" value="PHAM Object Identity">
           <input type="hidden" name="contact[Edition]" value="{{ settings.pham_campaign_edition_label | default: 'EDITION 01' | escape }}">
           <input type="hidden" name="contact[Product]" value="{{ settings.pham_campaign_product_code | default: 'PHAM-001' | escape }}">
@@ -115,6 +118,8 @@
               </div>
             </div>
           {%- endif -%}
+          <p class="pham-campaign-alert" data-pham-identity-result hidden role="status"></p>
+          </div>
         {%- endform -%}
       </div>
     </div>
