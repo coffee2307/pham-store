@@ -243,6 +243,7 @@ function finalPaymentFixture() {
     },
     order: {
       id: 900,
+      financial_status: 'paid',
       currency: 'USD',
       processed_at: '2026-11-13T10:59:00.000Z',
       current_total_discounts: '24.99',
@@ -488,6 +489,7 @@ function standbyPaymentFixture() {
     },
     order: {
       id: 2002,
+      financial_status: 'paid',
       currency: 'USD',
       processed_at: '2026-11-15T09:59:00.000Z',
       current_total_discounts: '0.00',
@@ -646,5 +648,29 @@ test('Priority Reservation validation requires an order email for later collecto
   assert.throws(
     () => validatePriorityReservationOrder(fixture),
     /reservation_email_missing/
+  );
+});
+
+
+test('campaign acquisition validators reject non-paid webhook payloads', () => {
+  const finalFixture = finalPaymentFixture();
+  finalFixture.order.financial_status = 'partially_paid';
+  assert.throws(
+    () => validateFinalAcquisitionOrder(finalFixture),
+    /final_order_not_paid/
+  );
+
+  const standbyFixture = standbyPaymentFixture();
+  standbyFixture.order.financial_status = 'pending';
+  assert.throws(
+    () => validateStandbyAcquisitionOrder(standbyFixture),
+    /standby_order_not_paid/
+  );
+
+  const reservationFixture = priorityReservationFixture();
+  reservationFixture.order.financial_status = 'partially_paid';
+  assert.throws(
+    () => validatePriorityReservationOrder(reservationFixture),
+    /reservation_order_not_paid/
   );
 });
