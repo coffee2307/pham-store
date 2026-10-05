@@ -154,7 +154,7 @@
         <div class="pham-vault__entry-actions">
           <span class="pham-vault__cue">{{ section.settings.scroll_label }}</span>
           {%- if featured_product != blank -%}
-            <a class="pham-vault__entry-link" href="{{ object_url }}">{{ entry_cta_text }} <span aria-hidden="true">&#8599;</span></a>
+            <a class="pham-vault__entry-link" href="{{ object_url }}" data-pham-campaign-entry>{{ entry_cta_text }} <span aria-hidden="true">&#8599;</span></a>
           {%- endif -%}
         </div>
       </article>
@@ -181,8 +181,8 @@
           {%- if featured_product != blank -%}{{ featured_product.title }}{%- else -%}{{ section.settings.chapter_4_title }}{%- endif -%}
         </h2>
         {%- if featured_product != blank -%}
-          <p class="pham-vault__price">{% if acquisition_price_text != blank %}{{ acquisition_price_text }}{% else %}{{ featured_product.price | money }}{% endif %}</p>
-          <p class="pham-vault__availability">
+          <p class="pham-vault__price" data-pham-campaign-price>{% if acquisition_price_text != blank %}{{ acquisition_price_text }}{% else %}{{ featured_product.price | money }}{% endif %}</p>
+          <p class="pham-vault__availability" data-pham-campaign-status>
             {%- if acquisition_status_text != blank -%}
               {{ acquisition_status_text }}
             {%- elsif featured_product.available -%}
@@ -193,7 +193,7 @@
           </p>
         {%- endif -%}
         <p class="pham-vault__copy">{{ section.settings.chapter_4_body }}</p>
-        <a class="pham-vault__cta" href="{{ object_url }}" data-pham-magnetic>
+        <a class="pham-vault__cta" href="{{ object_url }}" data-pham-magnetic data-pham-campaign-primary>
           <span>{{ acquisition_cta_text }}</span><span aria-hidden="true">&#8599;</span>
         </a>
       </article>
