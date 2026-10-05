@@ -3,6 +3,8 @@
 <script type="application/json" data-pham-campaign-context>
 {
   "state": {{ pham_campaign_state | json }},
+  "editionId": {{ settings.pham_campaign_edition_id | default: 'edition-01' | json }},
+  "backendUrl": {{ settings.pham_campaign_backend_url | default: '' | json }},
   "edition": {{ settings.pham_campaign_edition_label | default: 'EDITION 01' | json }},
   "product": {{ settings.pham_campaign_product_code | default: 'PHAM-001' | json }},
   "editionSize": {{ settings.pham_campaign_edition_size | default: 50 | json }},
