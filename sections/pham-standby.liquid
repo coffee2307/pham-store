@@ -7,7 +7,8 @@
 <section class="pham-campaign-shell"
   data-pham-standby
   data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
-  data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
+  data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}"
+  data-edition-id="{{ settings.pham_campaign_edition_id | default: 'edition-01' | escape }}">
   <div class="pham-campaign-inner">
     <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · STANDBY</p>
     <h1 class="pham-campaign-title">Next in<br>line.</h1>
