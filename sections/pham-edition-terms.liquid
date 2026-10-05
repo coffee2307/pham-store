@@ -1,0 +1,48 @@
+{{ 'pham-campaign.css' | asset_url | stylesheet_tag }}
+{%- capture state_raw -%}{%- render 'pham-campaign-state' -%}{%- endcapture -%}
+{%- assign state = state_raw | strip -%}
+
+<section class="pham-campaign-shell" data-pham-edition-terms>
+  <div class="pham-campaign-inner">
+    {%- if state == 'prelaunch' -%}<span class="pham-campaign-draft">PRELAUNCH DRAFT · LEGAL REVIEW REQUIRED BEFORE PAYMENT GOES LIVE</span>{%- endif -%}
+    <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · RESERVATION TERMS</p>
+    <h1 class="pham-campaign-title">Edition<br>terms.</h1>
+    <p class="pham-campaign-lede">Campaign-specific skeleton for the active edition. It is designed to sit alongside PHAM’s general Terms of Service, Privacy Policy and Refund Policy.</p>
+
+    <div class="pham-campaign-grid">
+      <article class="pham-campaign-card pham-campaign-card--full">
+        <h2>1 · Priority Reservation</h2>
+        <p>A confirmed Priority Reservation records a customer’s place within the active edition, subject to payment confirmation, fraud review and the campaign terms in force at purchase. The reservation amount is {{ settings.pham_campaign_reservation_price | default: '$24.99' }} and is intended to be credited toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} object price.</p>
+      </article>
+
+      <article class="pham-campaign-card pham-campaign-card--full">
+        <h2>2 · Digital lookbook</h2>
+        <p>{% if settings.pham_campaign_include_digital_lookbook %}After confirmed reservation payment, PHAM intends to deliver the {{ settings.pham_campaign_digital_lookbook_label | default: 'edition-exclusive digital lookbook' }} electronically. Checkout must obtain any consent required for immediate digital-content delivery. Delivery of digital content does not remove statutory cancellation, refund or consumer rights where applicable law provides otherwise.{% else %}No digital reservation benefit is currently configured for this edition.{% endif %}</p>
+      </article>
+
+      <article class="pham-campaign-card pham-campaign-card--full">
+        <h2>3 · Final acquisition</h2>
+        <p>When the acquisition window opens, a reserved collector is expected to receive a request for the remaining {{ settings.pham_campaign_balance_due | default: '$174.01' }}. The planned payment window is {{ settings.pham_campaign_payment_window_hours | default: 72 }} hours. If the balance is not paid within the valid window, PHAM may release the allocation, subject to applicable law and the final published terms.</p>
+      </article>
+
+      <article class="pham-campaign-card pham-campaign-card--full">
+        <h2>4 · Reservation refunds</h2>
+        <p>The commercial intent is that confirmed reservation fees are non-refundable after the agreed reservation and digital benefits are supplied, except where PHAM cancels the allocation or applicable consumer law requires a cancellation, refund or other remedy. This clause requires jurisdictional review before launch and must not be represented as overriding mandatory consumer rights.</p>
+      </article>
+
+      <article class="pham-campaign-card pham-campaign-card--full">
+        <h2>5 · Object Identity</h2>
+        <p>Object Identity privileges are limited across both paid upgrades and referral unlocks. Preferred object numbers are not final until server-side allocation confirms the number. Custom inscriptions remain subject to production constraints and PHAM content standards.</p>
+      </article>
+
+      <article class="pham-campaign-card pham-campaign-card--full">
+        <h2>6 · Standby</h2>
+        <p>After paid reservations reach the edition allocation, further customers may join a free standby queue. A promoted standby customer pays the full {{ settings.pham_campaign_final_price | default: '$199.00' }} because no reservation credit was previously paid. Queue and offer-window rules are subject to the final campaign terms.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{"name":"PHAM Edition Terms","tag":"section","settings":[],"presets":[{"name":"PHAM Edition Terms"}]}
+{% endschema %}
