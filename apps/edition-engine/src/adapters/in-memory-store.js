@@ -69,6 +69,18 @@ export class InMemoryStore {
     return clone(this.reservations.get(id) || null);
   }
 
+  async findReservationByCollectorReferralCode(editionId, code) {
+    for (const reservation of this.reservations.values()) {
+      if (
+        reservation.editionId === editionId &&
+        reservation.collectorReferralCode === code
+      ) {
+        return clone(reservation);
+      }
+    }
+    return null;
+  }
+
   async updateReservation(id, patch) {
     const current = this.reservations.get(id);
     if (!current) throw new Error('reservation_not_found');
