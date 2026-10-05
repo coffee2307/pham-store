@@ -67,9 +67,11 @@ export function extractReservationOrder(order, {
     financialStatus: order.financial_status || '',
     currency: order.currency || '',
     reservationAmount: String(reservationLine.price || ''),
+    reservationQuantity: Number(reservationLine.quantity || 0),
     editionLabel: props['_PHAM Edition'] || '',
     productCode: props['_PHAM Product'] || '',
     referralCode: props['_PHAM Referral Code'] || '',
+    sizePreference: String(props['_PHAM Size Preference'] || '').trim(),
     termsAccepted: props['Reservation terms'] === 'Accepted',
     digitalLookbookRequested: props['Digital lookbook delivery'] === 'Included',
     identitySelected: Boolean(identityLine),
@@ -79,5 +81,5 @@ export function extractReservationOrder(order, {
 }
 
 export function isPaidOrder(order) {
-  return ['paid', 'partially_paid'].includes(String(order?.financial_status || '').toLowerCase());
+  return String(order?.financial_status || '').toLowerCase() === 'paid';
 }
