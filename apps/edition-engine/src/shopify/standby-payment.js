@@ -10,6 +10,7 @@ export function buildStandbyDraftOrderInput({
   standbyEntryId,
   editionLabel,
   productCode,
+  sizePreference = '',
   offerDeadline,
 }) {
   if (!productVariantId) throw new Error('missing_product_variant');
@@ -26,9 +27,10 @@ export function buildStandbyDraftOrderInput({
       },
     ],
     customAttributes: [
-      { key: 'PHAM Standby Entry ID', value: standbyEntryId },
+      { key: 'PHAM Standby ID', value: standbyEntryId },
       { key: 'PHAM Edition', value: editionLabel || '' },
       { key: 'PHAM Product', value: productCode || '' },
+      { key: 'PHAM Size Preference', value: String(sizePreference || '') },
       { key: 'PHAM Acquisition Type', value: 'Standby full price' },
     ],
     note: 'PHAM standby acquisition · ' + standbyEntryId,
