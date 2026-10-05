@@ -16,7 +16,12 @@
   assign campaign_cta_label = blank
   assign campaign_cta_price = blank
 
-  if settings.pham_campaign_enabled and pham_campaign_state != 'prelaunch'
+  if settings.pham_campaign_enabled and settings.pham_campaign_engine_enabled
+    assign campaign_cta_active = true
+    assign campaign_cta_url = settings.pham_campaign_edition_page_url
+    assign campaign_cta_label = 'CHECK EDITION ACCESS'
+    assign campaign_cta_price = settings.pham_campaign_final_price
+  elsif settings.pham_campaign_enabled and pham_campaign_state != 'prelaunch'
     assign campaign_cta_active = true
     case pham_campaign_state
       when 'reservation_open'
