@@ -40,6 +40,11 @@ export default {
         return handleOrdersPaid(request, env);
       }
 
+      if (request.method === 'GET' && url.pathname === '/internal/state') {
+        requireInternalKey(request, env);
+        return getCampaign(env, url.searchParams.get('edition') || 'edition-01');
+      }
+
       if (request.method === 'POST' && url.pathname === '/internal/final-payment/open') {
         requireInternalKey(request, env);
         return openFinalPayment(request, env);
@@ -1174,6 +1179,30 @@ async function openFinalPayment(request, env) {
   ).bind(editionId).first();
 
   if (!edition) return json({ error: 'Edition not found' }, 404);
+
+  if (edition.state !== 'reservation_full') {
+    return json({
+      ok: false,
+      error: 'edition_not_ready_for_final_payment',
+      state: edition.state
+    }, 409);
+  }
+
+  const activeReservationCount = await scalar(
+    env,
+    "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status = 'active'",
+    editionId
+  );
+
+  if (activeReservationCount !== Number(edition.edition_size)) {
+    return json({
+      ok: false,
+      error: 'reservation_allocation_incomplete',
+      activeReservationCount,
+      editionSize: Number(edition.edition_size)
+    }, 409);
+  }
+
   if (!edition.final_product_variant_id) {
     return json({ error: 'Final product variant is not configured for this edition' }, 409);
   }
