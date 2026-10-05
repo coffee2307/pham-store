@@ -114,6 +114,14 @@ async function handleOrdersPaid(request, env) {
 
   const order = JSON.parse(new TextDecoder().decode(raw));
   const reservationLine = findLineBySku(order, 'PHAM-001-RES-E01');
+  const finalLine = findLineBySku(order, 'PHAM-001-E01');
+
+  if (!reservationLine && finalLine) {
+    const finalResult = await handleFinalAcquisitionPaid(env, order);
+    if (webhookId) await recordWebhook(env, webhookId, topic);
+    return json(finalResult);
+  }
+
   if (!reservationLine) {
     if (webhookId) await recordWebhook(env, webhookId, topic);
     return json({ ok: true, ignored: true });
@@ -224,6 +232,52 @@ async function handleOrdersPaid(request, env) {
     referral: referralResult,
     reservationsClaimed: afterCount
   });
+}
+
+async function handleFinalAcquisitionPaid(env, order) {
+  const reservationId = orderAttribute(order, 'PHAM Reservation ID');
+  if (!reservationId) {
+    return { ok: true, ignored: true, reason: 'final_order_without_reservation_id' };
+  }
+
+  const reservation = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM reservations WHERE id = ?'
+  ).bind(reservationId).first();
+
+  if (!reservation) {
+    return { ok: false, reason: 'unknown_reservation_id', reservationId };
+  }
+
+  const finalOrderId = toGid('Order', order.id);
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE reservations
+     SET status = 'final_paid',
+         final_payment_status = 'paid',
+         payment_deadline = NULL,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`
+  ).bind(reservationId).run();
+
+  const fields = [
+    metafield(reservation.shopify_order_id, 'final_payment_status', 'single_line_text_field', 'paid')
+  ];
+
+  if (reservation.shopify_customer_id) {
+    fields.push(
+      metafield(reservation.shopify_customer_id, 'current_reservation_status', 'single_line_text_field', 'final_paid'),
+      metafield(reservation.shopify_customer_id, 'payment_deadline', 'date_time', '')
+    );
+  }
+
+  await setMetafields(env, fields);
+
+  return {
+    ok: true,
+    type: 'final_acquisition_paid',
+    reservationId,
+    finalOrderId
+  };
 }
 
 async function claimIdentity(env, { editionId, reservationId, source }) {
@@ -594,6 +648,12 @@ async function promoteNextStandby(env, editionId) {
 
 function findLineBySku(order, sku) {
   return (order.line_items || []).find(line => line.sku === sku) || null;
+}
+
+function orderAttribute(order, name) {
+  const attributes = order && (order.note_attributes || order.noteAttributes) || [];
+  const found = attributes.find(item => item && (item.name === name || item.key === name));
+  return found ? String(found.value || '') : '';
 }
 
 function propertyValue(line, name) {
