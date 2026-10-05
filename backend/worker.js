@@ -5,12 +5,8 @@ export default {
     try {
       const url = new URL(request.url);
 
-      if (request.method === 'OPTIONS' && url.pathname.startsWith('/api/')) {
-        return new Response(null, { status: 204, headers: corsHeaders() });
-      }
-
       if (['/campaign', '/status', '/identity/configure', '/standby/join'].includes(url.pathname)) {
-        const proxyAuth = await verifyAppProxyRequest(url, env.SHOPIFY_API_SECRET);
+        const proxyAuth = await verifyAppProxyRequest(url, env.SHOPIFY_API_SECRET, env.SHOPIFY_SHOP_DOMAIN);
         if (!proxyAuth.ok) return json({ ok: false, error: proxyAuth.error }, proxyAuth.status);
 
         if (request.method === 'GET' && url.pathname === '/campaign') {
@@ -34,14 +30,6 @@ export default {
 
       if (request.method === 'GET' && url.pathname === '/health') {
         return json({ ok: true, service: 'pham-campaign' });
-      }
-
-      if (request.method === 'GET' && url.pathname === '/api/campaign') {
-        return getCampaign(env, url.searchParams.get('edition') || 'edition-01');
-      }
-
-      if (request.method === 'POST' && url.pathname === '/api/standby') {
-        return joinStandby(request, env);
       }
 
       if (request.method === 'POST' && url.pathname === '/webhooks/orders-paid') {
@@ -72,17 +60,8 @@ export default {
   }
 };
 
-function corsHeaders() {
-  return {
-    ...JSON_HEADERS,
-    'access-control-allow-origin': '*',
-    'access-control-allow-methods': 'GET, POST, OPTIONS',
-    'access-control-allow-headers': 'Content-Type, Authorization'
-  };
-}
-
 function json(payload, status = 200) {
-  return new Response(JSON.stringify(payload), { status, headers: corsHeaders() });
+  return new Response(JSON.stringify(payload), { status, headers: JSON_HEADERS });
 }
 
 function requireInternalKey(request, env) {
@@ -95,7 +74,7 @@ function requireInternalKey(request, env) {
   }
 }
 
-async function verifyAppProxyRequest(url, secret) {
+async function verifyAppProxyRequest(url, secret, expectedShop) {
   if (!secret) return { ok: false, error: 'proxy_not_configured', status: 503 };
 
   const provided = url.searchParams.get('signature') || '';
@@ -107,19 +86,19 @@ async function verifyAppProxyRequest(url, secret) {
     return { ok: false, error: 'stale_request', status: 401 };
   }
 
-  const pairs = [];
+  const grouped = new Map();
   for (const [key, value] of url.searchParams.entries()) {
     if (key === 'signature') continue;
-    pairs.push([key, value]);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(value);
   }
-  pairs.sort(function(a, b) {
-    if (a[0] === b[0]) return a[1].localeCompare(b[1]);
-    return a[0].localeCompare(b[0]);
-  });
 
-  const message = pairs.map(function(pair) {
-    return pair[0] + '=' + pair[1];
-  }).join('');
+  const message = Array.from(grouped.entries())
+    .map(function(entry) {
+      return entry[0] + '=' + entry[1].join(',');
+    })
+    .sort()
+    .join('');
 
   const key = await crypto.subtle.importKey(
     'raw',
@@ -135,11 +114,16 @@ async function verifyAppProxyRequest(url, secret) {
     return { ok: false, error: 'invalid_signature', status: 401 };
   }
 
+  const shop = url.searchParams.get('shop') || '';
+  if (expectedShop && shop !== expectedShop) {
+    return { ok: false, error: 'invalid_shop', status: 401 };
+  }
+
   const rawCustomerId = url.searchParams.get('logged_in_customer_id') || '';
   return {
     ok: true,
     customerId: rawCustomerId ? toGid('Customer', rawCustomerId) : null,
-    shop: url.searchParams.get('shop') || ''
+    shop
   };
 }
 
@@ -339,28 +323,6 @@ async function getCampaign(env, editionId) {
       standby
     }
   });
-}
-
-async function joinStandby(request, env) {
-  const body = await request.json();
-  const payload = await joinStandbyRecord(env, {
-    editionId: String(body.editionId || 'edition-01'),
-    customerId: null,
-    email: body.email,
-    name: body.name,
-    country: body.country,
-    size: body.size
-  });
-
-  if (!payload.ok) return json({ error: payload.error }, payload.status || 400);
-
-  return json({
-    ok: true,
-    existing: !payload.created,
-    standbyId: payload.standbyId,
-    position: payload.position,
-    status: payload.queueStatus
-  }, payload.created ? 201 : 200);
 }
 
 async function joinStandbyRecord(env, input) {
