@@ -110,7 +110,7 @@
   position: absolute;
   z-index: 3;
   left: 50%;
-  top: 50%;
+  top: 53%;
   width: min(68vw, 1120px);
   height: min(76vh, 760px);
   transform: translate3d(-50%, -50%, 0) scale(var(--vault-orbit-scale, .9));
@@ -210,7 +210,7 @@
   position: absolute;
   z-index: 72;
   left: 50%;
-  top: 32%;
+  top: 22%;
   width: min(44vw, 600px);
   min-width: 320px;
   display: grid;
@@ -1168,5 +1168,12 @@
   .pham-vault__chapter--purchase {
     left: 16px;
     right: 24px;
+  }
+}
+
+
+@media (max-width: 899px) {
+  .pham-vault__orbit-stage {
+    top: 50%;
   }
 }
