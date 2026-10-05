@@ -45,3 +45,7 @@
 .pham-reservation-upgrade__meta{padding:0 0 16px!important;color:var(--pc-dim)!important;font:500 8px/1.5 var(--font-mono,monospace)!important;letter-spacing:.12em;text-transform:uppercase}
 .pham-campaign-error{margin:18px 0 0;color:#ff9898!important;font-size:.86rem;line-height:1.5}
 .pham-campaign-btn.is-busy{opacity:.55;cursor:wait}
+
+.pham-identity-public-choice{display:flex;gap:12px;align-items:flex-start;margin:20px 0;color:var(--pc-soft);font-size:.86rem;line-height:1.55}
+.pham-identity-public-choice input{margin-top:3px}
+.pham-number-grid button:disabled{opacity:.28;cursor:not-allowed}
