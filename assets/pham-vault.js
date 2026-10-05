@@ -452,10 +452,10 @@
       // PHAM maps those states continuously to the scroll narrative instead.
       const scrollZoom = reducedMotion
         ? 1
-        : interpolateStops([0.94, 1.04, 1.16, 1.03], smoothProgress);
+        : interpolateStops([0.94, 1.02, 1.16, 1.07, 1.03], smoothProgress);
       const scrollSpacing = reducedMotion
         ? 1
-        : interpolateStops([0.92, 1.00, 1.14, 1.04], smoothProgress);
+        : interpolateStops([0.92, 1.00, 1.14, 1.08, 1.04], smoothProgress);
       const pointerSpacing = reducedMotion
         ? 1
         : 1 + currentPointerPresence * (0.012 + pointerMagnitude * 0.055);
