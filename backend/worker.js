@@ -540,6 +540,54 @@ async function assignReservationVariant(request, env) {
   });
 }
 
+export function parseEditionSizeOptions(value) {
+  return Array.from(new Set(
+    String(value || '')
+      .split(',')
+      .map(function(size) { return size.trim(); })
+      .filter(Boolean)
+  ));
+}
+
+export function evaluateFinalSizeVariants(variants, expectedSizes, finalPriceCents) {
+  const expected = (expectedSizes || []).map(function(size) {
+    return String(size || '').trim();
+  }).filter(Boolean);
+
+  const rows = expected.map(function(size) {
+    const normalized = size.toLowerCase();
+    const matches = (variants || []).filter(function(variant) {
+      const sizeOption = (variant && variant.selectedOptions || []).find(function(option) {
+        return String(option && option.name || '').trim().toLowerCase() === 'size';
+      });
+      const actualSize = sizeOption
+        ? String(sizeOption.value || '').trim().toLowerCase()
+        : '';
+      return actualSize === normalized;
+    });
+
+    const valid = matches.filter(function(variant) {
+      return moneyToCents(variant && variant.price) === Number(finalPriceCents);
+    });
+
+    return {
+      size,
+      matches: matches.length,
+      validMatches: valid.length,
+      variantIds: valid.map(function(variant) { return variant.id; }),
+      skus: valid.map(function(variant) { return variant.sku || ''; })
+    };
+  });
+
+  return {
+    ok: expected.length > 0 && rows.every(function(row) {
+      return row.matches === 1 && row.validMatches === 1;
+    }),
+    expectedSizes: expected,
+    rows
+  };
+}
+
 async function getReadiness(env, editionId) {
   const checks = [];
   const requiredScopes = [
@@ -575,6 +623,8 @@ async function getReadiness(env, editionId) {
     check('d1.final_product_variant_id', Boolean(edition.final_product_variant_id), edition.final_product_variant_id || 'missing');
     check('d1.identity_inventory_item_id', Boolean(edition.identity_inventory_item_id), edition.identity_inventory_item_id || 'missing');
     check('d1.identity_location_id', Boolean(edition.identity_location_id), edition.identity_location_id || 'missing');
+    const sizeOptions = parseEditionSizeOptions(edition.size_options_csv);
+    check('d1.size_options', sizeOptions.length > 0, sizeOptions);
     check('d1.pricing', Number(edition.final_price_cents) > Number(edition.reservation_price_cents), {
       reservationPriceCents: Number(edition.reservation_price_cents),
       finalPriceCents: Number(edition.final_price_cents)
@@ -630,7 +680,19 @@ async function getReadiness(env, editionId) {
             tracked
             requiresShipping
           }
-          product { id status }
+          product {
+            id
+            status
+            variants(first: 100) {
+              nodes {
+                id
+                sku
+                title
+                price
+                selectedOptions { name value }
+              }
+            }
+          }
         }
         campaignVariants: productVariants(first: 20, query: $campaignSkus) {
           nodes {
@@ -664,13 +726,25 @@ async function getReadiness(env, editionId) {
           }
         }
       }`, {
-        variantId: variantId || edition.final_product_variant_id,
+        variantId: edition.final_product_variant_id,
         inventoryItemId: edition.identity_inventory_item_id,
         locationId: edition.identity_location_id,
         campaignSkus: 'sku:PHAM-001-RES-E01 OR sku:PHAM-ID-E01 OR sku:PHAM-LOOKBOOK-E01 OR sku:PHAM-001-E01'
       });
 
       const variant = resourceResult && resourceResult.data && resourceResult.data.productVariant;
+      const inventoryItem = resourceResult && resourceResult.data && resourceResult.data.inventoryItem;
+      const level = inventoryItem && inventoryItem.inventoryLevel;
+      const available = level && (level.quantities || []).find(function(quantity) {
+        return quantity && quantity.name === 'available';
+      });
+      const finalProductVariants = variant && variant.product &&
+        variant.product.variants && variant.product.variants.nodes || [];
+      const sizeCoverage = evaluateFinalSizeVariants(
+        finalProductVariants,
+        parseEditionSizeOptions(edition.size_options_csv),
+        edition.final_price_cents
+      );
       const campaignVariants = resourceResult && resourceResult.data &&
         resourceResult.data.campaignVariants && resourceResult.data.campaignVariants.nodes || [];
       const bySku = {};
@@ -681,7 +755,6 @@ async function getReadiness(env, editionId) {
       const reservationVariant = bySku['PHAM-001-RES-E01'];
       const identityVariant = bySku['PHAM-ID-E01'];
       const lookbookVariant = bySku['PHAM-LOOKBOOK-E01'];
-      const finalVariantBySku = bySku['PHAM-001-E01'];
 
       const activeReservations = await scalar(env,
         "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status NOT IN ('cancelled','expired')",
@@ -696,9 +769,7 @@ async function getReadiness(env, editionId) {
 
       check('shopify.final_variant', Boolean(
         variant &&
-        finalVariantBySku &&
-        variant.id === finalVariantBySku.id &&
-        variant.sku === 'PHAM-001-E01' &&
+        variant.id === edition.final_product_variant_id &&
         Number(variant.price) === Number(edition.final_price_cents) / 100 &&
         variant.product && variant.product.status === 'ACTIVE'
       ), variant ? {
@@ -708,6 +779,8 @@ async function getReadiness(env, editionId) {
         inventoryQuantity: variant.inventoryQuantity,
         productStatus: variant.product && variant.product.status
       } : 'not_found');
+
+      check('shopify.final_size_variants', sizeCoverage.ok, sizeCoverage);
 
       check('shopify.reservation_variant', Boolean(
         reservationVariant &&
@@ -822,6 +895,7 @@ async function getCampaign(env, editionId) {
       finalPriceCents: edition.final_price_cents,
       balanceDueCents: edition.final_price_cents - edition.reservation_price_cents,
       identityLimit: edition.identity_limit,
+      sizeOptions: parseEditionSizeOptions(edition.size_options_csv),
       paymentWindowHours: edition.payment_window_hours,
       standbyWindowHours: edition.standby_window_hours
     },
