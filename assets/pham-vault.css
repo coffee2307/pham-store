@@ -142,19 +142,6 @@
   will-change: transform;
   transform: rotateX(5deg) rotateZ(6deg);
 }
-.pham-vault__orbit-ring {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 52%;
-  height: 52%;
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 50%;
-  transform: translate3d(-50%, -50%, -8px) rotateX(90deg);
-  transform-origin: center;
-  box-shadow: 0 0 80px rgba(255,255,255,.018);
-  pointer-events: none;
-}
 .pham-vault__orbit-card {
   position: absolute;
   left: 50%;
@@ -680,13 +667,6 @@
   pointer-events: none;
   cursor: default;
 }
-.pham-vault.is-card-open .pham-vault__orbit-ring {
-  opacity: .28;
-  transition: opacity 440ms cubic-bezier(.37,0,.63,1);
-}
-.pham-vault.is-card-closing .pham-vault__orbit-ring {
-  opacity: 1;
-}
 .pham-vault.is-card-open .pham-vault__orbit-card:not(.is-tarot-expanded) .pham-vault__orbit-card-face {
   opacity: .52;
   filter: brightness(.62);
@@ -830,13 +810,6 @@
   }
   .pham-vault.is-card-open .pham-vault__orbit-stage {
     z-index: 18;
-  }
-  .pham-vault.is-card-open .pham-vault__orbit-ring {
-    opacity: .12;
-    transition: opacity 820ms cubic-bezier(.37,0,.63,1);
-  }
-  .pham-vault.is-card-closing .pham-vault__orbit-ring {
-    opacity: 1;
   }
   .pham-vault.is-card-open .pham-vault__orbit-card:not(.is-tarot-expanded) {
     pointer-events: none;
