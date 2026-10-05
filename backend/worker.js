@@ -1330,6 +1330,7 @@ async function createFinalAcquisitionDraft(env, { edition, reservation, deadline
     },
     acceptAutomaticDiscounts: false,
     allowDiscountCodesInCheckout: false,
+    reserveInventoryUntil: deadline,
     customAttributes: [
       { key: 'PHAM Reservation ID', value: reservation.id },
       { key: 'PHAM Edition', value: edition.label },
@@ -1411,7 +1412,11 @@ async function expireReservationsAndPromote(env) {
        AND payment_deadline <= ?`
   ).bind(nowIso).all();
 
-  const touchedEditions = new Set();
+  const releaseCounts = new Map();
+
+  function recordReleasedSlot(editionId){
+    releaseCounts.set(editionId, (releaseCounts.get(editionId) || 0) + 1);
+  }
 
   for (const row of expiredReservations.results || []) {
     if (row.final_draft_order_id) {
@@ -1443,7 +1448,7 @@ async function expireReservationsAndPromote(env) {
       );
     }
     await setMetafields(env, fields);
-    touchedEditions.add(row.edition_id);
+    recordReleasedSlot(row.edition_id);
   }
 
   const expiredStandby = await env.PHAM_CAMPAIGN_DB.prepare(
@@ -1467,11 +1472,14 @@ async function expireReservationsAndPromote(env) {
       "UPDATE standby SET status = 'expired' WHERE id = ? AND status = 'promoted'"
     ).bind(row.id).run();
 
-    touchedEditions.add(row.edition_id);
+    recordReleasedSlot(row.edition_id);
   }
 
-  for (const editionId of touchedEditions) {
-    await promoteNextStandby(env, editionId);
+  for (const [editionId, count] of releaseCounts.entries()) {
+    for (let i = 0; i < count; i++) {
+      const promotion = await promoteNextStandby(env, editionId);
+      if (!promotion || promotion.promoted === false) break;
+    }
   }
 }
 
@@ -1501,7 +1509,7 @@ async function promoteNextStandby(env, editionId) {
   const edition = await env.PHAM_CAMPAIGN_DB.prepare(
     'SELECT * FROM editions WHERE id = ?'
   ).bind(editionId).first();
-  if (!edition) return { ok: false, reason: 'edition_not_found' };
+  if (!edition) return { ok: false, promoted: false, reason: 'edition_not_found' };
 
   const next = await env.PHAM_CAMPAIGN_DB.prepare(
     "SELECT * FROM standby WHERE edition_id = ? AND status = 'waiting' ORDER BY position ASC LIMIT 1"
@@ -1509,56 +1517,78 @@ async function promoteNextStandby(env, editionId) {
 
   if (!next) return { ok: true, promoted: false, reason: 'queue_empty' };
 
-  const promotedAt = new Date();
-  const deadline = new Date(promotedAt.getTime() + edition.standby_window_hours * 3600000).toISOString();
+  const claim = await env.PHAM_CAMPAIGN_DB.prepare(
+    "UPDATE standby SET status = 'promoting' WHERE id = ? AND status = 'waiting'"
+  ).bind(next.id).run();
 
-  let draftOrderId = next.draft_order_id;
-  let invoiceUrl = next.invoice_url;
-
-  if (!draftOrderId) {
-    const draft = await createStandbyAcquisitionDraft(env, {
-      edition,
-      standby: next,
-      deadline
-    });
-    draftOrderId = draft.id;
-    invoiceUrl = draft.invoiceUrl;
-
-    await env.PHAM_CAMPAIGN_DB.prepare(
-      `UPDATE standby
-       SET draft_order_id = ?, invoice_url = ?
-       WHERE id = ?`
-    ).bind(draftOrderId, invoiceUrl || null, next.id).run();
-  }
-
-  await sendStandbyAcquisitionInvoice(env, {
-    draftOrderId,
-    email: next.email,
-    edition,
-    standbyId: next.id,
-    deadline
-  });
-
-  const update = await env.PHAM_CAMPAIGN_DB.prepare(
-    `UPDATE standby
-     SET status = 'promoted', promoted_at = ?, offer_deadline = ?
-     WHERE id = ? AND status = 'waiting'`
-  ).bind(promotedAt.toISOString(), deadline, next.id).run();
-
-  if (!(update.meta && update.meta.changes)) {
+  if (!(claim.meta && claim.meta.changes)) {
     return { ok: false, promoted: false, reason: 'standby_state_changed' };
   }
 
-  return {
-    ok: true,
-    promoted: true,
-    standbyId: next.id,
-    email: next.email,
-    offerDeadline: deadline,
-    priceCents: edition.final_price_cents,
-    draftOrderId,
-    invoiceUrl
-  };
+  const promotedAt = new Date();
+  const deadline = new Date(promotedAt.getTime() + edition.standby_window_hours * 3600000).toISOString();
+
+  try {
+    let draftOrderId = next.draft_order_id;
+    let invoiceUrl = next.invoice_url;
+
+    if (!draftOrderId) {
+      const draft = await createStandbyAcquisitionDraft(env, {
+        edition,
+        standby: next,
+        deadline
+      });
+      draftOrderId = draft.id;
+      invoiceUrl = draft.invoiceUrl;
+
+      await env.PHAM_CAMPAIGN_DB.prepare(
+        `UPDATE standby
+         SET draft_order_id = ?, invoice_url = ?
+         WHERE id = ? AND status = 'promoting'`
+      ).bind(draftOrderId, invoiceUrl || null, next.id).run();
+    }
+
+    await sendStandbyAcquisitionInvoice(env, {
+      draftOrderId,
+      email: next.email,
+      edition,
+      standbyId: next.id,
+      deadline
+    });
+
+    const update = await env.PHAM_CAMPAIGN_DB.prepare(
+      `UPDATE standby
+       SET status = 'promoted', promoted_at = ?, offer_deadline = ?
+       WHERE id = ? AND status = 'promoting'`
+    ).bind(promotedAt.toISOString(), deadline, next.id).run();
+
+    if (!(update.meta && update.meta.changes)) {
+      throw new Error('Standby state changed during promotion');
+    }
+
+    return {
+      ok: true,
+      promoted: true,
+      standbyId: next.id,
+      email: next.email,
+      offerDeadline: deadline,
+      priceCents: edition.final_price_cents,
+      draftOrderId,
+      invoiceUrl
+    };
+  } catch (error) {
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      "UPDATE standby SET status = 'waiting' WHERE id = ? AND status = 'promoting'"
+    ).bind(next.id).run();
+
+    console.error('Standby promotion failed', next.id, error);
+    return {
+      ok: false,
+      promoted: false,
+      reason: 'standby_promotion_failed',
+      error: error.message || String(error)
+    };
+  }
 }
 
 async function createStandbyAcquisitionDraft(env, { edition, standby, deadline }) {
@@ -1582,6 +1612,7 @@ async function createStandbyAcquisitionDraft(env, { edition, standby, deadline }
     }],
     acceptAutomaticDiscounts: false,
     allowDiscountCodesInCheckout: false,
+    reserveInventoryUntil: deadline,
     customAttributes: [
       { key: 'PHAM Standby ID', value: standby.id },
       { key: 'PHAM Edition', value: edition.label },
