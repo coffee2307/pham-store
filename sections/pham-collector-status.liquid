@@ -1,0 +1,50 @@
+{{ 'pham-campaign.css' | asset_url | stylesheet_tag }}
+{%- assign reservation_status = 'NOT ACTIVE' -%}
+{%- assign object_number = blank -%}
+{%- assign identity_status = 'LOCKED' -%}
+{%- assign payment_deadline = blank -%}
+{%- if customer -%}
+  {%- assign reservation_status = customer.metafields.pham.current_reservation_status.value | default: 'PENDING' -%}
+  {%- assign object_number = customer.metafields.pham.current_object_number.value -%}
+  {%- assign identity_status = customer.metafields.pham.identity_status.value | default: 'LOCKED' -%}
+  {%- assign payment_deadline = customer.metafields.pham.payment_deadline.value -%}
+{%- endif -%}
+
+<section class="pham-campaign-shell" data-pham-collector-status>
+  <div class="pham-campaign-inner">
+    <p class="pham-campaign-kicker">PHAM · COLLECTOR ACCESS</p>
+    <h1 class="pham-campaign-title">{% if customer %}{{ customer.first_name | default: 'Collector' | escape }}{% else %}Collector{% endif %}<br>status.</h1>
+
+    <div class="pham-campaign-grid">
+      <article class="pham-campaign-card pham-campaign-card--wide">
+        {%- unless customer -%}
+          <p>Sign in with the account connected to your reservation to view live collector status.</p>
+          <div class="pham-campaign-actions"><a class="pham-campaign-btn" href="{{ routes.account_login_url }}">Sign in</a></div>
+        {%- else -%}
+          <div class="pham-status-row"><span>Edition</span><strong>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</strong></div>
+          <div class="pham-status-row"><span>Product</span><strong>{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</strong></div>
+          <div class="pham-status-row"><span>Reservation</span><strong>{{ reservation_status }}</strong></div>
+          <div class="pham-status-row"><span>Object</span><strong>{% if object_number != blank %}{{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}{% else %}PENDING ASSIGNMENT{% endif %}</strong></div>
+          <div class="pham-status-row"><span>Identity</span><strong>{{ identity_status }}</strong></div>
+          <div class="pham-status-row"><span>Reservation paid</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
+          <div class="pham-status-row"><span>Balance</span><strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></div>
+          {%- if payment_deadline != blank -%}<div class="pham-status-row"><span>Payment deadline</span><strong>{{ payment_deadline }}</strong></div>{%- endif -%}
+        {%- endunless -%}
+      </article>
+
+      <article class="pham-campaign-card">
+        <h2>Digital lookbook</h2>
+        <p>{% if settings.pham_campaign_include_digital_lookbook %}Delivered by email after confirmed reservation payment. Download history will be connected in the automation phase.{% else %}No digital deliverable configured for this edition yet.{% endif %}</p>
+      </article>
+
+      <article class="pham-campaign-card">
+        <h2>Next action</h2>
+        <p>When the acquisition window opens, reserved collectors receive a payment invitation for {{ settings.pham_campaign_balance_due | default: '$174.01' }} with a {{ settings.pham_campaign_payment_window_hours | default: 72 }}-hour deadline.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{"name":"PHAM Collector Status","tag":"section","settings":[],"presets":[{"name":"PHAM Collector Status"}]}
+{% endschema %}
