@@ -385,7 +385,9 @@
     "pham_campaign_reservation_product": "pham-001-priority-reservation",
     "pham_campaign_identity_product": "pham-object-identity",
     "pham_campaign_lookbook_ready": false,
-    "pham_campaign_lookbook_product": "pham-edition-01-collector-lookbook"
+    "pham_campaign_lookbook_product": "pham-edition-01-collector-lookbook",
+    "pham_campaign_engine_enabled": false,
+    "pham_campaign_engine_proxy_path": "/apps/pham-edition"
   },
   "presets": {
     "Horizon": {
