@@ -60,6 +60,11 @@ export default {
         return getReadiness(env, url.searchParams.get('edition') || 'edition-01');
       }
 
+      if (request.method === 'POST' && url.pathname === '/internal/reservation/variant') {
+        requireInternalKey(request, env);
+        return assignReservationVariant(request, env);
+      }
+
       if (request.method === 'POST' && url.pathname === '/internal/final-payment/open') {
         requireInternalKey(request, env);
         return openFinalPayment(request, env);
@@ -445,6 +450,93 @@ async function collectReadiness(env, editionId) {
   const response = await getReadiness(env, editionId);
   const payload = await response.json().catch(function(){ return {}; });
   return payload;
+}
+
+async function assignReservationVariant(request, env) {
+  const body = await request.json();
+  const reservationId = String(body.reservationId || '').trim();
+  const variantId = String(body.variantId || '').trim();
+
+  if (!reservationId || !variantId) {
+    return json({ ok: false, error: 'reservation_id_and_variant_id_required' }, 422);
+  }
+
+  const reservation = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT id, edition_id, size_preference, status FROM reservations WHERE id = ?'
+  ).bind(reservationId).first();
+
+  if (!reservation) return json({ ok: false, error: 'reservation_not_found' }, 404);
+  if (['cancelled', 'expired', 'final_paid'].includes(reservation.status)) {
+    return json({ ok: false, error: 'reservation_not_mappable', status: reservation.status }, 409);
+  }
+
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT id, final_price_cents FROM editions WHERE id = ?'
+  ).bind(reservation.edition_id).first();
+
+  if (!edition) return json({ ok: false, error: 'edition_not_found' }, 404);
+
+  const result = await shopifyGraphQL(env, `query ValidateFinalVariant($id: ID!) {
+    productVariant(id: $id) {
+      id
+      sku
+      title
+      price
+      selectedOptions { name value }
+      product { id title status }
+    }
+  }`, { id: variantId });
+
+  const variant = result && result.data && result.data.productVariant;
+  if (!variant) return json({ ok: false, error: 'variant_not_found' }, 404);
+
+  if (!variant.product || variant.product.status !== 'ACTIVE') {
+    return json({ ok: false, error: 'variant_product_not_active' }, 409);
+  }
+
+  if (Number(variant.price) !== Number(edition.final_price_cents) / 100) {
+    return json({
+      ok: false,
+      error: 'variant_price_mismatch',
+      expected: Number(edition.final_price_cents) / 100,
+      actual: Number(variant.price)
+    }, 409);
+  }
+
+  const preference = String(reservation.size_preference || '').trim().toLowerCase();
+  if (preference) {
+    const sizeOption = (variant.selectedOptions || []).find(function(option) {
+      return String(option.name || '').trim().toLowerCase() === 'size';
+    });
+    const actualSize = sizeOption ? String(sizeOption.value || '').trim().toLowerCase() : '';
+
+    if (!actualSize || actualSize !== preference) {
+      return json({
+        ok: false,
+        error: 'variant_size_mismatch',
+        expectedSize: reservation.size_preference,
+        actualSize: sizeOption ? sizeOption.value : null,
+        variantTitle: variant.title
+      }, 409);
+    }
+  }
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    'UPDATE reservations SET final_variant_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+  ).bind(variant.id, reservationId).run();
+
+  return json({
+    ok: true,
+    reservationId,
+    sizePreference: reservation.size_preference || null,
+    variant: {
+      id: variant.id,
+      sku: variant.sku,
+      title: variant.title,
+      price: variant.price,
+      productTitle: variant.product.title
+    }
+  });
 }
 
 async function getReadiness(env, editionId) {
