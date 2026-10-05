@@ -18,16 +18,19 @@
   {%- else -%}{%- assign state_label = 'PRELAUNCH · SYSTEM IN PREPARATION' -%}
 {%- endcase -%}
 
-<section class="pham-campaign-shell" data-pham-edition-campaign>
+<section class="pham-campaign-shell"
+  data-pham-edition-campaign
+  data-backend-url="{{ settings.pham_campaign_backend_url | escape }}"
+  data-edition-id="{{ settings.pham_campaign_edition_id | default: 'edition-01' | escape }}">
   <div class="pham-campaign-inner">
-    <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · {{ state_label }}</p>
+    <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · <span data-pham-live-state>{{ state_label }}</span></p>
     <h1 class="pham-campaign-title">{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</h1>
     <p class="pham-campaign-lede">{{ section.settings.intro }}</p>
 
     <div class="pham-campaign-grid">
       <article class="pham-campaign-card pham-campaign-card--wide">
         <p class="pham-campaign-mono">Edition allocation</p>
-        <div class="pham-campaign-stat"><strong>{{ claimed }} / {{ edition_size }}</strong><span>Reserved</span></div>
+        <div class="pham-campaign-stat"><strong data-pham-live-reservations>{{ claimed }} / {{ edition_size }}</strong><span>Reserved</span></div>
         <div class="pham-campaign-meter" style="--pc-progress: {{ reservation_progress | at_most: 100 }}%"><i></i></div>
         <div class="pham-campaign-actions">
           {%- if state == 'reservation_open' and settings.pham_campaign_reservation_page_url != blank -%}
@@ -44,7 +47,7 @@
 
       <article class="pham-campaign-card">
         <p class="pham-campaign-mono">Object Identity</p>
-        <div class="pham-campaign-stat"><strong>{{ identity_claimed }} / {{ identity_limit }}</strong><span>Privileges</span></div>
+        <div class="pham-campaign-stat"><strong data-pham-live-identity>{{ identity_claimed }} / {{ identity_limit }}</strong><span>Privileges</span></div>
         <div class="pham-campaign-meter" style="--pc-progress: {{ identity_progress | at_most: 100 }}%"><i></i></div>
         <p style="margin-top:20px">Custom stainless-steel identity, preferred object-number request and QR provenance. Unlock by paid upgrade or one verified reservation referral while the shared pool remains available.</p>
       </article>
