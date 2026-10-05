@@ -80,6 +80,10 @@ CREATE TABLE IF NOT EXISTS standby (
   edition_id TEXT NOT NULL,
   email TEXT NOT NULL,
   customer_id TEXT,
+  name TEXT,
+  country TEXT,
+  size_preference TEXT,
+  final_variant_id TEXT,
   position INTEGER NOT NULL,
   status TEXT NOT NULL DEFAULT 'waiting',
   promoted_at TEXT,
@@ -112,6 +116,8 @@ CREATE TABLE IF NOT EXISTS objects (
 CREATE TABLE IF NOT EXISTS webhook_events (
   id TEXT PRIMARY KEY,
   topic TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'processed',
+  detail TEXT,
   processed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
