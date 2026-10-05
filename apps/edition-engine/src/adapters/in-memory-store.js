@@ -25,8 +25,30 @@ export class InMemoryStore {
     return clone(this.editions.get(id) || null);
   }
 
-  async claimReservationSlot(editionId) {
-    const edition = this.editions.get(editionId);
+  async createReservationWithSlot(input) {
+    if (this.reservations.has(input.id)) throw new Error('reservation_exists');
+
+    const customerKey = `${input.editionId}:${input.customerId}`;
+    if (this.customerReservations.has(customerKey)) {
+      throw new Error('customer_already_reserved');
+    }
+
+    for (const reservation of this.reservations.values()) {
+      if (
+        reservation.editionId === input.editionId &&
+        reservation.shopifyOrderId === input.shopifyOrderId
+      ) {
+        throw new Error('order_already_reserved');
+      }
+      if (
+        reservation.editionId === input.editionId &&
+        reservation.collectorReferralCode === input.collectorReferralCode
+      ) {
+        throw new Error('referral_code_exists');
+      }
+    }
+
+    const edition = this.editions.get(input.editionId);
     if (!edition) throw new Error('edition_not_found');
     if (edition.state !== CampaignState.RESERVATION_OPEN || edition.commerceReady !== true) {
       throw new Error('reservation_closed');
@@ -35,11 +57,20 @@ export class InMemoryStore {
       throw new Error('reservation_full');
     }
 
+    const record = {
+      ...clone(input),
+      status: input.status || ReservationStatus.ACTIVE,
+      createdAt: input.createdAt || new Date().toISOString(),
+    };
+
     edition.reservationsClaimed += 1;
     if (edition.reservationsClaimed >= edition.editionSize) {
       edition.state = CampaignState.RESERVATION_FULL;
     }
-    return clone(edition);
+
+    this.reservations.set(record.id, record);
+    this.customerReservations.set(customerKey, record.id);
+    return clone(record);
   }
 
   async releaseReservationSlot(editionId) {
@@ -47,22 +78,6 @@ export class InMemoryStore {
     if (!edition) throw new Error('edition_not_found');
     edition.reservationsClaimed = Math.max(0, edition.reservationsClaimed - 1);
     return clone(edition);
-  }
-
-  async createReservation(input) {
-    if (this.reservations.has(input.id)) throw new Error('reservation_exists');
-    const customerKey = `${input.editionId}:${input.customerId}`;
-    if (this.customerReservations.has(customerKey)) throw new Error('customer_already_reserved');
-
-    const record = {
-      ...clone(input),
-      status: input.status || ReservationStatus.ACTIVE,
-      createdAt: input.createdAt || new Date().toISOString(),
-    };
-
-    this.reservations.set(record.id, record);
-    this.customerReservations.set(customerKey, record.id);
-    return clone(record);
   }
 
   async getReservation(id) {
