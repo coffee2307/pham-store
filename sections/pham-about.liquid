@@ -42,6 +42,25 @@
       </ol>
     {%- endif -%}
 
+    <section class="pham-about__record reveal-up" aria-label="PHAM founder and edition record">
+      <div class="pham-about__record-block">
+        <p class="pham-eyebrow">{{ section.settings.founder_eyebrow }}</p>
+        <h2 class="pham-about__record-title">{{ section.settings.founder_title }}</h2>
+        <p class="pham-about__record-copy">{{ section.settings.founder_body }}</p>
+      </div>
+
+      <div class="pham-about__record-block">
+        <p class="pham-eyebrow">{{ section.settings.edition_eyebrow }}</p>
+        <h2 class="pham-about__record-title">{{ section.settings.edition_title }}</h2>
+        <p class="pham-about__record-copy">{{ section.settings.edition_body }}</p>
+      </div>
+
+      <div class="pham-about__edition-note">
+        <span>{{ section.settings.edition_note_label }}</span>
+        <strong>{{ section.settings.edition_note_value }}</strong>
+      </div>
+    </section>
+
     <aside class="pham-about__origin reveal-up">
       <p>{{ section.settings.origin_eyebrow }}</p>
       <div>
@@ -146,6 +165,56 @@
   .pham-about__principle-index { grid-row: 1 / 3; color: rgba(242,242,239,.42); font: 400 9px/1.4 var(--font-mono); }
   .pham-about__principle h2 { margin: 0; color: var(--color-bone); font: 400 1rem/1.2 var(--font-display); letter-spacing: .04em; text-transform: uppercase; }
   .pham-about__principle p { margin: 0; color: var(--color-bone-60); font: 400 .84rem/1.6 var(--font-body); }
+  .pham-about__record {
+    grid-column: 1 / -1;
+    margin-top: clamp(72px, 9vw, 120px);
+    padding-top: clamp(36px, 5vw, 64px);
+    border-top: 1px solid rgba(255,255,255,.18);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(36px, 7vw, 96px);
+  }
+  .pham-about__record-block {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 56ch;
+  }
+  .pham-about__record-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 2.7vw, 2.3rem);
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: var(--color-white);
+    text-wrap: balance;
+  }
+  .pham-about__record-copy {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: clamp(.96rem, 1.15vw, 1.1rem);
+    line-height: 1.8;
+    color: var(--color-bone-60);
+  }
+  .pham-about__edition-note {
+    grid-column: 1 / -1;
+    margin-top: clamp(8px, 2vw, 18px);
+    padding-block: 18px;
+    border-top: 1px solid rgba(255,255,255,.12);
+    border-bottom: 1px solid rgba(255,255,255,.12);
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    line-height: 1.5;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .pham-about__edition-note span { color: rgba(242,242,239,.4); }
+  .pham-about__edition-note strong { color: rgba(242,242,239,.9); font-weight: 400; text-align: right; }
   .pham-about__origin { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr repeat(2, minmax(180px, .45fr)); gap: 24px; margin-top: clamp(70px, 10vw, 130px); padding-block: 22px; border-top: 1px solid rgba(255,255,255,.2); border-bottom: 1px solid rgba(255,255,255,.12); }
   .pham-about__origin p,.pham-about__origin span,.pham-about__origin strong { margin: 0; font: 400 9px/1.45 var(--font-mono); letter-spacing: .08em; }
   .pham-about__origin p,.pham-about__origin span { color: rgba(242,242,239,.44); }
@@ -157,6 +226,8 @@
   }
   @media (max-width: 899px) {
     .pham-about__inner { grid-template-columns: 1fr; }
+    .pham-about__record { grid-template-columns: 1fr; }
+    .pham-about__edition-note { grid-column: auto; }
     .pham-about__body { margin-bottom: 60px; }
     .pham-about__origin { grid-template-columns: 1fr 1fr; }
     .pham-about__origin > p { grid-column: 1 / -1; }
@@ -166,6 +237,9 @@
     .pham-about__title { font-size: clamp(3.2rem, 19vw, 5.6rem); }
     .pham-about__head { margin-bottom: 48px; }
     .pham-about__paragraph { font-size: .96rem; }
+    .pham-about__record { gap: 40px; margin-top: 64px; padding-top: 32px; }
+    .pham-about__edition-note { display: grid; gap: 8px; }
+    .pham-about__edition-note strong { text-align: left; }
     .pham-about__origin { grid-template-columns: 1fr; }
     .pham-about__origin > p { grid-column: auto; }
   }
@@ -218,6 +292,62 @@
       "id": "closing_line",
       "label": "Closing line",
       "default": "Not louder. More deliberate."
+    },
+    {
+      "type": "header",
+      "content": "Founder story"
+    },
+    {
+      "type": "text",
+      "id": "founder_eyebrow",
+      "label": "Founder eyebrow",
+      "default": "FOUNDER / COFFEE PHAM"
+    },
+    {
+      "type": "text",
+      "id": "founder_title",
+      "label": "Founder title",
+      "default": "BUILT FROM INTENT, NOT VOLUME"
+    },
+    {
+      "type": "textarea",
+      "id": "founder_body",
+      "label": "Founder story",
+      "default": "PHAM was founded in Vietnam in 2026 by Coffee Pham as an independent atelier built around a simple refusal: not to release an object before its form, proportion and details feel resolved. The studio does not work from a conventional seasonal calendar. Each release begins with one object, developed slowly enough for the construction, material and identity to remain coherent from first sketch to final production."
+    },
+    {
+      "type": "header",
+      "content": "Edition system"
+    },
+    {
+      "type": "text",
+      "id": "edition_eyebrow",
+      "label": "Edition eyebrow",
+      "default": "EDITION SYSTEM / NO RESTOCK"
+    },
+    {
+      "type": "text",
+      "id": "edition_title",
+      "label": "Edition title",
+      "default": "RELEASED ONCE. RECORDED INDIVIDUALLY."
+    },
+    {
+      "type": "textarea",
+      "id": "edition_body",
+      "label": "Edition story",
+      "default": "PHAM editions open within a defined release window and are not reproduced once that edition closes. Every finished piece is treated as an individual object, accompanied by its own identity card and edition identifier. PHAM-001 begins this system with a planned run of 50 cropped bomber jackets. Each jacket is paired with an exclusive appreciation necklace: 49 feature a silver-finished stainless-steel pendant, while one pendant is finished in gold. The distinction is not announced in advance; it belongs to the object and the person who receives it."
+    },
+    {
+      "type": "text",
+      "id": "edition_note_label",
+      "label": "Edition note label",
+      "default": "EDITION 01 / PHAM-001"
+    },
+    {
+      "type": "text",
+      "id": "edition_note_value",
+      "label": "Edition note value",
+      "default": "50 OBJECTS · 50 IDENTITIES · NO RESTOCK"
     },
     {
       "type": "text",
