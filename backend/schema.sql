@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS standby (
   offer_deadline TEXT,
   draft_order_id TEXT,
   invoice_url TEXT,
-  converted_reservation_id TEXT,
+  converted_reservation_id TEXT UNIQUE,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (edition_id) REFERENCES editions(id),
   UNIQUE (edition_id, email),
