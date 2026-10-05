@@ -3,6 +3,7 @@
 {%- assign object_number = blank -%}
 {%- assign identity_status = 'LOCKED' -%}
 {%- assign payment_deadline = blank -%}
+{%- assign size_preference = blank -%}
 {%- assign lookbook_status = 'PENDING' -%}
 {%- assign referral_code = blank -%}
 {%- assign successful_referrals = 0 -%}
@@ -12,6 +13,7 @@
   {%- assign object_number = customer.metafields.pham.current_object_number.value -%}
   {%- assign identity_status = customer.metafields.pham.identity_status.value | default: 'LOCKED' -%}
   {%- assign payment_deadline = customer.metafields.pham.payment_deadline.value -%}
+  {%- assign size_preference = customer.metafields.pham.size_preference.value -%}
   {%- assign lookbook_status = customer.metafields.pham.digital_lookbook_status.value | default: 'PENDING' -%}
   {%- assign referral_code = customer.metafields.pham.referral_code.value -%}
   {%- assign successful_referrals = customer.metafields.pham.successful_referrals.value | default: 0 -%}
@@ -44,6 +46,7 @@
           <div class="pham-status-row"><span>Reservation</span><strong data-pham-live-reservation-status>{{ reservation_status }}</strong></div>
           <div class="pham-status-row"><span>Object</span><strong data-pham-live-object>{% if object_number != blank %}{{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}{% else %}PENDING ASSIGNMENT{% endif %}</strong></div>
           <div class="pham-status-row"><span>Identity</span><strong data-pham-live-identity-status>{{ identity_status }}</strong></div>
+          <div class="pham-status-row"><span>Size preference</span><strong data-pham-live-size>{% if size_preference != blank %}{{ size_preference }}{% else %}PENDING{% endif %}</strong></div>
           <div class="pham-status-row"><span>Referral</span><strong data-pham-live-referral>{{ successful_referrals }} / 1 VERIFIED</strong></div>
           <div class="pham-status-row"><span>Digital lookbook</span><strong data-pham-live-lookbook>{{ lookbook_status }}</strong></div>
           <div class="pham-status-row"><span>Founder’s Token</span><strong data-pham-live-founder-token>PENDING ALLOCATION</strong></div>
