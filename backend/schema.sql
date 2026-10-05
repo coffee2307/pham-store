@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS editions (
   identity_limit INTEGER NOT NULL,
   payment_window_hours INTEGER NOT NULL DEFAULT 72,
   standby_window_hours INTEGER NOT NULL DEFAULT 48,
+  size_options_csv TEXT NOT NULL DEFAULT 'XS,S,M,L,XL',
   final_product_variant_id TEXT,
   identity_inventory_item_id TEXT,
   identity_location_id TEXT,
@@ -133,12 +134,12 @@ CREATE INDEX IF NOT EXISTS idx_standby_queue
 INSERT OR IGNORE INTO editions (
   id, label, product_code, edition_size, state,
   reservation_price_cents, final_price_cents, identity_limit,
-  payment_window_hours, standby_window_hours,
+  payment_window_hours, standby_window_hours, size_options_csv,
   final_product_variant_id, identity_inventory_item_id, identity_location_id, currency_code,
   design_origin, production_origin
 ) VALUES (
   'edition-01', 'EDITION 01', 'PHAM-001', 50, 'prelaunch',
-  2499, 19900, 15, 72, 48,
+  2499, 19900, 15, 72, 48, 'XS,S,M,L,XL',
   'gid://shopify/ProductVariant/50501819662592',
   'gid://shopify/InventoryItem/52648986214656',
   'gid://shopify/Location/96415613184',
