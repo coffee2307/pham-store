@@ -14,7 +14,13 @@
         "preorder_note": "Join the PHAM-001 waitlist. We will email you when pre-order access opens.",
         "show_phases_default": true,
         "phases_eyebrow": "PRODUCTION SCHEDULE",
-        "shipping_terms": "Production and fulfillment dates will be confirmed before payment is collected. Waitlist members will be notified by email."
+        "shipping_terms": "Production and fulfillment dates will be confirmed before payment is collected. Waitlist members will be notified by email.",
+        "show_object_record": true,
+        "object_id": "PHAM-001 / 01–50",
+        "object_edition": "01",
+        "object_origin": "VIETNAM",
+        "object_status": "PRE-RELEASE",
+        "object_record_note": "Each released object is paired with its own identity card and individual edition identifier."
       },
       "blocks": {
         "gallery_male_002": {
