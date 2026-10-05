@@ -1,4 +1,6 @@
+{%- capture pham_campaign_state_raw -%}{%- render 'pham-campaign-state' -%}{%- endcapture -%}
 {%- liquid
+  assign pham_campaign_state = pham_campaign_state_raw | strip
   assign featured_product = section.settings.product
   if featured_product == blank
     assign featured_product = collections.all.products.first
@@ -10,6 +12,54 @@
   endif
   if object_url == blank
     assign object_url = routes.all_products_collection_url
+  endif
+
+  assign entry_cta_text = section.settings.entry_cta_label
+  assign acquisition_cta_text = section.settings.cta_label
+  assign acquisition_price_text = blank
+  assign acquisition_status_text = blank
+
+  if settings.pham_campaign_enabled
+    case pham_campaign_state
+      when 'reservation_open'
+        if settings.pham_campaign_reservation_page_url != blank
+          assign object_url = settings.pham_campaign_reservation_page_url
+        endif
+        assign entry_cta_text = 'RESERVE ' | append: settings.pham_campaign_edition_label
+        assign acquisition_cta_text = 'RESERVE PRIORITY ACCESS'
+        assign acquisition_price_text = settings.pham_campaign_reservation_price
+        assign acquisition_status_text = 'PRIORITY RESERVATION OPEN'
+      when 'reservation_full'
+        if settings.pham_campaign_standby_page_url != blank
+          assign object_url = settings.pham_campaign_standby_page_url
+        endif
+        assign entry_cta_text = 'JOIN STANDBY'
+        assign acquisition_cta_text = 'JOIN STANDBY · FREE'
+        assign acquisition_price_text = 'FREE'
+        assign acquisition_status_text = 'EDITION RESERVED · STANDBY OPEN'
+      when 'final_payment'
+        if settings.pham_campaign_collector_page_url != blank
+          assign object_url = settings.pham_campaign_collector_page_url
+        endif
+        assign entry_cta_text = 'COLLECTOR ACCESS'
+        assign acquisition_cta_text = 'COMPLETE ACQUISITION'
+        assign acquisition_price_text = settings.pham_campaign_balance_due
+        assign acquisition_status_text = 'ACQUISITION WINDOW OPEN'
+      when 'sold_out'
+        if settings.pham_campaign_edition_page_url != blank
+          assign object_url = settings.pham_campaign_edition_page_url
+        endif
+        assign entry_cta_text = 'VIEW EDITION'
+        assign acquisition_cta_text = 'VIEW EDITION'
+        assign acquisition_status_text = 'EDITION CLOSED'
+      when 'archived'
+        if settings.pham_campaign_edition_page_url != blank
+          assign object_url = settings.pham_campaign_edition_page_url
+        endif
+        assign entry_cta_text = 'VIEW ARCHIVE'
+        assign acquisition_cta_text = 'VIEW ARCHIVE'
+        assign acquisition_status_text = 'ARCHIVED'
+    endcase
   endif
 -%}
 
@@ -30,20 +80,20 @@
 
     <div class="pham-vault__chrome" aria-hidden="true">
       <span>PHAM / DIGITAL ARCHIVE</span>
-      <span>OBJECT 001</span>
-      <span>VIETNAM / 2026</span>
+      <span>{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</span>
+      <span>{{ settings.pham_campaign_origin_label | default: 'VIETNAM / 2026' }}</span>
     </div>
 
     <div class="pham-vault__orbit-stage" data-pham-vault-orbit>
       <div class="pham-vault__orbit-plane" data-pham-vault-orbit-plane>
         <div class="pham-vault__orbit-cards">
           <div class="pham-vault__orbit-core" data-pham-vault-core aria-hidden="true">
-            <span class="pham-vault__core-eyebrow">PHAM ATELIER / EDITION 01</span>
+            <span class="pham-vault__core-eyebrow">PHAM ATELIER / {{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span>
             <span class="pham-vault__core-title" data-text="PHAM">PHAM</span>
             <span class="pham-vault__core-meta">
-              <span>OBJECT 001</span>
-              <span>50 OBJECTS</span>
-              <span>VIETNAM / 2026</span>
+              <span>{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</span>
+              <span>{{ settings.pham_campaign_edition_size | default: 50 }} OBJECTS</span>
+              <span>{{ settings.pham_campaign_origin_label | default: 'VIETNAM / 2026' }}</span>
             </span>
           </div>
           {%- if section.blocks.size > 0 -%}
@@ -104,7 +154,7 @@
         <div class="pham-vault__entry-actions">
           <span class="pham-vault__cue">{{ section.settings.scroll_label }}</span>
           {%- if featured_product != blank -%}
-            <a class="pham-vault__entry-link" href="{{ object_url }}">{{ section.settings.entry_cta_label }} <span aria-hidden="true">&#8599;</span></a>
+            <a class="pham-vault__entry-link" href="{{ object_url }}">{{ entry_cta_text }} <span aria-hidden="true">&#8599;</span></a>
           {%- endif -%}
         </div>
       </article>
@@ -131,14 +181,20 @@
           {%- if featured_product != blank -%}{{ featured_product.title }}{%- else -%}{{ section.settings.chapter_4_title }}{%- endif -%}
         </h2>
         {%- if featured_product != blank -%}
-          <p class="pham-vault__price">{{ featured_product.price | money }}</p>
+          <p class="pham-vault__price">{% if acquisition_price_text != blank %}{{ acquisition_price_text }}{% else %}{{ featured_product.price | money }}{% endif %}</p>
           <p class="pham-vault__availability">
-            {%- if featured_product.available -%}{{ section.settings.available_label }}{%- else -%}{{ section.settings.sold_out_label }}{%- endif -%}
+            {%- if acquisition_status_text != blank -%}
+              {{ acquisition_status_text }}
+            {%- elsif featured_product.available -%}
+              {{ section.settings.available_label }}
+            {%- else -%}
+              {{ section.settings.sold_out_label }}
+            {%- endif -%}
           </p>
         {%- endif -%}
         <p class="pham-vault__copy">{{ section.settings.chapter_4_body }}</p>
         <a class="pham-vault__cta" href="{{ object_url }}" data-pham-magnetic>
-          <span>{{ section.settings.cta_label }}</span><span aria-hidden="true">&#8599;</span>
+          <span>{{ acquisition_cta_text }}</span><span aria-hidden="true">&#8599;</span>
         </a>
       </article>
     </div>
