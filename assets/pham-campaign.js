@@ -81,6 +81,130 @@ function proxyRequest(root, route, options){
   });
 }
 
+function readCampaignContext(){
+  var node = document.querySelector('[data-pham-campaign-context]');
+  if(!node) return null;
+  try { return JSON.parse(node.textContent || '{}'); }
+  catch (e) { return null; }
+}
+
+function campaignPresentation(context, state){
+  var presentation = {
+    url: context.editionPageUrl || '/pages/edition-01',
+    entryLabel: null,
+    primaryLabel: null,
+    price: null,
+    status: null
+  };
+
+  switch(state){
+    case 'reservation_open':
+      presentation.url = context.reservationPageUrl || '/pages/reserve-edition-01';
+      presentation.entryLabel = 'RESERVE ' + (context.edition || 'EDITION');
+      presentation.primaryLabel = 'RESERVE PRIORITY ACCESS';
+      presentation.price = context.reservationPrice || '$24.99';
+      presentation.status = 'PRIORITY RESERVATION OPEN';
+      break;
+    case 'reservation_full':
+      presentation.url = context.standbyPageUrl || '/pages/standby';
+      presentation.entryLabel = 'JOIN STANDBY';
+      presentation.primaryLabel = 'JOIN STANDBY · FREE';
+      presentation.price = 'FREE';
+      presentation.status = 'EDITION RESERVED · STANDBY OPEN';
+      break;
+    case 'final_payment':
+      presentation.url = context.collectorPageUrl || '/pages/reservation-status';
+      presentation.entryLabel = 'COLLECTOR ACCESS';
+      presentation.primaryLabel = 'COMPLETE ACQUISITION';
+      presentation.price = context.balanceDue || '$174.01';
+      presentation.status = 'ACQUISITION WINDOW OPEN';
+      break;
+    case 'sold_out':
+      presentation.entryLabel = 'VIEW EDITION';
+      presentation.primaryLabel = 'VIEW EDITION';
+      presentation.status = 'EDITION CLOSED';
+      break;
+    case 'archived':
+      presentation.entryLabel = 'VIEW ARCHIVE';
+      presentation.primaryLabel = 'VIEW ARCHIVE';
+      presentation.status = 'ARCHIVED';
+      break;
+    default:
+      return null;
+  }
+
+  return presentation;
+}
+
+function applyGlobalCampaignState(context, state){
+  var presentation = campaignPresentation(context, state);
+  if(!presentation) return;
+
+  qsa('[data-pham-campaign-entry]').forEach(function(link){
+    link.href = presentation.url;
+    if(presentation.entryLabel){
+      link.innerHTML = presentation.entryLabel + ' <span aria-hidden="true">&#8599;</span>';
+    }
+  });
+
+  qsa('[data-pham-campaign-primary]').forEach(function(link){
+    link.href = presentation.url;
+    var label = link.querySelector('span');
+    if(label && presentation.primaryLabel) label.textContent = presentation.primaryLabel;
+  });
+
+  qsa('[data-pham-campaign-price]').forEach(function(node){
+    if(presentation.price != null) node.textContent = presentation.price;
+  });
+
+  qsa('[data-pham-campaign-status]').forEach(function(node){
+    if(presentation.status) node.textContent = presentation.status;
+  });
+
+  qsa('[data-pham-campaign-cta]').forEach(function(link){
+    link.href = presentation.url;
+
+    var label = link.querySelector('.pham-product-spotlight__add-label, .pham-product-main__cta-label');
+    if(label && presentation.primaryLabel) label.textContent = presentation.primaryLabel;
+
+    var price = link.querySelector('.pham-product-spotlight__add-price');
+    if(price && presentation.price != null) price.textContent = presentation.price;
+  });
+
+  document.documentElement.dataset.phamCampaignState = state;
+}
+
+function mountGlobalCampaignRuntime(){
+  if(document.documentElement.dataset.phamCampaignRuntimeMounted === 'true') return;
+  document.documentElement.dataset.phamCampaignRuntimeMounted = 'true';
+
+  var context = readCampaignContext();
+  if(!context || !context.enabled || !context.engineEnabled) return;
+
+  var base = String(context.engineProxy || '/apps/pham-edition').replace(/\/$/, '');
+  var editionId = context.editionId || 'edition-01';
+
+  fetch(base + '/campaign?edition=' + encodeURIComponent(editionId), {
+    method:'GET',
+    headers:{'Accept':'application/json'},
+    credentials:'same-origin'
+  })
+  .then(function(response){
+    return response.json().catch(function(){ return {}; }).then(function(payload){
+      if(!response.ok || payload.ok === false) throw new Error(payload.error || 'campaign_state_unavailable');
+      return payload;
+    });
+  })
+  .then(function(payload){
+    if(!payload || !payload.edition) return;
+    window.__PHAM_CAMPAIGN_LIVE__ = payload;
+    applyGlobalCampaignState(context, payload.edition.state);
+  })
+  .catch(function(){
+    // Server-rendered Theme Settings remain the safe fallback.
+  });
+}
+
 function mountIdentity(root){
   if(root.dataset.phamMounted === 'true') return;
   root.dataset.phamMounted = 'true';
@@ -229,6 +353,8 @@ function mountReservation(root){
   var error = root.querySelector('[data-pham-reservation-error]');
 
   var canCheckout = root.dataset.canCheckout === 'true';
+  var engineEnabled = root.dataset.engineEnabled === 'true';
+  var liveReservationOpen = !engineEnabled;
   var reservationVariantId = root.dataset.reservationVariantId || '';
   var identityVariantId = root.dataset.identityVariantId || '';
   var lookbookVariantId = root.dataset.lookbookVariantId || '';
@@ -250,7 +376,7 @@ function mountReservation(root){
 
     if(submit){
       var lookbookValid = !includeLookbook || (lookbookReady && lookbookVariantId !== '');
-      var ready = canCheckout && consentReady() && reservationVariantId !== '' && lookbookValid;
+      var ready = canCheckout && liveReservationOpen && consentReady() && reservationVariantId !== '' && lookbookValid;
       submit.disabled = !ready;
       submit.setAttribute('aria-disabled', ready ? 'false' : 'true');
       submit.classList.toggle('is-disabled', !ready);
@@ -262,7 +388,7 @@ function mountReservation(root){
 
   if(submit){
     submit.addEventListener('click', function(){
-      if(submit.disabled || !canCheckout) return;
+      if(submit.disabled || !canCheckout || !liveReservationOpen) return;
 
       var referral = storedReferral();
       var items = [{
@@ -330,6 +456,42 @@ function mountReservation(root){
         sync();
       });
     });
+  }
+
+  if(engineEnabled){
+    proxyRequest(root, '/campaign?edition=' + encodeURIComponent(root.dataset.editionId || 'edition-01'))
+      .then(function(payload){
+        var state = payload && payload.edition ? payload.edition.state : '';
+        liveReservationOpen = state === 'reservation_open';
+
+        if(identity && payload && payload.counters && payload.edition){
+          var identityClaimed = Number(payload.counters.identityClaimed || 0);
+          var identityLimit = Number(payload.edition.identityLimit || 0);
+          if(identityLimit > 0 && identityClaimed >= identityLimit){
+            identity.checked = false;
+            identity.disabled = true;
+            var choice = identity.closest('.pham-reservation-upgrade__choice');
+            if(choice) choice.classList.add('is-closed');
+          }
+        }
+
+        if(!liveReservationOpen && error){
+          error.textContent = state === 'reservation_full'
+            ? 'Priority Reservation is fully allocated. Join the standby queue for the next released object.'
+            : 'Priority Reservation is not currently open.';
+          error.hidden = false;
+        }
+
+        sync();
+      })
+      .catch(function(){
+        liveReservationOpen = false;
+        if(error){
+          error.textContent = 'Unable to verify live reservation availability. Checkout remains disabled for safety.';
+          error.hidden = false;
+        }
+        sync();
+      });
   }
 
   sync();
@@ -622,6 +784,7 @@ function mountLiveCampaign(root){
 
 function mount(){
   captureReferral();
+  mountGlobalCampaignRuntime();
   qsa('[data-pham-identity-configurator]').forEach(mountIdentity);
   qsa('[data-pham-referral-hub]').forEach(mountReferral);
   qsa('[data-pham-reservation-gateway]').forEach(mountReservation);
