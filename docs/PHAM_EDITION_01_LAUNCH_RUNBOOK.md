@@ -243,11 +243,19 @@ No customer in Standby receives a $24.99 credit. When the engine promotes a stan
 
 ## 10. Open final acquisition
 
-Before opening final acquisition, every reservation with a Size Preference must have a validated Shopify variant mapping:
+Before opening final acquisition, bulk-map every active reservation to the canonical Shopify variant for its stored Size Preference:
+
+node admin.mjs map-variants --confirm --edition=edition-01
+
+This operation preflights the entire edition first and writes nothing if any size is missing, ambiguous or mispriced. For a one-off remediation, the single-reservation command remains available:
 
 node admin.mjs assign-variant --reservation=PHAM-R-... --variant=gid://shopify/ProductVariant/...
 
-The mapping command rejects inactive products, the wrong $199 price, and a Size option that does not match the reservation.
+The single mapping command rejects inactive products, the wrong $199 price, and a Size option that does not match the reservation.
+
+Review any fail-closed payment events before opening final acquisition:
+
+node admin.mjs reviews --limit=50
 
 When PHAM is ready to collect the remaining balances:
 
