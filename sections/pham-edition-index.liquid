@@ -26,8 +26,8 @@
       <strong class="pham-edition-index__record-object">
         {%- if edition_product != blank -%}{{ edition_product.title }}{%- else -%}{{ section.settings.object_name }}{%- endif -%}
       </strong>
-      <span>{{ section.settings.object_count }}</span>
-      <span>{{ section.settings.release_year }}</span>
+      <span class="pham-edition-index__record-count">{{ section.settings.object_count }}</span>
+      <span class="pham-edition-index__record-year">{{ section.settings.release_year }}</span>
       <span class="pham-edition-index__status pham-edition-index__status--{{ section.settings.status | handleize }}">
         <i aria-hidden="true"></i>{{ section.settings.status }}
       </span>
@@ -223,9 +223,11 @@
     .pham-edition-index__head,
     .pham-edition-index__protocol-head { grid-template-columns: 1fr; row-gap: 22px; }
     .pham-edition-index__record { grid-template-columns: 44px 1fr auto; row-gap: 12px; }
-    .pham-edition-index__record-object { grid-column: 2; }
-    .pham-edition-index__status { grid-column: 2; }
-    .pham-edition-index__record-arrow { grid-column: 3; grid-row: 1 / span 5; align-self: center; }
+    .pham-edition-index__record-object { grid-column: 2; grid-row: 1; }
+    .pham-edition-index__record-count { grid-column: 2; grid-row: 2; }
+    .pham-edition-index__record-year { grid-column: 2; grid-row: 3; }
+    .pham-edition-index__status { grid-column: 2; grid-row: 4; }
+    .pham-edition-index__record-arrow { grid-column: 3; grid-row: 1 / span 4; align-self: center; }
     .pham-edition-index__steps { grid-template-columns: 1fr; }
     .pham-edition-index__steps li,
     .pham-edition-index__steps li:not(:first-child),
