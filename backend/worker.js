@@ -204,6 +204,7 @@ async function getCollectorStatus(env, customerId, editionId) {
       id: reservation.id,
       status: reservation.status,
       objectNumber: reservation.object_number,
+      sizePreference: reservation.size_preference || null,
       balanceDueCents: reservation.balance_due_cents,
       paymentDeadline: reservation.payment_deadline,
       lookbookStatus: reservation.digital_lookbook_status,
