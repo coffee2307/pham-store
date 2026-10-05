@@ -642,6 +642,86 @@ export class PostgresStore {
     return result.rows[0]?.count || 0;
   }
 
+  async expireReservationAndPromote({
+    editionId,
+    reservationId,
+    now,
+    standbyOfferDeadline,
+  }) {
+    return this.withTransaction(async (client) => {
+      const reservationResult = await client.query(
+        `select * from reservations
+          where id = $1 and edition_id = $2
+          for update`,
+        [reservationId, editionId]
+      );
+      const reservation = reservationResult.rows[0];
+      if (!reservation) throw new Error('reservation_not_found');
+
+      if (reservation.status !== 'final_payment_open') {
+        return { expired: false, releasedNumber: null, promoted: null };
+      }
+
+      if (
+        !reservation.payment_deadline ||
+        new Date(reservation.payment_deadline).getTime() > new Date(now).getTime()
+      ) {
+        return { expired: false, releasedNumber: null, promoted: null };
+      }
+
+      await client.query(
+        `update reservations
+            set status = 'expired',
+                expired_at = $2,
+                updated_at = now()
+          where id = $1`,
+        [reservationId, now]
+      );
+
+      const releasedObject = await client.query(
+        `delete from objects
+          where edition_id = $1 and reservation_id = $2
+          returning object_number`,
+        [editionId, reservationId]
+      );
+      const releasedNumber = releasedObject.rows[0]?.object_number ?? null;
+
+      await client.query(
+        `update editions
+            set reservations_claimed = greatest(0, reservations_claimed - 1),
+                updated_at = now()
+          where id = $1`,
+        [editionId]
+      );
+
+      const selected = await client.query(
+        `select *
+           from standby_entries
+          where edition_id = $1 and status = 'waiting'
+          order by sequence asc
+          for update skip locked
+          limit 1`,
+        [editionId]
+      );
+
+      let promoted = null;
+      if (selected.rows[0]) {
+        const promotedResult = await client.query(
+          `update standby_entries
+              set status = 'offered',
+                  promoted_at = $2,
+                  offer_deadline = $3
+            where id = $1
+            returning *`,
+          [selected.rows[0].id, now, standbyOfferDeadline]
+        );
+        promoted = mapStandby(promotedResult.rows[0]);
+      }
+
+      return { expired: true, releasedNumber, promoted };
+    });
+  }
+
   async enqueueStandby(entry) {
     try {
       const result = await this.db.query(
