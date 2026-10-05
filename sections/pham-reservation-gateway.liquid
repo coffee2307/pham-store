@@ -16,6 +16,8 @@
 {%- assign identity_limit = settings.pham_campaign_identity_limit | default: 15 -%}
 {%- assign identity_claimed = settings.pham_campaign_identity_claimed | default: 0 -%}
 {%- assign identity_open = true -%}
+{%- assign size_options_raw = settings.pham_campaign_size_options | default: 'XS,S,M,L,XL' -%}
+{%- assign size_options = size_options_raw | split: ',' -%}
 {%- if identity_claimed >= identity_limit or identity_product == blank or identity_variant == blank or identity_variant.available == false -%}{%- assign identity_open = false -%}{%- endif -%}
 {%- assign can_checkout = false -%}
 {%- if commerce_ready and digital_delivery_ready and reservation_variant != blank -%}
@@ -64,6 +66,20 @@
             <span class="pham-campaign-mono">DELIVERY PIPELINE · {% if digital_delivery_ready %}READY{% else %}NOT READY{% endif %}</span>
           </div>
         {%- endif -%}
+
+        <div class="pham-config-field pham-reservation-size">
+          <label for="PhamReservationSize-{{ section.id }}">Size preference</label>
+          <select id="PhamReservationSize-{{ section.id }}" data-pham-size-preference required>
+            <option value="">SELECT SIZE</option>
+            {%- for option in size_options -%}
+              {%- assign clean_option = option | strip -%}
+              {%- if clean_option != blank -%}
+                <option value="{{ clean_option | escape }}">{{ clean_option | escape }}</option>
+              {%- endif -%}
+            {%- endfor -%}
+          </select>
+          <small>This records your current size preference. Final size is confirmed only when the matching PHAM-001 variant is assigned before the acquisition invoice.</small>
+        </div>
 
         <div class="pham-reservation-upgrade">
           <label class="pham-reservation-upgrade__choice{% unless identity_open %} is-closed{% endunless %}">
