@@ -41,6 +41,9 @@ jobs:
       - name: Check PHAM backend JavaScript syntax
         run: node --check backend/worker.js
 
+      - name: Run PHAM backend tests
+        run: node --test backend/worker.test.mjs
+
       - name: Check PHAM campaign launch gates
         run: node scripts/check-campaign-safety.mjs
 
