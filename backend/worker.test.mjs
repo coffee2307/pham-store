@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   buildFinalAcquisitionDraftInput,
+  assertDraftOrderPricing,
   buildStandbyAcquisitionDraftInput,
   canonicalizeAppProxyParams,
   evaluateFinalSizeVariants,
@@ -580,4 +581,68 @@ test('readiness fails when a configured size is missing, duplicated, or misprice
     { id: 'L', sku: 'L', price: '189.00', selectedOptions: [{ name: 'Size', value: 'L' }] },
   ], ['L'], 19900);
   assert.equal(mispriced.ok, false);
+});
+
+
+test('draft pricing assertion checks line price and exact reservation credit independently of taxes', () => {
+  const draftOrder = {
+    totalLineItemsPriceSet: {
+      shopMoney: { amount: '199.00', currencyCode: 'USD' },
+    },
+    totalDiscountsSet: {
+      shopMoney: { amount: '24.99', currencyCode: 'USD' },
+    },
+    totalPriceSet: {
+      shopMoney: { amount: '188.36', currencyCode: 'USD' },
+    },
+  };
+
+  assert.equal(
+    assertDraftOrderPricing(draftOrder, {
+      expectedLineItemsCents: 19900,
+      expectedDiscountCents: 2499,
+      currencyCode: 'USD',
+    }),
+    true
+  );
+
+  const wrongDiscount = structuredClone(draftOrder);
+  wrongDiscount.totalDiscountsSet.shopMoney.amount = '20.00';
+  assert.throws(
+    () => assertDraftOrderPricing(wrongDiscount, {
+      expectedLineItemsCents: 19900,
+      expectedDiscountCents: 2499,
+      currencyCode: 'USD',
+    }),
+    /draft_order_discount_mismatch/
+  );
+});
+
+test('standby draft pricing assertion requires zero discount', () => {
+  assert.equal(
+    assertDraftOrderPricing({
+      totalLineItemsPriceSet: {
+        shopMoney: { amount: '199.00', currencyCode: 'USD' },
+      },
+      totalDiscountsSet: {
+        shopMoney: { amount: '0.00', currencyCode: 'USD' },
+      },
+    }, {
+      expectedLineItemsCents: 19900,
+      expectedDiscountCents: 0,
+      currencyCode: 'USD',
+    }),
+    true
+  );
+});
+
+test('Priority Reservation validation requires an order email for later collector delivery', () => {
+  const fixture = priorityReservationFixture();
+  delete fixture.order.email;
+  fixture.order.customer = null;
+
+  assert.throws(
+    () => validatePriorityReservationOrder(fixture),
+    /reservation_email_missing/
+  );
 });
