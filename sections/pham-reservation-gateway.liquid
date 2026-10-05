@@ -1,5 +1,4 @@
 {{ 'pham-campaign.css' | asset_url | stylesheet_tag }}
-<script src="{{ 'pham-campaign.js' | asset_url }}" defer></script>
 {%- capture state_raw -%}{%- render 'pham-campaign-state' -%}{%- endcapture -%}
 {%- assign state = state_raw | strip -%}
 {%- assign reservation_product = settings.pham_campaign_reservation_product -%}
@@ -118,7 +117,6 @@
     </div>
   </div>
 </section>
-{%- render 'pham-campaign-context' -%}
 
 {% schema %}
 {"name":"PHAM Reservation","tag":"section","settings":[],"presets":[{"name":"PHAM Reservation"}]}
