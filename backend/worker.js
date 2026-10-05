@@ -929,7 +929,15 @@ async function handleOrdersPaid(request, env) {
 
   if (!reservationLine && (finalReservationId || finalLine)) {
     const finalResult = await handleFinalAcquisitionPaid(env, order);
-    if (webhookId) await recordWebhook(env, webhookId, topic);
+    if (webhookId) {
+      await recordWebhook(
+        env,
+        webhookId,
+        topic,
+        finalResult && finalResult.ok === false ? 'review_required' : 'processed',
+        finalResult && finalResult.ok === false ? JSON.stringify(finalResult) : ''
+      );
+    }
     return json(finalResult);
   }
 
@@ -943,6 +951,23 @@ async function handleOrdersPaid(request, env) {
   ).bind('edition-01').first();
   if (!edition) throw new Error('Edition configuration missing');
 
+  let reservationValidation;
+  try {
+    reservationValidation = validatePriorityReservationOrder({ order, edition });
+  } catch (error) {
+    const review = {
+      ok: false,
+      review: true,
+      reason: error && error.message ? error.message : 'reservation_payment_validation_failed',
+      shopifyOrderId: order && order.id ? toGid('Order', order.id) : null
+    };
+    console.error('Priority Reservation payment requires review', review);
+    if (webhookId) {
+      await recordWebhook(env, webhookId, topic, 'review_required', JSON.stringify(review));
+    }
+    return json(review);
+  }
+
   const shopifyOrderId = toGid('Order', order.id);
   const shopifyCustomerId = order.customer && order.customer.id ? toGid('Customer', order.customer.id) : null;
   const email = (order.email || (order.customer && order.customer.email) || '').toLowerCase();
@@ -953,6 +978,43 @@ async function handleOrdersPaid(request, env) {
   if (existing) {
     if (webhookId) await recordWebhook(env, webhookId, topic);
     return json({ ok: true, reservationId: existing.id, duplicateOrder: true });
+  }
+
+  let existingCollector = null;
+  if (shopifyCustomerId) {
+    existingCollector = await env.PHAM_CAMPAIGN_DB.prepare(
+      `SELECT id, shopify_order_id
+       FROM reservations
+       WHERE edition_id = ?
+         AND shopify_customer_id = ?
+         AND status NOT IN ('cancelled','expired')
+       LIMIT 1`
+    ).bind(edition.id, shopifyCustomerId).first();
+  }
+  if (!existingCollector && email) {
+    existingCollector = await env.PHAM_CAMPAIGN_DB.prepare(
+      `SELECT id, shopify_order_id
+       FROM reservations
+       WHERE edition_id = ?
+         AND lower(email) = ?
+         AND status NOT IN ('cancelled','expired')
+       LIMIT 1`
+    ).bind(edition.id, email).first();
+  }
+
+  if (existingCollector) {
+    const review = {
+      ok: false,
+      review: true,
+      reason: 'collector_already_reserved',
+      existingReservationId: existingCollector.id,
+      shopifyOrderId
+    };
+    console.error('Duplicate collector reservation requires review', review);
+    if (webhookId) {
+      await recordWebhook(env, webhookId, topic, 'review_required', JSON.stringify(review));
+    }
+    return json(review);
   }
 
   const activeReservations = await scalar(env,
@@ -969,9 +1031,11 @@ async function handleOrdersPaid(request, env) {
 
   const reservationId = await uniqueReservationId(env);
   const referralCode = await uniqueReferralCode(env);
-  const referredByCode = safeCode(propertyValue(reservationLine, '_PHAM Referral Code'));
-  const sizePreference = String(propertyValue(reservationLine, '_PHAM Size Preference') || '').trim().slice(0, 24);
-  const reservationPaidCents = moneyToCents(reservationLine.price || order.current_subtotal_price || '24.99');
+  const reservationLineValidated = reservationValidation.reservationLine;
+  const identityLine = reservationValidation.identityLine;
+  const referredByCode = safeCode(propertyValue(reservationLineValidated, '_PHAM Referral Code'));
+  const sizePreference = reservationValidation.sizePreference;
+  const reservationPaidCents = reservationValidation.reservationPaidCents;
   const balanceDueCents = Math.max(0, edition.final_price_cents - edition.reservation_price_cents);
 
   await env.PHAM_CAMPAIGN_DB.prepare(
@@ -993,7 +1057,6 @@ async function handleOrdersPaid(request, env) {
     sizePreference || null
   ).run();
 
-  const identityLine = findLineBySku(order, 'PHAM-ID-E01');
   let identityResult = { claimed: false };
 
   if (identityLine) {
@@ -1880,7 +1943,7 @@ export function buildFinalAcquisitionDraftInput({ edition, reservation, deadline
   const currencyCode = edition.currency_code || 'USD';
   const reservationCredit = centsToMoney(edition.reservation_price_cents);
 
-  return {
+  const input = {
     email: reservation.email || undefined,
     lineItems: [{
       variantId,
@@ -2279,6 +2342,115 @@ async function deleteDraftOrder(env, draftOrderId) {
   }
 }
 
+export function validatePriorityReservationOrder({ order, edition }) {
+  if (!order || !edition) throw new Error('reservation_payment_validation_missing_input');
+  if (order.financial_status && order.financial_status !== 'paid') {
+    throw new Error('reservation_order_not_paid');
+  }
+
+  const currencyCode = String(edition.currency_code || 'USD');
+  if (String(order.currency || '') !== currencyCode) {
+    throw new Error('reservation_currency_mismatch');
+  }
+
+  const activeLines = (order.line_items || []).filter(function(line) {
+    return Number(line && line.quantity || 0) > 0;
+  });
+  const allowedSkus = new Set([
+    'PHAM-001-RES-E01',
+    'PHAM-ID-E01',
+    'PHAM-LOOKBOOK-E01'
+  ]);
+
+  if (!activeLines.length || activeLines.some(function(line) {
+    return !allowedSkus.has(String(line && line.sku || ''));
+  })) {
+    throw new Error('unexpected_reservation_line_item');
+  }
+
+  const reservationLines = activeLines.filter(function(line) {
+    return line.sku === 'PHAM-001-RES-E01';
+  });
+  const identityLines = activeLines.filter(function(line) {
+    return line.sku === 'PHAM-ID-E01';
+  });
+  const lookbookLines = activeLines.filter(function(line) {
+    return line.sku === 'PHAM-LOOKBOOK-E01';
+  });
+
+  if (reservationLines.length !== 1) throw new Error('invalid_reservation_line_count');
+  if (lookbookLines.length !== 1) throw new Error('invalid_lookbook_line_count');
+  if (identityLines.length > 1) throw new Error('invalid_identity_line_count');
+
+  const reservationLine = reservationLines[0];
+  const lookbookLine = lookbookLines[0];
+  const identityLine = identityLines[0] || null;
+
+  if (Number(reservationLine.quantity) !== 1) throw new Error('invalid_reservation_quantity');
+  if (Number(lookbookLine.quantity) !== 1) throw new Error('invalid_lookbook_quantity');
+  if (identityLine && Number(identityLine.quantity) !== 1) {
+    throw new Error('invalid_identity_quantity');
+  }
+
+  if (moneyToCents(reservationLine.price) !== Number(edition.reservation_price_cents)) {
+    throw new Error('reservation_price_mismatch');
+  }
+  if (moneyToCents(lookbookLine.price) !== 0) {
+    throw new Error('lookbook_price_mismatch');
+  }
+  if (identityLine && moneyToCents(identityLine.price) !== 500) {
+    throw new Error('identity_price_mismatch');
+  }
+
+  const totalDiscountCents = moneyToCents(
+    order.current_total_discounts !== undefined
+      ? order.current_total_discounts
+      : order.total_discounts
+  );
+  if (totalDiscountCents !== 0) {
+    throw new Error('reservation_discount_not_allowed');
+  }
+
+  const expectedSubtotalCents =
+    Number(edition.reservation_price_cents) + (identityLine ? 500 : 0);
+  if (
+    order.current_subtotal_price !== undefined &&
+    moneyToCents(order.current_subtotal_price) !== expectedSubtotalCents
+  ) {
+    throw new Error('reservation_subtotal_mismatch');
+  }
+
+  const editionLabel = propertyValue(reservationLine, '_PHAM Edition');
+  const productCode = propertyValue(reservationLine, '_PHAM Product');
+  const sizePreference = String(
+    propertyValue(reservationLine, '_PHAM Size Preference') || ''
+  ).trim().slice(0, 24);
+
+  if (editionLabel !== String(edition.label || '')) {
+    throw new Error('reservation_edition_mismatch');
+  }
+  if (productCode !== String(edition.product_code || '')) {
+    throw new Error('reservation_product_mismatch');
+  }
+  if (!sizePreference) throw new Error('missing_size_preference');
+  if (propertyValue(reservationLine, 'Reservation terms') !== 'Accepted') {
+    throw new Error('reservation_terms_missing');
+  }
+  if (propertyValue(reservationLine, 'Digital lookbook delivery') !== 'Included') {
+    throw new Error('lookbook_consent_missing');
+  }
+
+  return {
+    ok: true,
+    reservationLine,
+    identityLine,
+    lookbookLine,
+    sizePreference,
+    reservationPaidCents: Number(edition.reservation_price_cents),
+    expectedSubtotalCents
+  };
+}
+
 export function validateFinalAcquisitionOrder({ order, reservation, edition }) {
   if (!order || !reservation || !edition) throw new Error('final_payment_validation_missing_input');
   if (reservation.status !== 'final_payment_open') throw new Error('final_payment_not_open');
@@ -2444,10 +2616,10 @@ function randomToken(length) {
   return Array.from(bytes, byte => alphabet[byte % alphabet.length]).join('');
 }
 
-async function recordWebhook(env, id, topic) {
+async function recordWebhook(env, id, topic, status = 'processed', detail = '') {
   await env.PHAM_CAMPAIGN_DB.prepare(
-    'INSERT OR IGNORE INTO webhook_events (id, topic) VALUES (?, ?)'
-  ).bind(id, topic).run();
+    'INSERT OR IGNORE INTO webhook_events (id, topic, status, detail) VALUES (?, ?, ?, ?)'
+  ).bind(id, topic, status, detail || null).run();
 }
 
 export async function verifyShopifyWebhook(rawBody, provided, secret) {
