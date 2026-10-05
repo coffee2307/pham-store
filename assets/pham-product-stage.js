@@ -4,6 +4,12 @@
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const MODEL_VIEWER_SRC = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js';
 
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+  const constrainedNetwork = Boolean(
+    connection &&
+    (connection.saveData || /(^|-)2g$/i.test(connection.effectiveType || ''))
+  );
+
   function ensureModelViewerLibrary() {
     if (window.customElements && window.customElements.get('model-viewer')) {
       return Promise.resolve();
@@ -344,7 +350,7 @@
       document.removeEventListener('visibilitychange', syncViewerActivity);
     }, { once: true });
 
-    if (defaultView === 'model' && model && template) {
+    if (defaultView === 'model' && model && template && !constrainedNetwork) {
       if ('IntersectionObserver' in window) {
         observer = new IntersectionObserver(function (entries) {
           if (!entries[0] || !entries[0].isIntersecting) return;
@@ -354,7 +360,7 @@
         }, { rootMargin: '240px 0px', threshold: 0.01 });
         observer.observe(stage);
       } else {
-        show('model');
+        scheduleDefaultModel();
       }
     } else {
       show('image');
