@@ -213,24 +213,18 @@
         "step_2": "When access opens, the object can be acquired within the active edition window.",
         "step_3": "The edition moves through controlled production and final quality inspection.",
         "step_4": "Each released piece travels with its own identity card and edition identifier.",
-        "step_5": "Once the edition closes, it is recorded and does not return to production."
-      }
-    },
-    "pham-closing": {
-      "type": "pham-closing-statement",
-      "settings": {
-        "eyebrow": "PHAM / EDITION PRINCIPLE",
-        "line_1": "PHAM DOES NOT RETURN TO AN EDITION",
-        "line_2": "ONCE IT IS CLOSED.",
-        "subtext": "What remains is the object, its record, and the person who holds it."
+        "step_5": "Once the edition closes, it is recorded and does not return to production.",
+        "principle_eyebrow": "PHAM / EDITION PRINCIPLE",
+        "principle_line_1": "PHAM DOES NOT RETURN TO AN EDITION",
+        "principle_line_2": "ONCE IT IS CLOSED.",
+        "principle_subtext": "What remains is the object, its record, and the person who holds it."
       }
     }
   },
   "order": [
     "pham-vault",
-    "pham-edition-index",
     "pham-product-spotlight",
     "pham-lookbook",
-    "pham-closing"
+    "pham-edition-index"
   ]
 }
