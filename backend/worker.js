@@ -523,13 +523,41 @@ async function getReadiness(env, editionId) {
       const resourceResult = await shopifyGraphQL(env, `query PhamBackendReadiness(
         $variantId: ID!,
         $inventoryItemId: ID!,
-        $locationId: ID!
+        $locationId: ID!,
+        $campaignSkus: String!
       ) {
         productVariant(id: $variantId) {
           id
           sku
           price
+          inventoryQuantity
+          inventoryPolicy
+          inventoryItem {
+            id
+            tracked
+            requiresShipping
+          }
           product { id status }
+        }
+        campaignVariants: productVariants(first: 20, query: $campaignSkus) {
+          nodes {
+            id
+            sku
+            price
+            inventoryQuantity
+            inventoryPolicy
+            inventoryItem {
+              id
+              tracked
+              requiresShipping
+            }
+            product {
+              id
+              title
+              handle
+              status
+            }
+          }
         }
         draftOrders(first: 1) {
           nodes { id status }
@@ -545,27 +573,109 @@ async function getReadiness(env, editionId) {
       }`, {
         variantId: edition.final_product_variant_id,
         inventoryItemId: edition.identity_inventory_item_id,
-        locationId: edition.identity_location_id
+        locationId: edition.identity_location_id,
+        campaignSkus: 'sku:PHAM-001-RES-E01 OR sku:PHAM-ID-E01 OR sku:PHAM-LOOKBOOK-E01 OR sku:PHAM-001-E01'
       });
 
       const variant = resourceResult && resourceResult.data && resourceResult.data.productVariant;
-      const inventoryItem = resourceResult && resourceResult.data && resourceResult.data.inventoryItem;
-      const level = inventoryItem && inventoryItem.inventoryLevel;
-      const available = level && level.quantities && level.quantities.find(function(q) {
-        return q.name === 'available';
+      const campaignVariants = resourceResult && resourceResult.data &&
+        resourceResult.data.campaignVariants && resourceResult.data.campaignVariants.nodes || [];
+      const bySku = {};
+      campaignVariants.forEach(function(item) {
+        if (item && item.sku) bySku[item.sku] = item;
       });
 
-      check('shopify.final_variant', Boolean(variant), variant ? {
+      const reservationVariant = bySku['PHAM-001-RES-E01'];
+      const identityVariant = bySku['PHAM-ID-E01'];
+      const lookbookVariant = bySku['PHAM-LOOKBOOK-E01'];
+      const finalVariantBySku = bySku['PHAM-001-E01'];
+
+      const activeReservations = await scalar(env,
+        "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status NOT IN ('cancelled','expired')",
+        editionId
+      );
+      const identityClaimed = await scalar(env,
+        "SELECT COUNT(*) AS count FROM identity_claims WHERE edition_id = ? AND status != 'revoked'",
+        editionId
+      );
+      const reservationRemaining = Math.max(0, Number(edition.edition_size) - activeReservations);
+      const identityRemaining = Math.max(0, Number(edition.identity_limit) - identityClaimed);
+
+      check('shopify.final_variant', Boolean(
+        variant &&
+        finalVariantBySku &&
+        variant.id === finalVariantBySku.id &&
+        variant.sku === 'PHAM-001-E01' &&
+        Number(variant.price) === Number(edition.final_price_cents) / 100 &&
+        variant.product && variant.product.status === 'ACTIVE'
+      ), variant ? {
         id: variant.id,
         sku: variant.sku,
         price: variant.price,
+        inventoryQuantity: variant.inventoryQuantity,
         productStatus: variant.product && variant.product.status
+      } : 'not_found');
+
+      check('shopify.reservation_variant', Boolean(
+        reservationVariant &&
+        Number(reservationVariant.price) === Number(edition.reservation_price_cents) / 100 &&
+        reservationVariant.product && reservationVariant.product.status === 'ACTIVE' &&
+        reservationVariant.inventoryPolicy === 'DENY' &&
+        reservationVariant.inventoryItem && reservationVariant.inventoryItem.tracked === true &&
+        reservationVariant.inventoryItem.requiresShipping === false &&
+        Number(reservationVariant.inventoryQuantity) >= reservationRemaining
+      ), reservationVariant ? {
+        id: reservationVariant.id,
+        sku: reservationVariant.sku,
+        price: reservationVariant.price,
+        inventoryQuantity: reservationVariant.inventoryQuantity,
+        expectedRemaining: reservationRemaining,
+        inventoryPolicy: reservationVariant.inventoryPolicy,
+        tracked: reservationVariant.inventoryItem && reservationVariant.inventoryItem.tracked,
+        requiresShipping: reservationVariant.inventoryItem && reservationVariant.inventoryItem.requiresShipping,
+        productStatus: reservationVariant.product && reservationVariant.product.status
+      } : 'not_found');
+
+      check('shopify.identity_variant', Boolean(
+        identityVariant &&
+        Number(identityVariant.price) === 5 &&
+        identityVariant.product && identityVariant.product.status === 'ACTIVE' &&
+        identityVariant.inventoryPolicy === 'DENY' &&
+        identityVariant.inventoryItem && identityVariant.inventoryItem.tracked === true &&
+        identityVariant.inventoryItem.requiresShipping === false &&
+        Number(identityVariant.inventoryQuantity) === identityRemaining
+      ), identityVariant ? {
+        id: identityVariant.id,
+        sku: identityVariant.sku,
+        price: identityVariant.price,
+        inventoryQuantity: identityVariant.inventoryQuantity,
+        expectedRemaining: identityRemaining,
+        inventoryPolicy: identityVariant.inventoryPolicy,
+        tracked: identityVariant.inventoryItem && identityVariant.inventoryItem.tracked,
+        requiresShipping: identityVariant.inventoryItem && identityVariant.inventoryItem.requiresShipping,
+        productStatus: identityVariant.product && identityVariant.product.status
+      } : 'not_found');
+
+      check('shopify.lookbook_variant', Boolean(
+        lookbookVariant &&
+        Number(lookbookVariant.price) === 0 &&
+        lookbookVariant.product && lookbookVariant.product.status === 'ACTIVE' &&
+        lookbookVariant.inventoryItem &&
+        lookbookVariant.inventoryItem.requiresShipping === false
+      ), lookbookVariant ? {
+        id: lookbookVariant.id,
+        sku: lookbookVariant.sku,
+        price: lookbookVariant.price,
+        tracked: lookbookVariant.inventoryItem && lookbookVariant.inventoryItem.tracked,
+        requiresShipping: lookbookVariant.inventoryItem && lookbookVariant.inventoryItem.requiresShipping,
+        productStatus: lookbookVariant.product && lookbookVariant.product.status
       } : 'not_found');
 
       check('shopify.identity_inventory', Boolean(inventoryItem && inventoryItem.tracked && level), inventoryItem ? {
         id: inventoryItem.id,
         tracked: inventoryItem.tracked,
-        available: available ? available.quantity : null
+        available: available ? available.quantity : null,
+        expectedRemaining: identityRemaining
       } : 'not_found');
 
       check('shopify.draft_orders_read', true, 'accessible');
