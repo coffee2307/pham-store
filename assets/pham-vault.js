@@ -419,11 +419,13 @@
       setChapter(Math.min(chapters.length - 1, Math.floor(smoothProgress * chapters.length)));
 
       if (!reducedMotion) {
-        currentPointerX = damp(currentPointerX, targetPointerX, 5.4, delta);
-        currentPointerY = damp(currentPointerY, targetPointerY, 5.4, delta);
-        currentPointerPresence = damp(currentPointerPresence, targetPointerPresence, 4.4, delta);
+        currentPointerX = damp(currentPointerX, targetPointerX, 4.8, delta);
+        currentPointerY = damp(currentPointerY, targetPointerY, 4.8, delta);
+        currentPointerPresence = damp(currentPointerPresence, targetPointerPresence, 4.0, delta);
 
-        if (!cardDialogOpen && !dragging) {
+        if (dragging) {
+          rotation = damp(rotation, dragTargetRotation, 24, delta);
+        } else if (!cardDialogOpen) {
           if (window.innerWidth < 600) {
             mobileOrbitResume = damp(mobileOrbitResume, 1, 4.8, delta);
             rotation += (autoSpeed * mobileOrbitResume + velocity) * delta;
@@ -431,13 +433,11 @@
             mobileOrbitResume = 1;
             rotation += (autoSpeed + velocity) * delta;
           }
-          velocity *= Math.exp(-3.4 * delta);
+          velocity *= Math.exp(-3.0 * delta);
         }
 
-        targetTilt =
-          baseTilt -
-          currentPointerY * 6.5 * currentPointerPresence;
-        currentTilt = damp(currentTilt, targetTilt, 5.8, delta);
+        targetTilt = baseTilt - currentPointerY * 7.5 * currentPointerPresence;
+        currentTilt = damp(currentTilt, targetTilt, 5.2, delta);
       } else {
         currentPointerX = 0;
         currentPointerY = 0;
@@ -447,36 +447,57 @@
 
       const pointerMagnitude = Math.min(1, Math.hypot(currentPointerX, currentPointerY));
       const pointerEnergy = pointerMagnitude * currentPointerPresence;
-      const spacing = reducedMotion ? 1 : 1.02 + Math.sin(smoothProgress * Math.PI * 3) * 0.02;
-      const orbitExpansion = reducedMotion ? 1.035 : 1.055 + currentPointerPresence * (0.02 + pointerMagnitude * 0.075);
-      const orbitRadius = radius * spacing * orbitExpansion;
+
+      // The reference exposes zoom and three spacing states as explicit controls.
+      // PHAM maps those states continuously to the scroll narrative instead.
+      const scrollZoom = reducedMotion
+        ? 1
+        : interpolateStops([0.94, 1.04, 1.16, 1.03], smoothProgress);
+      const scrollSpacing = reducedMotion
+        ? 1
+        : interpolateStops([0.92, 1.00, 1.14, 1.04], smoothProgress);
+      const pointerSpacing = reducedMotion
+        ? 1
+        : 1 + currentPointerPresence * (0.012 + pointerMagnitude * 0.055);
+      const orbitRadius = radius * scrollSpacing * pointerSpacing;
       const step = Math.PI * 2 / cards.length;
-      const responsiveRotation = rotation + currentPointerX * 0.42 * currentPointerPresence;
+      const responsiveRotation = rotation + currentPointerX * 0.12 * currentPointerPresence;
       const orbitLean =
         6 +
-        Math.sin(smoothProgress * Math.PI * 2) * 0.35 +
-        currentPointerX * 2.6 * currentPointerPresence;
-      const pointerShiftX = currentPointerX * 22 * currentPointerPresence;
-      const pointerShiftY = currentPointerY * 14 * currentPointerPresence;
-      const coreShiftX = currentPointerX * -14 * currentPointerPresence;
-      const coreShiftY = currentPointerY * -9 * currentPointerPresence;
-      const coreTiltX = currentPointerY * -2.4 * currentPointerPresence;
-      const coreTiltY = currentPointerX * 3.8 * currentPointerPresence;
-      const coreScale = 1 + pointerEnergy * 0.022;
+        Math.sin(smoothProgress * Math.PI * 2) * 0.3 +
+        currentPointerX * 2.2 * currentPointerPresence;
+      const ringTiltY = currentPointerX * 7.2 * currentPointerPresence;
+      const pointerShiftX = currentPointerX * 18 * currentPointerPresence;
+      const pointerShiftY = currentPointerY * 12 * currentPointerPresence;
+
+      // Counter-parallax keeps the copy feeling suspended in the centre,
+      // rather than printed onto the same plane as the cards.
+      const coreShiftX = currentPointerX * -10 * currentPointerPresence;
+      const coreShiftY = currentPointerY * -6 * currentPointerPresence;
+      const coreTiltX = currentPointerY * -1.8 * currentPointerPresence;
+      const coreTiltY = currentPointerX * 2.8 * currentPointerPresence;
+      const coreScale = 1 + pointerEnergy * 0.012 + (scrollZoom - 1) * 0.16;
 
       root.style.setProperty('--vault-pointer-energy', pointerEnergy.toFixed(3));
+      root.style.setProperty('--vault-scroll-zoom', scrollZoom.toFixed(4));
+      root.style.setProperty('--vault-scroll-spacing', scrollSpacing.toFixed(4));
 
-      if (orbitCore && !cardDialogOpen) {
+      if (orbitCore && !cardDialogOpen && window.innerWidth >= 900) {
         orbitCore.style.transform =
-          'translate3d(calc(-50% + ' + coreShiftX.toFixed(2) + 'px), calc(-50% + ' + coreShiftY.toFixed(2) + 'px), -70px) ' +
+          'translate3d(calc(-50% + ' + coreShiftX.toFixed(2) + 'px), calc(-50% + ' + coreShiftY.toFixed(2) + 'px), 0) ' +
           'rotateX(' + coreTiltX.toFixed(2) + 'deg) rotateY(' + coreTiltY.toFixed(2) + 'deg) ' +
           'scale(' + coreScale.toFixed(4) + ')';
       }
 
       if (!cardDialogOpen) {
         orbitPlane.style.transform =
-          'rotateX(' + currentTilt.toFixed(2) + 'deg) rotateZ(' + orbitLean.toFixed(2) + 'deg)';
+          'translate3d(' + pointerShiftX.toFixed(2) + 'px,' + pointerShiftY.toFixed(2) + 'px,0) ' +
+          'rotateX(' + currentTilt.toFixed(2) + 'deg) ' +
+          'rotateY(' + ringTiltY.toFixed(2) + 'deg) ' +
+          'rotateZ(' + orbitLean.toFixed(2) + 'deg) ' +
+          'scale(' + scrollZoom.toFixed(4) + ')';
       }
+
       const compactOrbit = window.innerWidth < 600;
       const mobileFocus = window.innerWidth < 900;
       const cardStates = cards.map(function (card, index) {
@@ -523,7 +544,7 @@
         card.style.opacity = String(Math.min(1, 0.34 + state.depth * 0.66 + focus * 0.04));
         card.style.filter = 'brightness(' + (0.48 + state.depth * 0.58 + focus * 0.05).toFixed(3) + ')';
         card.style.transform =
-          'translate3d(calc(-50% + ' + pointerShiftX.toFixed(2) + 'px), calc(-50% + ' + pointerShiftY.toFixed(2) + 'px), 0) ' +
+          'translate3d(-50%, -50%, 0) ' +
           'rotateY(' + state.visualAngle.toFixed(5) + 'rad) ' +
           'translateZ(' + orbitRadius.toFixed(2) + 'px) rotateZ(' + cardLean.toFixed(2) + 'deg) ' +
           'translate3d(0,' + (-lift).toFixed(2) + 'px,0) scale(' + cardScale.toFixed(3) + ')';
@@ -582,11 +603,101 @@
     sticky.addEventListener('pointermove', updateOrbitPointer, { passive: true });
     sticky.addEventListener('pointerleave', resetOrbitPointer, { passive: true });
 
+    function beginOrbitDrag(event) {
+      if (cardDialogOpen) return;
+      if (event.button !== undefined && event.button !== 0) return;
+
+      dragging = true;
+      horizontalDrag = false;
+      dragMoved = false;
+      dragStartX = event.clientX;
+      dragStartY = event.clientY;
+      dragStartRotation = rotation;
+      dragTargetRotation = rotation;
+      lastPointerX = event.clientX;
+      lastPointerTime = performance.now();
+      velocity = 0;
+      targetPointerPresence = 0;
+      orbit.classList.add('is-dragging');
+
+      try { orbit.setPointerCapture(event.pointerId); } catch (error) {}
+    }
+
+    function moveOrbitDrag(event) {
+      if (!dragging) return;
+
+      const deltaX = event.clientX - dragStartX;
+      const deltaY = event.clientY - dragStartY;
+      const distance = Math.hypot(deltaX, deltaY);
+      const threshold = event.pointerType === 'mouse' ? 3 : 7;
+
+      if (!horizontalDrag && distance > threshold) {
+        horizontalDrag = true;
+        dragMoved = true;
+      }
+      if (!horizontalDrag) return;
+
+      event.preventDefault();
+
+      dragTargetRotation = dragStartRotation + deltaX * 0.0105;
+      targetPointerY = clamp(deltaY / Math.max(orbit.clientHeight * 0.42, 1), -1, 1);
+      targetPointerPresence = 0.3;
+
+      const now = performance.now();
+      const elapsed = Math.max((now - lastPointerTime) / 1000, 0.012);
+      const instantaneous = clamp(
+        (event.clientX - lastPointerX) * 0.0105 / elapsed,
+        -3.8,
+        3.8
+      );
+      velocity = velocity * 0.58 + instantaneous * 0.42;
+      lastPointerX = event.clientX;
+      lastPointerTime = now;
+    }
+
+    function finishOrbitDrag(event) {
+      if (!dragging) return;
+
+      dragging = false;
+      horizontalDrag = false;
+      dragTargetRotation = rotation;
+      targetPointerX = 0;
+      targetPointerY = 0;
+      targetPointerPresence = 0;
+      orbit.classList.remove('is-dragging');
+
+      if (event && orbit.hasPointerCapture && orbit.hasPointerCapture(event.pointerId)) {
+        try { orbit.releasePointerCapture(event.pointerId); } catch (error) {}
+      }
+
+      window.setTimeout(function () {
+        dragMoved = false;
+      }, 120);
+    }
+
+    function spinOrbitFromTrackpad(event) {
+      if (reducedMotion || cardDialogOpen || dragging) return;
+
+      const horizontalIntent = Math.abs(event.deltaX) > Math.abs(event.deltaY) * 0.72;
+      if (!horizontalIntent) return;
+
+      event.preventDefault();
+      velocity = clamp(velocity + event.deltaX * 0.0032, -3.4, 3.4);
+    }
+
+    orbit.addEventListener('pointerdown', beginOrbitDrag);
+    orbit.addEventListener('pointermove', moveOrbitDrag, { passive: false });
+    orbit.addEventListener('pointerup', finishOrbitDrag);
+    orbit.addEventListener('pointercancel', finishOrbitDrag);
+    orbit.addEventListener('lostpointercapture', finishOrbitDrag);
+    orbit.addEventListener('wheel', spinOrbitFromTrackpad, { passive: false });
+
     cards.forEach(function (card) {
       card.addEventListener('click', function (event) {
         if (dragMoved) {
           event.preventDefault();
           event.stopPropagation();
+          dragMoved = false;
           return;
         }
         // Cards with an explicit link must remain normal links. Only the
@@ -646,8 +757,12 @@
       window.removeEventListener('scroll', onCardDialogScroll);
       sticky.removeEventListener('pointermove', updateOrbitPointer);
       sticky.removeEventListener('pointerleave', resetOrbitPointer);
+      orbit.removeEventListener('pointerdown', beginOrbitDrag);
+      orbit.removeEventListener('pointermove', moveOrbitDrag);
       orbit.removeEventListener('pointerup', finishOrbitDrag);
       orbit.removeEventListener('pointercancel', finishOrbitDrag);
+      orbit.removeEventListener('lostpointercapture', finishOrbitDrag);
+      orbit.removeEventListener('wheel', spinOrbitFromTrackpad);
       cancelDialogAnimations();
       if (cardDialog && cardDialog.parentNode) cardDialog.parentNode.removeChild(cardDialog);
     }, { once: true });
