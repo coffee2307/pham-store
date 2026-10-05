@@ -38,5 +38,8 @@ jobs:
             node --check "$file"
           done
 
+      - name: Check PHAM campaign launch gates
+        run: node scripts/check-campaign-safety.mjs
+
       - name: Run Shopify Theme Check
         run: shopify theme check
