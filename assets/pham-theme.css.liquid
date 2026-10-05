@@ -4397,3 +4397,103 @@ body.pham-challenge-page .shopify-section-group-footer-group {
     display: none !important;
   }
 }
+
+
+/* ==========================================================================
+   15h. KEY MESSAGE WRAPPING — keep high-impact copy visually intentional
+   ========================================================================== */
+
+/*
+ * Short, high-impact UI copy should wrap by phrase rather than leaving a
+ * single orphan word on the next line. Long-form content (RTE, policies,
+ * descriptions, articles) is intentionally excluded.
+ */
+:where(
+  .pham-hero__heading,
+  .pham-story__title,
+  .pham-product-focus__title,
+  .pham-product-main__title,
+  .pham-product-spotlight__title,
+  .pham-vault__display,
+  .pham-about__title,
+  .pham-about__closing,
+  .pham-contact__title,
+  .pham-page__title,
+  .pham-search__title,
+  .pham-collection-grid__title,
+  .pham-cart-page__title,
+  .pham-article__title,
+  .pham-404__title,
+  .pham-cart-drawer__title,
+  .pham-cart-rec__title
+) {
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+
+/* Supporting copy that is still part of the primary visual message. */
+:where(
+  .pham-hero__subheading,
+  .pham-product-main__tagline,
+  .pham-about__subtitle,
+  .pham-contact__intro
+) {
+  text-wrap: pretty;
+  word-break: normal;
+  hyphens: none;
+}
+
+/*
+ * This brand line is deliberately short enough to remain a single visual
+ * unit even in the footer's narrow column.
+ */
+.pham-footer__tagline {
+  max-width: none;
+  width: max-content;
+  max-inline-size: 100%;
+  white-space: nowrap;
+  text-wrap: nowrap;
+}
+
+/* Navigation labels / primary controls should never orphan one word. */
+:where(
+  .pham-btn,
+  .pham-hero__cta,
+  .pham-product-main__cta,
+  .pham-product-spotlight__add,
+  .pham-product-spotlight__pdp-link,
+  .pham-waitlist__submit,
+  .pham-footer__submit,
+  .pham-cart-drawer__checkout,
+  .pham-back-link
+) {
+  white-space: nowrap;
+}
+
+/*
+ * On narrow screens, large display headlines are allowed to wrap, but the
+ * browser balances the lines instead of producing an accidental orphan.
+ */
+@media (max-width: 767px) {
+  :where(
+    .pham-story__title,
+    .pham-product-focus__title,
+    .pham-about__closing,
+    .pham-contact__title,
+    .pham-page__title,
+    .pham-search__title,
+    .pham-collection-grid__title,
+    .pham-cart-page__title,
+    .pham-article__title,
+    .pham-404__title
+  ) {
+    max-inline-size: 100%;
+    text-wrap: balance;
+  }
+
+  .pham-footer__tagline {
+    font-size: min(var(--text-base), 4vw);
+  }
+}
