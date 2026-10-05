@@ -16,7 +16,7 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      SHOPIFY_SHOP_DOMAIN: ${{ secrets.SHOPIFY_SHOP_DOMAIN }}
+      SHOPIFY_SHOP_DOMAIN: yszwe3-yd.myshopify.com
       SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
       CAMPAIGN_BACKEND_URL: ${{ secrets.CAMPAIGN_BACKEND_URL }}
       CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
@@ -43,11 +43,9 @@ jobs:
             CLOUDFLARE_API_TOKEN
             CLOUDFLARE_ACCOUNT_ID
             CLOUDFLARE_D1_DATABASE_ID
-            SHOPIFY_SHOP_DOMAIN
             SHOPIFY_ADMIN_TOKEN
             SHOPIFY_API_SECRET
             INTERNAL_ADMIN_KEY
-            CAMPAIGN_BACKEND_URL
           )
           for key in "${required[@]}"; do
             if [ -z "${!key:-}" ]; then
@@ -88,5 +86,12 @@ jobs:
         run: npx wrangler deploy
 
       - name: Register Shopify webhooks
-        if: ${{ env.SHOPIFY_SHOP_DOMAIN != '' && env.SHOPIFY_ADMIN_TOKEN != '' && env.CAMPAIGN_BACKEND_URL != '' }}
+        if: ${{ env.SHOPIFY_ADMIN_TOKEN != '' && env.CAMPAIGN_BACKEND_URL != '' }}
         run: node register-shopify-webhooks.mjs
+
+      - name: First-deploy webhook reminder
+        if: ${{ env.CAMPAIGN_BACKEND_URL == '' }}
+        shell: bash
+        run: |
+          echo "::notice::Worker deployed, but CAMPAIGN_BACKEND_URL is not configured yet."
+          echo "::notice::Copy the deployed Worker URL into the CAMPAIGN_BACKEND_URL GitHub secret, then rerun this workflow to register ORDERS_PAID."
