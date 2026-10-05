@@ -30,6 +30,14 @@ export function verifyAppProxyRequest(urlLike, secret, {
   if (!secret) return { ok: false, reason: 'missing_secret' };
 
   const url = urlLike instanceof URL ? urlLike : new URL(String(urlLike), 'https://placeholder.invalid');
+  const protectedKeys = ['signature', 'shop', 'logged_in_customer_id', 'path_prefix', 'timestamp'];
+
+  for (const key of protectedKeys) {
+    if (url.searchParams.getAll(key).length > 1) {
+      return { ok: false, reason: 'duplicate_security_parameter' };
+    }
+  }
+
   const signature = url.searchParams.get('signature') || '';
   if (!signature) return { ok: false, reason: 'missing_signature' };
 
