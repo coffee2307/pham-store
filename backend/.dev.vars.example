@@ -1,0 +1,9 @@
+# Cloudflare Worker secrets / local development example
+SHOPIFY_SHOP_DOMAIN=yszwe3-yd.myshopify.com
+SHOPIFY_ADMIN_TOKEN=replace_me
+SHOPIFY_WEBHOOK_SECRET=replace_me
+SHOPIFY_API_SECRET=replace_me
+INTERNAL_ADMIN_KEY=replace_me
+
+# Deployment helper only
+CAMPAIGN_BACKEND_URL=https://replace-me.workers.dev
