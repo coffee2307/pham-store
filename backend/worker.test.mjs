@@ -2,8 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   buildFinalAcquisitionDraftInput,
+  buildStandbyAcquisitionDraftInput,
   canonicalizeAppProxyParams,
+  selectFinalVariantBySize,
   validateFinalAcquisitionOrder,
+  validatePriorityReservationOrder,
+  validateStandbyAcquisitionOrder,
   verifyAppProxyRequest,
   verifyShopifyWebhook,
 } from './worker.js';
@@ -298,5 +302,235 @@ test('rejects a final acquisition paid by a different Shopify customer', () => {
   assert.throws(
     () => validateFinalAcquisitionOrder(fixture),
     /final_payment_customer_mismatch/
+  );
+});
+
+
+function priorityReservationFixture({ identity = true } = {}) {
+  const lineItems = [
+    {
+      sku: 'PHAM-001-RES-E01',
+      quantity: 1,
+      price: '24.99',
+      properties: [
+        { name: '_PHAM Edition', value: 'EDITION 01' },
+        { name: '_PHAM Product', value: 'PHAM-001' },
+        { name: '_PHAM Referral Code', value: '' },
+        { name: '_PHAM Size Preference', value: 'M' },
+        { name: 'Reservation terms', value: 'Accepted' },
+        { name: 'Digital lookbook delivery', value: 'Included' },
+      ],
+    },
+    {
+      sku: 'PHAM-LOOKBOOK-E01',
+      quantity: 1,
+      price: '0.00',
+      properties: [],
+    },
+  ];
+
+  if (identity) {
+    lineItems.push({
+      sku: 'PHAM-ID-E01',
+      quantity: 1,
+      price: '5.00',
+      properties: [],
+    });
+  }
+
+  return {
+    edition: {
+      id: 'edition-01',
+      label: 'EDITION 01',
+      product_code: 'PHAM-001',
+      currency_code: 'USD',
+      reservation_price_cents: 2499,
+    },
+    order: {
+      id: 1001,
+      financial_status: 'paid',
+      currency: 'USD',
+      current_total_discounts: '0.00',
+      current_subtotal_price: identity ? '29.99' : '24.99',
+      line_items: lineItems,
+    },
+  };
+}
+
+test('validates the exact Priority Reservation bundle before allocation', () => {
+  const fixture = priorityReservationFixture();
+  const result = validatePriorityReservationOrder(fixture);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.sizePreference, 'M');
+  assert.equal(result.reservationPaidCents, 2499);
+  assert.equal(result.identityLine.sku, 'PHAM-ID-E01');
+});
+
+test('rejects Priority Reservation checkout without a size preference', () => {
+  const fixture = priorityReservationFixture();
+  const reservationLine = fixture.order.line_items[0];
+  reservationLine.properties = reservationLine.properties.map(property =>
+    property.name === '_PHAM Size Preference'
+      ? { ...property, value: '' }
+      : property
+  );
+
+  assert.throws(
+    () => validatePriorityReservationOrder(fixture),
+    /missing_size_preference/
+  );
+});
+
+test('rejects discounted or mixed-cart Priority Reservation orders', () => {
+  const discounted = priorityReservationFixture();
+  discounted.order.current_total_discounts = '1.00';
+  assert.throws(
+    () => validatePriorityReservationOrder(discounted),
+    /reservation_discount_not_allowed/
+  );
+
+  const mixed = priorityReservationFixture();
+  mixed.order.line_items.push({
+    sku: 'UNRELATED-SKU',
+    quantity: 1,
+    price: '10.00',
+    properties: [],
+  });
+  mixed.order.current_subtotal_price = '39.99';
+  assert.throws(
+    () => validatePriorityReservationOrder(mixed),
+    /unexpected_reservation_line_item/
+  );
+});
+
+test('rejects malformed Identity and Lookbook add-ons', () => {
+  const identity = priorityReservationFixture();
+  identity.order.line_items.find(line => line.sku === 'PHAM-ID-E01').price = '4.00';
+  assert.throws(
+    () => validatePriorityReservationOrder(identity),
+    /identity_price_mismatch/
+  );
+
+  const lookbook = priorityReservationFixture({ identity: false });
+  lookbook.order.line_items = lookbook.order.line_items.filter(
+    line => line.sku !== 'PHAM-LOOKBOOK-E01'
+  );
+  assert.throws(
+    () => validatePriorityReservationOrder(lookbook),
+    /invalid_lookbook_line_count/
+  );
+});
+
+test('selects one final Shopify variant by exact Size option and price', () => {
+  const selected = selectFinalVariantBySize([
+    {
+      id: 'gid://shopify/ProductVariant/S',
+      price: '199.00',
+      selectedOptions: [{ name: 'Size', value: 'S' }],
+    },
+    {
+      id: 'gid://shopify/ProductVariant/M',
+      price: '199.00',
+      selectedOptions: [{ name: 'Size', value: 'M' }],
+    },
+  ], 'm', 19900);
+
+  assert.equal(selected.id, 'gid://shopify/ProductVariant/M');
+});
+
+test('standby draft uses sized variant and binds the queued Shopify customer', () => {
+  const input = buildStandbyAcquisitionDraftInput({
+    edition: {
+      label: 'EDITION 01',
+      product_code: 'PHAM-001',
+    },
+    standby: {
+      id: 'standby-1',
+      email: 'standby@example.com',
+      customer_id: 'gid://shopify/Customer/77',
+      size_preference: 'L',
+    },
+    deadline: '2026-11-15T10:00:00.000Z',
+    variantId: 'gid://shopify/ProductVariant/L',
+  });
+
+  assert.equal(input.lineItems[0].variantId, 'gid://shopify/ProductVariant/L');
+  assert.deepEqual(input.purchasingEntity, {
+    customerId: 'gid://shopify/Customer/77'
+  });
+  assert.deepEqual(
+    input.customAttributes.find(attribute => attribute.key === 'PHAM Size Preference'),
+    { key: 'PHAM Size Preference', value: 'L' }
+  );
+});
+
+function standbyPaymentFixture() {
+  return {
+    edition: {
+      currency_code: 'USD',
+      final_price_cents: 19900,
+      final_product_variant_id: 'gid://shopify/ProductVariant/DEFAULT',
+    },
+    standby: {
+      id: 'standby-1',
+      status: 'promoted',
+      email: 'standby@example.com',
+      customer_id: 'gid://shopify/Customer/77',
+      size_preference: 'L',
+      final_variant_id: 'gid://shopify/ProductVariant/300',
+      offer_deadline: '2026-11-15T10:00:00.000Z',
+    },
+    order: {
+      id: 2002,
+      currency: 'USD',
+      processed_at: '2026-11-15T09:59:00.000Z',
+      current_total_discounts: '0.00',
+      current_subtotal_price: '199.00',
+      customer: {
+        id: 77,
+        email: 'standby@example.com',
+      },
+      email: 'standby@example.com',
+      line_items: [
+        {
+          variant_id: 300,
+          quantity: 1,
+          price: '199.00',
+          sku: 'PHAM-001-E01-L',
+        },
+      ],
+    },
+  };
+}
+
+test('validates a standby acquisition against offer, size variant, price and customer', () => {
+  const fixture = standbyPaymentFixture();
+  const result = validateStandbyAcquisitionOrder(fixture);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.variantId, 'gid://shopify/ProductVariant/300');
+});
+
+test('rejects expired, discounted, or wrong-variant standby acquisition', () => {
+  const expired = standbyPaymentFixture();
+  expired.order.processed_at = '2026-11-15T10:00:01.000Z';
+  assert.throws(
+    () => validateStandbyAcquisitionOrder(expired),
+    /standby_offer_expired/
+  );
+
+  const discounted = standbyPaymentFixture();
+  discounted.order.current_total_discounts = '10.00';
+  assert.throws(
+    () => validateStandbyAcquisitionOrder(discounted),
+    /standby_discount_not_allowed/
+  );
+
+  const wrongVariant = standbyPaymentFixture();
+  wrongVariant.order.line_items[0].variant_id = 301;
+  assert.throws(
+    () => validateStandbyAcquisitionOrder(wrongVariant),
+    /standby_variant_mismatch/
   );
 });
