@@ -1668,7 +1668,7 @@ async function openFinalPayment(request, env) {
 
   if (!edition) return json({ error: 'Edition not found' }, 404);
 
-  if (edition.state !== 'reservation_full') {
+  if (!['reservation_full', 'final_payment'].includes(edition.state)) {
     return json({
       ok: false,
       error: 'edition_not_ready_for_final_payment',
@@ -1676,17 +1676,20 @@ async function openFinalPayment(request, env) {
     }, 409);
   }
 
-  const activeReservationCount = await scalar(
+  const allocatedReservationCount = await scalar(
     env,
-    "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status = 'active'",
+    `SELECT COUNT(*) AS count
+     FROM reservations
+     WHERE edition_id = ?
+       AND status IN ('active','final_payment_open','final_paid')`,
     editionId
   );
 
-  if (activeReservationCount !== Number(edition.edition_size)) {
+  if (allocatedReservationCount !== Number(edition.edition_size)) {
     return json({
       ok: false,
       error: 'reservation_allocation_incomplete',
-      activeReservationCount,
+      allocatedReservationCount,
       editionSize: Number(edition.edition_size)
     }, 409);
   }
@@ -1695,25 +1698,52 @@ async function openFinalPayment(request, env) {
     return json({ error: 'Final product variant is not configured for this edition' }, 409);
   }
 
-  const now = new Date();
-  const deadline = new Date(now.getTime() + edition.payment_window_hours * 3600000).toISOString();
-
-  const rows = await env.PHAM_CAMPAIGN_DB.prepare(
-    `SELECT id, email, shopify_customer_id, shopify_order_id,
-            size_preference, final_variant_id,
+  const allRows = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT id, email, shopify_customer_id, shopify_order_id, status,
+            size_preference, final_variant_id, payment_deadline,
             final_draft_order_id, final_invoice_url
      FROM reservations
-     WHERE edition_id = ? AND status = 'active'`
+     WHERE edition_id = ?
+       AND status IN ('active','final_payment_open','final_paid')
+     ORDER BY created_at ASC`
   ).bind(editionId).all();
+
+  const reservationRows = allRows.results || [];
+  const activeRows = reservationRows.filter(function(row) {
+    return row.status === 'active';
+  });
+
+  const missingVariantMappings = activeRows
+    .filter(function(row) {
+      return Boolean(row.size_preference) && !row.final_variant_id;
+    })
+    .map(function(row) {
+      return {
+        reservationId: row.id,
+        sizePreference: row.size_preference
+      };
+    });
+
+  if (missingVariantMappings.length) {
+    return json({
+      ok: false,
+      error: 'final_variant_mapping_incomplete',
+      missing: missingVariantMappings
+    }, 409);
+  }
+
+  const existingDeadlineRow = reservationRows.find(function(row) {
+    return row.status === 'final_payment_open' && row.payment_deadline;
+  });
+  const now = new Date();
+  const deadline = existingDeadlineRow
+    ? new Date(existingDeadlineRow.payment_deadline).toISOString()
+    : new Date(now.getTime() + edition.payment_window_hours * 3600000).toISOString();
 
   const results = [];
 
-  for (const row of rows.results || []) {
+  for (const row of activeRows) {
     try {
-      if (row.size_preference && !row.final_variant_id) {
-        throw new Error('final_variant_not_assigned_for_size:' + row.size_preference);
-      }
-
       const finalVariantId = row.final_variant_id || edition.final_product_variant_id;
       let draftOrderId = row.final_draft_order_id;
       let invoiceUrl = row.final_invoice_url;
@@ -1786,36 +1816,33 @@ async function openFinalPayment(request, env) {
   const opened = results.filter(item => item.ok).length;
   const failed = results.length - opened;
 
-  if (opened > 0) {
+  if (failed === 0) {
     await env.PHAM_CAMPAIGN_DB.prepare(
       "UPDATE editions SET state = 'final_payment', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
     ).bind(editionId).run();
   }
 
-  return json({ ok: failed === 0, editionId, opened, failed, deadline, results });
+  return json({
+    ok: failed === 0,
+    editionId,
+    opened,
+    alreadyOpenOrPaid: reservationRows.length - activeRows.length,
+    failed,
+    deadline,
+    results
+  });
 }
 
-async function createFinalAcquisitionDraft(env, { edition, reservation, deadline, variantId }) {
-  const mutation = `mutation CreateFinalAcquisitionDraft($input: DraftOrderInput!) {
-    draftOrderCreate(input: $input) {
-      draftOrder {
-        id
-        name
-        invoiceUrl
-        totalPriceSet { shopMoney { amount currencyCode } }
-        subtotalPriceSet { shopMoney { amount currencyCode } }
-      }
-      userErrors { field message }
-    }
-  }`;
+export function buildFinalAcquisitionDraftInput({ edition, reservation, deadline, variantId }) {
+  if (!variantId) throw new Error('missing_final_variant_id');
 
   const currencyCode = edition.currency_code || 'USD';
   const reservationCredit = centsToMoney(edition.reservation_price_cents);
 
-  const input = {
+  return {
     email: reservation.email || undefined,
     lineItems: [{
-      variantId: edition.final_product_variant_id,
+      variantId,
       quantity: 1
     }],
     appliedDiscount: {
@@ -1837,6 +1864,28 @@ async function createFinalAcquisitionDraft(env, { edition, reservation, deadline
     note: `${edition.label} final acquisition. Reservation credit applied: ${reservationCredit} ${currencyCode}.`,
     tags: ['PHAM', edition.label, 'Final Acquisition', reservation.id]
   };
+}
+
+async function createFinalAcquisitionDraft(env, { edition, reservation, deadline, variantId }) {
+  const mutation = `mutation CreateFinalAcquisitionDraft($input: DraftOrderInput!) {
+    draftOrderCreate(input: $input) {
+      draftOrder {
+        id
+        name
+        invoiceUrl
+        totalPriceSet { shopMoney { amount currencyCode } }
+        subtotalPriceSet { shopMoney { amount currencyCode } }
+      }
+      userErrors { field message }
+    }
+  }`;
+
+  const input = buildFinalAcquisitionDraftInput({
+    edition,
+    reservation,
+    deadline,
+    variantId
+  });
 
   const result = await shopifyGraphQL(env, mutation, { input });
   const payload = result && result.data && result.data.draftOrderCreate;
