@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS editions (
   identity_inventory_item_id TEXT,
   identity_location_id TEXT,
   currency_code TEXT NOT NULL DEFAULT 'USD',
+  design_origin TEXT NOT NULL DEFAULT 'DESIGNED IN VIETNAM / 2026',
+  production_origin TEXT NOT NULL DEFAULT 'PRODUCED IN DONGGUAN, CHINA',
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -94,6 +96,7 @@ CREATE TABLE IF NOT EXISTS objects (
   object_number INTEGER NOT NULL,
   reservation_id TEXT UNIQUE,
   auth_token_hash TEXT UNIQUE NOT NULL,
+  qr_token TEXT UNIQUE NOT NULL,
   provenance_status TEXT NOT NULL DEFAULT 'pending',
   token_type TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -122,12 +125,15 @@ INSERT OR IGNORE INTO editions (
   id, label, product_code, edition_size, state,
   reservation_price_cents, final_price_cents, identity_limit,
   payment_window_hours, standby_window_hours,
-  final_product_variant_id, identity_inventory_item_id, identity_location_id, currency_code
+  final_product_variant_id, identity_inventory_item_id, identity_location_id, currency_code,
+  design_origin, production_origin
 ) VALUES (
   'edition-01', 'EDITION 01', 'PHAM-001', 50, 'prelaunch',
   2499, 19900, 15, 72, 48,
   'gid://shopify/ProductVariant/50501819662592',
   'gid://shopify/InventoryItem/52648986214656',
   'gid://shopify/Location/96415613184',
-  'USD'
+  'USD',
+  'DESIGNED IN VIETNAM / 2026',
+  'PRODUCED IN DONGGUAN, CHINA'
 );
