@@ -5,12 +5,20 @@ export default {
     try {
       const url = new URL(request.url);
 
+      if (request.method === 'OPTIONS' && url.pathname.startsWith('/api/')) {
+        return new Response(null, { status: 204, headers: corsHeaders() });
+      }
+
       if (request.method === 'GET' && url.pathname === '/health') {
         return json({ ok: true, service: 'pham-campaign' });
       }
 
       if (request.method === 'GET' && url.pathname === '/api/campaign') {
         return getCampaign(env, url.searchParams.get('edition') || 'edition-01');
+      }
+
+      if (request.method === 'POST' && url.pathname === '/api/standby') {
+        return joinStandby(request, env);
       }
 
       if (request.method === 'POST' && url.pathname === '/webhooks/orders-paid') {
@@ -41,8 +49,17 @@ export default {
   }
 };
 
+function corsHeaders() {
+  return {
+    ...JSON_HEADERS,
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET, POST, OPTIONS',
+    'access-control-allow-headers': 'Content-Type, Authorization'
+  };
+}
+
 function json(payload, status = 200) {
-  return new Response(JSON.stringify(payload), { status, headers: JSON_HEADERS });
+  return new Response(JSON.stringify(payload), { status, headers: corsHeaders() });
 }
 
 function requireInternalKey(request, env) {
@@ -95,6 +112,68 @@ async function getCampaign(env, editionId) {
       standby
     }
   });
+}
+
+async function joinStandby(request, env) {
+  const body = await request.json();
+  const editionId = String(body.editionId || 'edition-01');
+  const email = String(body.email || '').trim().toLowerCase();
+  const name = String(body.name || '').trim().slice(0, 120);
+  const country = String(body.country || '').trim().slice(0, 120);
+  const size = String(body.size || '').trim().slice(0, 40);
+
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    return json({ error: 'A valid email is required.' }, 422);
+  }
+
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM editions WHERE id = ?'
+  ).bind(editionId).first();
+
+  if (!edition) return json({ error: 'Edition not found.' }, 404);
+  if (edition.state !== 'reservation_full') {
+    return json({ error: 'Standby is not open for this edition.' }, 409);
+  }
+
+  const existing = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT id, position, status FROM standby WHERE edition_id = ? AND email = ?'
+  ).bind(editionId, email).first();
+
+  if (existing) {
+    return json({
+      ok: true,
+      existing: true,
+      standbyId: existing.id,
+      position: existing.position,
+      status: existing.status
+    });
+  }
+
+  const id = crypto.randomUUID();
+  const result = await env.PHAM_CAMPAIGN_DB.prepare(
+    `INSERT INTO standby (id, edition_id, email, position, status)
+     SELECT ?, ?, ?, COALESCE(MAX(position), 0) + 1, 'waiting'
+     FROM standby
+     WHERE edition_id = ?`
+  ).bind(id, editionId, email, editionId).run();
+
+  if (!(result.meta && result.meta.changes)) {
+    return json({ error: 'Unable to join standby.' }, 500);
+  }
+
+  const row = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT id, position, status FROM standby WHERE id = ?'
+  ).bind(id).first();
+
+  console.log('Standby joined', { editionId, email, name, country, size, position: row.position });
+
+  return json({
+    ok: true,
+    existing: false,
+    standbyId: row.id,
+    position: row.position,
+    status: row.status
+  }, 201);
 }
 
 async function handleOrdersPaid(request, env) {
