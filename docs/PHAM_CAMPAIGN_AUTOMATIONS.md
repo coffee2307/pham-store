@@ -48,6 +48,7 @@ The gateway records line-item properties for:
 - PHAM Edition
 - PHAM Product
 - Referral Code
+- Size Preference
 - Reservation terms acceptance
 - Digital lookbook delivery request
 - Identity source = Paid upgrade
@@ -56,6 +57,8 @@ The browser persists a valid referral code supplied as ?ref=CODE and carries it 
 
 Referral conversion is not verified until payment succeeds and anti-self-referral checks pass.
 
+The paid-order webhook also validates the exact campaign bundle, quantities, prices, zero-discount rule, edition/product metadata and required Size Preference before a reservation slot is allocated. Invalid paid orders are held for review rather than being converted into campaign state.
+
 ## Order metafield contract
 
 Namespace: pham
@@ -63,6 +66,7 @@ Namespace: pham
 - edition_label
 - reservation_id
 - referral_code
+- size_preference
 - identity_selected
 - identity_source
 - digital_lookbook_status
@@ -82,6 +86,7 @@ Namespace: pham
 - identity_status
 - payment_deadline
 - reservation_id
+- size_preference
 - identity_source
 
 ## Recommended reservation states
@@ -217,23 +222,22 @@ For Edition 01 manual review is acceptable because only 50 reservations exist, b
 ## Standby rules
 
 - Joining standby is free.
+- Size Preference is required and persists with the queue entry.
 - Queue order defaults to FIFO.
 - Standby begins only after paid reservation allocation is closed.
-- A promoted standby customer pays full price.
+- Before promotion invoicing, the engine resolves exactly one active final-product variant matching the queued Size option and $199 Edition 01 price.
+- A promoted standby customer pays full price with no reservation discount.
 - Default offer window: 48 hours.
+- Paid standby orders are accepted only for the exact mapped variant, price, customer/email and active offer deadline.
 - Expired standby offer moves to the next eligible entry.
 
-## Digital Products dependency
+## Digital lookbook dependency
 
-The store currently does not have Shopify Digital Products installed.
-
-Until installed, lookbook delivery cannot be wired through the Digital Products connector.
-
-Do not turn COMMERCE READY on until one real delivery path has been tested end-to-end.
+Do not infer lookbook readiness from theme configuration alone. The actual digital delivery path, attached asset/version and customer access must be verified end-to-end before DIGITAL LOOKBOOK READY and COMMERCE READY are enabled.
 
 ## Launch test cases
 
-1. Reservation only = $24.99.
+1. Reservation only = $24.99 and requires a valid Size Preference.
 2. Reservation + Identity = $29.99.
 3. Identity unavailable at 15/15.
 4. Referral code persists into checkout.
@@ -245,6 +249,8 @@ Do not turn COMMERCE READY on until one real delivery path has been tested end-t
 10. Final payment request is exactly $174.01.
 11. 72-hour expiry changes status correctly.
 12. Expired slot promotes standby customer.
-13. Standby customer is charged full $199.
-14. Object number cannot be claimed by two collectors.
-15. QR/provenance record does not expose private customer data.
+13. Standby customer is charged full $199 for the exact size-mapped variant.
+14. Every configured Edition size resolves to exactly one active $199 final-product variant.
+15. Wrong-size, discounted, late or wrong-customer final payments fail closed.
+16. Object number cannot be claimed by two collectors.
+17. QR/provenance record does not expose private customer data.
