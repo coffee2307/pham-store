@@ -149,6 +149,10 @@ export class InMemoryStore {
     return { editionId, reservationId, number };
   }
 
+  async getObjectNumberByReservation(reservationId) {
+    return this.reservationObject.get(reservationId) ?? null;
+  }
+
   async releaseObjectNumber({ editionId, reservationId }) {
     const number = this.reservationObject.get(reservationId);
     if (number == null) return null;
