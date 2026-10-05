@@ -74,6 +74,23 @@ function requireInternalKey(request, env) {
   }
 }
 
+export function canonicalizeAppProxyParams(url) {
+  const grouped = new Map();
+
+  for (const [key, value] of url.searchParams.entries()) {
+    if (key === 'signature') continue;
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(value);
+  }
+
+  return Array.from(grouped.entries())
+    .map(function(entry) {
+      return entry[0] + '=' + entry[1].join(',');
+    })
+    .sort()
+    .join('');
+}
+
 async function verifyAppProxyRequest(url, secret, expectedShop) {
   if (!secret) return { ok: false, error: 'proxy_not_configured', status: 503 };
 
@@ -86,19 +103,7 @@ async function verifyAppProxyRequest(url, secret, expectedShop) {
     return { ok: false, error: 'stale_request', status: 401 };
   }
 
-  const grouped = new Map();
-  for (const [key, value] of url.searchParams.entries()) {
-    if (key === 'signature') continue;
-    if (!grouped.has(key)) grouped.set(key, []);
-    grouped.get(key).push(value);
-  }
-
-  const message = Array.from(grouped.entries())
-    .map(function(entry) {
-      return entry[0] + '=' + entry[1].join(',');
-    })
-    .sort()
-    .join('');
+  const message = canonicalizeAppProxyParams(url);
 
   const key = await crypto.subtle.importKey(
     'raw',
