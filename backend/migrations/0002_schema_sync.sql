@@ -9,15 +9,51 @@ ALTER TABLE standby ADD COLUMN draft_order_id TEXT;
 ALTER TABLE standby ADD COLUMN invoice_url TEXT;
 ALTER TABLE standby ADD COLUMN converted_reservation_id TEXT;
 
--- SQLite/D1 cannot add a NOT NULL UNIQUE column to a populated table directly.
--- Add it nullable, backfill any historical rows, then enforce uniqueness with an index.
-ALTER TABLE objects ADD COLUMN qr_token TEXT;
-UPDATE objects
-SET qr_token = lower(hex(randomblob(32)))
-WHERE qr_token IS NULL OR qr_token = '';
+-- Rebuild objects so qr_token has the same NOT NULL + UNIQUE guarantees as schema.sql.
+ALTER TABLE objects RENAME TO objects_legacy_0002;
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_objects_qr_token
-  ON objects(qr_token);
+CREATE TABLE objects (
+  id TEXT PRIMARY KEY,
+  edition_id TEXT NOT NULL,
+  object_number INTEGER NOT NULL,
+  reservation_id TEXT UNIQUE,
+  auth_token_hash TEXT UNIQUE NOT NULL,
+  qr_token TEXT UNIQUE NOT NULL,
+  provenance_status TEXT NOT NULL DEFAULT 'pending',
+  token_type TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (edition_id) REFERENCES editions(id),
+  FOREIGN KEY (reservation_id) REFERENCES reservations(id),
+  UNIQUE (edition_id, object_number)
+);
+
+INSERT INTO objects (
+  id,
+  edition_id,
+  object_number,
+  reservation_id,
+  auth_token_hash,
+  qr_token,
+  provenance_status,
+  token_type,
+  created_at,
+  updated_at
+)
+SELECT
+  id,
+  edition_id,
+  object_number,
+  reservation_id,
+  auth_token_hash,
+  lower(hex(randomblob(32))),
+  provenance_status,
+  token_type,
+  created_at,
+  updated_at
+FROM objects_legacy_0002;
+
+DROP TABLE objects_legacy_0002;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_reservations_standby_id
   ON reservations(standby_id)
