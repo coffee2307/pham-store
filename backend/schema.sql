@@ -128,6 +128,22 @@ CREATE INDEX IF NOT EXISTS idx_reservations_edition_status
 CREATE INDEX IF NOT EXISTS idx_reservations_referral_code
   ON reservations(referral_code);
 
+CREATE UNIQUE INDEX IF NOT EXISTS uq_reservations_active_customer
+  ON reservations(edition_id, shopify_customer_id)
+  WHERE shopify_customer_id IS NOT NULL
+    AND status NOT IN ('cancelled','expired');
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_reservations_active_email
+  ON reservations(edition_id, email)
+  WHERE email IS NOT NULL
+    AND email <> ''
+    AND status NOT IN ('cancelled','expired');
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_standby_active_customer
+  ON standby(edition_id, customer_id)
+  WHERE customer_id IS NOT NULL
+    AND status IN ('waiting','promoting','promoted');
+
 CREATE INDEX IF NOT EXISTS idx_standby_queue
   ON standby(edition_id, status, position);
 
