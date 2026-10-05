@@ -1,48 +1,121 @@
 {{ 'pham-campaign.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'pham-campaign.js' | asset_url }}" defer></script>
 {%- assign edition_size = settings.pham_campaign_edition_size | default: 50 -%}
+{%- assign commerce_ready = settings.pham_campaign_commerce_ready | default: false -%}
+{%- assign identity_status = 'locked' -%}
+{%- assign reservation_id = blank -%}
+{%- if customer -%}
+  {%- assign identity_status = customer.metafields.pham.identity_status.value | default: 'locked' | downcase -%}
+  {%- assign reservation_id = customer.metafields.pham.reservation_id.value -%}
+{%- endif -%}
+{%- assign can_configure = false -%}
+{%- if customer and identity_status != 'locked' -%}{%- assign can_configure = true -%}{%- endif -%}
+{%- assign submit_enabled = false -%}
+{%- if can_configure and commerce_ready -%}{%- assign submit_enabled = true -%}{%- endif -%}
 
-<section class="pham-campaign-shell" data-pham-identity-configurator data-edition-size="{{ edition_size }}">
+<section class="pham-campaign-shell"
+  data-pham-identity-configurator
+  data-edition-size="{{ edition_size }}"
+  data-submit-enabled="{% if submit_enabled %}true{% else %}false{% endif %}">
   <div class="pham-campaign-inner">
-    <span class="pham-campaign-draft">CONFIGURATOR SKELETON · SAVE API PENDING</span>
+    {%- unless commerce_ready -%}<span class="pham-campaign-draft">PRELAUNCH CONFIGURATOR · SUBMISSION DISABLED</span>{%- endunless -%}
     <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · OBJECT IDENTITY</p>
     <h1 class="pham-campaign-title">Make it<br>yours.</h1>
     <p class="pham-campaign-lede">The Identity privilege is shared across paid upgrades and referral unlocks. Only {{ settings.pham_campaign_identity_limit | default: 15 }} privileges exist for the active edition.</p>
 
     <div class="pham-campaign-grid">
       <div class="pham-campaign-card pham-campaign-card--full">
-        <div class="pham-config-grid">
-          <div>
-            <div class="pham-config-field">
-              <label for="PhamIdentityName-{{ section.id }}">Identity / alias</label>
-              <input id="PhamIdentityName-{{ section.id }}" data-pham-id-name maxlength="24" placeholder="COLLECTOR ID">
+        {%- if commerce_ready and customer == nil -%}
+          <div class="pham-campaign-alert">Collector authentication is required before an Identity request can be submitted.</div>
+          <div class="pham-campaign-actions"><a class="pham-campaign-btn" href="{{ routes.account_login_url }}">Sign in</a></div>
+        {%- elsif commerce_ready and can_configure == false -%}
+          <div class="pham-campaign-alert">OBJECT IDENTITY IS LOCKED FOR THIS ACCOUNT. Unlock it through the paid upgrade or one verified successful reservation referral while the shared privilege pool remains open.</div>
+          {%- if settings.pham_campaign_referral_page_url != blank -%}
+            <div class="pham-campaign-actions"><a class="pham-campaign-btn" href="{{ settings.pham_campaign_referral_page_url }}">Referral access</a></div>
+          {%- endif -%}
+        {%- endif -%}
+
+        {%- form 'contact', id: 'PhamIdentityForm' -%}
+          <input type="hidden" name="contact[Source]" value="PHAM Object Identity">
+          <input type="hidden" name="contact[Edition]" value="{{ settings.pham_campaign_edition_label | default: 'EDITION 01' | escape }}">
+          <input type="hidden" name="contact[Product]" value="{{ settings.pham_campaign_product_code | default: 'PHAM-001' | escape }}">
+          <input type="hidden" name="contact[Reservation ID]" value="{{ reservation_id | escape }}">
+          <input type="hidden" name="contact[Preferred object number]" value="" data-pham-id-number-input>
+          <input type="hidden" name="contact[body]" value="Object Identity configuration request submitted from Collector Access.">
+          {%- if customer -%}<input type="hidden" name="contact[email]" value="{{ customer.email | escape }}">{%- endif -%}
+
+          {%- if form.posted_successfully? -%}
+            <div class="pham-campaign-alert" role="status">
+              <strong>IDENTITY REQUEST RECEIVED.</strong> Your preferred number remains pending until PHAM confirms the allocation. Do not treat the preview as final object assignment.
             </div>
-            <div class="pham-config-field">
-              <label for="PhamIdentityInscription-{{ section.id }}">Inscription · <span data-pham-inscription-count>0/40</span></label>
-              <textarea id="PhamIdentityInscription-{{ section.id }}" data-pham-id-inscription maxlength="40" rows="3" placeholder="YOUR INSCRIPTION"></textarea>
-            </div>
-            <div class="pham-config-field">
-              <label>Preferred object number</label>
-              <div class="pham-number-grid" aria-label="Preferred object number">
-                {%- for i in (1..edition_size) -%}
-                  {%- capture display_number -%}{%- if i < 10 -%}0{%- endif -%}{{ i }}{%- endcapture -%}
-                  <button type="button" data-pham-object-number="{{ i }}" aria-pressed="false">{{ display_number }}</button>
-                {%- endfor -%}
+          {%- else -%}
+            <div class="pham-config-grid">
+              <div>
+                <div class="pham-config-field">
+                  <label for="PhamIdentityName-{{ section.id }}">Identity / alias</label>
+                  <input id="PhamIdentityName-{{ section.id }}"
+                         data-pham-id-name
+                         name="contact[Identity alias]"
+                         maxlength="24"
+                         placeholder="COLLECTOR ID"
+                         {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>
+                </div>
+
+                <div class="pham-config-field">
+                  <label for="PhamIdentityInscription-{{ section.id }}">Inscription · <span data-pham-inscription-count>0/40</span></label>
+                  <textarea id="PhamIdentityInscription-{{ section.id }}"
+                            data-pham-id-inscription
+                            name="contact[Inscription]"
+                            maxlength="40"
+                            rows="3"
+                            placeholder="YOUR INSCRIPTION"
+                            {% unless can_configure or commerce_ready == false %}disabled{% endunless %}></textarea>
+                </div>
+
+                <div class="pham-config-field">
+                  <label>Preferred object number</label>
+                  <div class="pham-number-grid" aria-label="Preferred object number">
+                    {%- for i in (1..edition_size) -%}
+                      {%- capture display_number -%}{%- if i < 10 -%}0{%- endif -%}{{ i }}{%- endcapture -%}
+                      <button type="button"
+                              data-pham-object-number="{{ i }}"
+                              aria-pressed="false"
+                              {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>{{ display_number }}</button>
+                    {%- endfor -%}
+                  </div>
+                </div>
+
+                <label class="pham-identity-public-choice">
+                  <input type="checkbox"
+                         name="contact[Public identity]"
+                         value="yes"
+                         {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>
+                  <span>Allow my chosen identity/alias to appear on the public provenance record. Personal contact information is never shown.</span>
+                </label>
+
+                <div class="pham-campaign-alert">Preferred numbers are requests until PHAM confirms the allocation. Live atomic number locking remains a backend task; the manual MVP must review conflicts before confirmation.</div>
+
+                <div class="pham-campaign-actions">
+                  {%- if submit_enabled -%}
+                    <button type="submit" class="pham-campaign-btn" data-pham-identity-submit disabled>Submit Identity request</button>
+                  {%- else -%}
+                    <span class="pham-campaign-btn" aria-disabled="true">{% if commerce_ready %}Identity locked{% else %}Submission disabled in prelaunch{% endif %}</span>
+                  {%- endif -%}
+                </div>
+              </div>
+
+              <div class="pham-id-preview" aria-label="Identity card preview">
+                <div class="pham-id-preview__brand">PHAM</div>
+                <div class="pham-id-preview__main">
+                  <div class="pham-id-preview__object">{{ settings.pham_campaign_product_code | default: 'PHAM-001' }} · <span data-pham-preview-number>??/{{ edition_size }}</span></div>
+                  <div class="pham-id-preview__identity"><span data-pham-preview-name>COLLECTOR ID</span>
+<span data-pham-preview-inscription>YOUR INSCRIPTION</span></div>
+                </div>
+                <div class="pham-id-preview__foot"><span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span><span>QR · PROVENANCE</span></div>
               </div>
             </div>
-            <div class="pham-campaign-alert">Live number locking, unavailable-number states and final save are intentionally deferred to the backend phase. Final allocation must lock numbers server-side so two collectors cannot claim the same object.</div>
-          </div>
-
-          <div class="pham-id-preview" aria-label="Identity card preview">
-            <div class="pham-id-preview__brand">PHAM</div>
-            <div class="pham-id-preview__main">
-              <div class="pham-id-preview__object">{{ settings.pham_campaign_product_code | default: 'PHAM-001' }} · <span data-pham-preview-number>??/{{ edition_size }}</span></div>
-              <div class="pham-id-preview__identity"><span data-pham-preview-name>COLLECTOR ID</span>
-<span data-pham-preview-inscription>YOUR INSCRIPTION</span></div>
-            </div>
-            <div class="pham-id-preview__foot"><span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span><span>QR · PROVENANCE</span></div>
-          </div>
-        </div>
+          {%- endif -%}
+        {%- endform -%}
       </div>
     </div>
   </div>
