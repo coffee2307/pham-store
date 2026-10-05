@@ -134,6 +134,7 @@ test('final payment cannot be completed after deadline', async () => {
     () => engine.markFinalPaid({
       editionId: 'edition-01',
       reservationId: 'R-1',
+      shopifyOrderId: 'FINAL-O-1',
       paidAt: new Date('2026-10-08T00:00:01.000Z'),
     }),
     /payment_window_expired/
@@ -186,4 +187,77 @@ test('expired reservation releases object and promotes FIFO standby', async () =
 
   const reservation = await store.getReservation('R-1');
   assert.equal(reservation.status, ReservationStatus.EXPIRED);
+});
+
+
+test('final payment is idempotent for the same Shopify order', async () => {
+  const store = new InMemoryStore({ editions: [makeEdition()] });
+  const engine = new EditionEngine(store);
+
+  await reserve(engine, 1);
+  await engine.openFinalPayment({
+    editionId: 'edition-01',
+    reservationId: 'R-1',
+    openedAt: new Date('2026-10-05T00:00:00.000Z'),
+    windowHours: 72,
+    balanceDueCents: 17401,
+  });
+
+  const args = {
+    editionId: 'edition-01',
+    reservationId: 'R-1',
+    shopifyOrderId: 'FINAL-O-1',
+    paidAt: new Date('2026-10-06T00:00:00.000Z'),
+  };
+
+  const first = await engine.markFinalPaid(args);
+  const second = await engine.markFinalPaid(args);
+
+  assert.equal(first.status, ReservationStatus.FINAL_PAID);
+  assert.equal(second.status, ReservationStatus.FINAL_PAID);
+  assert.equal(second.finalPaymentShopifyOrderId, 'FINAL-O-1');
+});
+
+test('standby full-price payment converts offered entry into final-paid collector', async () => {
+  const store = new InMemoryStore({
+    editions: [makeEdition({
+      editionSize: 1,
+      reservationsClaimed: 1,
+      state: CampaignState.RESERVATION_FULL,
+    })],
+  });
+  const engine = new EditionEngine(store);
+
+  const entry = await engine.joinStandby({
+    editionId: 'edition-01',
+    customerId: 'STANDBY-1',
+    email: 'standby@example.com',
+  });
+
+  const queue = store.standby.get('edition-01');
+  queue[0].status = 'offered';
+  queue[0].offerDeadline = '2026-10-10T00:00:00.000Z';
+
+  // A released priority slot makes room for the promoted standby collector.
+  store.editions.get('edition-01').reservationsClaimed = 0;
+
+  const converted = await engine.convertStandbyPayment({
+    editionId: 'edition-01',
+    standbyEntryId: entry.id,
+    customerId: 'gid://shopify/Customer/99',
+    shopifyOrderId: 'gid://shopify/Order/99',
+    finalPriceCents: 19900,
+    paidAt: new Date('2026-10-09T00:00:00.000Z'),
+  });
+
+  assert.equal(converted.status, ReservationStatus.FINAL_PAID);
+  assert.equal(converted.acquisitionType, 'standby');
+  assert.equal(converted.reservationPaidCents, 0);
+  assert.equal(converted.balanceDueCents, 19900);
+  assert.equal(converted.lookbookStatus, 'not_included');
+
+  const edition = await store.getEdition('edition-01');
+  assert.equal(edition.reservationsClaimed, 1);
+  assert.equal(queue[0].status, 'converted');
+  assert.equal(queue[0].convertedOrderId, 'gid://shopify/Order/99');
 });
