@@ -459,9 +459,7 @@
       const pointerSpacing = reducedMotion
         ? 1
         : 1 + currentPointerPresence * (0.012 + pointerMagnitude * 0.055);
-      const orbitRadius = radius * scrollSpacing * pointerSpacing * introRadiusBoost;
-      const step = Math.PI * 2 / cards.length;
-      const responsiveRotation = rotation + currentPointerX * 0.12 * currentPointerPresence;
+
       // Initial composition: let the card ring sit lower and lean slightly
       // left so the PHAM wordmark remains visually dominant on first load.
       // Both offsets ease back into the normal orbit choreography as the
@@ -471,6 +469,10 @@
       const introRingDrop = (1 - introEase) * 74;
       const introLean = -2.1 * (1 - introEase);
       const introRadiusBoost = 1 + (1 - introEase) * 0.14;
+
+      const orbitRadius = radius * scrollSpacing * pointerSpacing * introRadiusBoost;
+      const step = Math.PI * 2 / cards.length;
+      const responsiveRotation = rotation + currentPointerX * 0.12 * currentPointerPresence;
       const orbitLean =
         6 * introEase +
         introLean +
