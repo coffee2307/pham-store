@@ -1,5 +1,4 @@
 {{ 'pham-campaign.css' | asset_url | stylesheet_tag }}
-<script src="{{ 'pham-campaign.js' | asset_url }}" defer></script>
 {%- assign object_number = page.metafields.pham.object_number.value -%}
 {%- assign object_product = page.metafields.pham.product_code.value | default: settings.pham_campaign_product_code | default: 'PHAM-001' -%}
 {%- assign object_edition = page.metafields.pham.edition_label.value | default: settings.pham_campaign_edition_label | default: 'EDITION 01' -%}
