@@ -3,9 +3,28 @@
 {%- capture state_raw -%}{%- render 'pham-campaign-state' -%}{%- endcapture -%}
 {%- assign state = state_raw | strip -%}
 {%- assign reservation_product = settings.pham_campaign_reservation_product -%}
+{%- assign identity_product = settings.pham_campaign_identity_product -%}
+{%- assign reservation_variant = reservation_product.selected_or_first_available_variant -%}
+{%- assign identity_variant = identity_product.selected_or_first_available_variant -%}
 {%- assign commerce_ready = settings.pham_campaign_commerce_ready | default: false -%}
+{%- assign identity_limit = settings.pham_campaign_identity_limit | default: 15 -%}
+{%- assign identity_claimed = settings.pham_campaign_identity_claimed | default: 0 -%}
+{%- assign identity_open = true -%}
+{%- if identity_claimed >= identity_limit or identity_product == blank or identity_variant == blank -%}{%- assign identity_open = false -%}{%- endif -%}
+{%- assign can_checkout = false -%}
+{%- if state == 'reservation_open' and commerce_ready and reservation_variant != blank -%}{%- assign can_checkout = true -%}{%- endif -%}
 
-<section class="pham-campaign-shell" data-pham-reservation-gateway>
+<section class="pham-campaign-shell"
+  data-pham-reservation-gateway
+  data-commerce-ready="{% if commerce_ready %}true{% else %}false{% endif %}"
+  data-can-checkout="{% if can_checkout %}true{% else %}false{% endif %}"
+  data-reservation-variant-id="{{ reservation_variant.id }}"
+  data-identity-variant-id="{{ identity_variant.id }}"
+  data-reservation-price-cents="{{ reservation_variant.price | default: 2499 }}"
+  data-identity-price-cents="{{ identity_variant.price | default: 500 }}"
+  data-currency="{{ cart.currency.iso_code | default: localization.country.currency.iso_code | default: 'USD' }}"
+  data-edition="{{ settings.pham_campaign_edition_label | default: 'EDITION 01' | escape }}"
+  data-product-code="{{ settings.pham_campaign_product_code | default: 'PHAM-001' | escape }}">
   <div class="pham-campaign-inner">
     {%- if state == 'prelaunch' or commerce_ready == false -%}<span class="pham-campaign-draft">PRELAUNCH SKELETON · PAYMENT DISABLED</span>{%- endif -%}
     <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · PRIORITY RESERVATION</p>
@@ -16,7 +35,7 @@
       <article class="pham-campaign-card pham-campaign-card--wide">
         <h2>Reservation ledger</h2>
         <ul class="pham-campaign-list">
-          <li><span>Due today</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></li>
+          <li><span>Due today</span><strong data-pham-reservation-total>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></li>
           <li><span>Credited toward object</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></li>
           <li><span>Remaining at release</span><strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></li>
           <li><span>Acquisition window</span><strong>{{ settings.pham_campaign_payment_window_hours | default: 72 }} HOURS</strong></li>
@@ -26,6 +45,28 @@
           <div class="pham-campaign-alert"><strong>DIGITAL BENEFIT INCLUDED.</strong> After confirmed reservation payment, PHAM will deliver the {{ settings.pham_campaign_digital_lookbook_label | default: 'edition-exclusive digital lookbook' }} by email. This is a real digital deliverable and does not override consumer rights that apply by law.</div>
         {%- endif -%}
 
+        <div class="pham-reservation-upgrade">
+          <label class="pham-reservation-upgrade__choice{% unless identity_open %} is-closed{% endunless %}">
+            <span>
+              <input type="checkbox"
+                     data-pham-identity-upgrade
+                     {% unless identity_open %}disabled{% endunless %}>
+              <span>
+                <strong>ADD OBJECT IDENTITY</strong>
+                <small>Custom stainless-steel card · inscription · preferred object-number request · QR provenance</small>
+              </span>
+            </span>
+            <strong>+ {{ settings.pham_campaign_identity_price | default: '$5.00' }}</strong>
+          </label>
+          <p class="pham-reservation-upgrade__meta">
+            {% if identity_open %}
+              {{ identity_claimed }} / {{ identity_limit }} IDENTITY PRIVILEGES CLAIMED · PAID AND REFERRAL UNLOCKS SHARE THE SAME POOL
+            {% else %}
+              IDENTITY PRIVILEGE CLOSED
+            {% endif %}
+          </p>
+        </div>
+
         <div class="pham-campaign-consent">
           <label><input type="checkbox" data-pham-required-consent> <span>I understand the reservation credit, final balance and {{ settings.pham_campaign_payment_window_hours | default: 72 }}-hour acquisition window.</span></label>
           {%- if settings.pham_campaign_include_digital_lookbook -%}
@@ -34,13 +75,18 @@
         </div>
 
         <div class="pham-campaign-actions">
-          {%- if state == 'reservation_open' and commerce_ready and reservation_product != blank -%}
-            <a class="pham-campaign-btn is-disabled" data-pham-consent-action aria-disabled="true" tabindex="-1" href="{{ reservation_product.url }}">Continue to reservation</a>
+          {%- if can_checkout -%}
+            <button type="button"
+                    class="pham-campaign-btn is-disabled"
+                    data-pham-reservation-submit
+                    aria-disabled="true"
+                    disabled>Continue to secure checkout</button>
           {%- else -%}
             <span class="pham-campaign-btn" aria-disabled="true">{% if state == 'reservation_full' %}Reservation full{% elsif commerce_ready == false %}Commerce not ready{% else %}Reservation not open{% endif %}</span>
           {%- endif -%}
           {%- if settings.pham_campaign_terms_page_url != blank -%}<a class="pham-campaign-btn pham-campaign-btn--ghost" href="{{ settings.pham_campaign_terms_page_url }}">Edition terms</a>{%- endif -%}
         </div>
+        <p class="pham-campaign-error" data-pham-reservation-error hidden role="alert"></p>
       </article>
 
       <article class="pham-campaign-card">
