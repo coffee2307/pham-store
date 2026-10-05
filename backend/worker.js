@@ -2143,8 +2143,9 @@ async function createFinalAcquisitionDraft(env, { edition, reservation, deadline
         id
         name
         invoiceUrl
+        totalLineItemsPriceSet { shopMoney { amount currencyCode } }
+        totalDiscountsSet { shopMoney { amount currencyCode } }
         totalPriceSet { shopMoney { amount currencyCode } }
-        subtotalPriceSet { shopMoney { amount currencyCode } }
       }
       userErrors { field message }
     }
@@ -2167,6 +2168,12 @@ async function createFinalAcquisitionDraft(env, { edition, reservation, deadline
   if (!payload || !payload.draftOrder) {
     throw new Error('Draft order creation returned no draft order');
   }
+
+  assertDraftOrderPricing(payload.draftOrder, {
+    expectedLineItemsCents: Number(edition.final_price_cents),
+    expectedDiscountCents: Number(edition.reservation_price_cents),
+    currencyCode: edition.currency_code || 'USD'
+  });
 
   return payload.draftOrder;
 }
@@ -2521,6 +2528,8 @@ async function createStandbyAcquisitionDraft(env, { edition, standby, deadline, 
         id
         name
         invoiceUrl
+        totalLineItemsPriceSet { shopMoney { amount currencyCode } }
+        totalDiscountsSet { shopMoney { amount currencyCode } }
         totalPriceSet { shopMoney { amount currencyCode } }
       }
       userErrors { field message }
@@ -2540,6 +2549,13 @@ async function createStandbyAcquisitionDraft(env, { edition, standby, deadline, 
 
   if (errors.length) throw new Error('Standby draft order creation failed: ' + JSON.stringify(errors));
   if (!payload || !payload.draftOrder) throw new Error('Standby draft order creation returned no draft order');
+
+  assertDraftOrderPricing(payload.draftOrder, {
+    expectedLineItemsCents: Number(edition.final_price_cents),
+    expectedDiscountCents: 0,
+    currencyCode: edition.currency_code || 'USD'
+  });
+
   return payload.draftOrder;
 }
 
@@ -2595,6 +2611,43 @@ async function deleteDraftOrder(env, draftOrderId) {
   }
 }
 
+export function assertDraftOrderPricing(draftOrder, {
+  expectedLineItemsCents,
+  expectedDiscountCents,
+  currencyCode = 'USD'
+}) {
+  const lineMoney = draftOrder && draftOrder.totalLineItemsPriceSet &&
+    draftOrder.totalLineItemsPriceSet.shopMoney;
+  const discountMoney = draftOrder && draftOrder.totalDiscountsSet &&
+    draftOrder.totalDiscountsSet.shopMoney;
+
+  if (!lineMoney) throw new Error('draft_order_line_total_missing');
+  if (!discountMoney) throw new Error('draft_order_discount_total_missing');
+
+  if (
+    lineMoney.currencyCode !== currencyCode ||
+    discountMoney.currencyCode !== currencyCode
+  ) {
+    throw new Error('draft_order_currency_mismatch');
+  }
+
+  const lineCents = moneyToCents(lineMoney.amount);
+  const discountCents = moneyToCents(discountMoney.amount);
+
+  if (lineCents !== Number(expectedLineItemsCents)) {
+    throw new Error(
+      'draft_order_line_total_mismatch:' + lineCents + ':' + expectedLineItemsCents
+    );
+  }
+  if (discountCents !== Number(expectedDiscountCents)) {
+    throw new Error(
+      'draft_order_discount_mismatch:' + discountCents + ':' + expectedDiscountCents
+    );
+  }
+
+  return true;
+}
+
 export function validatePriorityReservationOrder({ order, edition }) {
   if (!order || !edition) throw new Error('reservation_payment_validation_missing_input');
   if (order.financial_status && order.financial_status !== 'paid') {
@@ -2604,6 +2657,13 @@ export function validatePriorityReservationOrder({ order, edition }) {
   const currencyCode = String(edition.currency_code || 'USD');
   if (String(order.currency || '') !== currencyCode) {
     throw new Error('reservation_currency_mismatch');
+  }
+
+  const collectorEmail = String(
+    order.email || (order.customer && order.customer.email) || ''
+  ).trim().toLowerCase();
+  if (!collectorEmail) {
+    throw new Error('reservation_email_missing');
   }
 
   const activeLines = (order.line_items || []).filter(function(line) {
