@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-edition-campaign",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
