@@ -362,7 +362,7 @@
 @media (max-width: 899px) {
   .pham-vault__orbit-core {
     display: grid;
-    top: 9%;
+    top: 2%;
     width: min(78vw, 420px);
     min-width: 0;
     gap: 8px;
@@ -522,7 +522,7 @@
   .pham-vault__chrome span:last-child { display: none; }
   .pham-vault__chrome { grid-template-columns: 1fr; }
   .pham-vault__orbit-stage {
-    top: 17.5%;
+    top: 10%;
     width: 100vw;
     height: 34vh;
     --orbit-card-width: clamp(88px, 25vw, 112px);
