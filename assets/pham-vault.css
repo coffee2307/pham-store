@@ -1154,16 +1154,16 @@
     top: 14px;
   }
   .pham-vault__orbit-stage {
-    top: 27%;
-    height: 43%;
+    top: 23%;
+    height: 41%;
     --orbit-card-width: clamp(104px, 29vw, 134px);
   }
   .pham-vault__chapter,
   .pham-vault__chapter--right,
   .pham-vault__chapter--purchase {
-    top: 54%;
+    top: 57%;
     bottom: auto;
-    max-height: 44%;
+    max-height: 41%;
   }
   .pham-vault__kicker {
     margin-bottom: 10px;
@@ -1181,15 +1181,15 @@
 
 @media (max-width: 599px) and (max-height: 740px) {
   .pham-vault__orbit-stage {
-    top: 24%;
-    height: 38%;
+    top: 20%;
+    height: 36%;
     --orbit-card-width: clamp(96px, 27vw, 120px);
   }
   .pham-vault__chapter,
   .pham-vault__chapter--right,
   .pham-vault__chapter--purchase {
-    top: 49%;
-    max-height: 48%;
+    top: 52%;
+    max-height: 45%;
   }
   .pham-vault__display,
   .pham-vault__chapter--purchase .pham-vault__display {
@@ -1216,8 +1216,3 @@
 }
 
 
-@media (max-width: 899px) {
-  .pham-vault__orbit-stage {
-    top: 50%;
-  }
-}
