@@ -18,7 +18,11 @@
 {%- assign identity_open = true -%}
 {%- if identity_claimed >= identity_limit or identity_product == blank or identity_variant == blank -%}{%- assign identity_open = false -%}{%- endif -%}
 {%- assign can_checkout = false -%}
-{%- if state == 'reservation_open' and commerce_ready and digital_delivery_ready and reservation_variant != blank -%}{%- assign can_checkout = true -%}{%- endif -%}
+{%- if commerce_ready and digital_delivery_ready and reservation_variant != blank -%}
+  {%- if settings.pham_campaign_engine_enabled or state == 'reservation_open' -%}
+    {%- assign can_checkout = true -%}
+  {%- endif -%}
+{%- endif -%}
 
 <section class="pham-campaign-shell"
   data-pham-reservation-gateway
@@ -38,7 +42,7 @@
   data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
-    {%- if state == 'prelaunch' or commerce_ready == false -%}<span class="pham-campaign-draft">PRELAUNCH SKELETON · PAYMENT DISABLED</span>{%- endif -%}
+    {%- if commerce_ready == false or settings.pham_campaign_engine_enabled == false and state == 'prelaunch' -%}<span class="pham-campaign-draft">PRELAUNCH SKELETON · PAYMENT DISABLED</span>{%- endif -%}
     <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · PRIORITY RESERVATION</p>
     <h1 class="pham-campaign-title">Reserve<br>{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</h1>
     <p class="pham-campaign-lede">Priority Reservation is designed as a paid allocation toward a numbered object, not a standard free mailing-list signup.</p>
