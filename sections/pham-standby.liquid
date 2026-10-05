@@ -3,6 +3,8 @@
 {%- assign state = state_raw | strip -%}
 {%- assign standby_open = false -%}
 {%- if state == 'reservation_full' or settings.pham_campaign_engine_enabled -%}{%- assign standby_open = true -%}{%- endif -%}
+{%- assign size_options_raw = settings.pham_campaign_size_options | default: 'XS,S,M,L,XL' -%}
+{%- assign size_options = size_options_raw | split: ',' -%}
 
 <section class="pham-campaign-shell"
   data-pham-standby
@@ -25,7 +27,18 @@
                 <div class="pham-config-field"><label for="StandbyName-{{ section.id }}">Name</label><input id="StandbyName-{{ section.id }}" name="contact[Name]" data-pham-standby-name required></div>
                 <div class="pham-config-field"><label for="StandbyEmail-{{ section.id }}">Email</label><input id="StandbyEmail-{{ section.id }}" type="email" name="contact[email]" data-pham-standby-email required></div>
                 <div class="pham-config-field"><label for="StandbyCountry-{{ section.id }}">Country</label><input id="StandbyCountry-{{ section.id }}" name="contact[Country]" data-pham-standby-country required></div>
-                <div class="pham-config-field"><label for="StandbySize-{{ section.id }}">Size preference</label><input id="StandbySize-{{ section.id }}" name="contact[Size preference]" data-pham-standby-size placeholder="XS / S / M / L / XL" required></div>
+                <div class="pham-config-field">
+                  <label for="StandbySize-{{ section.id }}">Size preference</label>
+                  <select id="StandbySize-{{ section.id }}" name="contact[Size preference]" data-pham-standby-size required>
+                    <option value="">SELECT SIZE</option>
+                    {%- for option in size_options -%}
+                      {%- assign clean_option = option | strip -%}
+                      {%- if clean_option != blank -%}
+                        <option value="{{ clean_option | escape }}">{{ clean_option | escape }}</option>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </select>
+                </div>
                 <button class="pham-campaign-btn" type="submit" data-pham-standby-submit>Join standby · free</button>
                 <p class="pham-campaign-alert" data-pham-standby-result hidden role="status"></p>
               </div>
