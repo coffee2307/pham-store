@@ -345,7 +345,7 @@
 
 .pham-vault.is-card-open .pham-vault__orbit-core,
 .pham-vault.is-card-closing .pham-vault__orbit-core {
-  opacity: 0;
+  opacity: 1;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -522,14 +522,14 @@
   .pham-vault__chrome span:last-child { display: none; }
   .pham-vault__chrome { grid-template-columns: 1fr; }
   .pham-vault__orbit-stage {
-    top: 10%;
+    top: 5.5%;
     width: 100vw;
     height: 34vh;
     --orbit-card-width: clamp(88px, 25vw, 112px);
   }
   .pham-vault__kicker { margin-bottom: 12px; }
   .pham-vault__cue { margin-top: 18px; }
-  .pham-vault__chapter { bottom: max(28px, env(safe-area-inset-bottom)); }
+  .pham-vault__chapter { bottom: max(14px, env(safe-area-inset-bottom)); }
   .pham-vault__display,.pham-vault__chapter--purchase .pham-vault__display { font-size: clamp(2.25rem, 10.5vw, 3.3rem); }
   .pham-vault__copy { max-width: 92%; font-size: .84rem; line-height: 1.5; }
   .pham-vault__entry-actions { margin-top: 20px; }
