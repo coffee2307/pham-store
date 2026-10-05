@@ -7,9 +7,17 @@
         "title_line_1": "PHAM",
         "title_line_2": "MANIFESTO",
         "subtitle": "Simply Being, Fully Living.",
-        "paragraph_1": "Founded in Vietnam in 2026, PHAM is an independent fashion label operating as PHAM Atelier. The label develops edition-based garments and design objects around restraint, proportion, construction and controlled detail.",
-        "paragraph_2": "Each PHAM Atelier object is developed as a focused edition rather than a seasonal volume exercise. From silhouette and material selection to sampling and final production, decisions are kept deliberate and traceable so the finished garment remains coherent with the original intent.",
+        "paragraph_1": "Founded in Vietnam in 2026, PHAM is an independent fashion label operating as PHAM Atelier. The label is built around restraint, proportion, construction and controlled detail — a quiet system in which identity comes from the object itself rather than from excess branding.",
+        "paragraph_2": "Each PHAM object is developed as a finite edition rather than a seasonal volume exercise. Silhouette, material, hardware, sampling and final production are treated as one continuous record, allowing the finished piece to remain close to the original intent. When an edition closes, it does not return.",
         "closing_line": "Not louder. More deliberate.",
+        "founder_eyebrow": "FOUNDER / COFFEE PHAM",
+        "founder_title": "BUILT FROM INTENT, NOT VOLUME",
+        "founder_body": "PHAM was founded in Vietnam in 2026 by Coffee Pham as an independent atelier built around a simple refusal: not to release an object before its form, proportion and details feel resolved. The studio does not work from a conventional seasonal calendar. Each release begins with one object, developed slowly enough for the construction, material and identity to remain coherent from first sketch to final production.",
+        "edition_eyebrow": "EDITION SYSTEM / NO RESTOCK",
+        "edition_title": "RELEASED ONCE. RECORDED INDIVIDUALLY.",
+        "edition_body": "PHAM editions open within a defined release window and are not reproduced once that edition closes. Every finished piece is treated as an individual object, accompanied by its own identity card and edition identifier. PHAM-001 begins this system with a planned run of 50 cropped bomber jackets. Each jacket is paired with an exclusive appreciation necklace: 49 feature a silver-finished stainless-steel pendant, while one pendant is finished in gold. The distinction is not announced in advance; it belongs to the object and the person who receives it.",
+        "edition_note_label": "EDITION 01 / PHAM-001",
+        "edition_note_value": "50 OBJECTS · 50 IDENTITIES · NO RESTOCK",
         "origin_eyebrow": "PHAM ATELIER / RECORD",
         "origin_label": "ORIGIN",
         "origin_value": "VIETNAM / PHAM ATELIER",
@@ -22,32 +30,37 @@
           "type": "principle",
           "settings": {
             "title": "FORM BEFORE NOISE",
-            "body": "Every line must carry purpose before it carries attention."
+            "body": "The silhouette has to hold before branding, graphics or explanation are allowed to carry it."
           }
         },
         "principle_restraint": {
           "type": "principle",
           "settings": {
             "title": "RESTRAINT AS FORCE",
-            "body": "Identity is built through proportion, material and controlled detail."
+            "body": "Identity is expressed through proportion, material, construction and controlled detail rather than volume."
           }
         },
         "principle_process": {
           "type": "principle",
           "settings": {
-            "title": "ONE OBJECT AT A TIME",
-            "body": "Each edition is developed slowly, documented completely and released deliberately."
+            "title": "FINITE BY DESIGN",
+            "body": "Every edition is released once. Closing an edition is part of the design, not a scarcity campaign."
           }
         },
         "principle_detail": {
           "type": "principle",
           "settings": {
-            "title": "DETAIL WITHOUT DISPLAY",
-            "body": "Identity lives in construction, proportion and hidden detail rather than oversized branding."
+            "title": "OBJECTS WITH A RECORD",
+            "body": "Each finished piece carries its own identity and remains traceable to the edition it belongs to."
           }
         }
       },
-      "block_order": ["principle_form", "principle_restraint", "principle_process", "principle_detail"]
+      "block_order": [
+        "principle_form",
+        "principle_restraint",
+        "principle_process",
+        "principle_detail"
+      ]
     }
   },
   "order": [
