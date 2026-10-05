@@ -452,10 +452,10 @@
       // PHAM maps those states continuously to the scroll narrative instead.
       const scrollZoom = reducedMotion
         ? 1
-        : interpolateStops([0.94, 1.02, 1.16, 1.07, 1.03], smoothProgress);
+        : interpolateStops([0.97, 1.01, 1.10, 1.05, 1.02], smoothProgress);
       const scrollSpacing = reducedMotion
         ? 1
-        : interpolateStops([0.92, 1.00, 1.14, 1.08, 1.04], smoothProgress);
+        : interpolateStops([0.96, 1.00, 1.08, 1.05, 1.02], smoothProgress);
       const pointerSpacing = reducedMotion
         ? 1
         : 1 + currentPointerPresence * (0.012 + pointerMagnitude * 0.055);
@@ -619,8 +619,6 @@
       velocity = 0;
       targetPointerPresence = 0;
       orbit.classList.add('is-dragging');
-
-      try { orbit.setPointerCapture(event.pointerId); } catch (error) {}
     }
 
     function moveOrbitDrag(event) {
@@ -634,6 +632,7 @@
       if (!horizontalDrag && distance > threshold) {
         horizontalDrag = true;
         dragMoved = true;
+        try { orbit.setPointerCapture(event.pointerId); } catch (error) {}
       }
       if (!horizontalDrag) return;
 
