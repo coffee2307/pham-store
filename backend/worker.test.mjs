@@ -4,6 +4,8 @@ import {
   buildFinalAcquisitionDraftInput,
   buildStandbyAcquisitionDraftInput,
   canonicalizeAppProxyParams,
+  evaluateFinalSizeVariants,
+  parseEditionSizeOptions,
   selectFinalVariantBySize,
   validateFinalAcquisitionOrder,
   validatePriorityReservationOrder,
@@ -533,4 +535,49 @@ test('rejects expired, discounted, or wrong-variant standby acquisition', () => 
     () => validateStandbyAcquisitionOrder(wrongVariant),
     /standby_variant_mismatch/
   );
+});
+
+
+test('parses edition size options and removes blanks or duplicates', () => {
+  assert.deepEqual(
+    parseEditionSizeOptions(' XS, S, M, M, L, XL, '),
+    ['XS', 'S', 'M', 'L', 'XL']
+  );
+});
+
+test('readiness requires exactly one correctly priced final variant per configured size', () => {
+  const variants = [
+    { id: 'XS', sku: 'PHAM-001-E01-XS', price: '199.00', selectedOptions: [{ name: 'Size', value: 'XS' }] },
+    { id: 'S', sku: 'PHAM-001-E01-S', price: '199.00', selectedOptions: [{ name: 'Size', value: 'S' }] },
+    { id: 'M', sku: 'PHAM-001-E01-M', price: '199.00', selectedOptions: [{ name: 'Size', value: 'M' }] },
+    { id: 'L', sku: 'PHAM-001-E01-L', price: '199.00', selectedOptions: [{ name: 'Size', value: 'L' }] },
+    { id: 'XL', sku: 'PHAM-001-E01-XL', price: '199.00', selectedOptions: [{ name: 'Size', value: 'XL' }] },
+  ];
+
+  const result = evaluateFinalSizeVariants(
+    variants,
+    ['XS', 'S', 'M', 'L', 'XL'],
+    19900
+  );
+
+  assert.equal(result.ok, true);
+  assert.equal(result.rows.length, 5);
+});
+
+test('readiness fails when a configured size is missing, duplicated, or mispriced', () => {
+  const missing = evaluateFinalSizeVariants([
+    { id: 'S', sku: 'S', price: '199.00', selectedOptions: [{ name: 'Size', value: 'S' }] },
+  ], ['S', 'M'], 19900);
+  assert.equal(missing.ok, false);
+
+  const duplicated = evaluateFinalSizeVariants([
+    { id: 'M1', sku: 'M1', price: '199.00', selectedOptions: [{ name: 'Size', value: 'M' }] },
+    { id: 'M2', sku: 'M2', price: '199.00', selectedOptions: [{ name: 'Size', value: 'M' }] },
+  ], ['M'], 19900);
+  assert.equal(duplicated.ok, false);
+
+  const mispriced = evaluateFinalSizeVariants([
+    { id: 'L', sku: 'L', price: '189.00', selectedOptions: [{ name: 'Size', value: 'L' }] },
+  ], ['L'], 19900);
+  assert.equal(mispriced.ok, false);
 });
