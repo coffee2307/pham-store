@@ -66,6 +66,44 @@ switch(command){
     await request('/internal/readiness?edition=' + encodeURIComponent(editionArg()));
     break;
 
+  case 'set-state': {
+    if(!hasFlag('--confirm')){
+      fail('Refusing to change campaign state without --confirm.');
+    }
+    const state = valueArg('--state');
+    if(!state){
+      fail('Provide --state=<state>.');
+    }
+    await request('/internal/state/set', {
+      method:'POST',
+      body:{
+        editionId:editionArg(),
+        state,
+        confirm:'SET_CAMPAIGN_STATE'
+      }
+    });
+    break;
+  }
+
+  case 'mark-lookbook': {
+    const reservationId = valueArg('--reservation');
+    const status = valueArg('--status');
+    if(!reservationId){
+      fail('Provide --reservation=<PHAM reservation ID>.');
+    }
+    if(!status){
+      fail('Provide --status=pending|entitled|delivered|failed.');
+    }
+    await request('/internal/lookbook/status', {
+      method:'POST',
+      body:{
+        reservationId,
+        status
+      }
+    });
+    break;
+  }
+
   case 'open-final-payment':
     await request('/internal/final-payment/open', {
       method:'POST',
@@ -122,6 +160,8 @@ Commands:
   node admin.mjs health
   node admin.mjs state [--edition=edition-01]
   node admin.mjs readiness [--edition=edition-01]
+  node admin.mjs set-state --state=reservation_open --confirm [--edition=edition-01]
+  node admin.mjs mark-lookbook --reservation=PHAM-R-... --status=delivered
   node admin.mjs open-final-payment [--edition=edition-01]
   node admin.mjs promote-standby [--edition=edition-01]
   node admin.mjs finalize-objects --confirm [--edition=edition-01]
