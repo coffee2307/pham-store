@@ -558,6 +558,9 @@
 
     cards.forEach(function (card) {
       card.addEventListener('click', function (event) {
+        // Cards with an explicit link must remain normal links. Only the
+        // button-style archive cards use the expanded-image interaction.
+        if (card.getAttribute('role') !== 'button') return;
         if (!cardExpandMode.matches || dragMoved) return;
         event.preventDefault();
         event.stopPropagation();
