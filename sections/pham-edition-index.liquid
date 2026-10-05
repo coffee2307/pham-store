@@ -20,7 +20,7 @@
   assign edition_object_name = section.settings.object_name
   assign edition_object_count = section.settings.object_count
   assign edition_origin = section.settings.release_year
-  assign edition_status = edition_status
+  assign edition_status = section.settings.status
   assign protocol_step_1 = section.settings.step_1
   assign protocol_step_2 = section.settings.step_2
   assign protocol_step_3 = section.settings.step_3
@@ -81,7 +81,7 @@
             </span>
           </div>
 
-          <span class="pham-edition-index__status pham-edition-index__status--{{ edition_status | handleize }}">
+          <span class="pham-edition-index__status pham-edition-index__status--{{ edition_status | handleize }}" data-pham-edition-index-status>
             <i aria-hidden="true"></i>{{ edition_status }}
           </span>
 
