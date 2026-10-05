@@ -63,7 +63,12 @@ jobs:
               console.error("App Proxy response is missing edition/counters");
               process.exit(1);
             }
+            if(!Array.isArray(body.edition.sizeOptions) || body.edition.sizeOptions.length === 0){
+              console.error("App Proxy response is missing canonical sizeOptions");
+              process.exit(1);
+            }
             console.log("App Proxy state:", body.edition.state);
+            console.log("Sizes:", body.edition.sizeOptions.join(", "));
             console.log("Reserved:", body.counters.reserved + "/" + body.edition.editionSize);
           ' "$body"
 
