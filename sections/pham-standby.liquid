@@ -2,7 +2,7 @@
 {%- capture state_raw -%}{%- render 'pham-campaign-state' -%}{%- endcapture -%}
 {%- assign state = state_raw | strip -%}
 {%- assign standby_open = false -%}
-{%- if state == 'reservation_full' -%}{%- assign standby_open = true -%}{%- endif -%}
+{%- if state == 'reservation_full' or settings.pham_campaign_engine_enabled -%}{%- assign standby_open = true -%}{%- endif -%}
 
 <section class="pham-campaign-shell"
   data-pham-standby
@@ -16,18 +16,25 @@
     <div class="pham-campaign-grid">
       <article class="pham-campaign-card pham-campaign-card--wide">
         {%- if standby_open -%}
-          {%- form 'contact', id: 'PhamStandbyForm', class: 'pham-standby-form' -%}
-            <div data-pham-standby-form>
-            <input type="hidden" name="contact[Source]" value="PHAM Standby">
-            <input type="hidden" name="contact[Edition]" value="{{ settings.pham_campaign_edition_label | default: 'EDITION 01' | escape }}">
-            <div class="pham-config-field"><label for="StandbyName-{{ section.id }}">Name</label><input id="StandbyName-{{ section.id }}" name="contact[Name]" data-pham-standby-name required></div>
-            <div class="pham-config-field"><label for="StandbyEmail-{{ section.id }}">Email</label><input id="StandbyEmail-{{ section.id }}" type="email" name="contact[email]" data-pham-standby-email required></div>
-            <div class="pham-config-field"><label for="StandbyCountry-{{ section.id }}">Country</label><input id="StandbyCountry-{{ section.id }}" name="contact[Country]" data-pham-standby-country required></div>
-            <div class="pham-config-field"><label for="StandbySize-{{ section.id }}">Size preference</label><input id="StandbySize-{{ section.id }}" name="contact[Size preference]" data-pham-standby-size placeholder="XS / S / M / L / XL"></div>
-            <button class="pham-campaign-btn" type="submit" data-pham-standby-submit>Join standby · free</button>
-            <p class="pham-campaign-alert" data-pham-standby-result hidden role="status"></p>
-            </div>
-          {%- endform -%}
+          <div data-pham-standby-live-form {% if settings.pham_campaign_engine_enabled and state != 'reservation_full' %}hidden{% endif %}>
+            {%- form 'contact', id: 'PhamStandbyForm', class: 'pham-standby-form' -%}
+              <div data-pham-standby-form>
+                <input type="hidden" name="contact[Source]" value="PHAM Standby">
+                <input type="hidden" name="contact[Edition]" value="{{ settings.pham_campaign_edition_label | default: 'EDITION 01' | escape }}">
+                <div class="pham-config-field"><label for="StandbyName-{{ section.id }}">Name</label><input id="StandbyName-{{ section.id }}" name="contact[Name]" data-pham-standby-name required></div>
+                <div class="pham-config-field"><label for="StandbyEmail-{{ section.id }}">Email</label><input id="StandbyEmail-{{ section.id }}" type="email" name="contact[email]" data-pham-standby-email required></div>
+                <div class="pham-config-field"><label for="StandbyCountry-{{ section.id }}">Country</label><input id="StandbyCountry-{{ section.id }}" name="contact[Country]" data-pham-standby-country required></div>
+                <div class="pham-config-field"><label for="StandbySize-{{ section.id }}">Size preference</label><input id="StandbySize-{{ section.id }}" name="contact[Size preference]" data-pham-standby-size placeholder="XS / S / M / L / XL"></div>
+                <button class="pham-campaign-btn" type="submit" data-pham-standby-submit>Join standby · free</button>
+                <p class="pham-campaign-alert" data-pham-standby-result hidden role="status"></p>
+              </div>
+            {%- endform -%}
+          </div>
+          <div data-pham-standby-live-locked {% unless settings.pham_campaign_engine_enabled and state != 'reservation_full' %}hidden{% endunless %}>
+            <h2>Standby not open</h2>
+            <p>Standby opens automatically when all paid Priority Reservations are allocated.</p>
+            <div class="pham-campaign-actions"><span class="pham-campaign-btn" aria-disabled="true">Standby locked</span></div>
+          </div>
         {%- else -%}
           <h2>Standby not open</h2>
           <p>The paid reservation allocation has not yet reached capacity. This page becomes the free fallback queue when the campaign state changes to RESERVATION FULL.</p>
