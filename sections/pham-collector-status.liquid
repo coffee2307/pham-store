@@ -4,6 +4,7 @@
 {%- assign object_number = blank -%}
 {%- assign identity_status = 'LOCKED' -%}
 {%- assign payment_deadline = blank -%}
+{%- assign lookbook_status = 'PENDING' -%}
 {%- assign referral_code = blank -%}
 {%- assign successful_referrals = 0 -%}
 {%- assign identity_status_key = 'locked' -%}
@@ -12,6 +13,7 @@
   {%- assign object_number = customer.metafields.pham.current_object_number.value -%}
   {%- assign identity_status = customer.metafields.pham.identity_status.value | default: 'LOCKED' -%}
   {%- assign payment_deadline = customer.metafields.pham.payment_deadline.value -%}
+  {%- assign lookbook_status = customer.metafields.pham.digital_lookbook_status.value | default: 'PENDING' -%}
   {%- assign referral_code = customer.metafields.pham.referral_code.value -%}
   {%- assign successful_referrals = customer.metafields.pham.successful_referrals.value | default: 0 -%}
   {%- assign identity_status_key = identity_status | downcase -%}
@@ -36,6 +38,7 @@
           <div class="pham-status-row"><span>Object</span><strong>{% if object_number != blank %}{{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}{% else %}PENDING ASSIGNMENT{% endif %}</strong></div>
           <div class="pham-status-row"><span>Identity</span><strong>{{ identity_status }}</strong></div>
           <div class="pham-status-row"><span>Referral</span><strong>{{ successful_referrals }} / 1 VERIFIED</strong></div>
+          <div class="pham-status-row"><span>Digital lookbook</span><strong>{{ lookbook_status }}</strong></div>
           <div class="pham-status-row"><span>Reservation paid</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
           <div class="pham-status-row"><span>Balance</span><strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></div>
           {%- if payment_deadline != blank -%}
@@ -57,7 +60,13 @@
 
       <article class="pham-campaign-card">
         <h2>Digital lookbook</h2>
-        <p>{% if settings.pham_campaign_include_digital_lookbook %}Delivered by email after confirmed reservation payment. Download history will be connected in the automation phase.{% else %}No digital deliverable configured for this edition yet.{% endif %}</p>
+        <p>
+          {% if settings.pham_campaign_include_digital_lookbook %}
+            Status: <strong>{{ lookbook_status }}</strong>. The collector lookbook is included with the Priority Reservation and is delivered through the order’s digital entitlement once payment is confirmed.
+          {% else %}
+            No digital deliverable configured for this edition yet.
+          {% endif %}
+        </p>
       </article>
 
       <article class="pham-campaign-card">
