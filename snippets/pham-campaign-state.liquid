@@ -1,0 +1,7 @@
+{%- assign pham_state = settings.pham_campaign_state | default: 'prelaunch' -%}
+{%- case pham_state -%}
+  {%- when 'prelaunch', 'reservation_open', 'reservation_full', 'final_payment', 'sold_out', 'archived' -%}
+    {{- pham_state -}}
+  {%- else -%}
+    prelaunch
+{%- endcase -%}
