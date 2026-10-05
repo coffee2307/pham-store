@@ -437,6 +437,7 @@ export class InMemoryStore {
     shopifyOrderId,
     finalPriceCents,
     collectorReferralCode,
+    finalVariantId = '',
     paidAt,
   }) {
     const queue = this.standby.get(editionId) || [];
@@ -486,6 +487,8 @@ export class InMemoryStore {
       acquisitionType: 'standby',
       reservationPaidCents: 0,
       balanceDueCents: finalPriceCents,
+      sizePreference: entry.size || entry.sizePreference || '',
+      finalVariantId,
       collectorReferralCode,
       referralCode: '',
       paidAt: new Date(paidAt).toISOString(),
