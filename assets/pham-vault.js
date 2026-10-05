@@ -468,7 +468,7 @@
       const introEase = introRelease * introRelease * (3 - 2 * introRelease);
       const compactIntro = window.innerWidth < 600;
       const tabletIntro = window.innerWidth >= 600 && window.innerWidth < 900;
-      const introRingDrop = (1 - introEase) * (compactIntro ? 18 : tabletIntro ? 34 : 74);
+      const introRingDrop = (1 - introEase) * (compactIntro ? 6 : tabletIntro ? 34 : 74);
       const introLean = -2.1 * (1 - introEase);
       const introRadiusBoost = 1 + (1 - introEase) * (compactIntro ? 0.04 : tabletIntro ? 0.08 : 0.14);
       const introDepthBoost = (1 - introEase) * (compactIntro ? 10 : tabletIntro ? 22 : 42);
