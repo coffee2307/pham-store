@@ -10,6 +10,18 @@
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const damp = (current, target, speed, delta) => current + (target - current) * (1 - Math.exp(-speed * delta));
   const normalizeAngle = (angle) => Math.atan2(Math.sin(angle), Math.cos(angle));
+  const smoothStep = (value) => {
+    const t = clamp(value, 0, 1);
+    return t * t * (3 - 2 * t);
+  };
+  const interpolateStops = (stops, value) => {
+    if (!stops.length) return 1;
+    if (stops.length === 1) return stops[0];
+    const scaled = clamp(value, 0, 1) * (stops.length - 1);
+    const index = Math.min(stops.length - 2, Math.floor(scaled));
+    const local = smoothStep(scaled - index);
+    return stops[index] + (stops[index + 1] - stops[index]) * local;
+  };
 
   function mountVault(root) {
     if (root.dataset.phamVaultMounted === 'true') return;
@@ -46,6 +58,7 @@
     let dragStartX = 0;
     let dragStartY = 0;
     let dragStartRotation = 0;
+    let dragTargetRotation = rotation;
     let lastPointerX = 0;
     let lastPointerTime = 0;
     let velocity = 0;
@@ -218,81 +231,13 @@
 
     function finishCardDialogClose() {
       cancelDialogAnimations();
+
       if (expandedSource) {
         expandedSource.classList.remove('is-tarot-expanded');
         expandedSource.style.transform = sourceCardTransform;
       }
-      orbit.addEventListener('pointerdown', function (event) {
-      if (event.button !== undefined && event.button !== 0) return;
-      if (cardDialogOpen) return;
 
-      dragging = true;
-      horizontalDrag = false;
-      dragMoved = false;
-      dragStartX = event.clientX;
-      dragStartY = event.clientY;
-      dragStartRotation = rotation;
-      lastPointerX = event.clientX;
-      lastPointerTime = performance.now();
-      velocity = 0;
-
-      targetPointerPresence = 0;
-      orbit.classList.add('is-dragging');
-    });
-
-    orbit.addEventListener('pointermove', function (event) {
-      if (!dragging) return;
-
-      const deltaX = event.clientX - dragStartX;
-      const deltaY = event.clientY - dragStartY;
-      const threshold = event.pointerType === 'mouse' ? 4 : 8;
-
-      if (!horizontalDrag && Math.abs(deltaX) > threshold && Math.abs(deltaX) > Math.abs(deltaY) * 1.05) {
-        horizontalDrag = true;
-        dragMoved = true;
-        try { orbit.setPointerCapture(event.pointerId); } catch (error) {}
-      }
-
-      if (!horizontalDrag) return;
-
-      event.preventDefault();
-      rotation = dragStartRotation + deltaX * 0.0095;
-
-      const now = performance.now();
-      const elapsed = Math.max((now - lastPointerTime) / 1000, 0.016);
-      velocity = clamp((event.clientX - lastPointerX) * 0.0095 / elapsed, -3.4, 3.4);
-      lastPointerX = event.clientX;
-      lastPointerTime = now;
-
-      targetPointerY = clamp(deltaY / Math.max(orbit.clientHeight * 0.45, 1), -1, 1);
-      targetPointerPresence = 0.28;
-    }, { passive: false });
-
-    function finishOrbitDrag(event) {
-      if (!dragging) return;
-      dragging = false;
-      horizontalDrag = false;
-      targetPointerX = 0;
-      targetPointerY = 0;
-      targetPointerPresence = 0;
-      orbit.classList.remove('is-dragging');
-
-      if (event && orbit.hasPointerCapture && orbit.hasPointerCapture(event.pointerId)) {
-        try { orbit.releasePointerCapture(event.pointerId); } catch (error) {}
-      }
-
-      window.setTimeout(function () {
-        dragMoved = false;
-      }, 0);
-    }
-
-    orbit.addEventListener('pointerup', finishOrbitDrag);
-    orbit.addEventListener('pointercancel', finishOrbitDrag);
-    orbit.addEventListener('lostpointercapture', function () {
-      finishOrbitDrag();
-    });
-
-    cards.forEach(function (card) {
+      cards.forEach(function (card) {
         card.classList.remove('is-occluded-by-expanded');
       });
 
@@ -306,13 +251,16 @@
       document.removeEventListener('keydown', onCardDialogKeydown);
       window.removeEventListener('wheel', onCardDialogWheel);
       window.removeEventListener('scroll', onCardDialogScroll);
+
       cardDialogOpen = false;
       cardDialogClosing = false;
       cardDialogSettled = false;
       if (window.innerWidth < 600) mobileOrbitResume = 0;
+
       if (expandedSource && expandedSource.getAttribute('role') === 'button') {
         expandedSource.setAttribute('aria-expanded', 'false');
       }
+
       expandedSource = null;
       sourceCardTransform = '';
       dialogOpenScrollY = 0;
