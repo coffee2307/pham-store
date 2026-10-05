@@ -519,24 +519,40 @@ function mountStandby(root){
   if(root.dataset.engineEnabled !== 'true') return;
 
   var form = root.querySelector('.pham-standby-form');
+  var liveForm = root.querySelector('[data-pham-standby-live-form]');
+  var locked = root.querySelector('[data-pham-standby-live-locked]');
   if(!form) return;
 
+  var liveStandbyOpen = false;
+  var editionId = root.dataset.editionId || 'edition-01';
   var submit = root.querySelector('[data-pham-standby-submit]');
   var result = root.querySelector('[data-pham-standby-result]');
   var email = form.querySelector('input[name="contact[email]"]');
   var country = form.querySelector('input[name="contact[Country]"]');
   var size = form.querySelector('input[name="contact[Size preference]"]');
 
+  proxyRequest(root, '/campaign?edition=' + encodeURIComponent(editionId))
+    .then(function(payload){
+      liveStandbyOpen = Boolean(payload && payload.edition && payload.edition.state === 'reservation_full');
+      if(liveForm) liveForm.hidden = !liveStandbyOpen;
+      if(locked) locked.hidden = liveStandbyOpen;
+    })
+    .catch(function(){
+      liveStandbyOpen = false;
+      if(liveForm) liveForm.hidden = true;
+      if(locked) locked.hidden = false;
+    });
+
   form.addEventListener('submit', function(event){
     event.preventDefault();
-    if(!submit) return;
+    if(!submit || !liveStandbyOpen) return;
 
     submit.disabled = true;
     submit.classList.add('is-busy');
     submit.textContent = 'Joining standby…';
     if(result) result.hidden = true;
 
-    proxyRequest(root, '/standby/join', {
+    proxyRequest(root, '/standby/join?edition=' + encodeURIComponent(editionId), {
       method: 'POST',
       body: {
         email: email ? email.value : '',
