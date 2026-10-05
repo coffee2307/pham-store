@@ -526,6 +526,14 @@ async function handleOrdersPaid(request, env) {
     });
   }
 
+  if (identityLine && !identityResult.claimed) {
+    console.error('Paid Identity requires manual review', {
+      reservationId,
+      shopifyOrderId,
+      reason: 'shared_pool_claim_failed_after_payment'
+    });
+  }
+
   let referralResult = { verified: false };
   if (referredByCode) {
     referralResult = await verifyReferral(env, {
@@ -544,8 +552,9 @@ async function handleOrdersPaid(request, env) {
     reservationId,
     referralCode,
     referredByCode,
+    identitySelected: Boolean(identityLine),
     identityClaimed: identityResult.claimed,
-    identitySource: identityResult.claimed ? 'paid' : '',
+    identitySource: identityLine ? 'paid' : '',
     lookbookStatus: 'entitled',
     balanceDueCents
   });
@@ -754,7 +763,7 @@ async function syncReservationMetafields(env, data) {
     metafield(data.orderId, 'edition_label', 'single_line_text_field', data.edition.label),
     metafield(data.orderId, 'reservation_id', 'single_line_text_field', data.reservationId),
     metafield(data.orderId, 'referral_code', 'single_line_text_field', data.referredByCode || ''),
-    metafield(data.orderId, 'identity_selected', 'boolean', data.identityClaimed ? 'true' : 'false'),
+    metafield(data.orderId, 'identity_selected', 'boolean', data.identitySelected ? 'true' : 'false'),
     metafield(data.orderId, 'identity_source', 'single_line_text_field', data.identitySource || ''),
     metafield(data.orderId, 'digital_lookbook_status', 'single_line_text_field', data.lookbookStatus),
     metafield(data.orderId, 'final_payment_status', 'single_line_text_field', 'pending')
@@ -767,7 +776,12 @@ async function syncReservationMetafields(env, data) {
       metafield(data.customerId, 'referral_code', 'single_line_text_field', data.referralCode),
       metafield(data.customerId, 'successful_referrals', 'number_integer', '0'),
       metafield(data.customerId, 'current_reservation_status', 'single_line_text_field', 'active'),
-      metafield(data.customerId, 'identity_status', 'single_line_text_field', data.identityClaimed ? 'claimed' : 'locked'),
+      metafield(
+        data.customerId,
+        'identity_status',
+        'single_line_text_field',
+        data.identityClaimed ? 'claimed' : (data.identitySelected ? 'manual_review_required' : 'locked')
+      ),
       metafield(data.customerId, 'identity_source', 'single_line_text_field', data.identitySource || ''),
       metafield(data.customerId, 'reservation_id', 'single_line_text_field', data.reservationId),
       metafield(data.customerId, 'digital_lookbook_status', 'single_line_text_field', data.lookbookStatus)
