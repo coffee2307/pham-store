@@ -1,0 +1,114 @@
+<section class="pham-closing" aria-labelledby="pham-closing-{{ section.id }}">
+  <div class="pham-closing__ambient" aria-hidden="true"></div>
+  <div class="pham-container pham-closing__inner">
+    <p class="pham-eyebrow reveal-up">{{ section.settings.eyebrow }}</p>
+
+    <h2 id="pham-closing-{{ section.id }}" class="pham-closing__statement reveal-up">
+      <span>{{ section.settings.line_1 }}</span>
+      <span>{{ section.settings.line_2 }}</span>
+    </h2>
+
+    <p class="pham-closing__sub reveal-up">{{ section.settings.subtext }}</p>
+
+    <div class="pham-closing__record reveal-up" aria-label="PHAM archive note">
+      <span>PHAM ATELIER</span>
+      <span>EDITION 01</span>
+      <span>VIETNAM / 2026</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .pham-closing {
+    position: relative;
+    min-height: min(78svh, 820px);
+    display: grid;
+    align-items: center;
+    overflow: hidden;
+    isolation: isolate;
+    background: #060606;
+    color: var(--color-bone);
+    border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .pham-closing__ambient {
+    position: absolute;
+    inset: -25%;
+    z-index: -1;
+    background:
+      radial-gradient(circle at 22% 42%, rgba(255,255,255,.042), transparent 26%),
+      radial-gradient(circle at 78% 58%, rgba(255,255,255,.022), transparent 24%);
+    animation: pham-closing-drift 18s ease-in-out infinite alternate;
+  }
+  .pham-closing__inner {
+    width: 100%;
+    padding-block: clamp(92px, 12vw, 164px);
+  }
+  .pham-closing__inner > .pham-eyebrow {
+    margin: 0 0 clamp(28px, 4vw, 46px);
+    color: rgba(242,242,239,.38);
+  }
+  .pham-closing__statement {
+    margin: 0;
+    max-width: 1180px;
+    display: flex;
+    flex-direction: column;
+    gap: .08em;
+    color: var(--color-white);
+    font: 300 clamp(2.4rem, 6vw, 6.2rem)/.98 var(--font-display);
+    letter-spacing: -.04em;
+    text-transform: uppercase;
+  }
+  .pham-closing__statement span {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    text-wrap: balance;
+  }
+  .pham-closing__statement span:last-child { color: rgba(242,242,239,.72); }
+  .pham-closing__sub {
+    margin: clamp(34px, 5vw, 58px) 0 0;
+    max-width: 58ch;
+    color: var(--color-bone-60);
+    font: 400 clamp(.94rem, 1.2vw, 1.08rem)/1.75 var(--font-body);
+  }
+  .pham-closing__record {
+    margin-top: clamp(70px, 9vw, 116px);
+    padding-top: 18px;
+    border-top: 1px solid rgba(255,255,255,.14);
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    color: rgba(242,242,239,.28);
+    font: 400 8px/1.4 var(--font-mono);
+    letter-spacing: .13em;
+    text-transform: uppercase;
+  }
+  @keyframes pham-closing-drift {
+    from { transform: translate3d(-1.5%,0,0) scale(1); opacity: .62; }
+    to { transform: translate3d(1.5%,1%,0) scale(1.035); opacity: .9; }
+  }
+  @media (max-width: 599px) {
+    .pham-closing { min-height: 70svh; }
+    .pham-closing__statement { font-size: clamp(2.1rem, 11vw, 3.9rem); }
+    .pham-closing__record { flex-direction: column; gap: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pham-closing__ambient { animation: none !important; }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Closing Statement",
+  "tag": "section",
+  "class": "pham-closing-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "PHAM / EDITION PRINCIPLE" },
+    { "type": "text", "id": "line_1", "label": "Statement line 1", "default": "PHAM DOES NOT RETURN TO AN EDITION" },
+    { "type": "text", "id": "line_2", "label": "Statement line 2", "default": "ONCE IT IS CLOSED." },
+    { "type": "textarea", "id": "subtext", "label": "Supporting text", "default": "What remains is the object, its record, and the person who holds it." }
+  ],
+  "presets": [{ "name": "PHAM Closing Statement", "category": "PHAM" }],
+  "enabled_on": { "templates": ["index"] }
+}
+{% endschema %}
