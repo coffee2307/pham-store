@@ -471,6 +471,7 @@ function mountCollector(root){
       var lookbookEl = root.querySelector('[data-pham-live-lookbook]');
       var lookbookCopyEl = root.querySelector('[data-pham-live-lookbook-copy]');
       var balanceEl = root.querySelector('[data-pham-live-balance]');
+      var finalPaymentLink = root.querySelector('[data-pham-final-payment-link]');
 
       if(statusEl) statusEl.textContent = displayState(reservation.status);
       if(objectEl){
@@ -491,7 +492,23 @@ function mountCollector(root){
           root.dataset.currency || 'USD'
         );
       }
-      if(reservation.paymentDeadline) startCountdown(reservation.paymentDeadline);
+
+      if(finalPaymentLink){
+        var canPay = reservation.status === 'final_payment_open' && Boolean(reservation.invoiceUrl);
+        if(canPay){
+          finalPaymentLink.href = reservation.invoiceUrl;
+          finalPaymentLink.hidden = false;
+          finalPaymentLink.textContent = 'COMPLETE ACQUISITION · ' +
+            formatMoney(reservation.balanceDueCents, root.dataset.currency || 'USD');
+        } else {
+          finalPaymentLink.hidden = true;
+          finalPaymentLink.removeAttribute('href');
+        }
+      }
+
+      if(reservation.paymentDeadline && reservation.status === 'final_payment_open'){
+        startCountdown(reservation.paymentDeadline);
+      }
     })
     .catch(function(error){
       if(error && error.code === 'customer_login_required') return;
