@@ -119,21 +119,118 @@
         "cta_link": "/products/pham-001"
       },
       "blocks": {
-        "orbit_01": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 01", "link": "" } },
-        "orbit_02": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 02", "link": "" } },
-        "orbit_03": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 03", "link": "" } },
-        "orbit_04": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 04", "link": "" } },
-        "orbit_05": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 05", "link": "" } },
-        "orbit_06": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 06", "link": "" } },
-        "orbit_07": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 07", "link": "" } },
-        "orbit_08": { "type": "orbit_card", "settings": { "image": "", "alt_text": "PHAM archive frame 08", "link": "" } }
+        "orbit_01": {
+          "type": "orbit_card",
+          "settings": {
+            "image": "",
+            "alt_text": "PHAM archive frame 01",
+            "link": ""
+          }
+        },
+        "orbit_02": {
+          "type": "orbit_card",
+          "settings": {
+            "image": "",
+            "alt_text": "PHAM archive frame 02",
+            "link": ""
+          }
+        },
+        "orbit_03": {
+          "type": "orbit_card",
+          "settings": {
+            "image": "",
+            "alt_text": "PHAM archive frame 03",
+            "link": ""
+          }
+        },
+        "orbit_04": {
+          "type": "orbit_card",
+          "settings": {
+            "image": "",
+            "alt_text": "PHAM archive frame 04",
+            "link": ""
+          }
+        },
+        "orbit_05": {
+          "type": "orbit_card",
+          "settings": {
+            "image": "",
+            "alt_text": "PHAM archive frame 05",
+            "link": ""
+          }
+        },
+        "orbit_06": {
+          "type": "orbit_card",
+          "settings": {
+            "image": "",
+            "alt_text": "PHAM archive frame 06",
+            "link": ""
+          }
+        },
+        "orbit_07": {
+          "type": "orbit_card",
+          "settings": {
+            "image": "",
+            "alt_text": "PHAM archive frame 07",
+            "link": ""
+          }
+        },
+        "orbit_08": {
+          "type": "orbit_card",
+          "settings": {
+            "image": "",
+            "alt_text": "PHAM archive frame 08",
+            "link": ""
+          }
+        }
       },
-      "block_order": ["orbit_01", "orbit_02", "orbit_03", "orbit_04", "orbit_05", "orbit_06", "orbit_07", "orbit_08"]
+      "block_order": [
+        "orbit_01",
+        "orbit_02",
+        "orbit_03",
+        "orbit_04",
+        "orbit_05",
+        "orbit_06",
+        "orbit_07",
+        "orbit_08"
+      ]
+    },
+    "pham-edition-index": {
+      "type": "pham-edition-index",
+      "settings": {
+        "product": "",
+        "product_link": "/products/pham-001",
+        "eyebrow": "ARCHIVE / EDITION INDEX",
+        "heading": "EDITION 01",
+        "intro": "A finite release system. Each PHAM edition enters the archive once its release closes and is not reproduced.",
+        "edition_number": "01",
+        "object_name": "PHAM-001",
+        "object_count": "50 OBJECTS",
+        "release_year": "2026",
+        "status": "WAITLIST OPEN",
+        "protocol_heading": "FROM ACCESS TO ARCHIVE",
+        "step_1": "Join the waitlist. Release access is communicated when the edition is ready.",
+        "step_2": "When access opens, the object can be acquired within the active edition window.",
+        "step_3": "The edition moves through controlled production and final quality inspection.",
+        "step_4": "Each released piece travels with its own identity card and edition identifier.",
+        "step_5": "Once the edition closes, it is recorded and does not return to production."
+      }
+    },
+    "pham-closing": {
+      "type": "pham-closing-statement",
+      "settings": {
+        "eyebrow": "PHAM / EDITION PRINCIPLE",
+        "line_1": "PHAM DOES NOT RETURN TO AN EDITION",
+        "line_2": "ONCE IT IS CLOSED.",
+        "subtext": "What remains is the object, its record, and the person who holds it."
+      }
     }
   },
   "order": [
     "pham-vault",
+    "pham-edition-index",
     "pham-product-spotlight",
-    "pham-lookbook"
+    "pham-lookbook",
+    "pham-closing"
   ]
 }
