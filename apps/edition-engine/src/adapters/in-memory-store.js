@@ -348,11 +348,13 @@ export class InMemoryStore {
       throw new Error('standby_already_joined');
     }
 
+    const sequence = queue.length ? queue[queue.length - 1].sequence + 1 : 1;
     const record = {
       ...clone(entry),
+      id: entry.id || `STANDBY-${entry.editionId}-${sequence}`,
       status: 'waiting',
       joinedAt: entry.joinedAt || new Date().toISOString(),
-      sequence: queue.length ? queue[queue.length - 1].sequence + 1 : 1,
+      sequence,
     };
 
     queue.push(record);
