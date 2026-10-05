@@ -20,7 +20,6 @@
 
 <section class="pham-campaign-shell"
   data-pham-edition-campaign
-  data-backend-url="{{ settings.pham_campaign_backend_url | escape }}"
   data-edition-id="{{ settings.pham_campaign_edition_id | default: 'edition-01' | escape }}"
   data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
