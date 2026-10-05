@@ -4,6 +4,7 @@ SHOPIFY_ADMIN_TOKEN=replace_me
 # Shopify app client secret; signs both App Proxy requests and webhook deliveries.
 SHOPIFY_API_SECRET=replace_me
 INTERNAL_ADMIN_KEY=replace_me
+# STOREFRONT_ORIGIN is a non-secret Worker var in wrangler.toml.
 
 # Deployment helper only
 CAMPAIGN_BACKEND_URL=https://replace-me.workers.dev
