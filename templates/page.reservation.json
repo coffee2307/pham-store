@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-reservation-gateway",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
