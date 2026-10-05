@@ -130,6 +130,19 @@ switch(command){
     break;
   }
 
+  case 'map-variants':
+    if(!hasFlag('--confirm')){
+      fail('Refusing to remap reservation variants without --confirm.');
+    }
+    await request('/internal/reservations/map-variants', {
+      method:'POST',
+      body:{
+        editionId:editionArg(),
+        confirm:'MAP_RESERVATION_VARIANTS'
+      }
+    });
+    break;
+
   case 'set-size-options': {
     if(!hasFlag('--confirm')){
       fail('Refusing to change edition size options without --confirm.');
@@ -210,6 +223,7 @@ Commands:
   node admin.mjs set-state --state=reservation_open --confirm [--edition=edition-01]
   node admin.mjs mark-lookbook --reservation=PHAM-R-... --status=delivered
   node admin.mjs assign-variant --reservation=PHAM-R-... --variant=gid://shopify/ProductVariant/...
+  node admin.mjs map-variants --confirm [--edition=edition-01]
   node admin.mjs set-size-options --sizes=XS,S,M,L,XL --confirm [--edition=edition-01]
   node admin.mjs open-final-payment [--edition=edition-01]
   node admin.mjs promote-standby [--edition=edition-01]
