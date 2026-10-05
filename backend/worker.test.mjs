@@ -352,6 +352,8 @@ function priorityReservationFixture({ identity = true } = {}) {
     order: {
       id: 1001,
       financial_status: 'paid',
+      email: 'collector@example.com',
+      customer: { id: 42, email: 'collector@example.com' },
       currency: 'USD',
       current_total_discounts: '0.00',
       current_subtotal_price: identity ? '29.99' : '24.99',
