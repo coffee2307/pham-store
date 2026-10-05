@@ -19,6 +19,8 @@ const enabled = s.pham_campaign_enabled === true;
 const commerceReady = s.pham_campaign_commerce_ready === true;
 const includeLookbook = s.pham_campaign_include_digital_lookbook === true;
 const lookbookReady = s.pham_campaign_lookbook_ready === true;
+const engineEnabled = s.pham_campaign_engine_enabled === true;
+const engineProxyPath = String(s.pham_campaign_engine_proxy_path || '').trim();
 
 if (!enabled) {
   console.log('PHAM campaign safety: framework disabled.');
@@ -29,7 +31,19 @@ if (lookbookReady && !s.pham_campaign_lookbook_product) {
   failures.push('DIGITAL LOOKBOOK READY is ON but no digital lookbook product is configured.');
 }
 
+if (engineEnabled && !engineProxyPath) {
+  failures.push('ENGINE ENABLED is ON but no App Proxy path is configured.');
+}
+
 if (commerceReady) {
+  if (!engineEnabled) {
+    failures.push('COMMERCE READY is ON but the Edition Engine is disabled.');
+  }
+
+  if (!engineProxyPath) {
+    failures.push('COMMERCE READY is ON but no Edition Engine App Proxy path is configured.');
+  }
+
   if (!s.pham_campaign_reservation_product) {
     failures.push('COMMERCE READY is ON but no reservation product is configured.');
   }
