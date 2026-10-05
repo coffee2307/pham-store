@@ -295,6 +295,53 @@ export class InMemoryStore {
     return count;
   }
 
+  async expireReservationAndPromote({
+    editionId,
+    reservationId,
+    now,
+    standbyOfferDeadline,
+  }) {
+    const reservation = this.reservations.get(reservationId);
+    if (!reservation || reservation.editionId !== editionId) {
+      throw new Error('reservation_not_found');
+    }
+
+    if (reservation.status !== ReservationStatus.FINAL_PAYMENT_OPEN) {
+      return { expired: false, releasedNumber: null, promoted: null };
+    }
+
+    if (!reservation.paymentDeadline || new Date(reservation.paymentDeadline).getTime() > new Date(now).getTime()) {
+      return { expired: false, releasedNumber: null, promoted: null };
+    }
+
+    const releasedNumber = this.reservationObject.get(reservationId) ?? null;
+    const queue = this.standby.get(editionId) || [];
+    const next = queue.find((entry) => entry.status === 'waiting') || null;
+
+    reservation.status = ReservationStatus.EXPIRED;
+    reservation.expiredAt = new Date(now).toISOString();
+    reservation.updatedAt = new Date().toISOString();
+
+    if (releasedNumber != null) {
+      this.reservationObject.delete(reservationId);
+      this.objectClaims.delete(`${editionId}:${releasedNumber}`);
+    }
+
+    const edition = this.editions.get(editionId);
+    if (!edition) throw new Error('edition_not_found');
+    edition.reservationsClaimed = Math.max(0, edition.reservationsClaimed - 1);
+
+    let promoted = null;
+    if (next) {
+      next.status = 'offered';
+      next.promotedAt = new Date(now).toISOString();
+      next.offerDeadline = standbyOfferDeadline;
+      promoted = clone(next);
+    }
+
+    return { expired: true, releasedNumber, promoted };
+  }
+
   async enqueueStandby(entry) {
     const queue = this.standby.get(entry.editionId) || [];
     if (queue.some((x) => x.customerId === entry.customerId && x.status !== 'expired')) {
