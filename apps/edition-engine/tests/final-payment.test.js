@@ -17,6 +17,7 @@ test('Edition 01 final payment draft is $199 less $24.99 reservation credit', ()
     reservationId: 'PHAM-R-000001',
     editionLabel: 'EDITION 01',
     productCode: 'PHAM-001',
+    sizePreference: 'M',
     finalPriceCents: 19900,
     reservationCreditCents: 2499,
     currencyCode: 'USD',
@@ -32,6 +33,10 @@ test('Edition 01 final payment draft is $199 less $24.99 reservation credit', ()
   assert.deepEqual(built.input.purchasingEntity, {
     customerId: 'gid://shopify/Customer/1',
   });
+  assert.deepEqual(
+    built.input.customAttributes.find((x) => x.key === 'PHAM Size Preference'),
+    { key: 'PHAM Size Preference', value: 'M' }
+  );
 });
 
 test('final payment email states product balance and payment deadline', () => {
