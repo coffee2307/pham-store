@@ -571,7 +571,7 @@ async function getReadiness(env, editionId) {
           }
         }
       }`, {
-        variantId: edition.final_product_variant_id,
+        variantId: variantId || edition.final_product_variant_id,
         inventoryItemId: edition.identity_inventory_item_id,
         locationId: edition.identity_location_id,
         campaignSkus: 'sku:PHAM-001-RES-E01 OR sku:PHAM-ID-E01 OR sku:PHAM-LOOKBOOK-E01 OR sku:PHAM-001-E01'
@@ -876,6 +876,7 @@ async function handleOrdersPaid(request, env) {
   const reservationId = await uniqueReservationId(env);
   const referralCode = await uniqueReferralCode(env);
   const referredByCode = safeCode(propertyValue(reservationLine, '_PHAM Referral Code'));
+  const sizePreference = String(propertyValue(reservationLine, '_PHAM Size Preference') || '').trim().slice(0, 24);
   const reservationPaidCents = moneyToCents(reservationLine.price || order.current_subtotal_price || '24.99');
   const balanceDueCents = Math.max(0, edition.final_price_cents - edition.reservation_price_cents);
 
@@ -883,8 +884,8 @@ async function handleOrdersPaid(request, env) {
     `INSERT INTO reservations (
       id, edition_id, shopify_order_id, shopify_customer_id, email, status,
       reservation_paid_cents, balance_due_cents, referral_code, referred_by_code,
-      digital_lookbook_status
-    ) VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, 'entitled')`
+      size_preference, digital_lookbook_status
+    ) VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, 'entitled')`
   ).bind(
     reservationId,
     edition.id,
@@ -894,7 +895,8 @@ async function handleOrdersPaid(request, env) {
     reservationPaidCents,
     balanceDueCents,
     referralCode,
-    referredByCode || null
+    referredByCode || null,
+    sizePreference || null
   ).run();
 
   const identityLine = findLineBySku(order, 'PHAM-ID-E01');
@@ -934,6 +936,7 @@ async function handleOrdersPaid(request, env) {
     reservationId,
     referralCode,
     referredByCode,
+    sizePreference,
     identitySelected: Boolean(identityLine),
     identityClaimed: identityResult.claimed,
     identitySource: identityLine ? 'paid' : '',
@@ -1535,6 +1538,7 @@ async function syncReservationMetafields(env, data) {
     metafield(data.orderId, 'edition_label', 'single_line_text_field', data.edition.label),
     metafield(data.orderId, 'reservation_id', 'single_line_text_field', data.reservationId),
     metafield(data.orderId, 'referral_code', 'single_line_text_field', data.referredByCode || ''),
+    metafield(data.orderId, 'size_preference', 'single_line_text_field', data.sizePreference || ''),
     metafield(data.orderId, 'identity_selected', 'boolean', data.identitySelected ? 'true' : 'false'),
     metafield(data.orderId, 'identity_source', 'single_line_text_field', data.identitySource || ''),
     metafield(data.orderId, 'digital_lookbook_status', 'single_line_text_field', data.lookbookStatus),
@@ -1548,6 +1552,7 @@ async function syncReservationMetafields(env, data) {
       metafield(data.customerId, 'referral_code', 'single_line_text_field', data.referralCode),
       metafield(data.customerId, 'successful_referrals', 'number_integer', '0'),
       metafield(data.customerId, 'current_reservation_status', 'single_line_text_field', 'active'),
+      metafield(data.customerId, 'size_preference', 'single_line_text_field', data.sizePreference || ''),
       metafield(
         data.customerId,
         'identity_status',
@@ -1601,7 +1606,9 @@ async function openFinalPayment(request, env) {
   const deadline = new Date(now.getTime() + edition.payment_window_hours * 3600000).toISOString();
 
   const rows = await env.PHAM_CAMPAIGN_DB.prepare(
-    `SELECT id, email, shopify_customer_id, shopify_order_id, final_draft_order_id, final_invoice_url
+    `SELECT id, email, shopify_customer_id, shopify_order_id,
+            size_preference, final_variant_id,
+            final_draft_order_id, final_invoice_url
      FROM reservations
      WHERE edition_id = ? AND status = 'active'`
   ).bind(editionId).all();
@@ -1610,6 +1617,11 @@ async function openFinalPayment(request, env) {
 
   for (const row of rows.results || []) {
     try {
+      if (row.size_preference && !row.final_variant_id) {
+        throw new Error('final_variant_not_assigned_for_size:' + row.size_preference);
+      }
+
+      const finalVariantId = row.final_variant_id || edition.final_product_variant_id;
       let draftOrderId = row.final_draft_order_id;
       let invoiceUrl = row.final_invoice_url;
 
@@ -1617,7 +1629,8 @@ async function openFinalPayment(request, env) {
         const draft = await createFinalAcquisitionDraft(env, {
           edition,
           reservation: row,
-          deadline
+          deadline,
+          variantId: finalVariantId
         });
         draftOrderId = draft.id;
         invoiceUrl = draft.invoiceUrl;
@@ -1689,7 +1702,7 @@ async function openFinalPayment(request, env) {
   return json({ ok: failed === 0, editionId, opened, failed, deadline, results });
 }
 
-async function createFinalAcquisitionDraft(env, { edition, reservation, deadline }) {
+async function createFinalAcquisitionDraft(env, { edition, reservation, deadline, variantId }) {
   const mutation = `mutation CreateFinalAcquisitionDraft($input: DraftOrderInput!) {
     draftOrderCreate(input: $input) {
       draftOrder {
@@ -1725,6 +1738,7 @@ async function createFinalAcquisitionDraft(env, { edition, reservation, deadline
       { key: 'PHAM Reservation ID', value: reservation.id },
       { key: 'PHAM Edition', value: edition.label },
       { key: 'PHAM Product', value: edition.product_code },
+      { key: 'PHAM Size Preference', value: reservation.size_preference || '' },
       { key: 'PHAM Payment Deadline', value: deadline }
     ],
     note: `${edition.label} final acquisition. Reservation credit applied: ${reservationCredit} ${currencyCode}.`,
