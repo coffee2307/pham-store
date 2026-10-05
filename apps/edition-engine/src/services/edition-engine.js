@@ -1,5 +1,5 @@
 import { generateReferralCode } from '../domain/referral-code.js';
-import { canRewardIdentity, validateReferral } from '../domain/referral.js';
+import { validateReferral } from '../domain/referral.js';
 import {
   ReservationStatus,
   isDeadlineExpired,
@@ -88,27 +88,20 @@ export class EditionEngine {
     });
     if (!validation.ok) throw new Error(validation.reason);
 
-    const edition = await this.store.getEdition(editionId);
-    if (!canRewardIdentity(edition)) throw new Error('identity_full');
-
-    const privilege = await this.store.claimIdentitySlot({
+    const result = await this.store.verifyReferralAndClaimIdentity({
       editionId,
-      reservationId: referrerReservationId,
-      source: 'referral',
-    });
-
-    await this.store.markReferralConversion({
-      referredReservationId,
       referrerReservationId,
+      referredReservationId,
     });
 
     await this.store.recordEvent('referral.verified', {
       editionId,
       referrerReservationId,
       referredReservationId,
+      identityNewlyClaimed: result.newlyClaimed,
     });
 
-    return privilege;
+    return result.privilege;
   }
 
   async configureIdentity({
