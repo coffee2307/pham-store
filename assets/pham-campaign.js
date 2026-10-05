@@ -358,6 +358,34 @@ function mountReferral(root){
     });
 }
 
+function syncSizeSelect(select, sizes){
+  if(!select || !Array.isArray(sizes) || !sizes.length) return;
+
+  var current = select.value;
+  var placeholder = select.querySelector('option[value=""]');
+  select.innerHTML = '';
+
+  var emptyOption = document.createElement('option');
+  emptyOption.value = '';
+  emptyOption.textContent = placeholder ? placeholder.textContent : 'SELECT SIZE';
+  select.appendChild(emptyOption);
+
+  sizes.forEach(function(size){
+    var value = String(size || '').trim();
+    if(!value) return;
+    var option = document.createElement('option');
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  });
+
+  if(current && sizes.some(function(size){ return String(size) === current; })){
+    select.value = current;
+  } else {
+    select.value = '';
+  }
+}
+
 function mountReservation(root){
   if(root.dataset.phamReservationMounted === 'true') return;
   root.dataset.phamReservationMounted = 'true';
@@ -483,6 +511,10 @@ function mountReservation(root){
         var state = payload && payload.edition ? payload.edition.state : '';
         liveReservationOpen = state === 'reservation_open';
 
+        if(sizePreference && payload && payload.edition){
+          syncSizeSelect(sizePreference, payload.edition.sizeOptions || []);
+        }
+
         if(identity && payload && payload.counters && payload.edition){
           var identityClaimed = Number(payload.counters.identityClaimed || 0);
           var identityLimit = Number(payload.edition.identityLimit || 0);
@@ -533,11 +565,14 @@ function mountStandby(root){
   var result = root.querySelector('[data-pham-standby-result]');
   var email = form.querySelector('input[name="contact[email]"]');
   var country = form.querySelector('input[name="contact[Country]"]');
-  var size = form.querySelector('input[name="contact[Size preference]"]');
+  var size = form.querySelector('[name="contact[Size preference]"]');
 
   proxyRequest(root, '/campaign?edition=' + encodeURIComponent(editionId))
     .then(function(payload){
       liveStandbyOpen = Boolean(payload && payload.edition && payload.edition.state === 'reservation_full');
+      if(size && payload && payload.edition){
+        syncSizeSelect(size, payload.edition.sizeOptions || []);
+      }
       if(liveForm) liveForm.hidden = !liveStandbyOpen;
       if(locked) locked.hidden = liveStandbyOpen;
     })
@@ -570,7 +605,7 @@ function mountStandby(root){
           String(payload.standby.sequence).padStart(2, '0') + '.';
         result.hidden = false;
       }
-      qsa('input', form).forEach(function(input){ input.disabled = true; });
+      qsa('input, select', form).forEach(function(input){ input.disabled = true; });
       submit.textContent = 'Standby confirmed';
     })
     .catch(function(error){
