@@ -71,6 +71,12 @@
                       <span class="pham-vault__orbit-placeholder">PHAM<br>0{{ forloop.index }}</span>
                     {%- endif -%}
                   {%- if block.settings.link != blank -%}</a>{%- endif -%}
+                  <span class="pham-vault__inspection" aria-hidden="true">
+                    <span>PHAM-001</span>
+                    <span>EDITION 01</span>
+                    <span>FRAME {{ forloop.index | prepend: '0' }}</span>
+                  </span>
+                  <span class="pham-vault__scanline" aria-hidden="true"></span>
                 </div>
               </figure>
             {%- endfor -%}
@@ -79,6 +85,12 @@
               <figure class="pham-vault__orbit-card" data-pham-vault-card tabindex="0" role="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Open PHAM archive frame {{ card_number }}">
                 <div class="pham-vault__orbit-card-face">
                   <span class="pham-vault__orbit-placeholder">PHAM<br>0{{ card_number }}</span>
+                  <span class="pham-vault__inspection" aria-hidden="true">
+                    <span>PHAM-001</span>
+                    <span>EDITION 01</span>
+                    <span>FRAME 0{{ card_number }}</span>
+                  </span>
+                  <span class="pham-vault__scanline" aria-hidden="true"></span>
                 </div>
               </figure>
             {%- endfor -%}
