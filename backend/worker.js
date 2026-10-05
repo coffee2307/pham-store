@@ -65,6 +65,11 @@ export default {
         return assignReservationVariant(request, env);
       }
 
+      if (request.method === 'POST' && url.pathname === '/internal/edition/size-options') {
+        requireInternalKey(request, env);
+        return setEditionSizeOptions(request, env);
+      }
+
       if (request.method === 'POST' && url.pathname === '/internal/final-payment/open') {
         requireInternalKey(request, env);
         return openFinalPayment(request, env);
@@ -451,6 +456,49 @@ async function collectReadiness(env, editionId) {
   const response = await getReadiness(env, editionId);
   const payload = await response.json().catch(function(){ return {}; });
   return payload;
+}
+
+async function setEditionSizeOptions(request, env) {
+  const body = await request.json();
+  const editionId = String(body.editionId || 'edition-01').trim();
+  const rawSizes = Array.isArray(body.sizes)
+    ? body.sizes
+    : String(body.sizes || '').split(',');
+
+  if (body.confirm !== 'SET_SIZE_OPTIONS') {
+    return json({ ok: false, error: 'explicit_confirmation_required' }, 400);
+  }
+
+  const sizes = Array.from(new Set(
+    rawSizes
+      .map(function(size) { return String(size || '').trim(); })
+      .filter(Boolean)
+  ));
+
+  if (!sizes.length || sizes.length > 20) {
+    return json({ ok: false, error: 'invalid_size_options_count' }, 422);
+  }
+  if (sizes.some(function(size) {
+    return size.length > 24 || size.includes(',');
+  })) {
+    return json({ ok: false, error: 'invalid_size_option' }, 422);
+  }
+
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT id FROM editions WHERE id = ?'
+  ).bind(editionId).first();
+
+  if (!edition) return json({ ok: false, error: 'edition_not_found' }, 404);
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    'UPDATE editions SET size_options_csv = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+  ).bind(sizes.join(','), editionId).run();
+
+  return json({
+    ok: true,
+    editionId,
+    sizeOptions: sizes
+  });
 }
 
 async function assignReservationVariant(request, env) {
