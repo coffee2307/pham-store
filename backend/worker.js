@@ -1142,29 +1142,39 @@ async function joinStandbyRecord(env, input) {
     };
   }
 
-  const id = crypto.randomUUID();
-  let result;
-  try {
-    result = await env.PHAM_CAMPAIGN_DB.prepare(
-      `INSERT INTO standby (
-         id, edition_id, email, customer_id, name, country, size_preference,
-         position, status
-       )
-       SELECT ?, ?, ?, ?, ?, ?, ?, COALESCE(MAX(position), 0) + 1, 'waiting'
-       FROM standby
-       WHERE edition_id = ?`
-    ).bind(
-      id,
-      editionId,
-      email,
-      customerId,
-      name || null,
-      country || null,
-      size,
-      editionId
-    ).run();
-  } catch (error) {
-    if (isUniqueConstraintError(error)) {
+  let insertedId = '';
+  let result = null;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const candidateId = crypto.randomUUID();
+
+    try {
+      result = await env.PHAM_CAMPAIGN_DB.prepare(
+        `INSERT INTO standby (
+           id, edition_id, email, customer_id, name, country, size_preference,
+           position, status
+         )
+         SELECT ?, ?, ?, ?, ?, ?, ?, COALESCE(MAX(position), 0) + 1, 'waiting'
+         FROM standby
+         WHERE edition_id = ?`
+      ).bind(
+        candidateId,
+        editionId,
+        email,
+        customerId,
+        name || null,
+        country || null,
+        size,
+        editionId
+      ).run();
+
+      if (result.meta && result.meta.changes) {
+        insertedId = candidateId;
+        break;
+      }
+    } catch (error) {
+      if (!isUniqueConstraintError(error)) throw error;
+
       const raced = await env.PHAM_CAMPAIGN_DB.prepare(
         `SELECT id, position, status
          FROM standby
@@ -1187,17 +1197,25 @@ async function joinStandbyRecord(env, input) {
           queueStatus: raced.status
         };
       }
+
+      // Another collector can win the same MAX(position)+1 between read/write.
+      // Retry so this collector receives the next free FIFO position instead
+      // of surfacing a transient uniqueness error.
+      continue;
     }
-    throw error;
   }
 
-  if (!(result.meta && result.meta.changes)) {
-    return { ok: false, error: 'standby_join_failed', status: 500 };
+  if (!insertedId) {
+    return { ok: false, error: 'standby_queue_contention', status: 503 };
   }
 
   const row = await env.PHAM_CAMPAIGN_DB.prepare(
     'SELECT id, position, status FROM standby WHERE id = ?'
-  ).bind(id).first();
+  ).bind(insertedId).first();
+
+  if (!row) {
+    return { ok: false, error: 'standby_join_persistence_failed', status: 500 };
+  }
 
   console.log('Standby joined', {
     editionId,
