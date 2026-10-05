@@ -70,6 +70,11 @@ export default {
         return assignReservationVariant(request, env);
       }
 
+      if (request.method === 'POST' && url.pathname === '/internal/reservations/map-variants') {
+        requireInternalKey(request, env);
+        return mapReservationVariants(request, env);
+      }
+
       if (request.method === 'POST' && url.pathname === '/internal/edition/size-options') {
         requireInternalKey(request, env);
         return setEditionSizeOptions(request, env);
@@ -536,6 +541,103 @@ async function setEditionSizeOptions(request, env) {
     ok: true,
     editionId,
     sizeOptions: sizes
+  });
+}
+
+async function mapReservationVariants(request, env) {
+  const body = await request.json();
+  const editionId = String(body.editionId || 'edition-01').trim();
+
+  if (body.confirm !== 'MAP_RESERVATION_VARIANTS') {
+    return json({ ok: false, error: 'explicit_confirmation_required' }, 400);
+  }
+
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT id, final_product_variant_id, final_price_cents FROM editions WHERE id = ?'
+  ).bind(editionId).first();
+
+  if (!edition) return json({ ok: false, error: 'edition_not_found' }, 404);
+
+  const rows = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT id, size_preference, final_variant_id, status
+     FROM reservations
+     WHERE edition_id = ?
+       AND status IN ('active','final_payment_open')
+     ORDER BY created_at ASC`
+  ).bind(editionId).all();
+
+  const reservations = rows.results || [];
+  if (!reservations.length) {
+    return json({
+      ok: true,
+      editionId,
+      mapped: 0,
+      reservations: []
+    });
+  }
+
+  let variants;
+  try {
+    variants = await loadFinalProductVariants(env, edition);
+  } catch (error) {
+    return json({
+      ok: false,
+      error: error.message || 'final_product_variants_unavailable'
+    }, 409);
+  }
+
+  const mappings = [];
+  const failures = [];
+
+  reservations.forEach(function(reservation) {
+    try {
+      const selected = selectFinalVariantBySize(
+        variants,
+        reservation.size_preference,
+        edition.final_price_cents
+      );
+      mappings.push({
+        reservationId: reservation.id,
+        sizePreference: reservation.size_preference,
+        previousVariantId: reservation.final_variant_id || null,
+        variantId: selected.id,
+        sku: selected.sku || '',
+        title: selected.title || ''
+      });
+    } catch (error) {
+      failures.push({
+        reservationId: reservation.id,
+        sizePreference: reservation.size_preference || null,
+        error: error.message || String(error)
+      });
+    }
+  });
+
+  if (failures.length) {
+    return json({
+      ok: false,
+      error: 'reservation_variant_mapping_incomplete',
+      editionId,
+      mapped: 0,
+      failures
+    }, 409);
+  }
+
+  if (mappings.length) {
+    await env.PHAM_CAMPAIGN_DB.batch(
+      mappings.map(function(mapping) {
+        return env.PHAM_CAMPAIGN_DB.prepare(
+          'UPDATE reservations SET final_variant_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+        ).bind(mapping.variantId, mapping.reservationId);
+      })
+    );
+  }
+
+  return json({
+    ok: true,
+    editionId,
+    mapped: mappings.length,
+    reservations: mappings
   });
 }
 
@@ -2601,10 +2703,10 @@ export function selectFinalVariantBySize(variants, sizePreference, finalPriceCen
   return matches[0];
 }
 
-async function resolveFinalVariantBySize(env, edition, sizePreference) {
+async function loadFinalProductVariants(env, edition) {
   if (!edition.final_product_variant_id) throw new Error('missing_final_variant_id');
 
-  const result = await shopifyGraphQL(env, `query ResolveFinalVariantBySize($id: ID!) {
+  const result = await shopifyGraphQL(env, `query ResolveFinalProductVariants($id: ID!) {
     productVariant(id: $id) {
       id
       product {
@@ -2629,8 +2731,13 @@ async function resolveFinalVariantBySize(env, edition, sizePreference) {
     throw new Error('final_product_not_active');
   }
 
+  return product.variants && product.variants.nodes || [];
+}
+
+async function resolveFinalVariantBySize(env, edition, sizePreference) {
+  const variants = await loadFinalProductVariants(env, edition);
   const selected = selectFinalVariantBySize(
-    product.variants && product.variants.nodes || [],
+    variants,
     sizePreference,
     edition.final_price_cents
   );
