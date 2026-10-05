@@ -208,11 +208,11 @@
 }
 .pham-vault__orbit-core {
   position: absolute;
-  z-index: 50;
+  z-index: 72;
   left: 50%;
-  top: 43%;
-  width: min(56vw, 720px);
-  min-width: 360px;
+  top: 35%;
+  width: min(44vw, 600px);
+  min-width: 320px;
   display: grid;
   justify-items: center;
   gap: clamp(12px, 1.5vw, 20px);
@@ -235,7 +235,7 @@
   z-index: -1;
   left: 50%;
   top: 50%;
-  width: min(42vw, 560px);
+  width: min(34vw, 460px);
   aspect-ratio: 1;
   border-radius: 50%;
   transform: translate(-50%, -50%) translateZ(-90px);
@@ -266,9 +266,9 @@
   z-index: 1;
   display: inline-block;
   color: #ffffff;
-  font: 520 clamp(5.1rem, 11.4vw, 11.8rem)/.78 var(--font-display);
-  letter-spacing: .075em;
-  text-indent: .075em;
+  font: 520 clamp(4.5rem, 8.2vw, 8.6rem)/.8 var(--font-display);
+  letter-spacing: .045em;
+  text-indent: .045em;
   text-transform: uppercase;
   white-space: nowrap;
   transform: translateZ(24px);
