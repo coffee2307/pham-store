@@ -1,5 +1,4 @@
 {{ 'pham-campaign.css' | asset_url | stylesheet_tag }}
-<script src="{{ 'pham-campaign.js' | asset_url }}" defer></script>
 {%- assign edition_size = settings.pham_campaign_edition_size | default: 50 -%}
 {%- assign commerce_ready = settings.pham_campaign_commerce_ready | default: false -%}
 {%- assign identity_status = 'locked' -%}
