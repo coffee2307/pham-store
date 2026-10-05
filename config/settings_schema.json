@@ -2666,6 +2666,26 @@
         ]
       },
       {
+        "type": "header",
+        "content": "Edition Engine"
+      },
+      {
+        "type": "checkbox",
+        "id": "pham_campaign_engine_enabled",
+        "label": "ENGINE ENABLED — use App Proxy backend",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "pham_campaign_engine_proxy_path",
+        "label": "App Proxy storefront path",
+        "default": "/apps/pham-edition"
+      },
+      {
+        "type": "paragraph",
+        "content": "Keep ENGINE ENABLED off until the Edition Engine is deployed and the Shopify App Proxy route is configured. No secret is stored in the theme."
+      },
+      {
         "type": "checkbox",
         "id": "pham_campaign_commerce_ready",
         "label": "COMMERCE READY — allow reservation checkout",
