@@ -31,6 +31,14 @@ export const SEND_FINAL_PAYMENT_INVOICE = [
   '}',
 ].join('\n');
 
+export function shopifyCustomerGid(customerId) {
+  const value = String(customerId || '').trim();
+  if (!value) return '';
+  if (value.startsWith('gid://shopify/Customer/')) return value;
+  if (!/^\d+$/.test(value)) throw new Error('invalid_shopify_customer_id');
+  return 'gid://shopify/Customer/' + value;
+}
+
 function centsToMoney(cents) {
   if (!Number.isInteger(cents) || cents < 0) throw new Error('invalid_money_cents');
   return Number((cents / 100).toFixed(2));
@@ -89,7 +97,7 @@ export function buildFinalPaymentDraftOrderInput({
   };
 
   if (customerId) {
-    input.purchasingEntity = { customerId };
+    input.purchasingEntity = { customerId: shopifyCustomerGid(customerId) };
   }
   if (email) {
     input.email = email;
