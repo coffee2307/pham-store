@@ -45,6 +45,11 @@ export default {
         return getCampaign(env, url.searchParams.get('edition') || 'edition-01');
       }
 
+      if (request.method === 'GET' && url.pathname === '/internal/readiness') {
+        requireInternalKey(request, env);
+        return getReadiness(env, url.searchParams.get('edition') || 'edition-01');
+      }
+
       if (request.method === 'POST' && url.pathname === '/internal/final-payment/open') {
         requireInternalKey(request, env);
         return openFinalPayment(request, env);
@@ -311,6 +316,150 @@ async function joinStandbyProxy(request, env, customerId, editionId) {
       status: payload.queueStatus
     }
   }, payload.created ? 201 : 200);
+}
+
+async function getReadiness(env, editionId) {
+  const checks = [];
+  const requiredScopes = [
+    'read_orders',
+    'write_orders',
+    'read_customers',
+    'write_customers',
+    'read_draft_orders',
+    'write_draft_orders',
+    'read_quick_sale',
+    'write_quick_sale',
+    'read_inventory',
+    'write_inventory',
+    'read_products'
+  ];
+
+  function check(name, ok, detail) {
+    checks.push({ name, ok: Boolean(ok), detail: detail || null });
+  }
+
+  check('env.SHOPIFY_SHOP_DOMAIN', Boolean(env.SHOPIFY_SHOP_DOMAIN), env.SHOPIFY_SHOP_DOMAIN || null);
+  check('env.SHOPIFY_ADMIN_TOKEN', Boolean(env.SHOPIFY_ADMIN_TOKEN), env.SHOPIFY_ADMIN_TOKEN ? 'configured' : 'missing');
+  check('env.SHOPIFY_WEBHOOK_SECRET', Boolean(env.SHOPIFY_WEBHOOK_SECRET), env.SHOPIFY_WEBHOOK_SECRET ? 'configured' : 'missing');
+  check('env.SHOPIFY_API_SECRET', Boolean(env.SHOPIFY_API_SECRET), env.SHOPIFY_API_SECRET ? 'configured' : 'missing');
+  check('env.INTERNAL_ADMIN_KEY', Boolean(env.INTERNAL_ADMIN_KEY), env.INTERNAL_ADMIN_KEY ? 'configured' : 'missing');
+  check('env.STOREFRONT_ORIGIN', Boolean(env.STOREFRONT_ORIGIN), env.STOREFRONT_ORIGIN || null);
+
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM editions WHERE id = ?'
+  ).bind(editionId).first();
+
+  check('d1.edition', Boolean(edition), edition ? edition.id : 'missing');
+
+  if (edition) {
+    check('d1.edition_size', Number(edition.edition_size) > 0, String(edition.edition_size));
+    check('d1.final_product_variant_id', Boolean(edition.final_product_variant_id), edition.final_product_variant_id || 'missing');
+    check('d1.identity_inventory_item_id', Boolean(edition.identity_inventory_item_id), edition.identity_inventory_item_id || 'missing');
+    check('d1.identity_location_id', Boolean(edition.identity_location_id), edition.identity_location_id || 'missing');
+    check('d1.pricing', Number(edition.final_price_cents) > Number(edition.reservation_price_cents), {
+      reservationPriceCents: Number(edition.reservation_price_cents),
+      finalPriceCents: Number(edition.final_price_cents)
+    });
+  }
+
+  let scopes = [];
+  try {
+    const scopeResult = await shopifyGraphQL(env, `query PhamAccessScopes {
+      currentAppInstallation {
+        id
+        accessScopes { handle }
+      }
+    }`, {});
+
+    scopes = (
+      scopeResult &&
+      scopeResult.data &&
+      scopeResult.data.currentAppInstallation &&
+      scopeResult.data.currentAppInstallation.accessScopes || []
+    ).map(function(scope) { return scope.handle; });
+
+    check('shopify.admin_api', true, 'connected');
+  } catch (error) {
+    check('shopify.admin_api', false, error.message || String(error));
+  }
+
+  const missingScopes = requiredScopes.filter(function(scope) {
+    return !scopes.includes(scope);
+  });
+
+  check('shopify.runtime_scopes', missingScopes.length === 0, {
+    required: requiredScopes,
+    missing: missingScopes
+  });
+
+  if (edition && env.SHOPIFY_ADMIN_TOKEN && missingScopes.length === 0) {
+    try {
+      const resourceResult = await shopifyGraphQL(env, `query PhamBackendReadiness(
+        $variantId: ID!,
+        $inventoryItemId: ID!,
+        $locationId: ID!
+      ) {
+        productVariant(id: $variantId) {
+          id
+          sku
+          price
+          product { id status }
+        }
+        draftOrders(first: 1) {
+          nodes { id status }
+        }
+        inventoryItem(id: $inventoryItemId) {
+          id
+          tracked
+          inventoryLevel(locationId: $locationId) {
+            id
+            quantities(names: ["available"]) { name quantity }
+          }
+        }
+      }`, {
+        variantId: edition.final_product_variant_id,
+        inventoryItemId: edition.identity_inventory_item_id,
+        locationId: edition.identity_location_id
+      });
+
+      const variant = resourceResult && resourceResult.data && resourceResult.data.productVariant;
+      const inventoryItem = resourceResult && resourceResult.data && resourceResult.data.inventoryItem;
+      const level = inventoryItem && inventoryItem.inventoryLevel;
+      const available = level && level.quantities && level.quantities.find(function(q) {
+        return q.name === 'available';
+      });
+
+      check('shopify.final_variant', Boolean(variant), variant ? {
+        id: variant.id,
+        sku: variant.sku,
+        price: variant.price,
+        productStatus: variant.product && variant.product.status
+      } : 'not_found');
+
+      check('shopify.identity_inventory', Boolean(inventoryItem && inventoryItem.tracked && level), inventoryItem ? {
+        id: inventoryItem.id,
+        tracked: inventoryItem.tracked,
+        available: available ? available.quantity : null
+      } : 'not_found');
+
+      check('shopify.draft_orders_read', true, 'accessible');
+    } catch (error) {
+      check('shopify.resource_probe', false, error.message || String(error));
+    }
+  }
+
+  const failed = checks.filter(function(item) { return !item.ok; });
+
+  return json({
+    ok: failed.length === 0,
+    editionId,
+    checks,
+    summary: {
+      total: checks.length,
+      passed: checks.length - failed.length,
+      failed: failed.length
+    }
+  }, failed.length === 0 ? 200 : 503);
 }
 
 async function getCampaign(env, editionId) {
