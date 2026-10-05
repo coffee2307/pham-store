@@ -265,8 +265,7 @@ async function handleFinalAcquisitionPaid(env, order) {
 
   if (reservation.shopify_customer_id) {
     fields.push(
-      metafield(reservation.shopify_customer_id, 'current_reservation_status', 'single_line_text_field', 'final_paid'),
-      metafield(reservation.shopify_customer_id, 'payment_deadline', 'date_time', '')
+      metafield(reservation.shopify_customer_id, 'current_reservation_status', 'single_line_text_field', 'final_paid')
     );
   }
 
