@@ -473,15 +473,24 @@
       const introRadiusBoost = 1 + (1 - introEase) * (compactIntro ? 0.04 : tabletIntro ? 0.08 : 0.14);
       const introDepthBoost = (1 - introEase) * (compactIntro ? 10 : tabletIntro ? 22 : 42);
 
-      const orbitRadius = radius * scrollSpacing * pointerSpacing * introRadiusBoost;
+      // Final acquisition state: square the orbit back to the page axis,
+      // open the ring slightly, and add a restrained amount of depth so the
+      // PHAM core remains readable between the cards.
+      const outroRelease = clamp((smoothProgress - 0.76) / 0.24, 0, 1);
+      const outroEase = outroRelease * outroRelease * (3 - 2 * outroRelease);
+      const outroRadiusBoost = 1 + outroEase * (compactIntro ? 0.10 : tabletIntro ? 0.12 : 0.14);
+      const outroDepthBoost = outroEase * (compactIntro ? 12 : tabletIntro ? 20 : 30);
+
+      const orbitRadius = radius * scrollSpacing * pointerSpacing * introRadiusBoost * outroRadiusBoost;
       const step = Math.PI * 2 / cards.length;
       const responsiveRotation = rotation + currentPointerX * 0.12 * currentPointerPresence;
-      const orbitLean =
+      const liveOrbitLean =
         6 * introEase +
         introLean +
         Math.sin(smoothProgress * Math.PI * 2) * 0.3 +
         currentPointerX * 2.2 * currentPointerPresence;
-      const ringTiltY = currentPointerX * 18.5 * currentPointerPresence;
+      const orbitLean = liveOrbitLean * (1 - outroEase);
+      const ringTiltY = currentPointerX * 18.5 * currentPointerPresence * (1 - outroEase);
       const pointerShiftX = currentPointerX * 22 * currentPointerPresence;
       const pointerShiftY = currentPointerY * 12 * currentPointerPresence;
 
@@ -516,7 +525,7 @@
       if (!cardDialogOpen) {
         orbitPlane.style.transform =
           'translate3d(' + pointerShiftX.toFixed(2) + 'px,' + pointerShiftY.toFixed(2) + 'px,0) ' +
-          'rotateX(' + currentTilt.toFixed(2) + 'deg) ' +
+          'rotateX(' + (currentTilt * (1 - outroEase)).toFixed(2) + 'deg) ' +
           'rotateY(' + ringTiltY.toFixed(2) + 'deg) ' +
           'rotateZ(' + orbitLean.toFixed(2) + 'deg) ' +
           'scale(' + scrollZoom.toFixed(4) + ')';
@@ -570,7 +579,7 @@
         card.style.transform =
           'translate3d(-50%, -50%, 0) ' +
           'rotateY(' + state.visualAngle.toFixed(5) + 'rad) ' +
-          'translateZ(' + (orbitRadius + introDepthBoost).toFixed(2) + 'px) rotateZ(' + cardLean.toFixed(2) + 'deg) ' +
+          'translateZ(' + (orbitRadius + introDepthBoost + outroDepthBoost).toFixed(2) + 'px) rotateZ(' + (cardLean * (1 - outroEase * 0.55)).toFixed(2) + 'deg) ' +
           'translate3d(0,' + (introRingDrop - lift).toFixed(2) + 'px,0) scale(' + cardScale.toFixed(3) + ')';
       });
 
