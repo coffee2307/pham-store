@@ -663,6 +663,7 @@ function mountCollector(root){
       var statusEl = root.querySelector('[data-pham-live-reservation-status]');
       var objectEl = root.querySelector('[data-pham-live-object]');
       var identityEl = root.querySelector('[data-pham-live-identity-status]');
+      var sizeEl = root.querySelector('[data-pham-live-size]');
       var referralEl = root.querySelector('[data-pham-live-referral]');
       var lookbookEl = root.querySelector('[data-pham-live-lookbook]');
       var founderTokenEl = root.querySelector('[data-pham-live-founder-token]');
@@ -677,6 +678,7 @@ function mountCollector(root){
           : 'PENDING ASSIGNMENT';
       }
       if(identityEl) identityEl.textContent = displayState(identity.status);
+      if(sizeEl) sizeEl.textContent = reservation.sizePreference || 'PENDING';
       if(referralEl){
         referralEl.textContent = String(referral.verifiedCount || 0) + ' / ' +
           String(referral.requiredCount || 1) + ' VERIFIED';
