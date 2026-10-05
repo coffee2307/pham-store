@@ -48,6 +48,21 @@
         <li><span>05</span><strong>ARCHIVE</strong><p>{{ section.settings.step_5 }}</p></li>
       </ol>
     </div>
+
+    <div class="pham-edition-index__principle reveal-up" aria-labelledby="pham-edition-principle-{{ section.id }}">
+      <p class="pham-eyebrow">{{ section.settings.principle_eyebrow }}</p>
+      <h3 id="pham-edition-principle-{{ section.id }}" class="pham-edition-index__principle-title">
+        <span>{{ section.settings.principle_line_1 }}</span>
+        <span>{{ section.settings.principle_line_2 }}</span>
+      </h3>
+      <p class="pham-edition-index__principle-sub">{{ section.settings.principle_subtext }}</p>
+
+      <div class="pham-edition-index__principle-record" aria-label="PHAM archive note">
+        <span>PHAM ATELIER</span>
+        <span>EDITION 01</span>
+        <span>VIETNAM / 2026</span>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -215,6 +230,55 @@
     color: var(--color-bone-60);
     font: 400 .82rem/1.6 var(--font-body);
   }
+  .pham-edition-index__principle {
+    position: relative;
+    margin-top: clamp(84px, 10vw, 140px);
+    padding-top: clamp(34px, 4vw, 52px);
+    border-top: 1px solid rgba(255,255,255,.16);
+  }
+  .pham-edition-index__principle > .pham-eyebrow {
+    margin: 0 0 clamp(20px, 3vw, 32px);
+    color: rgba(242,242,239,.38);
+  }
+  .pham-edition-index__principle-title {
+    margin: 0;
+    max-width: 980px;
+    display: flex;
+    flex-direction: column;
+    gap: .08em;
+    color: var(--color-white);
+    font: 300 clamp(1.9rem, 4vw, 4rem)/1 var(--font-display);
+    letter-spacing: -.025em;
+    text-transform: uppercase;
+  }
+  .pham-edition-index__principle-title span {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    text-wrap: balance;
+  }
+  .pham-edition-index__principle-title span:last-child {
+    color: rgba(242,242,239,.72);
+  }
+  .pham-edition-index__principle-sub {
+    margin: clamp(26px, 3.5vw, 42px) 0 0;
+    max-width: 58ch;
+    color: var(--color-bone-60);
+    font: 400 clamp(.92rem, 1.1vw, 1.02rem)/1.75 var(--font-body);
+  }
+  .pham-edition-index__principle-record {
+    margin-top: clamp(54px, 7vw, 88px);
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,.12);
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    color: rgba(242,242,239,.26);
+    font: 400 8px/1.4 var(--font-mono);
+    letter-spacing: .13em;
+    text-transform: uppercase;
+  }
+
   @keyframes pham-edition-status-pulse {
     0%,100% { opacity: .35; transform: scale(.92); }
     50% { opacity: 1; transform: scale(1.16); }
@@ -244,6 +308,9 @@
     .pham-edition-index__steps li:last-child { border-bottom: 0; }
     .pham-edition-index__steps strong { margin-top: 0; }
     .pham-edition-index__steps p { margin: 0; }
+    .pham-edition-index__principle-title {
+      font-size: clamp(1.75rem, 6vw, 2.8rem);
+    }
   }
   @media (max-width: 599px) {
     .pham-edition-index { padding-block: 72px 84px; }
@@ -253,6 +320,10 @@
     .pham-edition-index__steps li:last-child {
       grid-template-columns: 32px 92px 1fr;
       gap: 9px;
+    }
+    .pham-edition-index__principle-record {
+      flex-direction: column;
+      gap: 7px;
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -287,7 +358,12 @@
     { "type": "textarea", "id": "step_2", "label": "02 · Order", "default": "When access opens, the object can be acquired within the active edition window." },
     { "type": "textarea", "id": "step_3", "label": "03 · Production", "default": "The edition moves through controlled production and final quality inspection." },
     { "type": "textarea", "id": "step_4", "label": "04 · Delivery", "default": "Each released piece travels with its own identity card and edition identifier." },
-    { "type": "textarea", "id": "step_5", "label": "05 · Archive", "default": "Once the edition closes, it is recorded and does not return to production." }
+    { "type": "textarea", "id": "step_5", "label": "05 · Archive", "default": "Once the edition closes, it is recorded and does not return to production." },
+    { "type": "header", "content": "Edition principle" },
+    { "type": "text", "id": "principle_eyebrow", "label": "Principle eyebrow", "default": "PHAM / EDITION PRINCIPLE" },
+    { "type": "text", "id": "principle_line_1", "label": "Principle line 1", "default": "PHAM DOES NOT RETURN TO AN EDITION" },
+    { "type": "text", "id": "principle_line_2", "label": "Principle line 2", "default": "ONCE IT IS CLOSED." },
+    { "type": "textarea", "id": "principle_subtext", "label": "Principle supporting text", "default": "What remains is the object, its record, and the person who holds it." }
   ],
   "presets": [{ "name": "PHAM Edition Index", "category": "PHAM" }],
   "enabled_on": { "templates": ["index"] }
