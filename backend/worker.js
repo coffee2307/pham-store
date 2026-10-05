@@ -50,6 +50,11 @@ export default {
         return finalizeObjectNumbers(request, env);
       }
 
+      if (request.method === 'POST' && url.pathname === '/internal/tokens/allocate') {
+        requireInternalKey(request, env);
+        return allocateFounderTokens(request, env);
+      }
+
       if (request.method === 'POST' && url.pathname === '/internal/standby/promote') {
         requireInternalKey(request, env);
         const body = await request.json();
@@ -158,6 +163,10 @@ async function getCollectorStatus(env, customerId, editionId) {
     'SELECT * FROM identity_claims WHERE reservation_id = ?'
   ).bind(reservation.id).first();
 
+  const collectorObject = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT object_number, token_type, provenance_status FROM objects WHERE reservation_id = ?'
+  ).bind(reservation.id).first();
+
   const verifiedCount = await scalar(
     env,
     "SELECT COUNT(*) AS count FROM referrals WHERE referrer_reservation_id = ? AND status = 'verified'",
@@ -174,7 +183,9 @@ async function getCollectorStatus(env, customerId, editionId) {
       paymentDeadline: reservation.payment_deadline,
       lookbookStatus: reservation.digital_lookbook_status,
       collectorReferralCode: reservation.referral_code,
-      invoiceUrl: reservation.final_invoice_url
+      invoiceUrl: reservation.final_invoice_url,
+      founderTokenType: collectorObject && collectorObject.token_type ? collectorObject.token_type : 'pending_allocation',
+      provenanceStatus: collectorObject ? collectorObject.provenance_status : 'pending'
     },
     identity: {
       status: identity ? identity.status : 'locked',
@@ -892,6 +903,92 @@ async function finalizeObjectNumbers(request, env) {
     state: 'sold_out',
     assignedCount: assignments.length,
     objects
+  });
+}
+
+async function allocateFounderTokens(request, env) {
+  const body = await request.json();
+  const editionId = String(body.editionId || 'edition-01');
+  const goldObjectNumber = Number(body.goldObjectNumber);
+
+  if (body.confirm !== 'ALLOCATE_FOUNDER_TOKENS') {
+    return json({ ok: false, error: 'explicit_confirmation_required' }, 400);
+  }
+
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM editions WHERE id = ?'
+  ).bind(editionId).first();
+
+  if (!edition) return json({ ok: false, error: 'edition_not_found' }, 404);
+  if (edition.state !== 'sold_out') {
+    return json({ ok: false, error: 'edition_not_finalized' }, 409);
+  }
+
+  if (!Number.isInteger(goldObjectNumber) ||
+      goldObjectNumber < 1 ||
+      goldObjectNumber > Number(edition.edition_size)) {
+    return json({ ok: false, error: 'invalid_gold_object_number' }, 422);
+  }
+
+  const objectCount = await scalar(
+    env,
+    'SELECT COUNT(*) AS count FROM objects WHERE edition_id = ?',
+    editionId
+  );
+
+  if (objectCount !== Number(edition.edition_size)) {
+    return json({
+      ok: false,
+      error: 'object_set_incomplete',
+      objectCount,
+      editionSize: Number(edition.edition_size)
+    }, 409);
+  }
+
+  const goldObject = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT id FROM objects WHERE edition_id = ? AND object_number = ?'
+  ).bind(editionId, goldObjectNumber).first();
+
+  if (!goldObject) {
+    return json({ ok: false, error: 'gold_object_not_found' }, 404);
+  }
+
+  await env.PHAM_CAMPAIGN_DB.batch([
+    env.PHAM_CAMPAIGN_DB.prepare(
+      "UPDATE objects SET token_type = 'silver', updated_at = CURRENT_TIMESTAMP WHERE edition_id = ?"
+    ).bind(editionId),
+    env.PHAM_CAMPAIGN_DB.prepare(
+      "UPDATE objects SET token_type = 'gold', updated_at = CURRENT_TIMESTAMP WHERE edition_id = ? AND object_number = ?"
+    ).bind(editionId, goldObjectNumber)
+  ]);
+
+  const goldCount = await scalar(
+    env,
+    "SELECT COUNT(*) AS count FROM objects WHERE edition_id = ? AND token_type = 'gold'",
+    editionId
+  );
+  const silverCount = await scalar(
+    env,
+    "SELECT COUNT(*) AS count FROM objects WHERE edition_id = ? AND token_type = 'silver'",
+    editionId
+  );
+
+  if (goldCount !== 1 || silverCount !== Number(edition.edition_size) - 1) {
+    return json({
+      ok: false,
+      error: 'token_allocation_integrity_failure',
+      goldCount,
+      silverCount
+    }, 500);
+  }
+
+  return json({
+    ok: true,
+    editionId,
+    goldObjectNumber,
+    goldCount,
+    silverCount,
+    note: 'Allocation was explicitly selected by an authorized operator; no random draw was performed by the system.'
   });
 }
 
