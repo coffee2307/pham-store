@@ -34,7 +34,11 @@
       <article class="pham-campaign-card pham-campaign-card--wide">
         {%- unless customer -%}
           <p>Sign in with the account connected to your reservation to view live collector status.</p>
-          <div class="pham-campaign-actions"><a class="pham-campaign-btn" href="{{ routes.account_login_url }}">Sign in</a></div>
+          <div class="pham-campaign-actions">
+            <a class="pham-campaign-btn"
+               data-pham-final-payment-link
+               href="#"
+               hidden>Complete acquisition · {{ settings.pham_campaign_balance_due | default: '$174.01' }}</a><a class="pham-campaign-btn" href="{{ routes.account_login_url }}">Sign in</a></div>
         {%- else -%}
           <div class="pham-status-row"><span>Edition</span><strong>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</strong></div>
           <div class="pham-status-row"><span>Product</span><strong>{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</strong></div>
