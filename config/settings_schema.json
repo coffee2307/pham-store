@@ -2787,6 +2787,21 @@
         "default": true
       },
       {
+        "type": "checkbox",
+        "id": "pham_campaign_lookbook_ready",
+        "label": "DIGITAL LOOKBOOK READY — allow entitlement in checkout",
+        "default": false
+      },
+      {
+        "type": "product",
+        "id": "pham_campaign_lookbook_product",
+        "label": "Digital lookbook product"
+      },
+      {
+        "type": "paragraph",
+        "content": "Keep DIGITAL LOOKBOOK READY off until the actual file is attached, the digital product is published, and delivery has been tested from checkout to download."
+      },
+      {
         "type": "text",
         "id": "pham_campaign_digital_lookbook_label",
         "label": "Digital benefit label",
