@@ -483,6 +483,101 @@ export class PostgresStore {
     return result.rows[0]?.object_number ?? null;
   }
 
+  async verifyReferralAndClaimIdentity({
+    editionId,
+    referrerReservationId,
+    referredReservationId,
+  }) {
+    try {
+      return await this.withTransaction(async (client) => {
+        const existingConversion = await client.query(
+          `select * from referral_conversions
+            where referred_reservation_id = $1
+            for update`,
+          [referredReservationId]
+        );
+        if (existingConversion.rows[0]) {
+          throw new Error('referral_already_attributed');
+        }
+
+        const existingPrivilege = await client.query(
+          `select i.*, o.object_number
+             from identity_privileges i
+             left join objects o on o.reservation_id = i.reservation_id
+            where i.reservation_id = $1
+            for update of i`,
+          [referrerReservationId]
+        );
+
+        let privilege = existingPrivilege.rows[0]
+          ? mapIdentity(existingPrivilege.rows[0])
+          : null;
+        let newlyClaimed = false;
+
+        if (!privilege) {
+          const editionResult = await client.query(
+            'select * from editions where id = $1 for update',
+            [editionId]
+          );
+          const edition = editionResult.rows[0];
+          if (!edition) throw new Error('edition_not_found');
+          if (edition.identity_claimed >= edition.identity_limit) {
+            throw new Error('identity_full');
+          }
+
+          const insertedPrivilege = await client.query(
+            `insert into identity_privileges (
+              reservation_id,
+              edition_id,
+              source,
+              status
+            ) values ($1,$2,'referral','claimed')
+            returning *`,
+            [referrerReservationId, editionId]
+          );
+
+          await client.query(
+            `update editions
+                set identity_claimed = identity_claimed + 1,
+                    updated_at = now()
+              where id = $1`,
+            [editionId]
+          );
+
+          privilege = mapIdentity(insertedPrivilege.rows[0]);
+          newlyClaimed = true;
+        }
+
+        const conversionResult = await client.query(
+          `insert into referral_conversions (
+            edition_id,
+            referrer_reservation_id,
+            referred_reservation_id,
+            status,
+            verified_at
+          ) values ($1,$2,$3,'verified',now())
+          returning *`,
+          [editionId, referrerReservationId, referredReservationId]
+        );
+
+        const conversionRow = conversionResult.rows[0];
+
+        return {
+          privilege,
+          newlyClaimed,
+          conversion: {
+            referrerReservationId: conversionRow.referrer_reservation_id,
+            referredReservationId: conversionRow.referred_reservation_id,
+            verifiedAt: conversionRow.verified_at,
+            status: conversionRow.status,
+          },
+        };
+      });
+    } catch (error) {
+      throw translateUnique(error);
+    }
+  }
+
   async markReferralConversion({
     referredReservationId,
     referrerReservationId,
