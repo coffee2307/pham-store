@@ -27,6 +27,7 @@ function mapReservation(row) {
     customerId: row.shopify_customer_id,
     shopifyOrderId: row.shopify_order_id,
     status: row.status,
+    acquisitionType: row.acquisition_type,
     reservationPaidCents: row.reservation_paid_cents,
     balanceDueCents: row.balance_due_cents,
     referralCode: row.referral_code_used || '',
@@ -36,6 +37,7 @@ function mapReservation(row) {
     finalPaymentOpenedAt: row.final_payment_opened_at,
     paymentDeadline: row.payment_deadline,
     finalPaymentShopifyDraftOrderId: row.final_payment_shopify_draft_order_id,
+    finalPaymentShopifyOrderId: row.final_payment_shopify_order_id,
     finalPaymentUrl: row.final_payment_url,
     finalPaidAt: row.final_paid_at,
     expiredAt: row.expired_at,
@@ -773,6 +775,173 @@ export class PostgresStore {
       );
       return mapStandby(updated.rows[0]);
     });
+  }
+
+  async markFinalPaidAtomic({
+    editionId,
+    reservationId,
+    shopifyOrderId,
+    paidAt,
+  }) {
+    try {
+      return await this.withTransaction(async (client) => {
+        const result = await client.query(
+          `select * from reservations
+            where id = $1 and edition_id = $2
+            for update`,
+          [reservationId, editionId]
+        );
+        const reservation = result.rows[0];
+        if (!reservation) throw new Error('reservation_not_found');
+
+        if (reservation.status === 'final_paid') {
+          if (
+            !reservation.final_payment_shopify_order_id ||
+            reservation.final_payment_shopify_order_id === shopifyOrderId
+          ) {
+            return mapReservation(reservation);
+          }
+          throw new Error('final_payment_already_recorded');
+        }
+
+        if (reservation.status !== 'final_payment_open') {
+          throw new Error('final_payment_not_open');
+        }
+
+        if (
+          reservation.payment_deadline &&
+          new Date(reservation.payment_deadline).getTime() < new Date(paidAt).getTime()
+        ) {
+          throw new Error('payment_window_expired');
+        }
+
+        const updated = await client.query(
+          `update reservations
+              set status = 'final_paid',
+                  final_paid_at = $2,
+                  final_payment_shopify_order_id = $3,
+                  updated_at = now()
+            where id = $1
+            returning *`,
+          [reservationId, paidAt, shopifyOrderId]
+        );
+
+        return mapReservation(updated.rows[0]);
+      });
+    } catch (error) {
+      if (error?.code === '23505') throw new Error('final_order_already_used');
+      throw error;
+    }
+  }
+
+  async getStandbyEntryById(editionId, standbyEntryId) {
+    const result = await this.db.query(
+      `select * from standby_entries
+        where edition_id = $1 and id::text = $2`,
+      [editionId, String(standbyEntryId)]
+    );
+    return mapStandby(result.rows[0]);
+  }
+
+  async convertStandbyToReservation({
+    editionId,
+    standbyEntryId,
+    reservationId,
+    customerId,
+    shopifyOrderId,
+    finalPriceCents,
+    collectorReferralCode,
+    paidAt,
+  }) {
+    try {
+      return await this.withTransaction(async (client) => {
+        const standbyResult = await client.query(
+          `select * from standby_entries
+            where edition_id = $1 and id::text = $2
+            for update`,
+          [editionId, String(standbyEntryId)]
+        );
+        const entry = standbyResult.rows[0];
+        if (!entry) throw new Error('standby_entry_not_found');
+
+        if (entry.status === 'converted') {
+          const existing = await client.query(
+            'select * from reservations where shopify_order_id = $1',
+            [shopifyOrderId]
+          );
+          if (existing.rows[0]) return mapReservation(existing.rows[0]);
+          throw new Error('standby_already_converted');
+        }
+
+        if (entry.status !== 'offered') throw new Error('standby_offer_not_active');
+        if (
+          entry.offer_deadline &&
+          new Date(entry.offer_deadline).getTime() < new Date(paidAt).getTime()
+        ) {
+          throw new Error('standby_offer_expired');
+        }
+
+        const editionResult = await client.query(
+          'select * from editions where id = $1 for update',
+          [editionId]
+        );
+        const edition = editionResult.rows[0];
+        if (!edition) throw new Error('edition_not_found');
+        if (edition.reservations_claimed >= edition.edition_size) {
+          throw new Error('edition_full');
+        }
+
+        const inserted = await client.query(
+          `insert into reservations (
+            id,
+            edition_id,
+            shopify_customer_id,
+            shopify_order_id,
+            status,
+            acquisition_type,
+            reservation_paid_cents,
+            balance_due_cents,
+            collector_referral_code,
+            digital_lookbook_status,
+            paid_at,
+            final_paid_at,
+            final_payment_shopify_order_id
+          ) values (
+            $1,$2,$3,$4,'final_paid','standby',0,$5,$6,'not_included',$7,$7,$4
+          )
+          returning *`,
+          [
+            reservationId,
+            editionId,
+            customerId,
+            shopifyOrderId,
+            finalPriceCents,
+            collectorReferralCode,
+            paidAt,
+          ]
+        );
+
+        await client.query(
+          `update editions
+              set reservations_claimed = reservations_claimed + 1,
+                  updated_at = now()
+            where id = $1`,
+          [editionId]
+        );
+
+        await client.query(
+          `update standby_entries
+              set status = 'converted',
+                  converted_order_id = $2
+            where id = $1`,
+          [entry.id, shopifyOrderId]
+        );
+
+        return mapReservation(inserted.rows[0]);
+      });
+    } catch (error) {
+      throw translateUnique(error);
+    }
   }
 
   async recordEvent(type, payload) {
