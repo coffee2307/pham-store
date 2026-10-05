@@ -27,6 +27,7 @@ function webhookPayload({ referralCode = '', customer = 2, order = 2 } = {}) {
           { name: '_PHAM Edition', value: 'EDITION 01' },
           { name: '_PHAM Product', value: 'PHAM-001' },
           { name: '_PHAM Referral Code', value: referralCode },
+          { name: '_PHAM Size Preference', value: 'M' },
           { name: 'Reservation terms', value: 'Accepted' },
           { name: 'Digital lookbook delivery', value: 'Included' },
         ],
@@ -91,6 +92,9 @@ test('paid reservation webhook creates reservation and resolves paid + referral 
   assert.equal(response.body.identity.source, 'paid');
   assert.equal(response.body.referral.verified, true);
 
+  const createdReservation = await store.getReservation(response.body.reservationId);
+  assert.equal(createdReservation.sizePreference, 'M');
+
   const edition = await store.getEdition('edition-01');
   assert.equal(edition.reservationsClaimed, 2);
   assert.equal(edition.identityClaimed, 2);
@@ -139,4 +143,47 @@ test('duplicate paid webhook does not consume another reservation slot', async (
 
   const edition = await store.getEdition('edition-01');
   assert.equal(edition.reservationsClaimed, 1);
+});
+
+
+test('paid reservation without size preference is held for review', async () => {
+  const editionRecord = {
+    id: 'edition-01',
+    label: 'EDITION 01',
+    productCode: 'PHAM-001',
+    state: CampaignState.RESERVATION_OPEN,
+    commerceReady: true,
+    editionSize: 50,
+    reservationsClaimed: 0,
+    identityLimit: 15,
+    identityClaimed: 0,
+  };
+
+  const store = new InMemoryStore({ editions: [editionRecord] });
+  const engine = new EditionEngine(store);
+  const secret = 'webhook-secret';
+  const payload = webhookPayload({ customer: 10, order: 10 });
+  const reservationLine = payload.line_items.find(item => item.sku === 'PHAM-001-RES-E01');
+  reservationLine.properties = reservationLine.properties.filter(
+    property => property.name !== '_PHAM Size Preference'
+  );
+  const signed = signedBody(payload, secret);
+
+  const response = await handleOrdersPaidWebhook({
+    ...signed,
+    webhookSecret: secret,
+    engine,
+    store,
+    edition: { ...editionRecord, includeLookbook: true },
+    skus: {
+      reservationSku: 'PHAM-001-RES-E01',
+      identitySku: 'PHAM-ID-E01',
+      lookbookSku: 'PHAM-LOOKBOOK-E01',
+    },
+  });
+
+  assert.equal(response.status, 202);
+  assert.equal(response.body.review, 'missing_size_preference');
+  const edition = await store.getEdition('edition-01');
+  assert.equal(edition.reservationsClaimed, 0);
 });
