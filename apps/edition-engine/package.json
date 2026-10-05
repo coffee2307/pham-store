@@ -6,7 +6,7 @@
   "description": "Reusable transactional engine for PHAM numbered editions.",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "node --check src/domain/*.js && node --check src/services/*.js && node --check src/adapters/*.js"
+    "check": "node --check src/domain/*.js && node --check src/services/*.js && node --check src/adapters/*.js && node --check src/shopify/*.js"
   },
   "engines": {
     "node": ">=20"
