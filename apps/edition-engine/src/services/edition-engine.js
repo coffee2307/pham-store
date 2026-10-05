@@ -197,6 +197,7 @@ export class EditionEngine {
     customerId,
     shopifyOrderId,
     finalPriceCents,
+    finalVariantId = '',
     paidAt = new Date(),
   }) {
     if (!standbyEntryId) throw new Error('missing_standby_entry_id');
@@ -217,6 +218,7 @@ export class EditionEngine {
           shopifyOrderId,
           finalPriceCents,
           collectorReferralCode,
+          finalVariantId,
           paidAt: new Date(paidAt).toISOString(),
         });
 
