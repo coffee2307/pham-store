@@ -17,7 +17,6 @@
     const sticky = root.querySelector('.pham-vault__sticky');
     const orbit = root.querySelector('[data-pham-vault-orbit]');
     const orbitPlane = root.querySelector('[data-pham-vault-orbit-plane]');
-    const orbitRing = root.querySelector('.pham-vault__orbit-ring');
     const orbitCards = root.querySelector('.pham-vault__orbit-cards');
     const cards = Array.from(root.querySelectorAll('[data-pham-vault-card]'));
     const chapters = Array.from(root.querySelectorAll('[data-pham-vault-chapter]'));
@@ -409,12 +408,6 @@
       if (!cardDialogOpen) {
         orbitPlane.style.transform = 'rotateX(' + currentTilt.toFixed(2) + 'deg) rotateZ(' + orbitLean.toFixed(2) + 'deg)';
       }
-      if (orbitRing) {
-        const ringDiameter = orbitRadius * 1.32;
-        orbitRing.style.width = ringDiameter.toFixed(2) + 'px';
-        orbitRing.style.height = ringDiameter.toFixed(2) + 'px';
-      }
-
       const compactOrbit = window.innerWidth < 600;
       const mobileFocus = window.innerWidth < 900;
       const cardStates = cards.map(function (card, index) {
