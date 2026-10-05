@@ -1253,13 +1253,21 @@ async function handleOrdersPaid(request, env) {
   const reservationPaidCents = reservationValidation.reservationPaidCents;
   const balanceDueCents = Math.max(0, edition.final_price_cents - edition.reservation_price_cents);
 
+  let reservationInsert;
   try {
-    await env.PHAM_CAMPAIGN_DB.prepare(
+    reservationInsert = await env.PHAM_CAMPAIGN_DB.prepare(
       `INSERT INTO reservations (
         id, edition_id, shopify_order_id, shopify_customer_id, email, status,
         reservation_paid_cents, balance_due_cents, referral_code, referred_by_code,
         size_preference, digital_lookbook_status
-      ) VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, 'entitled')`
+      )
+      SELECT ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, 'entitled'
+      WHERE (
+        SELECT COUNT(*)
+        FROM reservations
+        WHERE edition_id = ?
+          AND status NOT IN ('cancelled','expired')
+      ) < ?`
     ).bind(
       reservationId,
       edition.id,
@@ -1270,7 +1278,9 @@ async function handleOrdersPaid(request, env) {
       balanceDueCents,
       referralCode,
       referredByCode || null,
-      sizePreference || null
+      sizePreference || null,
+      edition.id,
+      Number(edition.edition_size)
     ).run();
   } catch (error) {
     if (isUniqueConstraintError(error)) {
@@ -1305,6 +1315,29 @@ async function handleOrdersPaid(request, env) {
       return json(raceReview);
     }
     throw error;
+  }
+
+  if (!(reservationInsert && reservationInsert.meta && reservationInsert.meta.changes)) {
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      "UPDATE editions SET state = 'reservation_full', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+    ).bind(edition.id).run();
+
+    const capacityReview = {
+      ok: false,
+      review: true,
+      reason: 'reservation_capacity_race',
+      shopifyOrderId
+    };
+    if (webhookId) {
+      await recordWebhook(
+        env,
+        webhookId,
+        topic,
+        'review_required',
+        JSON.stringify(capacityReview)
+      );
+    }
+    return json(capacityReview);
   }
 
   let identityResult = { claimed: false };
@@ -1351,8 +1384,12 @@ async function handleOrdersPaid(request, env) {
     balanceDueCents
   });
 
-  const afterCount = activeReservations + 1;
-  if (afterCount >= edition.edition_size) {
+  const afterCount = await scalar(
+    env,
+    "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status NOT IN ('cancelled','expired')",
+    edition.id
+  );
+  if (afterCount >= Number(edition.edition_size)) {
     await env.PHAM_CAMPAIGN_DB.prepare(
       "UPDATE editions SET state = 'reservation_full', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
     ).bind(edition.id).run();
