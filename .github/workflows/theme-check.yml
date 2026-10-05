@@ -41,5 +41,11 @@ jobs:
       - name: Check PHAM campaign launch gates
         run: node scripts/check-campaign-safety.mjs
 
+      - name: Check PHAM Edition Engine syntax
+        run: npm --prefix apps/edition-engine run check
+
+      - name: Test PHAM Edition Engine
+        run: npm --prefix apps/edition-engine test
+
       - name: Run Shopify Theme Check
         run: shopify theme check
