@@ -838,10 +838,13 @@ async function joinStandbyRecord(env, input) {
   const email = String(input.email || '').trim().toLowerCase();
   const name = String(input.name || '').trim().slice(0, 120);
   const country = String(input.country || '').trim().slice(0, 120);
-  const size = String(input.size || '').trim().slice(0, 40);
+  const size = String(input.size || '').trim().slice(0, 24);
 
   if (!/^\S+@\S+\.\S+$/.test(email)) {
     return { ok: false, error: 'invalid_email', status: 422 };
+  }
+  if (!size) {
+    return { ok: false, error: 'size_preference_required', status: 422 };
   }
 
   const edition = await env.PHAM_CAMPAIGN_DB.prepare(
@@ -869,11 +872,23 @@ async function joinStandbyRecord(env, input) {
 
   const id = crypto.randomUUID();
   const result = await env.PHAM_CAMPAIGN_DB.prepare(
-    `INSERT INTO standby (id, edition_id, email, customer_id, position, status)
-     SELECT ?, ?, ?, ?, COALESCE(MAX(position), 0) + 1, 'waiting'
+    `INSERT INTO standby (
+       id, edition_id, email, customer_id, name, country, size_preference,
+       position, status
+     )
+     SELECT ?, ?, ?, ?, ?, ?, ?, COALESCE(MAX(position), 0) + 1, 'waiting'
      FROM standby
      WHERE edition_id = ?`
-  ).bind(id, editionId, email, input.customerId || null, editionId).run();
+  ).bind(
+    id,
+    editionId,
+    email,
+    input.customerId || null,
+    name || null,
+    country || null,
+    size,
+    editionId
+  ).run();
 
   if (!(result.meta && result.meta.changes)) {
     return { ok: false, error: 'standby_join_failed', status: 500 };
@@ -926,8 +941,9 @@ async function handleOrdersPaid(request, env) {
   const reservationLine = findLineBySku(order, 'PHAM-001-RES-E01');
   const finalLine = findLineBySku(order, 'PHAM-001-E01');
   const finalReservationId = orderAttribute(order, 'PHAM Reservation ID');
+  const finalStandbyId = orderAttribute(order, 'PHAM Standby ID');
 
-  if (!reservationLine && (finalReservationId || finalLine)) {
+  if (!reservationLine && (finalReservationId || finalStandbyId || finalLine)) {
     const finalResult = await handleFinalAcquisitionPaid(env, order);
     if (webhookId) {
       await recordWebhook(
@@ -1234,8 +1250,22 @@ async function handleStandbyAcquisitionPaid(env, order, standbyId) {
   ).bind(standby.edition_id).first();
   if (!edition) return { ok: false, reason: 'edition_not_found', standbyId };
 
+  let validation;
+  try {
+    validation = validateStandbyAcquisitionOrder({ order, standby, edition });
+  } catch (error) {
+    return {
+      ok: false,
+      reason: error && error.message ? error.message : 'standby_payment_validation_failed',
+      standbyId,
+      finalOrderId: order && order.id ? toGid('Order', order.id) : null
+    };
+  }
+
   const shopifyOrderId = toGid('Order', order.id);
-  const shopifyCustomerId = order.customer && order.customer.id ? toGid('Customer', order.customer.id) : standby.customer_id;
+  const shopifyCustomerId = order.customer && order.customer.id
+    ? toGid('Customer', order.customer.id)
+    : standby.customer_id;
   const email = String(order.email || (order.customer && order.customer.email) || standby.email || '').toLowerCase();
   const reservationId = await uniqueReservationId(env);
   const referralCode = await uniqueReferralCode(env);
@@ -1244,8 +1274,9 @@ async function handleStandbyAcquisitionPaid(env, order, standbyId) {
     `INSERT INTO reservations (
       id, edition_id, shopify_order_id, shopify_customer_id, email, status,
       reservation_paid_cents, balance_due_cents, referral_code, standby_id,
+      size_preference, final_variant_id, final_shopify_order_id,
       final_payment_status, digital_lookbook_status
-    ) VALUES (?, ?, ?, ?, ?, 'final_paid', 0, 0, ?, ?, 'paid', 'not_included')`
+    ) VALUES (?, ?, ?, ?, ?, 'final_paid', 0, 0, ?, ?, ?, ?, ?, 'paid', 'not_included')`
   ).bind(
     reservationId,
     edition.id,
@@ -1253,7 +1284,10 @@ async function handleStandbyAcquisitionPaid(env, order, standbyId) {
     shopifyCustomerId || null,
     email,
     referralCode,
-    standbyId
+    standbyId,
+    standby.size_preference || null,
+    validation.variantId,
+    shopifyOrderId
   ).run();
 
   await env.PHAM_CAMPAIGN_DB.prepare(
@@ -1266,6 +1300,7 @@ async function handleStandbyAcquisitionPaid(env, order, standbyId) {
   await setMetafields(env, [
     metafield(shopifyOrderId, 'edition_label', 'single_line_text_field', edition.label),
     metafield(shopifyOrderId, 'reservation_id', 'single_line_text_field', reservationId),
+    metafield(shopifyOrderId, 'size_preference', 'single_line_text_field', standby.size_preference || ''),
     metafield(shopifyOrderId, 'final_payment_status', 'single_line_text_field', 'paid')
   ]);
 
@@ -1276,6 +1311,7 @@ async function handleStandbyAcquisitionPaid(env, order, standbyId) {
       metafield(shopifyCustomerId, 'current_reservation_status', 'single_line_text_field', 'final_paid'),
       metafield(shopifyCustomerId, 'identity_status', 'single_line_text_field', 'locked'),
       metafield(shopifyCustomerId, 'reservation_id', 'single_line_text_field', reservationId),
+      metafield(shopifyCustomerId, 'size_preference', 'single_line_text_field', standby.size_preference || ''),
       metafield(shopifyCustomerId, 'digital_lookbook_status', 'single_line_text_field', 'not_included')
     ]);
   }
@@ -2189,12 +2225,26 @@ async function promoteNextStandby(env, editionId) {
   try {
     let draftOrderId = next.draft_order_id;
     let invoiceUrl = next.invoice_url;
+    let finalVariantId = next.final_variant_id || '';
+
+    if (!finalVariantId) {
+      finalVariantId = await resolveFinalVariantBySize(
+        env,
+        edition,
+        next.size_preference
+      );
+
+      await env.PHAM_CAMPAIGN_DB.prepare(
+        'UPDATE standby SET final_variant_id = ? WHERE id = ? AND status = \'promoting\''
+      ).bind(finalVariantId, next.id).run();
+    }
 
     if (!draftOrderId) {
       const draft = await createStandbyAcquisitionDraft(env, {
         edition,
         standby: next,
-        deadline
+        deadline,
+        variantId: finalVariantId
       });
       draftOrderId = draft.id;
       invoiceUrl = draft.invoiceUrl;
@@ -2231,6 +2281,7 @@ async function promoteNextStandby(env, editionId) {
       email: next.email,
       offerDeadline: deadline,
       priceCents: edition.final_price_cents,
+      variantId: finalVariantId,
       draftOrderId,
       invoiceUrl
     };
@@ -2249,7 +2300,99 @@ async function promoteNextStandby(env, editionId) {
   }
 }
 
-async function createStandbyAcquisitionDraft(env, { edition, standby, deadline }) {
+export function selectFinalVariantBySize(variants, sizePreference, finalPriceCents) {
+  const expectedSize = String(sizePreference || '').trim().toLowerCase();
+  if (!expectedSize) throw new Error('size_preference_required');
+
+  const matches = (variants || []).filter(function(variant) {
+    const sizeOption = (variant && variant.selectedOptions || []).find(function(option) {
+      return String(option && option.name || '').trim().toLowerCase() === 'size';
+    });
+    const actualSize = sizeOption
+      ? String(sizeOption.value || '').trim().toLowerCase()
+      : '';
+
+    return (
+      actualSize === expectedSize &&
+      moneyToCents(variant && variant.price) === Number(finalPriceCents)
+    );
+  });
+
+  if (!matches.length) throw new Error('final_variant_not_found_for_size');
+  if (matches.length > 1) throw new Error('final_variant_ambiguous_for_size');
+  return matches[0];
+}
+
+async function resolveFinalVariantBySize(env, edition, sizePreference) {
+  if (!edition.final_product_variant_id) throw new Error('missing_final_variant_id');
+
+  const result = await shopifyGraphQL(env, `query ResolveFinalVariantBySize($id: ID!) {
+    productVariant(id: $id) {
+      id
+      product {
+        id
+        status
+        variants(first: 100) {
+          nodes {
+            id
+            sku
+            title
+            price
+            selectedOptions { name value }
+          }
+        }
+      }
+    }
+  }`, { id: edition.final_product_variant_id });
+
+  const rootVariant = result && result.data && result.data.productVariant;
+  const product = rootVariant && rootVariant.product;
+  if (!product || product.status !== 'ACTIVE') {
+    throw new Error('final_product_not_active');
+  }
+
+  const selected = selectFinalVariantBySize(
+    product.variants && product.variants.nodes || [],
+    sizePreference,
+    edition.final_price_cents
+  );
+  return selected.id;
+}
+
+export function buildStandbyAcquisitionDraftInput({ edition, standby, deadline, variantId }) {
+  if (!variantId) throw new Error('missing_final_variant_id');
+  if (!standby || !standby.id) throw new Error('missing_standby_id');
+
+  const input = {
+    email: standby.email,
+    lineItems: [{
+      variantId,
+      quantity: 1
+    }],
+    acceptAutomaticDiscounts: false,
+    allowDiscountCodesInCheckout: false,
+    reserveInventoryUntil: deadline,
+    customAttributes: [
+      { key: 'PHAM Standby ID', value: standby.id },
+      { key: 'PHAM Edition', value: edition.label },
+      { key: 'PHAM Product', value: edition.product_code },
+      { key: 'PHAM Size Preference', value: standby.size_preference || '' },
+      { key: 'PHAM Standby Deadline', value: deadline }
+    ],
+    note: `${edition.label} standby acquisition at the full object price. No Priority Reservation credit applies.`,
+    tags: ['PHAM', edition.label, 'Standby Acquisition', standby.id]
+  };
+
+  if (standby.customer_id) {
+    input.purchasingEntity = {
+      customerId: standby.customer_id
+    };
+  }
+
+  return input;
+}
+
+async function createStandbyAcquisitionDraft(env, { edition, standby, deadline, variantId }) {
   const mutation = `mutation CreateStandbyAcquisitionDraft($input: DraftOrderInput!) {
     draftOrderCreate(input: $input) {
       draftOrder {
@@ -2262,24 +2405,12 @@ async function createStandbyAcquisitionDraft(env, { edition, standby, deadline }
     }
   }`;
 
-  const input = {
-    email: standby.email,
-    lineItems: [{
-      variantId: edition.final_product_variant_id,
-      quantity: 1
-    }],
-    acceptAutomaticDiscounts: false,
-    allowDiscountCodesInCheckout: false,
-    reserveInventoryUntil: deadline,
-    customAttributes: [
-      { key: 'PHAM Standby ID', value: standby.id },
-      { key: 'PHAM Edition', value: edition.label },
-      { key: 'PHAM Product', value: edition.product_code },
-      { key: 'PHAM Standby Deadline', value: deadline }
-    ],
-    note: `${edition.label} standby acquisition at the full object price. No Priority Reservation credit applies.`,
-    tags: ['PHAM', edition.label, 'Standby Acquisition', standby.id]
-  };
+  const input = buildStandbyAcquisitionDraftInput({
+    edition,
+    standby,
+    deadline,
+    variantId
+  });
 
   const result = await shopifyGraphQL(env, mutation, { input });
   const payload = result && result.data && result.data.draftOrderCreate;
@@ -2448,6 +2579,86 @@ export function validatePriorityReservationOrder({ order, edition }) {
     sizePreference,
     reservationPaidCents: Number(edition.reservation_price_cents),
     expectedSubtotalCents
+  };
+}
+
+export function validateStandbyAcquisitionOrder({ order, standby, edition }) {
+  if (!order || !standby || !edition) throw new Error('standby_payment_validation_missing_input');
+  if (standby.status !== 'promoted') throw new Error('standby_offer_not_active');
+
+  const paidAtValue = order.processed_at || order.created_at || '';
+  const paidAt = new Date(paidAtValue);
+  if (!paidAtValue || Number.isNaN(paidAt.getTime())) {
+    throw new Error('standby_payment_timestamp_missing');
+  }
+  if (
+    standby.offer_deadline &&
+    paidAt.getTime() > new Date(standby.offer_deadline).getTime()
+  ) {
+    throw new Error('standby_offer_expired');
+  }
+
+  const currencyCode = String(edition.currency_code || 'USD');
+  if (String(order.currency || '') !== currencyCode) {
+    throw new Error('standby_payment_currency_mismatch');
+  }
+
+  const expectedVariantId = standby.final_variant_id || edition.final_product_variant_id;
+  if (!expectedVariantId) throw new Error('missing_final_variant_id');
+
+  const activeLines = (order.line_items || []).filter(function(line) {
+    return Number(line && line.quantity || 0) > 0;
+  });
+  if (activeLines.length !== 1) throw new Error('unexpected_standby_line_item_count');
+
+  const line = activeLines[0];
+  if (Number(line.quantity) !== 1) throw new Error('invalid_standby_quantity');
+
+  const actualVariantId = line.variant_id ? toGid('ProductVariant', line.variant_id) : '';
+  if (!actualVariantId || actualVariantId !== expectedVariantId) {
+    throw new Error('standby_variant_mismatch');
+  }
+
+  if (moneyToCents(line.price) !== Number(edition.final_price_cents)) {
+    throw new Error('standby_product_price_mismatch');
+  }
+
+  const totalDiscountCents = moneyToCents(
+    order.current_total_discounts !== undefined
+      ? order.current_total_discounts
+      : order.total_discounts
+  );
+  if (totalDiscountCents !== 0) {
+    throw new Error('standby_discount_not_allowed');
+  }
+
+  if (
+    order.current_subtotal_price !== undefined &&
+    moneyToCents(order.current_subtotal_price) !== Number(edition.final_price_cents)
+  ) {
+    throw new Error('standby_subtotal_mismatch');
+  }
+
+  const actualCustomerId = order.customer && order.customer.id
+    ? toGid('Customer', order.customer.id)
+    : '';
+  if (standby.customer_id && actualCustomerId !== standby.customer_id) {
+    throw new Error('standby_payment_customer_mismatch');
+  }
+
+  if (!standby.customer_id) {
+    const orderEmail = String(
+      order.email || (order.customer && order.customer.email) || ''
+    ).trim().toLowerCase();
+    if (!orderEmail || orderEmail !== String(standby.email || '').trim().toLowerCase()) {
+      throw new Error('standby_payment_email_mismatch');
+    }
+  }
+
+  return {
+    ok: true,
+    variantId: actualVariantId,
+    paidAt: paidAt.toISOString()
   };
 }
 
