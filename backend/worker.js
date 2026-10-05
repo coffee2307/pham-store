@@ -633,10 +633,72 @@ async function claimIdentity(env, { editionId, reservationId, source }) {
      WHERE (SELECT COUNT(*) FROM identity_claims WHERE edition_id = ? AND status != 'revoked') < ?`
   ).bind(reservationId, editionId, source, editionId, edition.identity_limit).run();
 
+  const claimed = (result.meta && result.meta.changes || 0) > 0;
+
+  if (claimed && source === 'referral') {
+    try {
+      await adjustIdentityInventory(env, editionId, reservationId, -1);
+    } catch (error) {
+      await env.PHAM_CAMPAIGN_DB.prepare(
+        'DELETE FROM identity_claims WHERE reservation_id = ? AND source = ?'
+      ).bind(reservationId, source).run();
+      throw error;
+    }
+  }
+
   return {
-    claimed: (result.meta && result.meta.changes || 0) > 0,
+    claimed,
     source
   };
+}
+
+async function adjustIdentityInventory(env, editionId, reservationId, delta) {
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT identity_inventory_item_id, identity_location_id FROM editions WHERE id = ?'
+  ).bind(editionId).first();
+
+  if (!edition || !edition.identity_inventory_item_id || !edition.identity_location_id) {
+    throw new Error('Identity inventory configuration missing');
+  }
+
+  const mutation = `mutation AdjustIdentityInventory(
+    $input: InventoryAdjustQuantitiesInput!,
+    $idempotencyKey: String!
+  ) {
+    inventoryAdjustQuantities(input: $input) @idempotent(key: $idempotencyKey) {
+      userErrors { field message }
+      inventoryAdjustmentGroup {
+        createdAt
+        reason
+        referenceDocumentUri
+        changes { name delta }
+      }
+    }
+  }`;
+
+  const input = {
+    reason: 'correction',
+    name: 'available',
+    referenceDocumentUri: 'pham://identity/referral/' + reservationId,
+    changes: [{
+      delta,
+      inventoryItemId: edition.identity_inventory_item_id,
+      locationId: edition.identity_location_id
+    }]
+  };
+
+  const result = await shopifyGraphQL(env, mutation, {
+    input,
+    idempotencyKey: 'pham-identity-referral-' + reservationId
+  });
+
+  const payload = result && result.data && result.data.inventoryAdjustQuantities;
+  const errors = payload && payload.userErrors || [];
+  if (errors.length) {
+    throw new Error('Identity inventory adjustment failed: ' + JSON.stringify(errors));
+  }
+
+  return payload && payload.inventoryAdjustmentGroup;
 }
 
 async function verifyReferral(env, context) {
