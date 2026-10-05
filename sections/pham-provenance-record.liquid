@@ -1,4 +1,5 @@
 {{ 'pham-campaign.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'pham-campaign.js' | asset_url }}" defer></script>
 {%- assign object_number = page.metafields.pham.object_number.value -%}
 {%- assign object_product = page.metafields.pham.product_code.value | default: settings.pham_campaign_product_code | default: 'PHAM-001' -%}
 {%- assign object_edition = page.metafields.pham.edition_label.value | default: settings.pham_campaign_edition_label | default: 'EDITION 01' -%}
@@ -9,33 +10,37 @@
 {%- assign design_origin = page.metafields.pham.design_origin.value | default: settings.pham_campaign_origin_label | default: 'DESIGNED IN VIETNAM / 2026' -%}
 {%- assign production_origin = page.metafields.pham.production_origin.value | default: settings.pham_campaign_production_origin_label | default: 'PRODUCED IN DONGGUAN, CHINA' -%}
 
-<section class="pham-campaign-shell" data-pham-provenance-record>
+<section class="pham-campaign-shell"
+  data-pham-provenance-record
+  data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
+  data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
     <p class="pham-campaign-kicker">PHAM ARCHIVE · PROVENANCE RECORD</p>
-    <h1 class="pham-campaign-title">{{ object_product }}<br>{% if object_number != blank %}OBJECT {{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}{% else %}OBJECT — / {{ settings.pham_campaign_edition_size | default: 50 }}{% endif %}</h1>
-    <p class="pham-campaign-lede">{{ auth_status }} · {{ object_edition }} · {{ design_origin }}</p>
+    <h1 class="pham-campaign-title"><span data-pham-provenance-product>{{ object_product }}</span><br><span data-pham-provenance-number>{% if object_number != blank %}OBJECT {{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}{% else %}OBJECT — / {{ settings.pham_campaign_edition_size | default: 50 }}{% endif %}</span></h1>
+    <p class="pham-campaign-lede"><span data-pham-provenance-auth>{{ auth_status }}</span> · <span data-pham-provenance-edition>{{ object_edition }}</span> · <span data-pham-provenance-design-origin>{{ design_origin }}</span></p>
+    <div class="pham-campaign-alert" data-pham-provenance-result hidden role="status"></div>
 
     <div class="pham-campaign-grid">
       <article class="pham-campaign-card pham-campaign-card--wide">
         <h2>Birth record</h2>
         <dl class="pham-provenance-timeline">
-          <div><dt>Design origin</dt><dd>{{ design_origin }}</dd></div>
+          <div><dt>Design origin</dt><dd data-pham-provenance-design-origin-copy>{{ design_origin }}</dd></div>
           <div><dt>Design record</dt><dd>{{ page.metafields.pham.design_record.value | default: 'Record will be attached after final design sign-off.' }}</dd></div>
-          <div><dt>Production origin</dt><dd>{{ production_origin }}</dd></div>
+          <div><dt>Production origin</dt><dd data-pham-provenance-production-origin>{{ production_origin }}</dd></div>
           <div><dt>Production record</dt><dd>{{ page.metafields.pham.production_record.value | default: 'Production batch record pending.' }}</dd></div>
           <div><dt>QC</dt><dd>{{ page.metafields.pham.qc_record.value | default: 'Final quality-control record pending.' }}</dd></div>
-          <div><dt>Assignment</dt><dd>{% if object_number != blank %}Assigned as Object {{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}.{% else %}Object number not yet assigned.{% endif %}</dd></div>
+          <div><dt>Assignment</dt><dd data-pham-provenance-assignment>{% if object_number != blank %}Assigned as Object {{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}.{% else %}Object number not yet assigned.{% endif %}</dd></div>
         </dl>
       </article>
 
       <article class="pham-campaign-card">
         <h2>Identity</h2>
-        <p>{% if public_identity and identity_label != blank %}{{ identity_label }}{% else %}Collector identity is private unless the collector explicitly opts into public display.{% endif %}</p>
+        <p data-pham-provenance-identity>{% if public_identity and identity_label != blank %}{{ identity_label }}{% else %}Collector identity is private unless the collector explicitly opts into public display.{% endif %}</p>
       </article>
 
       <article class="pham-campaign-card">
         <h2>Founder’s Token</h2>
-        <div class="pham-campaign-stat"><strong>{{ token_type | upcase }}</strong><span>Collector token</span></div>
+        <div class="pham-campaign-stat"><strong data-pham-provenance-token>{{ token_type | upcase }}</strong><span>Collector token</span></div>
         <p style="margin-top:20px">Edition 01 plans 50 collector tokens: 49 silver-tone and one gold-tone. Allocation is recorded only after PHAM confirms the final token assignment.</p>
       </article>
 
