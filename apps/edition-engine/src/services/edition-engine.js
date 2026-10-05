@@ -20,47 +20,38 @@ export class EditionEngine {
     referralCode = '',
     paidAt = new Date(),
   }) {
-    await this.store.claimReservationSlot(editionId);
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const collectorReferralCode = generateReferralCode();
 
-    try {
-      let collectorReferralCode = '';
-      for (let attempt = 0; attempt < 8; attempt += 1) {
-        const candidate = generateReferralCode();
-        const existing = await this.store.findReservationByCollectorReferralCode(
+      try {
+        const reservation = await this.store.createReservationWithSlot({
+          id: reservationId,
           editionId,
-          candidate
-        );
-        if (!existing) {
-          collectorReferralCode = candidate;
-          break;
-        }
+          customerId,
+          shopifyOrderId,
+          reservationPaidCents,
+          referralCode,
+          paidAt: new Date(paidAt).toISOString(),
+          status: ReservationStatus.ACTIVE,
+          collectorReferralCode,
+        });
+
+        await this.store.recordEvent('reservation.paid', {
+          editionId,
+          reservationId,
+          customerId,
+          shopifyOrderId,
+        });
+
+        return reservation;
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : '';
+        if (reason === 'referral_code_exists') continue;
+        throw error;
       }
-      if (!collectorReferralCode) throw new Error('referral_code_generation_failed');
-
-      const reservation = await this.store.createReservation({
-        id: reservationId,
-        editionId,
-        customerId,
-        shopifyOrderId,
-        reservationPaidCents,
-        referralCode,
-        paidAt: new Date(paidAt).toISOString(),
-        status: ReservationStatus.ACTIVE,
-        collectorReferralCode,
-      });
-
-      await this.store.recordEvent('reservation.paid', {
-        editionId,
-        reservationId,
-        customerId,
-        shopifyOrderId,
-      });
-
-      return reservation;
-    } catch (error) {
-      await this.store.releaseReservationSlot(editionId);
-      throw error;
     }
+
+    throw new Error('referral_code_generation_failed');
   }
 
   async claimPaidIdentity({ editionId, reservationId }) {
