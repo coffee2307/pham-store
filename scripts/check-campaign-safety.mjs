@@ -43,7 +43,7 @@ const warnings = [];
 const edition01SizeGuide = 'M,L,XL,XXL';
 const sizeGuideFiles = [
   'sections/pham-size-guide.liquid',
-  'templates/page.size-guide.json'
+  'templates/page.pham-001-size-guide.json'
 ];
 
 if (String(s.pham_campaign_size_options || '') !== edition01SizeGuide) {
