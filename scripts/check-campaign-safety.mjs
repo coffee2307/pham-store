@@ -12,6 +12,31 @@ if (jsonStart < 0) {
 const data = JSON.parse(raw.slice(jsonStart));
 const s = data.current || {};
 
+const schemaRaw = fs.readFileSync('config/settings_schema.json', 'utf8');
+const schema = JSON.parse(schemaRaw);
+const schemaFailures = [];
+
+for (const group of schema) {
+  for (const setting of group.settings || []) {
+    if (setting.type !== 'range') continue;
+    const min = Number(setting.min);
+    const max = Number(setting.max);
+    const step = Number(setting.step ?? 1);
+    if (![min, max, step].every(Number.isFinite) || step <= 0) continue;
+    const steps = Math.floor((max - min) / step) + 1;
+    if (steps > 101) {
+      schemaFailures.push(
+        `Theme range ${setting.id || '<unknown>'} has ${steps} steps; Shopify allows at most 101.`
+      );
+    }
+  }
+}
+
+if (schemaFailures.length) {
+  schemaFailures.forEach((message) => console.error('PHAM theme schema failure:', message));
+  process.exit(1);
+}
+
 const failures = [];
 const warnings = [];
 
