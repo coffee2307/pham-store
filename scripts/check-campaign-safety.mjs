@@ -12,6 +12,31 @@ if (jsonStart < 0) {
 const data = JSON.parse(raw.slice(jsonStart));
 const s = data.current || {};
 
+const schemaRaw = fs.readFileSync('config/settings_schema.json', 'utf8');
+const schema = JSON.parse(schemaRaw);
+const schemaFailures = [];
+
+for (const group of schema) {
+  for (const setting of group.settings || []) {
+    if (setting.type !== 'range') continue;
+    const min = Number(setting.min);
+    const max = Number(setting.max);
+    const step = Number(setting.step ?? 1);
+    if (![min, max, step].every(Number.isFinite) || step <= 0) continue;
+    const steps = Math.floor((max - min) / step) + 1;
+    if (steps > 101) {
+      schemaFailures.push(
+        `Theme range ${setting.id || '<unknown>'} has ${steps} steps; Shopify allows at most 101.`
+      );
+    }
+  }
+}
+
+if (schemaFailures.length) {
+  schemaFailures.forEach((message) => console.error('PHAM theme schema failure:', message));
+  process.exit(1);
+}
+
 const failures = [];
 const warnings = [];
 
@@ -26,6 +51,33 @@ const configuredSizes = String(s.pham_campaign_size_options || 'XS,S,M,L,XL')
   .map(value => value.trim())
   .filter(Boolean);
 const uniqueConfiguredSizes = new Set(configuredSizes.map(value => value.toLowerCase()));
+
+function integerSetting(key, fallback) {
+  const value = Number(s[key] ?? fallback);
+  return Number.isInteger(value) ? value : NaN;
+}
+
+const editionSize = integerSetting('pham_campaign_edition_size', 50);
+const reservationsClaimed = integerSetting('pham_campaign_reservations_claimed', 0);
+const standbyCount = integerSetting('pham_campaign_standby_count', 0);
+const paymentWindowHours = integerSetting('pham_campaign_payment_window_hours', 72);
+const standbyWindowHours = integerSetting('pham_campaign_standby_window_hours', 48);
+
+if (!Number.isInteger(editionSize) || editionSize < 1 || editionSize > 500) {
+  failures.push('Edition size must be a whole number from 1 to 500.');
+}
+if (!Number.isInteger(reservationsClaimed) || reservationsClaimed < 0 || (Number.isInteger(editionSize) && reservationsClaimed > editionSize)) {
+  failures.push('Reservations claimed must be a whole number from 0 to the edition size.');
+}
+if (!Number.isInteger(standbyCount) || standbyCount < 0) {
+  failures.push('Standby count must be a non-negative whole number.');
+}
+if (!Number.isInteger(paymentWindowHours) || paymentWindowHours < 1 || paymentWindowHours > 168) {
+  failures.push('Reserved payment window must be a whole number from 1 to 168 hours.');
+}
+if (!Number.isInteger(standbyWindowHours) || standbyWindowHours < 1 || standbyWindowHours > 168) {
+  failures.push('Standby payment window must be a whole number from 1 to 168 hours.');
+}
 
 if (!enabled) {
   console.log('PHAM campaign safety: framework disabled.');
