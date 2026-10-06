@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-size-guide",
+      "settings": {
+        "edition_label": "EDITION 01",
+        "product_code": "PHAM-001",
+        "product_url": "/products/pham-001",
+        "enable_recommendation": false,
+        "intended_chest_ease": 14
+      }
+    }
+  },
+  "order": ["main"]
+}
