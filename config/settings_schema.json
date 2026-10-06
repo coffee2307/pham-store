@@ -2720,12 +2720,6 @@
         "default": "DESIGNED IN VIETNAM / 2026"
       },
       {
-        "type": "text",
-        "id": "pham_campaign_production_origin_label",
-        "label": "Production origin label",
-        "default": "PRODUCED IN DONGGUAN, CHINA"
-      },
-      {
         "type": "number",
         "id": "pham_campaign_edition_size",
         "label": "Edition size",
