@@ -40,6 +40,34 @@ if (schemaFailures.length) {
 const failures = [];
 const warnings = [];
 
+const edition01SizeGuide = 'M,L,XL,XXL';
+const sizeGuideFiles = [
+  'sections/pham-size-guide.liquid',
+  'templates/page.size-guide.json'
+];
+
+if (String(s.pham_campaign_size_options || '') !== edition01SizeGuide) {
+  failures.push('Edition 01 size contract must be M,L,XL,XXL.');
+}
+
+for (const file of sizeGuideFiles) {
+  if (!fs.existsSync(file)) {
+    failures.push(`Edition 01 size guide failure: missing ${file}.`);
+  }
+}
+
+if (fs.existsSync('sections/pham-size-guide.liquid')) {
+  const sizeGuide = fs.readFileSync('sections/pham-size-guide.liquid', 'utf8');
+  for (const size of ['M', 'L', 'XL', 'XXL']) {
+    if (!sizeGuide.includes(`data-pham-fit-size="${size}"`)) {
+      failures.push(`Edition 01 size guide failure: missing ${size} fit row.`);
+    }
+  }
+  if (!sizeGuide.includes('data-pham-fit-form') || !sizeGuide.includes('data-pham-fit-result')) {
+    failures.push('Edition 01 size guide failure: fit-assistant form/result hooks are required.');
+  }
+}
+
 const themeLayout = fs.readFileSync('layout/theme.liquid', 'utf8');
 const robotsSnippet = fs.readFileSync('snippets/pham-robots.liquid', 'utf8');
 
