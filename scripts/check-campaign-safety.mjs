@@ -110,6 +110,28 @@ if (!robotsSnippet.includes('noindex') || !robotsSnippet.includes('nofollow')) {
   failures.push('PHAM robots policy failure: provenance protection must emit noindex,nofollow.');
 }
 
+const publicCampaignApi = fs.readFileSync('backend/worker.js', 'utf8');
+const publicCampaignRuntime = fs.readFileSync('assets/pham-campaign.js', 'utf8');
+const publicEditionPage = fs.readFileSync('sections/pham-edition-campaign.liquid', 'utf8');
+const publicProvenancePage = fs.readFileSync('sections/pham-provenance-record.liquid', 'utf8');
+
+for (const [file, source, marker] of [
+  ['backend/worker.js', publicCampaignApi, 'productionOrigin:'],
+  ['assets/pham-campaign.js', publicCampaignRuntime, 'productionOrigin'],
+  ['sections/pham-edition-campaign.liquid', publicEditionPage, 'Production origin'],
+  ['sections/pham-provenance-record.liquid', publicProvenancePage, 'Production origin'],
+  ['sections/pham-edition-campaign.liquid', publicEditionPage, 'DONGGUAN'],
+  ['sections/pham-provenance-record.liquid', publicProvenancePage, 'DONGGUAN']
+]) {
+  if (source.includes(marker)) {
+    failures.push(`Public provenance privacy failure: ${file} still exposes "${marker}".`);
+  }
+}
+
+if (schemaRaw.includes('pham_campaign_production_origin_label') || raw.includes('pham_campaign_production_origin_label')) {
+  failures.push('Public provenance privacy failure: production origin must not be configurable as storefront copy.');
+}
+
 const productTemplate = fs.readFileSync('templates/product.json', 'utf8');
 const productMain = fs.readFileSync('sections/pham-product-main.liquid', 'utf8');
 const productFocus = fs.readFileSync('sections/pham-product-focus.liquid', 'utf8');
