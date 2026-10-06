@@ -957,11 +957,23 @@ function mountLiveCampaign(root){
 
       var reservationText = root.querySelector('[data-pham-live-reservations]');
       var identityText = root.querySelector('[data-pham-live-identity]');
+      var acquiredText = root.querySelector('[data-pham-live-acquired-count]');
+      var deliveredText = root.querySelector('[data-pham-live-delivered-count]');
+      var designOrigin = root.querySelector('[data-pham-live-design-origin]');
+      var productionOrigin = root.querySelector('[data-pham-live-production-origin]');
+      var archiveNote = root.querySelector('[data-pham-live-archive-note]');
       var reservationMeter = root.querySelector('[data-pham-live-reservation-meter]');
       var identityMeter = root.querySelector('[data-pham-live-identity-meter]');
 
       if(reservationText) reservationText.textContent = reservations + ' / ' + editionSize;
       if(identityText) identityText.textContent = identities + ' / ' + identityLimit;
+      if(acquiredText) acquiredText.textContent = Number(payload.counters.acquired || 0) + ' / ' + editionSize;
+      if(deliveredText) deliveredText.textContent = Number(payload.counters.delivered || 0) + ' / ' + editionSize;
+      if(designOrigin && payload.edition.designOrigin) designOrigin.textContent = payload.edition.designOrigin;
+      if(productionOrigin && payload.edition.productionOrigin) productionOrigin.textContent = payload.edition.productionOrigin;
+      if(archiveNote && payload.edition.archivePermanent){
+        archiveNote.textContent = 'ARCHIVE SEALED · This edition is permanently closed. Its object set and Birth Records remain in the PHAM archive; production will not reopen.';
+      }
 
       if(reservationMeter && editionSize > 0){
         reservationMeter.style.setProperty('--pc-progress', Math.min(100, reservations / editionSize * 100) + '%');
