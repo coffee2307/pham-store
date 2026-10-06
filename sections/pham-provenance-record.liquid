@@ -7,7 +7,6 @@
 {%- assign identity_label = page.metafields.pham.identity_label.value -%}
 {%- assign token_type = page.metafields.pham.token_type.value | default: 'SEALED' -%}
 {%- assign design_origin = page.metafields.pham.design_origin.value | default: settings.pham_campaign_origin_label | default: 'DESIGNED IN VIETNAM / 2026' -%}
-{%- assign production_origin = page.metafields.pham.production_origin.value | default: settings.pham_campaign_production_origin_label | default: 'PRODUCED IN DONGGUAN, CHINA' -%}
 
 <section class="pham-campaign-shell"
   data-pham-provenance-record
@@ -30,7 +29,6 @@
           <div><dt>Birth recorded</dt><dd data-pham-provenance-birth-recorded>—</dd></div>
           <div><dt>Object state</dt><dd data-pham-provenance-lifecycle>PENDING</dd></div>
           <div><dt>Design origin</dt><dd data-pham-provenance-design-origin-copy>{{ design_origin }}</dd></div>
-          <div><dt>Production origin</dt><dd data-pham-provenance-production-origin>{{ production_origin }}</dd></div>
           <div><dt>Design record</dt><dd>{{ page.metafields.pham.design_record.value | default: 'Edition design record retained by PHAM.' }}</dd></div>
           <div><dt>Production record</dt><dd>{{ page.metafields.pham.production_record.value | default: 'Production batch record retained by PHAM.' }}</dd></div>
           <div><dt>QC record</dt><dd>{{ page.metafields.pham.qc_record.value | default: 'Final quality-control status follows the object lifecycle.' }}</dd></div>
