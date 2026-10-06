@@ -1,0 +1,25 @@
+{%- comment -%}
+  Search-engine protection for PHAM collector/utility routes.
+  Public Edition and product pages remain indexable.
+  Provenance token URLs are authentication-bearing routes and must never be indexed.
+{%- endcomment -%}
+{%- liquid
+  assign pham_robots_noindex = false
+  assign pham_robots_nofollow = false
+
+  if request.path contains '/pages/provenance'
+    assign pham_robots_noindex = true
+    assign pham_robots_nofollow = true
+  elsif request.path contains '/pages/reservation-status'
+    assign pham_robots_noindex = true
+  elsif request.path contains '/pages/object-identity'
+    assign pham_robots_noindex = true
+  elsif request.path contains '/pages/referral'
+    assign pham_robots_noindex = true
+  elsif request.path contains '/pages/standby'
+    assign pham_robots_noindex = true
+  endif
+-%}
+{%- if pham_robots_noindex -%}
+  <meta name="robots" content="noindex,{% if pham_robots_nofollow %}nofollow{% else %}follow{% endif %}">
+{%- endif -%}

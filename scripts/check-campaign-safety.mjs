@@ -40,6 +40,27 @@ if (schemaFailures.length) {
 const failures = [];
 const warnings = [];
 
+const themeLayout = fs.readFileSync('layout/theme.liquid', 'utf8');
+const robotsSnippet = fs.readFileSync('snippets/pham-robots.liquid', 'utf8');
+
+if (!themeLayout.includes("render 'pham-robots'")) {
+  failures.push('PHAM robots policy failure: layout/theme.liquid must render pham-robots.');
+}
+for (const privateRoute of [
+  '/pages/provenance',
+  '/pages/reservation-status',
+  '/pages/object-identity',
+  '/pages/referral',
+  '/pages/standby'
+]) {
+  if (!robotsSnippet.includes(privateRoute)) {
+    failures.push(`PHAM robots policy failure: missing private route ${privateRoute}.`);
+  }
+}
+if (!robotsSnippet.includes('noindex') || !robotsSnippet.includes('nofollow')) {
+  failures.push('PHAM robots policy failure: provenance protection must emit noindex,nofollow.');
+}
+
 const productTemplate = fs.readFileSync('templates/product.json', 'utf8');
 const productMain = fs.readFileSync('sections/pham-product-main.liquid', 'utf8');
 const productFocus = fs.readFileSync('sections/pham-product-focus.liquid', 'utf8');
