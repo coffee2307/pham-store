@@ -40,6 +40,29 @@ if (schemaFailures.length) {
 const failures = [];
 const warnings = [];
 
+const productTemplate = fs.readFileSync('templates/product.json', 'utf8');
+const productMain = fs.readFileSync('sections/pham-product-main.liquid', 'utf8');
+const productFocus = fs.readFileSync('sections/pham-product-focus.liquid', 'utf8');
+const productCta = fs.readFileSync('snippets/pham-product-purchase-cta.liquid', 'utf8');
+
+const staleProductCopy = [
+  ['templates/product.json', productTemplate, 'Complimentary worldwide express shipping'],
+  ['templates/product.json', productTemplate, 'pre-order access opens'],
+  ['templates/product.json', productTemplate, 'JOIN THE WAITLIST'],
+  ['sections/pham-product-main.liquid', productMain, 'Complimentary worldwide express shipping'],
+  ['sections/pham-product-focus.liquid', productFocus, 'SECURE PRE-ORDER']
+];
+
+for (const [file, source, phrase] of staleProductCopy) {
+  if (source.includes(phrase)) {
+    failures.push(`PHAM product access copy failure: ${file} still contains "${phrase}".`);
+  }
+}
+
+if (!productCta.includes("when 'prelaunch'") || !productCta.includes("EDITION 01 · ACCESS SOON")) {
+  failures.push('PHAM product access copy failure: prelaunch campaign CTA must stay inside the Edition protocol.');
+}
+
 const enabled = s.pham_campaign_enabled === true;
 const commerceReady = s.pham_campaign_commerce_ready === true;
 const includeLookbook = s.pham_campaign_include_digital_lookbook === true;
