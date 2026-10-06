@@ -75,6 +75,18 @@ if (fs.existsSync('sections/pham-size-guide.liquid')) {
   if (!sizeGuide.includes('data-pham-fit-form') || !sizeGuide.includes('data-pham-fit-result')) {
     failures.push('Edition 01 size guide failure: fit-assistant form/result hooks are required.');
   }
+  for (const marker of [
+    'data-intended-ease="{{ section.settings.intended_chest_ease | default: 30 }}"',
+    '"default":65',
+    '"default":67',
+    '"default":69',
+    '"default":71',
+    'XL = TECH PACK ANCHOR'
+  ]) {
+    if (!sizeGuide.includes(marker)) {
+      failures.push(`Edition 01 tech-pack grading failure: missing marker ${marker}.`);
+    }
+  }
 }
 
 const themeLayout = fs.readFileSync('layout/theme.liquid', 'utf8');
