@@ -29,6 +29,7 @@
   data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}"
   data-currency="{{ cart.currency.iso_code | default: localization.country.currency.iso_code | default: 'USD' }}"
+  data-product-code="{{ settings.pham_campaign_product_code | default: 'PHAM-001' | escape }}"
   data-edition-size="{{ settings.pham_campaign_edition_size | default: 50 }}"
   {% if payment_deadline != blank %}data-payment-deadline="{{ payment_deadline | escape }}"{% endif %}>
   <div class="pham-campaign-inner">
