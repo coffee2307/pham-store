@@ -50,8 +50,8 @@ GitHub Actions requires:
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_D1_DATABASE_ID`
 - `SHOPIFY_SHOP_DOMAIN`
-- `SHOPIFY_ADMIN_TOKEN`
-- `SHOPIFY_API_SECRET`
+- `SHOPIFY_CLIENT_ID`
+- `SHOPIFY_CLIENT_SECRET`
 - `INTERNAL_ADMIN_KEY`
 - `CAMPAIGN_BACKEND_URL`
 - `STOREFRONT_ORIGIN`
@@ -172,13 +172,19 @@ After Worker/App Proxy setup:
 2. leave COMMERCE READY off;
 3. run **Verify PHAM Campaign Staging**.
 
-The workflow checks:
+The workflow is a safe prelaunch E2E pass. It checks:
 
 - Worker health;
 - backend readiness;
-- App Proxy campaign route;
-- canonical Size options;
-- campaign remains closed.
+- Shopify App Proxy forwarding into the Worker;
+- canonical Size options M / L / XL / XXL;
+- public campaign payload exposes Design Origin but not Production Origin;
+- anonymous Collector Access fails closed;
+- invalid Birth Record tokens fail closed;
+- Standby POST cannot mutate data while the edition is in `prelaunch`;
+- campaign remains exactly `prelaunch`.
+
+Production-origin metadata may remain in internal edition records for operations/provenance, but it is not storefront or public Birth Record data.
 
 ## 7. Canonical Size setup
 
