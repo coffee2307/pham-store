@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS editions (
   identity_limit INTEGER NOT NULL,
   payment_window_hours INTEGER NOT NULL DEFAULT 72,
   standby_window_hours INTEGER NOT NULL DEFAULT 48,
-  size_options_csv TEXT NOT NULL DEFAULT 'XS,S,M,L,XL',
+  size_options_csv TEXT NOT NULL DEFAULT 'M,L,XL,XXL',
   final_product_variant_id TEXT,
   identity_inventory_item_id TEXT,
   identity_location_id TEXT,
@@ -186,7 +186,7 @@ INSERT OR IGNORE INTO editions (
   design_origin, production_origin
 ) VALUES (
   'edition-01', 'EDITION 01', 'PHAM-001', 50, 'prelaunch',
-  2499, 19900, 15, 72, 48, 'XS,S,M,L,XL',
+  2499, 19900, 15, 72, 48, 'M,L,XL,XXL',
   'gid://shopify/ProductVariant/50501819662592',
   'gid://shopify/InventoryItem/52648986214656',
   'gid://shopify/Location/96415613184',

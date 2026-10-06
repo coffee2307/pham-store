@@ -1,151 +1,182 @@
-<!-- # DO NOT EDIT — managed by PHAM theme architecture -->
-<section class="pham-size-guide pham-container"
-         data-pham-size-guide
-         role="region"
-         aria-labelledby="pham-size-guide-heading-{{ section.id }}">
-  <header class="pham-size-guide__head reveal-up">
-    {%- if section.settings.eyebrow != blank -%}
-      <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
-    {%- endif -%}
-    <h1 id="pham-size-guide-heading-{{ section.id }}" class="pham-size-guide__title">
-      {{ section.settings.heading | default: 'Size guide' }}
-    </h1>
-    {%- if section.settings.intro != blank -%}
-      <div class="pham-size-guide__intro">{{ section.settings.intro }}</div>
-    {%- endif -%}
-  </header>
+{%- liquid
+  assign edition_label = section.settings.edition_label | default: 'EDITION 01'
+  assign product_code = section.settings.product_code | default: 'PHAM-001'
+  assign recommendation_enabled = section.settings.enable_recommendation
+-%}
 
-  <div class="pham-size-guide__table-wrap reveal-up" tabindex="0" role="region" aria-label="Size chart">
-    <table class="pham-size-guide__table">
-      <thead>
-        <tr>
-          <th scope="col">Size</th>
-          <th scope="col">Chest (cm)</th>
-          <th scope="col">Waist (cm)</th>
-          <th scope="col">Hip (cm)</th>
-          <th scope="col">Length (cm)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {%- for block in section.blocks -%}
-          {%- if block.type == 'size_row' -%}
-            <tr {{ block.shopify_attributes }}>
-              <th scope="row">{{ block.settings.size_label }}</th>
-              <td>{{ block.settings.chest }}</td>
-              <td>{{ block.settings.waist }}</td>
-              <td>{{ block.settings.hip }}</td>
-              <td>{{ block.settings.length }}</td>
+<section class="pham-fit" data-pham-fit-guide data-recommendation-enabled="{% if recommendation_enabled %}true{% else %}false{% endif %}" data-intended-ease="{{ section.settings.intended_chest_ease | default: 14 }}">
+  <div class="pham-fit__inner">
+    <header class="pham-fit__hero">
+      <div>
+        <p class="pham-fit__kicker">PHAM FIT SYSTEM / 001</p>
+        <h1>{{ product_code }}<br>SIZE GUIDE</h1>
+      </div>
+      <div class="pham-fit__hero-meta">
+        <span>{{ edition_label }}</span>
+        <span>M / L / XL / XXL</span>
+        <span>CM · EDITION SPECIFIC</span>
+      </div>
+    </header>
+
+    <div class="pham-fit__notice">
+      <strong>THIS GUIDE BELONGS TO {{ product_code }} / {{ edition_label }} ONLY.</strong>
+      <span>PHAM sizing is defined per object and per edition. Do not reuse this chart for another PHAM release.</span>
+    </div>
+
+    <div class="pham-fit__intro-grid">
+      <div class="pham-fit__copy">
+        <p class="pham-fit__eyebrow">01 / FIT INTENT</p>
+        <h2>Cropped by design.<br>Room through the body.</h2>
+        <p>{{ product_code }} is a cropped bomber. Size should be judged by the finished garment measurements, your chest and shoulder measurements, and how much room you want through the body—not by the letter on another brand's label.</p>
+        <p>For the most reliable comparison, measure a jacket you already own and like, laid flat, then compare it with the finished-garment chart below.</p>
+      </div>
+
+      <div class="pham-fit__figure" aria-label="Technical mannequin showing PHAM-001 measurement points">
+        <svg viewBox="0 0 360 460" role="img" aria-labelledby="PhamFitFigureTitle">
+          <title id="PhamFitFigureTitle">Technical mannequin and jacket measurement points</title>
+          <g fill="none" stroke="currentColor" stroke-width="1.2">
+            <circle cx="180" cy="54" r="30"/>
+            <path d="M145 88 C132 108 124 145 127 195 L136 310 C140 344 153 388 160 430"/>
+            <path d="M215 88 C228 108 236 145 233 195 L224 310 C220 344 207 388 200 430"/>
+            <path d="M145 94 C160 105 200 105 215 94"/>
+            <path d="M127 150 L82 245 M233 150 L278 245 M82 245 L70 340 M278 245 L290 340"/>
+            <path d="M142 112 C118 125 108 160 112 214 L120 270 C145 284 215 284 240 270 L248 214 C252 160 242 125 218 112"/>
+            <path d="M112 165 H248 M142 112 H218 M252 124 L289 245 M260 112 V270"/>
+            <path d="M180 112 L180 270" stroke-dasharray="4 5"/>
+          </g>
+          <g fill="currentColor" font-size="11" font-family="Arial, sans-serif">
+            <text x="174" y="157">A</text><text x="176" y="103">B</text><text x="292" y="190">C</text><text x="267" y="196">D</text>
+          </g>
+        </svg>
+        <div class="pham-fit__figure-key">
+          <span><b>A</b> Chest width</span><span><b>B</b> Shoulder</span><span><b>C</b> Sleeve</span><span><b>D</b> Body length</span>
+        </div>
+      </div>
+    </div>
+
+    <section class="pham-fit__section">
+      <div class="pham-fit__section-head">
+        <p class="pham-fit__eyebrow">02 / FINISHED GARMENT</p>
+        <h2>{{ product_code }} measurements</h2>
+        <p>Measurements below refer to the garment itself, laid flat. Chest is measured pit-to-pit. Values remain blank until PHAM verifies the final production size specification.</p>
+      </div>
+
+      <div class="pham-fit__table-wrap">
+        <table class="pham-fit__table">
+          <thead><tr><th>Size</th><th>A · Chest width</th><th>B · Shoulder</th><th>C · Sleeve</th><th>D · Body length</th></tr></thead>
+          <tbody>
+            <tr data-pham-fit-size="M" data-chest="{{ section.settings.m_chest }}" data-shoulder="{{ section.settings.m_shoulder }}" data-sleeve="{{ section.settings.m_sleeve }}" data-length="{{ section.settings.m_length }}">
+              <th>M</th><td>{% if section.settings.m_chest > 0 %}{{ section.settings.m_chest }} cm{% else %}—{% endif %}</td><td>{% if section.settings.m_shoulder > 0 %}{{ section.settings.m_shoulder }} cm{% else %}—{% endif %}</td><td>{% if section.settings.m_sleeve > 0 %}{{ section.settings.m_sleeve }} cm{% else %}—{% endif %}</td><td>{% if section.settings.m_length > 0 %}{{ section.settings.m_length }} cm{% else %}—{% endif %}</td>
             </tr>
-          {%- endif -%}
-        {%- endfor -%}
-      </tbody>
-    </table>
-  </div>
+            <tr data-pham-fit-size="L" data-chest="{{ section.settings.l_chest }}" data-shoulder="{{ section.settings.l_shoulder }}" data-sleeve="{{ section.settings.l_sleeve }}" data-length="{{ section.settings.l_length }}">
+              <th>L</th><td>{% if section.settings.l_chest > 0 %}{{ section.settings.l_chest }} cm{% else %}—{% endif %}</td><td>{% if section.settings.l_shoulder > 0 %}{{ section.settings.l_shoulder }} cm{% else %}—{% endif %}</td><td>{% if section.settings.l_sleeve > 0 %}{{ section.settings.l_sleeve }} cm{% else %}—{% endif %}</td><td>{% if section.settings.l_length > 0 %}{{ section.settings.l_length }} cm{% else %}—{% endif %}</td>
+            </tr>
+            <tr data-pham-fit-size="XL" data-chest="{{ section.settings.xl_chest }}" data-shoulder="{{ section.settings.xl_shoulder }}" data-sleeve="{{ section.settings.xl_sleeve }}" data-length="{{ section.settings.xl_length }}">
+              <th>XL</th><td>{% if section.settings.xl_chest > 0 %}{{ section.settings.xl_chest }} cm{% else %}—{% endif %}</td><td>{% if section.settings.xl_shoulder > 0 %}{{ section.settings.xl_shoulder }} cm{% else %}—{% endif %}</td><td>{% if section.settings.xl_sleeve > 0 %}{{ section.settings.xl_sleeve }} cm{% else %}—{% endif %}</td><td>{% if section.settings.xl_length > 0 %}{{ section.settings.xl_length }} cm{% else %}—{% endif %}</td>
+            </tr>
+            <tr data-pham-fit-size="XXL" data-chest="{{ section.settings.xxl_chest }}" data-shoulder="{{ section.settings.xxl_shoulder }}" data-sleeve="{{ section.settings.xxl_sleeve }}" data-length="{{ section.settings.xxl_length }}">
+              <th>XXL</th><td>{% if section.settings.xxl_chest > 0 %}{{ section.settings.xxl_chest }} cm{% else %}—{% endif %}</td><td>{% if section.settings.xxl_shoulder > 0 %}{{ section.settings.xxl_shoulder }} cm{% else %}—{% endif %}</td><td>{% if section.settings.xxl_sleeve > 0 %}{{ section.settings.xxl_sleeve }} cm{% else %}—{% endif %}</td><td>{% if section.settings.xxl_length > 0 %}{{ section.settings.xxl_length }} cm{% else %}—{% endif %}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {% unless recommendation_enabled %}
+        <p class="pham-fit__calibration">FINAL PRODUCTION MEASUREMENTS PENDING · AUTOMATIC SIZE RECOMMENDATION IS LOCKED UNTIL THE EDITION 01 SPEC IS VERIFIED.</p>
+      {% endunless %}
+    </section>
 
-  {%- if section.settings.note != blank -%}
-    <div class="pham-size-guide__note reveal-up">{{ section.settings.note }}</div>
-  {%- endif -%}
+    <section class="pham-fit__section">
+      <div class="pham-fit__section-head">
+        <p class="pham-fit__eyebrow">03 / HOW TO MEASURE</p><h2>Measure your body once.</h2>
+      </div>
+      <div class="pham-fit__measure-grid">
+        <article><span>01</span><h3>Chest</h3><p>Measure horizontally around the fullest part of your chest. Keep the tape level and relaxed.</p></article>
+        <article><span>02</span><h3>Waist</h3><p>Measure around your natural waist without pulling the tape tight. This is secondary for {{ product_code }}.</p></article>
+        <article><span>03</span><h3>Hips</h3><p>Measure around the widest point of the hips. Use this as proportion context rather than the primary jacket measurement.</p></article>
+        <article><span>04</span><h3>Shoulder</h3><p>Measure straight across the back from one shoulder point to the other. Shoulder fit strongly affects how the bomber sits.</p></article>
+      </div>
+      <div class="pham-fit__compare"><strong>BETTER METHOD / COMPARE A JACKET</strong><p>Lay a jacket you already like flat. Measure pit-to-pit chest width, shoulder seam to shoulder seam, shoulder seam to cuff, and back neck to hem. Compare those numbers directly with the finished-garment chart.</p></div>
+    </section>
+
+    <section class="pham-fit__section">
+      <div class="pham-fit__section-head">
+        <p class="pham-fit__eyebrow">04 / FIT ASSISTANT</p><h2>Find your PHAM-001 fit.</h2>
+        <p>Height and weight provide context. Chest and shoulder measurements drive the recommendation when verified garment measurements are available. Your inputs stay in this browser and are not submitted to PHAM.</p>
+      </div>
+
+      <div class="pham-fit__assistant-grid">
+        <form class="pham-fit__form" data-pham-fit-form>
+          <label><span>Height</span><div><input type="number" name="height" min="140" max="215" inputmode="decimal" placeholder="175"><em>CM</em></div></label>
+          <label><span>Weight</span><div><input type="number" name="weight" min="35" max="180" inputmode="decimal" placeholder="65"><em>KG</em></div></label>
+          <label><span>Chest</span><div><input type="number" name="chest" min="70" max="160" inputmode="decimal" placeholder="96" required><em>CM</em></div></label>
+          <label><span>Waist</span><div><input type="number" name="waist" min="55" max="160" inputmode="decimal" placeholder="78"><em>CM</em></div></label>
+          <label><span>Hips</span><div><input type="number" name="hips" min="70" max="170" inputmode="decimal" placeholder="96"><em>CM</em></div></label>
+          <label><span>Shoulder</span><div><input type="number" name="shoulder" min="32" max="65" inputmode="decimal" placeholder="45"><em>CM</em></div></label>
+          <fieldset>
+            <legend>Fit preference</legend>
+            <label class="pham-fit__radio"><input type="radio" name="preference" value="close"><span>CLOSE</span></label>
+            <label class="pham-fit__radio"><input type="radio" name="preference" value="intended" checked><span>INTENDED</span></label>
+            <label class="pham-fit__radio"><input type="radio" name="preference" value="relaxed"><span>RELAXED</span></label>
+          </fieldset>
+          <button type="submit">ANALYZE FIT</button>
+        </form>
+
+        <div class="pham-fit__result" data-pham-fit-result aria-live="polite">
+          <span class="pham-fit__result-label">PHAM FIT / {{ product_code }}</span>
+          <div class="pham-fit__result-size" data-pham-fit-result-size>—</div>
+          <h3 data-pham-fit-result-title>{% if recommendation_enabled %}Enter your measurements{% else %}Calibration pending{% endif %}</h3>
+          <p data-pham-fit-result-copy>{% if recommendation_enabled %}The assistant compares your body chest and shoulder measurements with the verified {{ product_code }} finished-garment specification.{% else %}PHAM has not enabled automatic recommendations yet because the final Edition 01 production measurements have not been entered. The system will not guess a size.{% endif %}</p>
+          <div class="pham-fit__result-meta" data-pham-fit-result-meta></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="pham-fit__footer">
+      <p><strong>FIT NOTE.</strong> A size recommendation is guidance, not a guarantee. Body shape, layering and personal preference change how a cropped bomber feels.</p>
+      <a href="{{ section.settings.product_url | default: '/products/pham-001' }}">RETURN TO {{ product_code }} →</a>
+    </footer>
+  </div>
 </section>
 
 <style>
-  .pham-size-guide { padding-block: var(--space-2xl) var(--space-3xl); max-width: 880px; }
-  .pham-size-guide__title {
-    margin: 0 0 var(--space-sm);
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    letter-spacing: var(--tracking-wide);
-    text-transform: uppercase;
-  }
-  .pham-size-guide__intro,
-  .pham-size-guide__note {
-    color: var(--color-smoke);
-    line-height: 1.65;
-  }
-  .pham-size-guide__intro { margin-top: var(--space-sm); }
-  .pham-size-guide__table-wrap {
-    margin-top: var(--space-xl);
-    overflow-x: auto;
-    border: 1px solid var(--color-ash);
-  }
-  .pham-size-guide__table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-luxury);
-    text-transform: uppercase;
-  }
-  .pham-size-guide__table th,
-  .pham-size-guide__table td {
-    padding: var(--space-sm) var(--space-md);
-    border-bottom: 1px solid var(--color-ash);
-    text-align: left;
-    white-space: nowrap;
-  }
-  .pham-size-guide__table thead th {
-    color: var(--color-smoke);
-    background: rgba(255, 255, 255, 0.02);
-  }
-  .pham-size-guide__table tbody th { color: var(--color-white); }
-  .pham-size-guide__table tbody tr:last-child th,
-  .pham-size-guide__table tbody tr:last-child td { border-bottom: none; }
-  .pham-size-guide__note { margin-top: var(--space-lg); font-size: var(--text-sm); }
+.pham-fit{background:#050505;color:#f2f2ef;min-height:100vh;padding:clamp(96px,10vw,150px) 0 80px}.pham-fit *{box-sizing:border-box}.pham-fit__inner{width:min(1180px,calc(100% - 40px));margin:0 auto}.pham-fit__hero{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;padding-bottom:32px;border-bottom:1px solid #2b2b2b}.pham-fit__kicker,.pham-fit__eyebrow,.pham-fit__hero-meta,.pham-fit__result-label,.pham-fit__calibration{font:500 11px/1.4 monospace;letter-spacing:.14em;text-transform:uppercase}.pham-fit__hero h1{font-size:clamp(48px,8vw,112px);line-height:.86;letter-spacing:-.055em;margin:18px 0 0;font-weight:500}.pham-fit__hero-meta{display:grid;gap:8px;text-align:right;color:#9a9a96}.pham-fit__notice{display:grid;grid-template-columns:1fr 2fr;gap:30px;padding:18px 0;border-bottom:1px solid #2b2b2b;font-size:12px;letter-spacing:.04em}.pham-fit__notice span{color:#a4a4a0}.pham-fit__intro-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:64px;padding:80px 0}.pham-fit__copy h2,.pham-fit__section-head h2{font-size:clamp(34px,5vw,68px);line-height:.96;letter-spacing:-.04em;margin:16px 0 28px;font-weight:500}.pham-fit__copy>p:not(.pham-fit__eyebrow),.pham-fit__section-head>p:not(.pham-fit__eyebrow){max-width:680px;color:#aaa9a5;font-size:15px;line-height:1.7}.pham-fit__figure{border:1px solid #292929;padding:24px;background:#090909}.pham-fit__figure svg{display:block;width:100%;max-height:440px;color:#d7d7d2}.pham-fit__figure-key{display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid #292929;padding-top:18px;font:500 11px/1.4 monospace;color:#9a9a96}.pham-fit__figure-key b{color:#fff;margin-right:8px}.pham-fit__section{padding:72px 0;border-top:1px solid #2b2b2b}.pham-fit__section-head{display:grid;grid-template-columns:180px 1fr;column-gap:30px}.pham-fit__section-head h2,.pham-fit__section-head>p:last-child{grid-column:2}.pham-fit__table-wrap{overflow:auto;margin-top:40px}.pham-fit__table{width:100%;border-collapse:collapse;min-width:720px}.pham-fit__table th,.pham-fit__table td{padding:20px 16px;border-bottom:1px solid #292929;text-align:left;font-size:13px}.pham-fit__table thead th{font:500 10px/1.4 monospace;letter-spacing:.1em;color:#858580;text-transform:uppercase}.pham-fit__table tbody th{font-size:22px;font-weight:500}.pham-fit__calibration{margin:22px 0 0;color:#a8a8a3}.pham-fit__measure-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#292929;margin-top:42px;border:1px solid #292929}.pham-fit__measure-grid article{background:#070707;padding:26px;min-height:210px}.pham-fit__measure-grid article>span{font:500 10px monospace;color:#777}.pham-fit__measure-grid h3{font-size:20px;margin:42px 0 12px}.pham-fit__measure-grid p,.pham-fit__compare p{font-size:13px;line-height:1.65;color:#9e9e99}.pham-fit__compare{display:grid;grid-template-columns:1fr 2fr;gap:30px;margin-top:28px;padding:24px;border:1px solid #292929}.pham-fit__compare strong{font:500 11px monospace;letter-spacing:.1em}.pham-fit__compare p{margin:0}.pham-fit__assistant-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#292929;border:1px solid #292929;margin-top:42px}.pham-fit__form,.pham-fit__result{background:#070707;padding:clamp(24px,4vw,48px)}.pham-fit__form{display:grid;grid-template-columns:1fr 1fr;gap:20px}.pham-fit__form>label>span,.pham-fit__form legend{display:block;margin-bottom:8px;font:500 10px monospace;letter-spacing:.1em;text-transform:uppercase;color:#8c8c87}.pham-fit__form>label>div{display:flex;border-bottom:1px solid #444;align-items:center}.pham-fit__form input[type=number]{width:100%;background:transparent;border:0;color:#fff;padding:10px 0;font-size:20px;outline:0}.pham-fit__form em{font:500 10px monospace;color:#777;font-style:normal}.pham-fit__form fieldset{grid-column:1/-1;border:0;padding:14px 0 0;margin:0;display:flex;gap:8px;flex-wrap:wrap}.pham-fit__radio input{position:absolute;opacity:0;pointer-events:none}.pham-fit__radio span{display:block;border:1px solid #343434;padding:11px 16px;font:500 10px monospace;letter-spacing:.08em;cursor:pointer}.pham-fit__radio input:checked+span{background:#f0f0eb;color:#050505;border-color:#f0f0eb}.pham-fit__form button{grid-column:1/-1;margin-top:8px;background:#f0f0eb;color:#050505;border:0;padding:16px 20px;font:600 11px monospace;letter-spacing:.12em;cursor:pointer}.pham-fit__result{display:flex;flex-direction:column;justify-content:center;min-height:440px}.pham-fit__result-label{color:#777}.pham-fit__result-size{font-size:clamp(90px,14vw,180px);line-height:.8;letter-spacing:-.07em;margin:36px 0 28px}.pham-fit__result h3{font-size:24px;margin:0 0 12px}.pham-fit__result p{max-width:500px;color:#9f9f9a;line-height:1.65;font-size:13px}.pham-fit__result-meta{margin-top:24px;font:500 10px/1.7 monospace;letter-spacing:.06em;color:#858580;text-transform:uppercase;white-space:pre-line}.pham-fit__footer{display:flex;justify-content:space-between;gap:40px;padding-top:32px;border-top:1px solid #2b2b2b}.pham-fit__footer p{max-width:680px;color:#8f8f8b;font-size:12px;line-height:1.6;margin:0}.pham-fit__footer a{color:#fff;text-decoration:none;font:500 11px monospace;letter-spacing:.08em;white-space:nowrap}@media(max-width:760px){.pham-fit__inner{width:min(100% - 24px,1180px)}.pham-fit__hero,.pham-fit__notice,.pham-fit__intro-grid,.pham-fit__section-head,.pham-fit__compare,.pham-fit__assistant-grid{grid-template-columns:1fr}.pham-fit__hero-meta{text-align:left}.pham-fit__notice{gap:8px}.pham-fit__intro-grid{gap:36px;padding:56px 0}.pham-fit__section{padding:52px 0}.pham-fit__section-head h2,.pham-fit__section-head>p:last-child{grid-column:1}.pham-fit__measure-grid{grid-template-columns:1fr 1fr}.pham-fit__measure-grid article{min-height:180px}.pham-fit__form{grid-template-columns:1fr}.pham-fit__form fieldset,.pham-fit__form button{grid-column:1}.pham-fit__result{min-height:360px}.pham-fit__footer{flex-direction:column}}@media(max-width:480px){.pham-fit__measure-grid{grid-template-columns:1fr}}
 </style>
+
+<script>
+(function(){
+  var root=document.currentScript&&document.currentScript.previousElementSibling;while(root&&!root.matches('[data-pham-fit-guide]'))root=root.previousElementSibling;if(!root)root=document.querySelector('[data-pham-fit-guide]');if(!root)return;
+  var form=root.querySelector('[data-pham-fit-form]'),sizeOut=root.querySelector('[data-pham-fit-result-size]'),titleOut=root.querySelector('[data-pham-fit-result-title]'),copyOut=root.querySelector('[data-pham-fit-result-copy]'),metaOut=root.querySelector('[data-pham-fit-result-meta]');
+  var enabled=root.dataset.recommendationEnabled==='true',intendedEase=Number(root.dataset.intendedEase||14);
+  function num(v){var n=Number(v);return Number.isFinite(n)?n:0}
+  var sizes=Array.prototype.map.call(root.querySelectorAll('[data-pham-fit-size]'),function(row){return{size:row.dataset.phamFitSize,chestFlat:num(row.dataset.chest),shoulder:num(row.dataset.shoulder),sleeve:num(row.dataset.sleeve),length:num(row.dataset.length)}})
+  function calibrated(){return enabled&&sizes.length===4&&sizes.every(function(x){return x.chestFlat>0&&x.shoulder>0&&x.sleeve>0&&x.length>0})}
+  form.addEventListener('submit',function(e){e.preventDefault();if(!calibrated()){sizeOut.textContent='—';titleOut.textContent='Calibration pending';copyOut.textContent='PHAM has not enabled automatic recommendations because the verified Edition 01 production measurements are incomplete. The system will not estimate a size from generic brand data.';metaOut.textContent='AVAILABLE SIZES · M / L / XL / XXL\nNEXT INPUT · VERIFIED PHAM-001 GARMENT SPEC';return}
+    var data=new FormData(form),chest=num(data.get('chest')),shoulder=num(data.get('shoulder')),height=num(data.get('height')),weight=num(data.get('weight')),preference=String(data.get('preference')||'intended');if(chest<=0){sizeOut.textContent='—';titleOut.textContent='Chest measurement required';copyOut.textContent='Measure around the fullest part of your chest in centimeters, then run the fit analysis again.';metaOut.textContent='';return}
+    var adjust=preference==='close'?-4:(preference==='relaxed'?6:0),targetEase=Math.max(4,intendedEase+adjust),targetChest=chest+targetEase;
+    var ranked=sizes.map(function(x){var garmentChest=x.chestFlat*2,chestDelta=Math.abs(garmentChest-targetChest),shoulderDelta=shoulder>0?Math.abs(x.shoulder-(shoulder+1.5)):0;return Object.assign({},x,{garmentChest:garmentChest,score:chestDelta+(shoulder>0?shoulderDelta*1.5:0)})}).sort(function(a,b){return a.score-b.score});
+    var best=ranked[0],second=ranked[1],actualEase=best.garmentChest-chest;sizeOut.textContent=best.size;titleOut.textContent=preference==='close'?'Closer silhouette':(preference==='relaxed'?'More room through the body':'PHAM intended fit');copyOut.textContent='Recommended from the verified PHAM-001 garment measurements and your selected fit preference. Check shoulder and body length in the chart before confirming your final size.';metaOut.textContent='BODY CHEST · '+chest.toFixed(0)+' CM\nGARMENT CHEST · '+best.garmentChest.toFixed(0)+' CM\nCHEST EASE · '+actualEase.toFixed(0)+' CM\n'+(height?'HEIGHT · '+height.toFixed(0)+' CM\n':'')+(weight?'WEIGHT · '+weight.toFixed(0)+' KG · CONTEXT ONLY\n':'')+(second?'ALTERNATIVE · '+second.size:'')
+  })
+})();
+</script>
 
 {% schema %}
 {
-  "name": "PHAM Size Guide",
-  "tag": "section",
-  "class": "pham-size-guide-section",
+  "name": "PHAM edition size guide",
   "settings": [
-    {
-      "type": "text",
-      "id": "eyebrow",
-      "label": "Eyebrow",
-      "default": "FIT"
-    },
-    {
-      "type": "text",
-      "id": "heading",
-      "label": "Heading",
-      "default": "Size guide"
-    },
-    {
-      "type": "richtext",
-      "id": "intro",
-      "label": "Intro",
-      "default": "<p>Measurements are body references in centimetres. For a relaxed fit, choose your usual size. Between sizes — size up.</p>"
-    },
-    {
-      "type": "richtext",
-      "id": "note",
-      "label": "Note below table",
-      "default": "<p>Need help? Include your height, weight, and preferred fit in the waitlist form under Other requests.</p>"
-    }
+    {"type":"text","id":"edition_label","label":"Edition label","default":"EDITION 01"},
+    {"type":"text","id":"product_code","label":"Product code","default":"PHAM-001"},
+    {"type":"url","id":"product_url","label":"Product URL"},
+    {"type":"checkbox","id":"enable_recommendation","label":"Enable automatic fit recommendation","default":false,"info":"Enable only after all four production size measurements below are verified."},
+    {"type":"number","id":"intended_chest_ease","label":"Intended chest ease (cm)","default":14,"info":"Calibration value for the intended PHAM fit. Close fit subtracts 4 cm; relaxed fit adds 6 cm."},
+    {"type":"header","content":"M · verified garment measurements"},
+    {"type":"number","id":"m_chest","label":"M chest width / flat (cm)"},{"type":"number","id":"m_shoulder","label":"M shoulder (cm)"},{"type":"number","id":"m_sleeve","label":"M sleeve (cm)"},{"type":"number","id":"m_length","label":"M body length (cm)"},
+    {"type":"header","content":"L · verified garment measurements"},
+    {"type":"number","id":"l_chest","label":"L chest width / flat (cm)"},{"type":"number","id":"l_shoulder","label":"L shoulder (cm)"},{"type":"number","id":"l_sleeve","label":"L sleeve (cm)"},{"type":"number","id":"l_length","label":"L body length (cm)"},
+    {"type":"header","content":"XL · verified garment measurements"},
+    {"type":"number","id":"xl_chest","label":"XL chest width / flat (cm)"},{"type":"number","id":"xl_shoulder","label":"XL shoulder (cm)"},{"type":"number","id":"xl_sleeve","label":"XL sleeve (cm)"},{"type":"number","id":"xl_length","label":"XL body length (cm)"},
+    {"type":"header","content":"XXL · verified garment measurements"},
+    {"type":"number","id":"xxl_chest","label":"XXL chest width / flat (cm)"},{"type":"number","id":"xxl_shoulder","label":"XXL shoulder (cm)"},{"type":"number","id":"xxl_sleeve","label":"XXL sleeve (cm)"},{"type":"number","id":"xxl_length","label":"XXL body length (cm)"}
   ],
-  "blocks": [
-    {
-      "type": "size_row",
-      "name": "Size row",
-      "settings": [
-        { "type": "text", "id": "size_label", "label": "Size", "default": "M" },
-        { "type": "text", "id": "chest", "label": "Chest (cm)", "default": "96–100" },
-        { "type": "text", "id": "waist", "label": "Waist (cm)", "default": "78–82" },
-        { "type": "text", "id": "hip", "label": "Hip (cm)", "default": "96–100" },
-        { "type": "text", "id": "length", "label": "Length (cm)", "default": "72" }
-      ]
-    }
-  ],
-  "presets": [
-    {
-      "name": "PHAM Size Guide",
-      "blocks": [
-        { "type": "size_row", "settings": { "size_label": "XS", "chest": "84–88", "waist": "66–70", "hip": "84–88", "length": "68" } },
-        { "type": "size_row", "settings": { "size_label": "S", "chest": "88–92", "waist": "70–74", "hip": "88–92", "length": "70" } },
-        { "type": "size_row", "settings": { "size_label": "M", "chest": "96–100", "waist": "78–82", "hip": "96–100", "length": "72" } },
-        { "type": "size_row", "settings": { "size_label": "L", "chest": "104–108", "waist": "86–90", "hip": "104–108", "length": "74" } },
-        { "type": "size_row", "settings": { "size_label": "XL", "chest": "112–116", "waist": "94–98", "hip": "112–116", "length": "76" } }
-      ]
-    }
-  ]
+  "presets": [{"name":"PHAM edition size guide"}]
 }
 {% endschema %}

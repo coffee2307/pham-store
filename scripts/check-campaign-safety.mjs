@@ -40,6 +40,43 @@ if (schemaFailures.length) {
 const failures = [];
 const warnings = [];
 
+const edition01SizeGuide = 'M,L,XL,XXL';
+const sizeGuideFiles = [
+  'sections/pham-size-guide.liquid',
+  'templates/page.pham-001-size-guide.json'
+];
+
+if (String(s.pham_campaign_size_options || '') !== edition01SizeGuide) {
+  failures.push('Edition 01 size contract must be M,L,XL,XXL.');
+}
+
+for (const file of sizeGuideFiles) {
+  if (!fs.existsSync(file)) {
+    failures.push(`Edition 01 size guide failure: missing ${file}.`);
+  }
+}
+
+const edition01ProductTemplate = fs.readFileSync('templates/product.json', 'utf8');
+const edition01Reservation = fs.readFileSync('sections/pham-reservation-gateway.liquid', 'utf8');
+if (!edition01ProductTemplate.includes('"size_guide_handle": "pham-001-size-guide"')) {
+  failures.push('PHAM-001 product template must link to its Edition-specific size guide.');
+}
+if (!edition01Reservation.includes("pham_campaign_size_guide_page_url")) {
+  failures.push('Edition 01 reservation flow must link to the PHAM-001 size guide.');
+}
+
+if (fs.existsSync('sections/pham-size-guide.liquid')) {
+  const sizeGuide = fs.readFileSync('sections/pham-size-guide.liquid', 'utf8');
+  for (const size of ['M', 'L', 'XL', 'XXL']) {
+    if (!sizeGuide.includes(`data-pham-fit-size="${size}"`)) {
+      failures.push(`Edition 01 size guide failure: missing ${size} fit row.`);
+    }
+  }
+  if (!sizeGuide.includes('data-pham-fit-form') || !sizeGuide.includes('data-pham-fit-result')) {
+    failures.push('Edition 01 size guide failure: fit-assistant form/result hooks are required.');
+  }
+}
+
 const themeLayout = fs.readFileSync('layout/theme.liquid', 'utf8');
 const robotsSnippet = fs.readFileSync('snippets/pham-robots.liquid', 'utf8');
 
@@ -90,7 +127,7 @@ const includeLookbook = s.pham_campaign_include_digital_lookbook === true;
 const lookbookReady = s.pham_campaign_lookbook_ready === true;
 const engineEnabled = s.pham_campaign_engine_enabled === true;
 const engineProxyPath = String(s.pham_campaign_engine_proxy_path || '').trim();
-const configuredSizes = String(s.pham_campaign_size_options || 'XS,S,M,L,XL')
+const configuredSizes = String(s.pham_campaign_size_options || 'M,L,XL,XXL')
   .split(',')
   .map(value => value.trim())
   .filter(Boolean);

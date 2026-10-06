@@ -134,16 +134,17 @@ The physical steel Identity card ships later with the final object.
 ### Final PHAM-001
 
 - Price: $199.00
-- Canonical Size set: XS / S / M / L / XL
+- Canonical Size set: M / L / XL / XXL
 - SKU convention:
-  - XS → `PHAM-001-E01-XS`
-  - S → `PHAM-001-E01-S`
   - M → `PHAM-001-E01-M`
   - L → `PHAM-001-E01-L`
   - XL → `PHAM-001-E01-XL`
+  - XXL → `PHAM-001-E01-XXL`
 - exactly one active variant for every configured Size
 - every configured variant priced exactly at $199.00
 - prelaunch final-object inventory may remain zero; do not expose sellable inventory until the acquisition inventory plan is reconciled against actual reservation Size Preferences
+- PHAM-001 Size Guide page: `/pages/pham-001-size-guide`
+- before enabling Fit Assistant, enter verified production measurements for M / L / XL / XXL: flat chest width, shoulder, sleeve and body length; do not use generic reference measurements
 
 Readiness fails closed on missing, duplicate or mispriced Size variants.
 
@@ -183,7 +184,7 @@ The workflow checks:
 
 Set the runtime Size list:
 
-`node admin.mjs set-size-options --sizes=XS,S,M,L,XL --confirm --edition=edition-01`
+`node admin.mjs set-size-options --sizes=M,L,XL,XXL --confirm --edition=edition-01`
 
 Then run:
 

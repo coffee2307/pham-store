@@ -36,8 +36,8 @@ Theme Settings remain a presentation fallback. When the Edition Engine is enable
 - Standby: free FIFO queue
 - Standby acquisition: full $199.00
 - Standby offer window: 48 hours
-- Canonical size set: XS / S / M / L / XL
-- Edition 01 final SKU pattern: `PHAM-001-E01-XS|S|M|L|XL`
+- Canonical size set for PHAM-001 / Edition 01: M / L / XL / XXL
+- Edition 01 final SKU pattern: `PHAM-001-E01-M|L|XL|XXL`
 - Final invoice variant: exact Shopify variant matching the stored Size Preference
 
 ## Object lifecycle
@@ -188,6 +188,12 @@ Object-number claims are locked server-side. A conflicting request returns `obje
 When the Edition Engine is enabled, `editions.size_options_csv` is the runtime source of truth.
 
 For every configured size, readiness requires exactly one active Shopify final-product variant at the configured final price. Final and standby payments fail closed when the stored Size Preference cannot resolve to the exact mapped variant. Paid-order classification accepts the size-specific Edition 01 final SKU family rather than relying on one legacy base SKU.
+
+### Edition-specific fit guide
+
+Sizing guidance is not global across PHAM. Each edition/product owns its own fit page and verified garment specification. PHAM-001 uses `/pages/pham-001-size-guide` with M / L / XL / XXL.
+
+The Fit Assistant remains disabled until final production measurements are verified for all four sizes: flat chest width, shoulder width, sleeve length and body length. Height/weight are contextual inputs; chest and shoulder measurements drive the deterministic recommendation. Generic size-chart numbers must never be substituted for missing production measurements.
 
 ## Digital lookbook
 
