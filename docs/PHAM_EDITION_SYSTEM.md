@@ -189,6 +189,12 @@ When the Edition Engine is enabled, `editions.size_options_csv` is the runtime s
 
 For every configured size, readiness requires exactly one active Shopify final-product variant at the configured final price. Final and standby payments fail closed when the stored Size Preference cannot resolve to the exact mapped variant. Paid-order classification accepts the size-specific Edition 01 final SKU family rather than relying on one legacy base SKU.
 
+### Edition-specific fit guide
+
+Sizing guidance is not global across PHAM. Each edition/product owns its own fit page and verified garment specification. PHAM-001 uses `/pages/pham-001-size-guide` with M / L / XL / XXL.
+
+The Fit Assistant remains disabled until final production measurements are verified for all four sizes: flat chest width, shoulder width, sleeve length and body length. Height/weight are contextual inputs; chest and shoulder measurements drive the deterministic recommendation. Generic size-chart numbers must never be substituted for missing production measurements.
+
 ## Digital lookbook
 
 A confirmed Priority Reservation includes the configured edition-exclusive digital lookbook only when the real delivery path is ready.
