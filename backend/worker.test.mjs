@@ -557,21 +557,20 @@ test('parses edition size options and removes blanks or duplicates', () => {
 
 test('readiness requires exactly one correctly priced final variant per configured size', () => {
   const variants = [
-    { id: 'XS', sku: 'PHAM-001-E01-XS', price: '199.00', selectedOptions: [{ name: 'Size', value: 'XS' }] },
-    { id: 'S', sku: 'PHAM-001-E01-S', price: '199.00', selectedOptions: [{ name: 'Size', value: 'S' }] },
     { id: 'M', sku: 'PHAM-001-E01-M', price: '199.00', selectedOptions: [{ name: 'Size', value: 'M' }] },
     { id: 'L', sku: 'PHAM-001-E01-L', price: '199.00', selectedOptions: [{ name: 'Size', value: 'L' }] },
     { id: 'XL', sku: 'PHAM-001-E01-XL', price: '199.00', selectedOptions: [{ name: 'Size', value: 'XL' }] },
+    { id: 'XXL', sku: 'PHAM-001-E01-XXL', price: '199.00', selectedOptions: [{ name: 'Size', value: 'XXL' }] },
   ];
 
   const result = evaluateFinalSizeVariants(
     variants,
-    ['XS', 'S', 'M', 'L', 'XL'],
+    ['M', 'L', 'XL', 'XXL'],
     19900
   );
 
   assert.equal(result.ok, true);
-  assert.equal(result.rows.length, 5);
+  assert.equal(result.rows.length, 4);
 });
 
 test('readiness fails when a configured size is missing, duplicated, or mispriced', () => {
