@@ -2726,13 +2726,11 @@
         "default": "PRODUCED IN DONGGUAN, CHINA"
       },
       {
-        "type": "range",
+        "type": "number",
         "id": "pham_campaign_edition_size",
         "label": "Edition size",
-        "min": 1,
-        "max": 500,
-        "step": 1,
-        "default": 50
+        "default": 50,
+        "info": "Whole number from 1 to 500. Live Edition Engine configuration remains authoritative when enabled."
       },
       {
         "type": "text",
@@ -2742,13 +2740,11 @@
         "info": "Comma-separated. The reservation stores this preference; final acquisition opens only after the Edition Engine maps it to exactly one active PHAM-001 variant."
       },
       {
-        "type": "range",
+        "type": "number",
         "id": "pham_campaign_reservations_claimed",
         "label": "Reservations claimed",
-        "min": 0,
-        "max": 500,
-        "step": 1,
-        "default": 0
+        "default": 0,
+        "info": "Fallback display value from 0 to the edition size. Live Edition Engine counters override this when enabled."
       },
       {
         "type": "range",
@@ -2769,13 +2765,11 @@
         "default": 0
       },
       {
-        "type": "range",
+        "type": "number",
         "id": "pham_campaign_standby_count",
         "label": "Standby count",
-        "min": 0,
-        "max": 500,
-        "step": 1,
-        "default": 0
+        "default": 0,
+        "info": "Non-negative fallback display value. Live Edition Engine counters override this when enabled."
       },
       {
         "type": "text",
@@ -2802,22 +2796,18 @@
         "default": "$174.01"
       },
       {
-        "type": "range",
+        "type": "number",
         "id": "pham_campaign_payment_window_hours",
         "label": "Reserved payment window (hours)",
-        "min": 1,
-        "max": 168,
-        "step": 1,
-        "default": 72
+        "default": 72,
+        "info": "Whole number from 1 to 168 hours. Live Edition Engine configuration remains authoritative when enabled."
       },
       {
-        "type": "range",
+        "type": "number",
         "id": "pham_campaign_standby_window_hours",
         "label": "Standby payment window (hours)",
-        "min": 1,
-        "max": 168,
-        "step": 1,
-        "default": 48
+        "default": 48,
+        "info": "Whole number from 1 to 168 hours. Live Edition Engine configuration remains authoritative when enabled."
       },
       {
         "type": "checkbox",
