@@ -1452,6 +1452,14 @@ async function getCampaign(env, editionId) {
     "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status NOT IN ('cancelled','expired')",
     editionId
   );
+  const acquired = await scalar(env,
+    "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status = 'final_paid'",
+    editionId
+  );
+  const delivered = await scalar(env,
+    "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status = 'final_paid' AND lifecycle_stage IN ('delivered','archived')",
+    editionId
+  );
   const identityClaimed = await scalar(env,
     "SELECT COUNT(*) AS count FROM identity_claims WHERE edition_id = ? AND status NOT IN ('revoked')",
     editionId
@@ -1474,10 +1482,16 @@ async function getCampaign(env, editionId) {
       identityLimit: edition.identity_limit,
       sizeOptions: parseEditionSizeOptions(edition.size_options_csv),
       paymentWindowHours: edition.payment_window_hours,
-      standbyWindowHours: edition.standby_window_hours
+      standbyWindowHours: edition.standby_window_hours,
+      designOrigin: edition.design_origin,
+      productionOrigin: edition.production_origin,
+      founderTokensAllocated: Boolean(edition.founder_tokens_allocated_at),
+      archivePermanent: edition.state === 'archived'
     },
     counters: {
       reserved,
+      acquired,
+      delivered,
       identityClaimed,
       standby
     }
