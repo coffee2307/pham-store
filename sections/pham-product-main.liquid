@@ -17,7 +17,7 @@
   assign pham_vendor_label = product.vendor | strip
   assign pham_vendor_lower = pham_vendor_label | downcase
   if pham_vendor_label == blank or pham_vendor_lower == 'pham' or pham_vendor_lower == 'pham official'
-    assign pham_vendor_label = 'PHAM ATELIER'
+    assign pham_vendor_label = 'PHAM'
   endif
   assign details_heading   = section.settings.details_heading | default: 'Product details'
   assign shipping_heading  = section.settings.shipping_heading | default: 'Shipping & Returns'
@@ -89,8 +89,8 @@
                 <span class="pham-product-main__price-current">{{ current_variant.price | money }}</span>
               {%- endif -%}
             </p>
-            {%- if product.has_only_default_variant == false -%}
-              <p class="pham-product-main__price-note">Price varies by size</p>
+            {%- if product.price_varies -%}
+              <p class="pham-product-main__price-note">Price varies by option</p>
             {%- endif -%}
           </div>
 
@@ -1517,7 +1517,7 @@
       "type": "richtext",
       "id": "shipping_content",
       "label": "Shipping content",
-      "default": "<p>Complimentary worldwide express shipping on all orders. Returns accepted within 14 days of receipt.</p>"
+      "default": "<p>Shipping is calculated by destination at checkout. International duties and import taxes may apply. Returns are governed by the PHAM Refund Policy.</p>"
     },
     {
       "type": "text",
@@ -1545,19 +1545,19 @@
       "type": "text",
       "id": "trust_shipping",
       "label": "Trust — shipping",
-      "default": "Complimentary worldwide express shipping"
+      "default": "Tracked domestic & international delivery"
     },
     {
       "type": "text",
       "id": "trust_returns",
       "label": "Trust — returns",
-      "default": "14-day returns on unworn items"
+      "default": "Returns subject to PHAM Refund Policy"
     },
     {
       "type": "text",
       "id": "trust_authenticity",
       "label": "Trust — edition",
-      "default": "Limited atelier edition · waitlist open during development"
+      "default": "Numbered Edition 01 · 50 objects"
     },
     {
       "type": "checkbox",
@@ -1597,32 +1597,32 @@
     },
     {
       "type": "header",
-      "content": "Pre-order CTA · global state"
+      "content": "Edition access CTA · global state"
     },
     {
       "type": "text",
       "id": "preorder_label",
-      "label": "Pre-order button label",
-      "default": "JOIN THE WAITLIST"
+      "label": "Access button label",
+      "default": "PRIORITY ACCESS"
     },
     {
       "type": "text",
       "id": "preorder_closed_label",
       "label": "Closed button label",
-      "default": "PRE-ORDER CLOSED"
+      "default": "ACCESS CLOSED"
     },
     {
       "type": "textarea",
       "id": "preorder_closed_note",
       "label": "Closed state note",
-      "default": "Pre-order is currently closed for this edition.",
-      "info": "Shown when the global PHAM waitlist/pre-order state is closed."
+      "default": "Priority Reservation is currently unavailable for this edition.",
+      "info": "Shown only when the Edition protocol is unavailable and direct purchase is disabled."
     },
     {
       "type": "textarea",
       "id": "preorder_note",
-      "label": "Pre-order note (under CTA)",
-      "default": "Join the PHAM-001 waitlist. We will email you when pre-order access opens."
+      "label": "Edition access note (under CTA)",
+      "default": "PHAM-001 is acquired through the Edition 01 Release Protocol. Direct garment checkout remains closed while controlled access is active."
     },
     {
       "type": "header",
@@ -1644,7 +1644,7 @@
       "type": "textarea",
       "id": "shipping_terms",
       "label": "Shipping terms (below phases)",
-      "default": "Production and fulfillment dates will be confirmed before payment is collected. Waitlist members will be notified by email."
+      "default": "Production and fulfillment progress is recorded in Collector Access after acquisition. Carrier estimates begin after dispatch."
     }
   ],
   "blocks": [
