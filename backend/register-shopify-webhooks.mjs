@@ -1,13 +1,44 @@
 const shop = process.env.SHOPIFY_SHOP_DOMAIN;
-const token = process.env.SHOPIFY_ADMIN_TOKEN;
+const clientId = process.env.SHOPIFY_CLIENT_ID;
+const clientSecret = process.env.SHOPIFY_CLIENT_SECRET;
 const backend = (process.env.CAMPAIGN_BACKEND_URL || '').replace(/\/$/, '');
 
-if (!shop || !token || !backend) {
-  console.error('Missing SHOPIFY_SHOP_DOMAIN, SHOPIFY_ADMIN_TOKEN or CAMPAIGN_BACKEND_URL.');
+if (!shop || !clientId || !clientSecret || !backend) {
+  console.error('Missing SHOPIFY_SHOP_DOMAIN, SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET or CAMPAIGN_BACKEND_URL.');
   process.exit(1);
 }
 
 const api = '2026-10';
+
+async function getAccessToken() {
+  const body = new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: clientId,
+    client_secret: clientSecret
+  });
+
+  const response = await fetch(`https://${shop}/admin/oauth/access_token`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded',
+      'accept': 'application/json'
+    },
+    body
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.access_token) {
+    throw new Error(
+      'Shopify client credentials exchange failed: ' +
+      JSON.stringify(payload.errors || payload.error || payload)
+    );
+  }
+
+  return payload.access_token;
+}
+
+const token = await getAccessToken();
+
 const subscriptions = [
   {
     topic: 'ORDERS_PAID',
