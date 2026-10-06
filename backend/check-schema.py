@@ -14,6 +14,7 @@ TABLES = [
     "referrals",
     "standby",
     "objects",
+    "object_lifecycle_events",
     "webhook_events",
 ]
 
