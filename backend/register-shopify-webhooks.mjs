@@ -7,8 +7,21 @@ if (!shop || !token || !backend) {
   process.exit(1);
 }
 
-const endpoint = backend + '/webhooks/orders-paid';
 const api = '2026-10';
+const subscriptions = [
+  {
+    topic: 'ORDERS_PAID',
+    uri: backend + '/webhooks/orders-paid'
+  },
+  {
+    topic: 'FULFILLMENTS_CREATE',
+    uri: backend + '/webhooks/fulfillments'
+  },
+  {
+    topic: 'FULFILLMENTS_UPDATE',
+    uri: backend + '/webhooks/fulfillments'
+  }
+];
 
 async function graphql(query, variables) {
   const response = await fetch(`https://${shop}/admin/api/${api}/graphql.json`, {
@@ -27,8 +40,11 @@ async function graphql(query, variables) {
   return payload.data;
 }
 
-const existingQuery = `query ExistingPhamWebhooks($uri: String!) {
-  webhookSubscriptions(first: 20, topics: [ORDERS_PAID], uri: $uri) {
+const existingQuery = `query ExistingPhamWebhooks(
+  $topics: [WebhookSubscriptionTopic!]!,
+  $uri: String!
+) {
+  webhookSubscriptions(first: 20, topics: $topics, uri: $uri) {
     nodes { id topic uri }
   }
 }`;
@@ -43,26 +59,45 @@ const createMutation = `mutation CreatePhamWebhook(
   }
 }`;
 
-const existing = await graphql(existingQuery, { uri: endpoint });
-const nodes = existing.webhookSubscriptions.nodes || [];
+for (const subscription of subscriptions) {
+  const existing = await graphql(existingQuery, {
+    topics: [subscription.topic],
+    uri: subscription.uri
+  });
+  const nodes = existing.webhookSubscriptions.nodes || [];
 
-if (nodes.length) {
-  console.log('PHAM ORDERS_PAID webhook already registered:', nodes[0].id, endpoint);
-  process.exit(0);
-}
-
-const created = await graphql(createMutation, {
-  topic: 'ORDERS_PAID',
-  webhook: {
-    uri: endpoint,
-    format: 'JSON'
+  if (nodes.length) {
+    console.log(
+      'PHAM webhook already registered:',
+      subscription.topic,
+      nodes[0].id,
+      subscription.uri
+    );
+    continue;
   }
-});
 
-const result = created.webhookSubscriptionCreate;
-if (result.userErrors && result.userErrors.length) {
-  console.error(result.userErrors);
-  process.exit(1);
+  const created = await graphql(createMutation, {
+    topic: subscription.topic,
+    webhook: {
+      uri: subscription.uri,
+      format: 'JSON'
+    }
+  });
+
+  const result = created.webhookSubscriptionCreate;
+  if (result.userErrors && result.userErrors.length) {
+    console.error(
+      'Unable to register PHAM webhook',
+      subscription.topic,
+      result.userErrors
+    );
+    process.exit(1);
+  }
+
+  console.log(
+    'Registered PHAM webhook:',
+    result.webhookSubscription.topic,
+    result.webhookSubscription.id,
+    subscription.uri
+  );
 }
-
-console.log('Registered PHAM ORDERS_PAID webhook:', result.webhookSubscription.id, endpoint);
