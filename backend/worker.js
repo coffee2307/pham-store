@@ -1880,13 +1880,15 @@ async function handleFinalAcquisitionPaid(env, order) {
 
   const fields = [
     metafield(reservation.shopify_order_id, 'final_payment_status', 'single_line_text_field', 'paid'),
-    metafield(finalOrderId, 'object_lifecycle_stage', 'single_line_text_field', 'production_queued')
+    metafield(finalOrderId, 'object_lifecycle_stage', 'single_line_text_field', 'production_queued'),
+    metafield(finalOrderId, 'acquired_at', 'date_time', validation.paidAt)
   ];
 
   if (reservation.shopify_customer_id) {
     fields.push(
       metafield(reservation.shopify_customer_id, 'current_reservation_status', 'single_line_text_field', 'final_paid'),
-      metafield(reservation.shopify_customer_id, 'object_lifecycle_stage', 'single_line_text_field', 'production_queued')
+      metafield(reservation.shopify_customer_id, 'object_lifecycle_stage', 'single_line_text_field', 'production_queued'),
+      metafield(reservation.shopify_customer_id, 'acquired_at', 'date_time', validation.paidAt)
     );
   }
 
@@ -1987,7 +1989,8 @@ async function handleStandbyAcquisitionPaid(env, order, standbyId) {
     metafield(shopifyOrderId, 'reservation_id', 'single_line_text_field', reservationId),
     metafield(shopifyOrderId, 'size_preference', 'single_line_text_field', standby.size_preference || ''),
     metafield(shopifyOrderId, 'final_payment_status', 'single_line_text_field', 'paid'),
-    metafield(shopifyOrderId, 'object_lifecycle_stage', 'single_line_text_field', 'production_queued')
+    metafield(shopifyOrderId, 'object_lifecycle_stage', 'single_line_text_field', 'production_queued'),
+    metafield(shopifyOrderId, 'acquired_at', 'date_time', validation.paidAt)
   ]);
 
   if (shopifyCustomerId) {
@@ -1999,7 +2002,8 @@ async function handleStandbyAcquisitionPaid(env, order, standbyId) {
       metafield(shopifyCustomerId, 'reservation_id', 'single_line_text_field', reservationId),
       metafield(shopifyCustomerId, 'size_preference', 'single_line_text_field', standby.size_preference || ''),
       metafield(shopifyCustomerId, 'digital_lookbook_status', 'single_line_text_field', 'not_included'),
-      metafield(shopifyCustomerId, 'object_lifecycle_stage', 'single_line_text_field', 'production_queued')
+      metafield(shopifyCustomerId, 'object_lifecycle_stage', 'single_line_text_field', 'production_queued'),
+      metafield(shopifyCustomerId, 'acquired_at', 'date_time', validation.paidAt)
     ]);
   }
 
