@@ -2739,7 +2739,7 @@
         "id": "pham_campaign_size_options",
         "label": "Size preference options",
         "default": "XS,S,M,L,XL",
-        "info": "Comma-separated. This records preference during reservation; final size is not guaranteed until a real PHAM-001 variant is assigned."
+        "info": "Comma-separated. The reservation stores this preference; final acquisition opens only after the Edition Engine maps it to exactly one active PHAM-001 variant."
       },
       {
         "type": "range",
