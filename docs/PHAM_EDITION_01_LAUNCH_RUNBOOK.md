@@ -55,8 +55,9 @@ GitHub Actions requires:
 - `INTERNAL_ADMIN_KEY`
 - `CAMPAIGN_BACKEND_URL`
 - `STOREFRONT_ORIGIN`
+- `STOREFRONT_PASSWORD` (optional; required by staging verification while the storefront password gate is enabled)
 
-The workflow must read `SHOPIFY_SHOP_DOMAIN` from the secret. Do not hard-code a myshopify domain into deployment configuration.
+The deployment workflow injects `SHOPIFY_SHOP_DOMAIN` from the GitHub secret into `wrangler.toml` at deploy time. The repository value is only a local default and must not be treated as the deployment authority.
 
 Run:
 
@@ -168,11 +169,12 @@ Keep storefront gates closed while wiring production services:
 
 After Worker/App Proxy setup:
 
-1. enable ENGINE ENABLED;
+1. enable ENGINE ENABLED on the Release Candidate theme;
 2. leave COMMERCE READY off;
-3. run **Verify PHAM Campaign Staging**.
+3. if the storefront password gate is enabled, configure `STOREFRONT_PASSWORD` as a GitHub Actions secret;
+4. run **Verify PHAM Campaign Staging** and select the Edition Engine state you expect to observe.
 
-The workflow is a safe prelaunch E2E pass. It checks:
+The workflow is a read-mostly E2E pass. In `prelaunch` it also verifies that Standby POST cannot mutate campaign state. It checks:
 
 - Worker health;
 - backend readiness;
@@ -182,7 +184,7 @@ The workflow is a safe prelaunch E2E pass. It checks:
 - anonymous Collector Access fails closed;
 - invalid Birth Record tokens fail closed;
 - Standby POST cannot mutate data while the edition is in `prelaunch`;
-- campaign remains exactly `prelaunch`.
+- campaign state matches the state selected when the workflow is dispatched.
 
 Production-origin metadata may remain in internal edition records for operations/provenance, but it is not storefront or public Birth Record data.
 

@@ -55,12 +55,20 @@ jobs:
             fi
           done
 
-      - name: Inject D1 database ID
+      - name: Inject deployment configuration
         shell: bash
         run: |
+          set -euo pipefail
           sed -i "s/REPLACE_WITH_D1_DATABASE_ID/${CLOUDFLARE_D1_DATABASE_ID}/g" wrangler.toml
+          sed -i -E "s|^SHOPIFY_SHOP_DOMAIN = .*|SHOPIFY_SHOP_DOMAIN = \"${SHOPIFY_SHOP_DOMAIN}\"|" wrangler.toml
+
           if grep -q "REPLACE_WITH_D1_DATABASE_ID" wrangler.toml; then
             echo "::error::D1 database ID placeholder was not replaced"
+            exit 1
+          fi
+
+          if ! grep -Fq "SHOPIFY_SHOP_DOMAIN = \"${SHOPIFY_SHOP_DOMAIN}\"" wrangler.toml; then
+            echo "::error::SHOPIFY_SHOP_DOMAIN was not injected into wrangler.toml"
             exit 1
           fi
 

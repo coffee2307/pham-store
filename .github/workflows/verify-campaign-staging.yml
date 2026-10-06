@@ -2,6 +2,19 @@ name: Verify PHAM Campaign Staging
 
 on:
   workflow_dispatch:
+    inputs:
+      expected_state:
+        description: Expected Edition Engine state during verification
+        required: true
+        default: reservation_open
+        type: choice
+        options:
+          - prelaunch
+          - reservation_open
+          - reservation_full
+          - final_payment
+          - sold_out
+          - archived
 
 permissions:
   contents: read
@@ -14,6 +27,8 @@ jobs:
       CAMPAIGN_BACKEND_URL: ${{ secrets.CAMPAIGN_BACKEND_URL }}
       INTERNAL_ADMIN_KEY: ${{ secrets.INTERNAL_ADMIN_KEY }}
       STOREFRONT_ORIGIN: ${{ secrets.STOREFRONT_ORIGIN }}
+      STOREFRONT_PASSWORD: ${{ secrets.STOREFRONT_PASSWORD }}
+      EXPECTED_STATE: ${{ inputs.expected_state }}
 
     steps:
       - name: Checkout
@@ -30,9 +45,27 @@ jobs:
           set -euo pipefail
           : "${CAMPAIGN_BACKEND_URL:?Missing CAMPAIGN_BACKEND_URL}"
           : "${INTERNAL_ADMIN_KEY:?Missing INTERNAL_ADMIN_KEY}"
+          : "${EXPECTED_STATE:?Missing expected_state}"
           if [ -z "${STOREFRONT_ORIGIN:-}" ]; then
             echo "STOREFRONT_ORIGIN=https://phamofficial.com" >> "$GITHUB_ENV"
           fi
+
+      - name: Authenticate password-protected storefront
+        shell: bash
+        run: |
+          set -euo pipefail
+          cookie_jar="$RUNNER_TEMP/pham-storefront.cookies"
+          : > "$cookie_jar"
+
+          if [ -n "${STOREFRONT_PASSWORD:-}" ]; then
+            code="$(curl --silent --show-error --location               --user-agent 'PHAM-Staging-E2E/1.0'               --cookie-jar "$cookie_jar"               --data-urlencode 'form_type=storefront_password'               --data-urlencode 'utf8=✓'               --data-urlencode "password=${STOREFRONT_PASSWORD}"               --output /dev/null               --write-out '%{http_code}'               "${STOREFRONT_ORIGIN%/}/password")"
+            if [ "$code" -lt 200 ] || [ "$code" -ge 400 ]; then
+              echo "::error::Storefront password authentication returned HTTP $code"
+              exit 1
+            fi
+          fi
+
+          echo "PHAM_STOREFRONT_COOKIE_JAR=$cookie_jar" >> "$GITHUB_ENV"
 
       - name: Worker health
         working-directory: backend
@@ -48,7 +81,7 @@ jobs:
           set -euo pipefail
           url="${STOREFRONT_ORIGIN%/}/apps/pham-edition/campaign?edition=edition-01"
           body="$(mktemp)"
-          code="$(curl --silent --show-error --location --user-agent 'PHAM-Staging-E2E/1.0' --header 'Accept: application/json' --output "$body" --write-out '%{http_code}' "$url")"
+          code="$(curl --silent --show-error --location             --user-agent 'PHAM-Staging-E2E/1.0'             --header 'Accept: application/json'             --cookie "$PHAM_STOREFRONT_COOKIE_JAR"             --output "$body"             --write-out '%{http_code}'             "$url")"
           cat "$body"
           echo
           if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
@@ -58,6 +91,7 @@ jobs:
           node -e '
             const fs=require("fs");
             const raw=fs.readFileSync(process.argv[1],"utf8");
+            const expected=process.env.EXPECTED_STATE;
             const body=JSON.parse(raw);
             if(!body.edition || !body.counters){
               console.error("App Proxy response is missing edition/counters");
@@ -68,8 +102,8 @@ jobs:
               console.error("App Proxy canonical sizeOptions mismatch:", body.edition.sizeOptions);
               process.exit(1);
             }
-            if(body.edition.state !== "prelaunch"){
-              console.error("Staging campaign must remain prelaunch, got:", body.edition.state);
+            if(body.edition.state !== expected){
+              console.error("Campaign state mismatch. Expected", expected, "got", body.edition.state);
               process.exit(1);
             }
             if(!body.edition.designOrigin){
@@ -92,7 +126,7 @@ jobs:
           set -euo pipefail
           url="${STOREFRONT_ORIGIN%/}/apps/pham-edition/status?edition=edition-01"
           body="$(mktemp)"
-          code="$(curl --silent --show-error --location --user-agent 'PHAM-Staging-E2E/1.0' --header 'Accept: application/json' --output "$body" --write-out '%{http_code}' "$url")"
+          code="$(curl --silent --show-error --location             --user-agent 'PHAM-Staging-E2E/1.0'             --header 'Accept: application/json'             --cookie "$PHAM_STOREFRONT_COOKIE_JAR"             --output "$body"             --write-out '%{http_code}'             "$url")"
           cat "$body"
           echo
           if [ "$code" -ne 401 ]; then
@@ -114,7 +148,7 @@ jobs:
           set -euo pipefail
           url="${STOREFRONT_ORIGIN%/}/apps/pham-edition/provenance?token=invalid"
           body="$(mktemp)"
-          code="$(curl --silent --show-error --location --user-agent 'PHAM-Staging-E2E/1.0' --header 'Accept: application/json' --output "$body" --write-out '%{http_code}' "$url")"
+          code="$(curl --silent --show-error --location             --user-agent 'PHAM-Staging-E2E/1.0'             --header 'Accept: application/json'             --cookie "$PHAM_STOREFRONT_COOKIE_JAR"             --output "$body"             --write-out '%{http_code}'             "$url")"
           cat "$body"
           echo
           if [ "$code" -ne 422 ]; then
@@ -131,12 +165,13 @@ jobs:
           ' "$body"
 
       - name: Standby POST cannot mutate prelaunch
+        if: ${{ inputs.expected_state == 'prelaunch' }}
         shell: bash
         run: |
           set -euo pipefail
           url="${STOREFRONT_ORIGIN%/}/apps/pham-edition/standby/join"
           body="$(mktemp)"
-          code="$(curl --silent --show-error --location --user-agent 'PHAM-Staging-E2E/1.0' --header 'Accept: application/json' --header 'Content-Type: application/json' --request POST --data '{"editionId":"edition-01","email":"staging-e2e@example.invalid","name":"PHAM staging","country":"VN","size":"M"}' --output "$body" --write-out '%{http_code}' "$url")"
+          code="$(curl --silent --show-error --location             --user-agent 'PHAM-Staging-E2E/1.0'             --header 'Accept: application/json'             --header 'Content-Type: application/json'             --cookie "$PHAM_STOREFRONT_COOKIE_JAR"             --request POST             --data '{"editionId":"edition-01","email":"staging-e2e@example.invalid","name":"PHAM staging","country":"VN","size":"M"}'             --output "$body"             --write-out '%{http_code}'             "$url")"
           cat "$body"
           echo
           if [ "$code" -ne 409 ]; then
@@ -152,7 +187,7 @@ jobs:
             }
           ' "$body"
 
-      - name: Verify launch remains closed
+      - name: Verify expected campaign state
         working-directory: backend
         shell: bash
         run: |
@@ -161,8 +196,10 @@ jobs:
           echo "$state"
           node -e '
             const body=JSON.parse(process.argv[1]);
-            if(body.edition && body.edition.state === "reservation_open"){
-              console.error("Campaign is already RESERVATION OPEN. Staging verification expects launch to remain closed.");
+            const expected=process.env.EXPECTED_STATE;
+            const actual=body.state || body.edition?.state;
+            if(actual !== expected){
+              console.error("Campaign state mismatch. Expected", expected, "got", actual);
               process.exit(1);
             }
           ' "$state"

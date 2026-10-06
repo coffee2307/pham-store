@@ -1,9 +1,14 @@
-# Cloudflare Worker secrets / local development example
+# Cloudflare Worker local development example
 SHOPIFY_SHOP_DOMAIN=yszwe3-yd.myshopify.com
-SHOPIFY_ADMIN_TOKEN=replace_me
-# Shopify app client secret; signs both App Proxy requests and webhook deliveries.
-SHOPIFY_API_SECRET=replace_me
+SHOPIFY_CLIENT_ID=replace_me
+# Used for Admin API client-credentials auth, Shopify App Proxy signatures and webhook HMAC.
+SHOPIFY_CLIENT_SECRET=replace_me
 INTERNAL_ADMIN_KEY=replace_me
+
+# Optional legacy fallback only; prefer client credentials above.
+# SHOPIFY_ADMIN_TOKEN=replace_me
+# SHOPIFY_API_SECRET=replace_me
+
 # STOREFRONT_ORIGIN is a non-secret Worker var in wrangler.toml.
 
 # Deployment helper only
