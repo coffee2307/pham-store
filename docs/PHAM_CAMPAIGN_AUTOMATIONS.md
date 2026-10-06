@@ -1,256 +1,269 @@
 # PHAM Campaign Automation Contract
 
-This document defines the reusable operational workflow for PHAM numbered editions. Edition 01 uses PHAM-001, but the same event model is intended for Edition 02, 03, 04 and later releases.
+This document defines the reusable automation contract for PHAM numbered editions. Edition 01 uses PHAM-001; later editions should change edition/product configuration rather than duplicate the workflow.
 
-## Safety gates
+## Control plane
 
-A campaign has two independent controls:
+A live edition has independent safety controls:
 
-- Campaign State: PRELAUNCH / RESERVATION OPEN / RESERVATION FULL / FINAL PAYMENT / SOLD OUT / ARCHIVED.
-- COMMERCE READY: explicit boolean safety gate.
+- D1 campaign state;
+- Theme `COMMERCE READY`;
+- live backend readiness;
+- Shopify product/inventory state;
+- digital-delivery readiness.
 
-Changing Campaign State alone must never enable reservation checkout while COMMERCE READY is OFF.
+No single presentation toggle is allowed to open commerce when the backend cannot verify the edition.
 
-For Edition 01, COMMERCE READY remains OFF until the full launch gate has passed.
+## Reservation checkout contract
 
-## Commerce products prepared for Edition 01
+Edition 01 reservation bundle:
 
-### PHAM-001 Priority Reservation
+- Priority Reservation — $24.99
+- Collector Lookbook — $0
+- optional Object Identity — $5.00
 
-- Price: $24.99
-- SKU: PHAM-001-RES-E01
-- Inventory: 50
-- Inventory tracking: ON
-- Overselling: DENY
-- Shipping required: NO
-- Status during preparation: DRAFT
-- Credit against final PHAM-001 price: $24.99
-- Final balance for reserved collector: $174.01
+Required reservation evidence includes:
 
-### PHAM Object Identity
+- PHAM Edition;
+- PHAM Product;
+- referral code when present;
+- Size Preference;
+- reservation-terms acceptance;
+- digital-lookbook delivery request;
+- Identity source when selected.
 
-- Price: $5.00
-- SKU: PHAM-ID-E01
-- Inventory: 15
-- Inventory tracking: ON
-- Overselling: DENY
-- Shipping required at reservation checkout: NO
-- Status during preparation: DRAFT
-- Physical card ships with the final object, not with the reservation order.
+A valid referral query code may be persisted by the storefront, but referral credit is not verified until the referred reservation itself passes paid-order validation.
 
-The Shopify Identity product inventory is only one guard rail. Referral-unlocked Identity privileges must consume the same 15-slot pool through backend/automation logic.
+## Paid-order automation
 
-## Reservation checkout payload
+`ORDERS_PAID` is the authority for money-driven campaign changes.
 
-The theme gateway is prepared to add Priority Reservation and optional paid Object Identity.
+Priority Reservation validation covers:
 
-The gateway records line-item properties for:
-- PHAM Edition
-- PHAM Product
-- Referral Code
-- Size Preference
-- Reservation terms acceptance
-- Digital lookbook delivery request
-- Identity source = Paid upgrade
+- webhook HMAC/shop/idempotency;
+- financial status exactly `paid`;
+- exact bundle and quantities;
+- exact configured prices;
+- no price-changing discount;
+- no unexpected line item;
+- edition/product metadata;
+- consent evidence;
+- Size Preference;
+- duplicate collector prevention;
+- atomic capacity.
 
-The browser persists a valid referral code supplied as ?ref=CODE and carries it into reservation checkout.
+Final reserved acquisition additionally validates:
 
-Referral conversion is not verified until payment succeeds and anti-self-referral checks pass.
+- active 72-hour window;
+- correct customer;
+- correct currency;
+- exact mapped Size variant;
+- $199 line price;
+- exactly $24.99 reservation credit.
 
-The paid-order webhook also validates the exact campaign bundle, quantities, prices, zero-discount rule, edition/product metadata and required Size Preference before a reservation slot is allocated. Invalid paid orders are held for review rather than being converted into campaign state.
+Standby acquisition validates:
 
-## Order metafield contract
+- promoted/active 48-hour offer;
+- exact Size variant;
+- $199 price;
+- zero reservation credit/discount;
+- paying collector/email binding.
 
-Namespace: pham
+A discrepancy produces a `review_required` webhook record instead of silently mutating campaign state.
 
-- edition_label
-- reservation_id
-- referral_code
-- size_preference
-- identity_selected
-- identity_source
-- digital_lookbook_status
-- final_payment_status
-- payment_deadline
+## Reservation and collector metafields
 
-Line-item properties are acquisition-time evidence; automation should copy validated values into order/customer metafields.
+Namespace: `pham`.
 
-## Customer metafield contract
+Important order/customer fields include:
 
-Namespace: pham
+- `edition_label`
+- `reservation_id`
+- `referral_code`
+- `successful_referrals`
+- `size_preference`
+- `identity_selected`
+- `identity_source`
+- `identity_status`
+- `digital_lookbook_status`
+- `final_payment_status`
+- `payment_deadline`
+- `current_reservation_status`
+- `current_object_number`
+- `acquired_at`
+- `object_lifecycle_stage`
+- `tracking_number`
 
-- referral_code
-- successful_referrals
-- current_reservation_status
-- current_object_number
-- identity_status
-- payment_deadline
-- reservation_id
-- size_preference
-- identity_source
+D1 remains authoritative; metafields support storefront fallback and operational visibility.
 
-## Recommended reservation states
+## Identity automation
 
-- pending_payment
-- active
-- final_payment_open
-- final_paid
-- expired
-- cancelled
-- standby_replaced
-- fulfilled
-- archived
-
-## Recommended Identity states
-
-- locked
-- eligible_paid
-- eligible_referral
-- claimed
-- configured
-- production_locked
-- fulfilled
-
-## Email lifecycle
-
-### 1. Reservation paid
-
-Trigger: reservation payment confirmed.
-
-Subject direction: OBJECT RESERVED — WELCOME TO {{ edition }}
-
-Include reservation ID, edition/product, amount paid, remaining balance, payment-window rule, Collector Access link, referral link, Identity status and digital lookbook access.
-
-Digital lookbook status should transition: pending -> sent -> delivered where delivery tooling can verify it.
-
-### 2. Digital lookbook delivery
-
-Trigger: reservation payment confirmed and digital product entitlement generated.
-
-Subject direction: YOUR {{ edition }} COLLECTOR LOOKBOOK
-
-Store asset/version identifier, sent timestamp, recipient and provider delivery/download evidence when available.
-
-Do not represent delivery as eliminating mandatory statutory rights.
-
-### 3. Referral progress
-
-Trigger: collector receives referral code.
-
-Subject direction: UNLOCK OBJECT IDENTITY
-
-Explain that one verified paid referral is required, clicks/signups do not count, self-referrals do not count, and the Identity pool is shared and limited.
-
-### 4. Identity unlocked
-
-Trigger: one valid referral is verified while an Identity slot remains.
-
-Actions:
-- consume one shared Identity slot atomically
-- set identity_source = referral
-- set identity_status = claimed
-- send configurator link
-
-### 5. Identity configured
-
-Trigger: collector submits valid card configuration.
-
-Store alias/name, inscription, preferred object number, public identity opt-in and configuration version/timestamp.
-
-Preferred object numbers are not guaranteed until server-side lock succeeds.
-
-### 6. Final payment opened
-
-Trigger: PHAM opens acquisition window.
-
-Edition 01 values:
-- Object price: $199.00
-- Reservation credit: $24.99
-- Balance: $174.01
-- Window: 72 hours
-
-Subject direction: YOUR PHAM-001 ACQUISITION WINDOW IS OPEN
-
-Create/send a customer-specific payment link or Draft Order.
-
-Set final_payment_status = open and payment_deadline = opened_at + 72h.
-
-### 7. Payment reminder
-
-Recommended sends: T-24h and T-3h.
-
-### 8. Reservation expired
-
-Trigger: deadline passes without successful final payment.
-
-Actions:
-- final_payment_status = expired
-- current_reservation_status = expired
-- release object allocation
-- apply the published refund/cancellation policy subject to mandatory law
-- promote first eligible standby record
-
-### 9. Standby promoted
-
-Edition 01 standby price: full $199.00.
-
-Recommended offer window: 48 hours.
-
-Subject direction: A PHAM-001 OBJECT HAS BECOME AVAILABLE
-
-The standby customer receives no $24.99 credit because no reservation amount was previously paid.
-
-### 10. Object confirmed
-
-Trigger: final balance paid.
-
-Subject direction: OBJECT CONFIRMED
-
-Set final_payment_status = paid, current_reservation_status = final_paid, lock object assignment, and prepare provenance.
-
-## Referral verification rules
+Paid and referral-unlocked Identity privileges share one capped pool.
 
 A successful referral requires:
-- referred reservation payment succeeded
-- referred order/customer differs from referrer
-- referred reservation has not already rewarded another referrer
-- referral is not flagged for abuse/fraud
-- Identity slot exists when reward is claimed
 
-For Edition 01 manual review is acceptable because only 50 reservations exist, but the backend still needs atomic slot consumption.
+- referred reservation paid and valid;
+- referrer and referred reservation are different;
+- customer/email anti-self-referral checks pass;
+- referred reservation has not already rewarded another referrer;
+- Identity capacity remains.
 
-## Standby rules
+Object-number configuration is server locked. A number collision fails with `object_number_taken`.
 
-- Joining standby is free.
-- Size Preference is required and persists with the queue entry.
-- Queue order defaults to FIFO.
-- Standby begins only after paid reservation allocation is closed.
-- Before promotion invoicing, the engine resolves exactly one active final-product variant matching the queued Size option and $199 Edition 01 price.
-- A promoted standby customer pays full price with no reservation discount.
-- Default offer window: 48 hours.
-- Paid standby orders are accepted only for the exact mapped variant, price, customer/email and active offer deadline.
-- Expired standby offer moves to the next eligible entry.
+## Standby automation
 
-## Digital lookbook dependency
+- Standby opens only after reservation allocation is full.
+- Join is free.
+- Size Preference is mandatory.
+- Queue order is FIFO.
+- Active duplicate queue entries are prevented.
+- Promotion resolves the exact active Size-matching final variant.
+- Promoted collector pays full final price.
+- Expired offer advances the queue.
 
-Do not infer lookbook readiness from theme configuration alone. The actual digital delivery path, attached asset/version and customer access must be verified end-to-end before DIGITAL LOOKBOOK READY and COMMERCE READY are enabled.
+## Final acquisition → object lifecycle
 
-## Launch test cases
+A successfully validated final acquisition sets:
 
-1. Reservation only = $24.99 and requires a valid Size Preference.
+- reservation status = `final_paid`;
+- final payment status = `paid`;
+- acquisition timestamp;
+- lifecycle = `production_queued`.
+
+Physical lifecycle then progresses:
+
+`production_queued → in_production → quality_control → packed → dispatched → delivered`
+
+Each stage is append-only in `object_lifecycle_events`.
+
+The transition validator rejects skipped or reversed states.
+
+## Shopify fulfillment automation
+
+Subscriptions:
+
+- `FULFILLMENTS_CREATE`
+- `FULFILLMENTS_UPDATE`
+
+Automation mapping:
+
+- current `packed` + real tracking → `dispatched`;
+- current `dispatched` + Shopify `shipment_status=delivered` → `delivered`;
+- tracking changes while dispatched/delivered update tracking metadata;
+- fulfillment on an earlier production stage → review queue;
+- fulfillment for a non-PHAM final order → ignored.
+
+This design lets Shopify/carrier state automate shipment records without allowing fulfillment events to rewrite PHAM’s production/QC process.
+
+## Collector Access contract
+
+After reservation, Collector Access is the authenticated collector control surface.
+
+Before final payment it exposes payment/referral/Identity actions.
+
+After final payment it becomes the private object record and exposes:
+
+- numbered object;
+- acquisition timestamp;
+- Size;
+- Identity;
+- production/delivery lifecycle;
+- Birth Record;
+- tracking;
+- lookbook status;
+- Founder’s Token reveal state.
+
+## Birth Record contract
+
+After finalization, every object receives an unpredictable provenance token.
+
+Public Birth Record fields are intentionally non-sensitive. Authentication is based on the tokenized URL, not sequential object number.
+
+The physical steel Identity/QR artifact should resolve to the same permanent Birth Record URL used by Collector Access.
+
+## Founder’s Token allocation
+
+Edition 01 technical rule:
+
+- 50 object records required;
+- 49 silver-tone;
+- 1 gold-tone;
+- allocation executed once after object finalization;
+- operator cannot choose recipient;
+- secure random index;
+- race-safe immutable allocation metadata;
+- exactly 1/49 integrity check;
+- token type is `SEALED` in collector/public UI until physical delivery;
+- actual finish revealed after `delivered`.
+
+This automation remains subject to final jurisdictional legal approval before production use.
+
+## Archive automation
+
+Edition state can change `sold_out → archived` only when:
+
+- all edition objects are final-paid;
+- complete object set exists;
+- every object is delivered;
+- Founder’s Token distribution is complete and valid.
+
+Archival writes the final object lifecycle event and makes the public Edition page the permanent ledger.
+
+## Digital lookbook automation
+
+Reservation payment creates the entitlement state. Actual delivery readiness cannot be inferred from a theme setting.
+
+Operational states:
+
+- `pending`
+- `entitled`
+- `delivered`
+- `failed`
+
+The production system must retain the real asset/version and delivery evidence where supported.
+
+## Email / notification directions
+
+Transactional messaging should map to actual state changes rather than generic marketing timing:
+
+1. Reservation confirmed
+2. Collector lookbook available
+3. Identity unlocked/configured
+4. Acquisition window opened
+5. Payment reminder(s)
+6. Acquisition confirmed
+7. Production started
+8. Quality control complete / object packed
+9. Dispatch with tracking
+10. Delivery / Birth Record + Founder’s Token reveal
+
+Exact send infrastructure remains separate from the Edition Engine unless explicitly connected.
+
+## Review queue
+
+Use:
+
+`node admin.mjs reviews --limit=50`
+
+Review cases include money/variant/customer mismatches, duplicate collector races, capacity races and out-of-sequence fulfillment events.
+
+Operators should reconcile the source record first rather than independently editing Shopify and D1.
+
+## Minimum automated test matrix
+
+1. Reservation-only = $24.99.
 2. Reservation + Identity = $29.99.
-3. Identity unavailable at 15/15.
-4. Referral code persists into checkout.
-5. One customer cannot create a valid self-referral reward.
-6. Reservation inventory stops at zero.
-7. 50th successful reservation closes paid allocation operationally.
-8. Standby form accepts free signup only.
-9. Lookbook email arrives and asset opens.
-10. Final payment request is exactly $174.01.
-11. 72-hour expiry changes status correctly.
-12. Expired slot promotes standby customer.
-13. Standby customer is charged full $199 for the exact size-mapped variant.
-14. Every configured Edition size resolves to exactly one active $199 final-product variant.
-15. Wrong-size, discounted, late or wrong-customer final payments fail closed.
-16. Object number cannot be claimed by two collectors.
-17. QR/provenance record does not expose private customer data.
+3. Identity closes at shared capacity.
+4. Referral anti-self checks.
+5. Atomic reservation capacity at object 50.
+6. Standby FIFO contention.
+7. Every configured Size maps to one active $199 variant.
+8. Wrong Size/price/discount/customer/deadline final payment fails closed.
+9. Final payment enters `production_queued`.
+10. Lifecycle cannot skip Production → QC → Packed.
+11. Tracking on `packed` derives `dispatched`.
+12. Fulfillment before `packed` requires review.
+13. Delivered event only advances from `dispatched`.
+14. Founder’s Token remains sealed before delivery.
+15. Provenance exposes no private collector fields.
+16. Archive rejects any edition with an undelivered object.

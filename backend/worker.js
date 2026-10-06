@@ -1,5 +1,105 @@
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
 
+export const OBJECT_LIFECYCLE_STAGES = [
+  'not_started',
+  'production_queued',
+  'in_production',
+  'quality_control',
+  'packed',
+  'dispatched',
+  'delivered',
+  'archived'
+];
+
+export function validateLifecycleTransition(currentStage, nextStage) {
+  const current = String(currentStage || 'not_started');
+  const next = String(nextStage || '');
+
+  if (!OBJECT_LIFECYCLE_STAGES.includes(current)) {
+    throw new Error('invalid_current_lifecycle_stage');
+  }
+  if (!OBJECT_LIFECYCLE_STAGES.includes(next)) {
+    throw new Error('invalid_lifecycle_stage');
+  }
+  if (next === 'archived') {
+    throw new Error('archive_transition_requires_edition_archive');
+  }
+  if (current === next) {
+    return { changed: false, currentStage: current, nextStage: next };
+  }
+
+  const currentIndex = OBJECT_LIFECYCLE_STAGES.indexOf(current);
+  const nextIndex = OBJECT_LIFECYCLE_STAGES.indexOf(next);
+  if (nextIndex !== currentIndex + 1) {
+    throw new Error('invalid_lifecycle_transition');
+  }
+
+  return { changed: true, currentStage: current, nextStage: next };
+}
+
+export function visibleFounderTokenType(tokenType, lifecycleStage) {
+  const normalized = String(tokenType || '').trim().toLowerCase();
+  if (!normalized) return 'pending_allocation';
+  return ['delivered', 'archived'].includes(String(lifecycleStage || ''))
+    ? normalized
+    : 'sealed';
+}
+
+export function deriveLifecycleFromFulfillment(fulfillment, currentStage) {
+  const stage = String(currentStage || 'not_started');
+  const shipmentStatus = String(fulfillment && fulfillment.shipment_status || '').trim().toLowerCase();
+  const carrier = String(fulfillment && fulfillment.tracking_company || '').trim();
+  const trackingNumber = String(
+    fulfillment && (
+      fulfillment.tracking_number ||
+      (Array.isArray(fulfillment.tracking_numbers) && fulfillment.tracking_numbers[0])
+    ) || ''
+  ).trim();
+  const trackingUrl = String(
+    fulfillment && (
+      fulfillment.tracking_url ||
+      (Array.isArray(fulfillment.tracking_urls) && fulfillment.tracking_urls[0])
+    ) || ''
+  ).trim();
+  const hasTracking = Boolean(trackingNumber || trackingUrl);
+
+  const tracking = { carrier, trackingNumber, trackingUrl };
+
+  if (shipmentStatus === 'delivered') {
+    if (stage === 'delivered' || stage === 'archived') {
+      return { action: 'tracking', stage, tracking };
+    }
+    if (stage !== 'dispatched') {
+      return {
+        action: 'review',
+        reason: 'delivery_out_of_sequence',
+        currentStage: stage,
+        requestedStage: 'delivered',
+        tracking
+      };
+    }
+    return { action: 'transition', stage: 'delivered', tracking };
+  }
+
+  if (hasTracking) {
+    if (stage === 'packed') {
+      return { action: 'transition', stage: 'dispatched', tracking };
+    }
+    if (stage === 'dispatched' || stage === 'delivered' || stage === 'archived') {
+      return { action: 'tracking', stage, tracking };
+    }
+    return {
+      action: 'review',
+      reason: 'fulfillment_out_of_sequence',
+      currentStage: stage,
+      requestedStage: 'dispatched',
+      tracking
+    };
+  }
+
+  return { action: 'noop', stage, tracking };
+}
+
 export default {
   async fetch(request, env) {
     try {
@@ -40,6 +140,10 @@ export default {
         return handleOrdersPaid(request, env);
       }
 
+      if (request.method === 'POST' && url.pathname === '/webhooks/fulfillments') {
+        return handleFulfillmentWebhook(request, env);
+      }
+
       if (request.method === 'GET' && url.pathname === '/internal/state') {
         requireInternalKey(request, env);
         return getCampaign(env, url.searchParams.get('edition') || 'edition-01');
@@ -53,6 +157,11 @@ export default {
       if (request.method === 'POST' && url.pathname === '/internal/lookbook/status') {
         requireInternalKey(request, env);
         return setLookbookStatus(request, env);
+      }
+
+      if (request.method === 'POST' && url.pathname === '/internal/lifecycle/set') {
+        requireInternalKey(request, env);
+        return setObjectLifecycle(request, env);
       }
 
       if (request.method === 'GET' && url.pathname === '/internal/readiness') {
@@ -204,8 +313,17 @@ async function getCollectorStatus(env, customerId, editionId) {
   ).bind(reservation.id).first();
 
   const collectorObject = await env.PHAM_CAMPAIGN_DB.prepare(
-    'SELECT object_number, token_type, provenance_status FROM objects WHERE reservation_id = ?'
+    `SELECT id, object_number, token_type, provenance_status, qr_token, created_at
+     FROM objects
+     WHERE reservation_id = ?`
   ).bind(reservation.id).first();
+
+  const lifecycleRows = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT stage, created_at
+     FROM object_lifecycle_events
+     WHERE reservation_id = ?
+     ORDER BY created_at ASC`
+  ).bind(reservation.id).all();
 
   const verifiedCount = await scalar(
     env,
@@ -213,20 +331,44 @@ async function getCollectorStatus(env, customerId, editionId) {
     reservation.id
   );
 
+  const storefront = String(env.STOREFRONT_ORIGIN || 'https://phamofficial.com').replace(/\/$/, '');
+  const provenanceUrl = collectorObject && collectorObject.qr_token
+    ? storefront + '/pages/provenance?token=' + encodeURIComponent(collectorObject.qr_token)
+    : null;
+  const lifecycleStage = reservation.lifecycle_stage || 'not_started';
+
   return json({
     ok: true,
     reservation: {
       id: reservation.id,
       status: reservation.status,
       objectNumber: reservation.object_number,
+      objectRecordId: collectorObject ? collectorObject.id : null,
       sizePreference: reservation.size_preference || null,
       balanceDueCents: reservation.balance_due_cents,
       paymentDeadline: reservation.payment_deadline,
+      acquiredAt: reservation.acquired_at || null,
+      lifecycleStage,
+      lifecycleUpdatedAt: reservation.lifecycle_updated_at || null,
+      carrier: reservation.carrier || null,
+      trackingNumber: reservation.tracking_number || null,
+      trackingUrl: reservation.tracking_url || null,
       lookbookStatus: reservation.digital_lookbook_status,
       collectorReferralCode: reservation.referral_code,
       invoiceUrl: reservation.final_invoice_url,
-      founderTokenType: collectorObject && collectorObject.token_type ? collectorObject.token_type : 'pending_allocation',
-      provenanceStatus: collectorObject ? collectorObject.provenance_status : 'pending'
+      founderTokenType: visibleFounderTokenType(
+        collectorObject && collectorObject.token_type,
+        lifecycleStage
+      ),
+      provenanceStatus: collectorObject ? collectorObject.provenance_status : 'pending',
+      provenanceUrl,
+      birthRecordedAt: collectorObject ? collectorObject.created_at : null
+    },
+    lifecycle: {
+      stage: lifecycleStage,
+      events: (lifecycleRows.results || []).map(function(row) {
+        return { stage: row.stage, occurredAt: row.created_at };
+      })
     },
     identity: {
       status: identity ? identity.status : 'locked',
@@ -392,6 +534,78 @@ async function setCampaignState(request, env) {
     }
   }
 
+  if (nextState === 'archived') {
+    const finalPaidCount = await scalar(
+      env,
+      "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status = 'final_paid'",
+      editionId
+    );
+    const deliveredCount = await scalar(
+      env,
+      "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status = 'final_paid' AND lifecycle_stage = 'delivered'",
+      editionId
+    );
+    const objectCount = await scalar(
+      env,
+      'SELECT COUNT(*) AS count FROM objects WHERE edition_id = ?',
+      editionId
+    );
+    const goldCount = await scalar(
+      env,
+      "SELECT COUNT(*) AS count FROM objects WHERE edition_id = ? AND token_type = 'gold'",
+      editionId
+    );
+    const silverCount = await scalar(
+      env,
+      "SELECT COUNT(*) AS count FROM objects WHERE edition_id = ? AND token_type = 'silver'",
+      editionId
+    );
+
+    const editionSize = Number(edition.edition_size);
+    if (
+      finalPaidCount !== editionSize ||
+      deliveredCount !== editionSize ||
+      objectCount !== editionSize ||
+      goldCount !== 1 ||
+      silverCount !== editionSize - 1
+    ) {
+      return json({
+        ok: false,
+        error: 'edition_archive_not_ready',
+        required: {
+          finalPaid: editionSize,
+          delivered: editionSize,
+          objects: editionSize,
+          goldTokens: 1,
+          silverTokens: editionSize - 1
+        },
+        actual: {
+          finalPaid: finalPaidCount,
+          delivered: deliveredCount,
+          objects: objectCount,
+          goldTokens: goldCount,
+          silverTokens: silverCount
+        }
+      }, 409);
+    }
+
+    await env.PHAM_CAMPAIGN_DB.batch([
+      env.PHAM_CAMPAIGN_DB.prepare(
+        `INSERT INTO object_lifecycle_events (id, edition_id, reservation_id, stage, note)
+         SELECT lower(hex(randomblob(16))), edition_id, id, 'archived', 'Edition archived'
+         FROM reservations
+         WHERE edition_id = ? AND status = 'final_paid' AND lifecycle_stage = 'delivered'`
+      ).bind(editionId),
+      env.PHAM_CAMPAIGN_DB.prepare(
+        `UPDATE reservations
+         SET lifecycle_stage = 'archived',
+             lifecycle_updated_at = CURRENT_TIMESTAMP,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE edition_id = ? AND status = 'final_paid' AND lifecycle_stage = 'delivered'`
+      ).bind(editionId)
+    ]);
+  }
+
   await env.PHAM_CAMPAIGN_DB.prepare(
     'UPDATE editions SET state = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
   ).bind(nextState, editionId).run();
@@ -402,6 +616,181 @@ async function setCampaignState(request, env) {
     previousState: edition.state,
     state: nextState
   });
+}
+
+async function setObjectLifecycle(request, env) {
+  const body = await request.json();
+  const reservationId = String(body.reservationId || '').trim();
+  const nextStage = String(body.stage || '').trim().toLowerCase();
+  const details = {
+    note: String(body.note || '').trim().slice(0, 240),
+    carrier: String(body.carrier || '').trim().slice(0, 80),
+    trackingNumber: String(body.trackingNumber || '').trim().slice(0, 120),
+    trackingUrl: String(body.trackingUrl || '').trim().slice(0, 500)
+  };
+
+  if (body.confirm !== 'SET_OBJECT_LIFECYCLE') {
+    return json({ ok: false, error: 'explicit_confirmation_required' }, 400);
+  }
+  if (!reservationId || !nextStage) {
+    return json({ ok: false, error: 'reservation_id_and_stage_required' }, 422);
+  }
+
+  const reservation = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM reservations WHERE id = ?'
+  ).bind(reservationId).first();
+
+  if (!reservation) return json({ ok: false, error: 'reservation_not_found' }, 404);
+  if (reservation.status !== 'final_paid') {
+    return json({
+      ok: false,
+      error: 'object_not_acquired',
+      reservationStatus: reservation.status
+    }, 409);
+  }
+
+  let result;
+  try {
+    result = await persistObjectLifecycle(env, reservation, nextStage, details);
+  } catch (error) {
+    const code = error && error.message ? error.message : 'invalid_lifecycle_transition';
+    const status = code === 'dispatch_tracking_required' ? 422 : 409;
+    return json({
+      ok: false,
+      error: code,
+      currentStage: reservation.lifecycle_stage || 'not_started',
+      requestedStage: nextStage
+    }, status);
+  }
+
+  return json(Object.assign({
+    ok: true,
+    reservationId
+  }, result));
+}
+
+async function persistObjectLifecycle(env, reservation, nextStage, details = {}) {
+  const carrier = String(details.carrier || '').trim().slice(0, 80);
+  const trackingNumber = String(details.trackingNumber || '').trim().slice(0, 120);
+  const trackingUrl = String(details.trackingUrl || '').trim().slice(0, 500);
+  const transition = validateLifecycleTransition(
+    reservation.lifecycle_stage || 'not_started',
+    nextStage
+  );
+
+  if (!transition.changed) {
+    return {
+      stage: nextStage,
+      previousStage: transition.currentStage,
+      idempotent: true,
+      tracking: {
+        carrier: carrier || reservation.carrier || null,
+        number: trackingNumber || reservation.tracking_number || null,
+        url: trackingUrl || reservation.tracking_url || null
+      }
+    };
+  }
+
+  if (nextStage === 'dispatched' && !trackingNumber && !trackingUrl) {
+    throw new Error('dispatch_tracking_required');
+  }
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE reservations
+     SET lifecycle_stage = ?,
+         lifecycle_updated_at = CURRENT_TIMESTAMP,
+         carrier = CASE WHEN ? <> '' THEN ? ELSE carrier END,
+         tracking_number = CASE WHEN ? <> '' THEN ? ELSE tracking_number END,
+         tracking_url = CASE WHEN ? <> '' THEN ? ELSE tracking_url END,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`
+  ).bind(
+    nextStage,
+    carrier, carrier,
+    trackingNumber, trackingNumber,
+    trackingUrl, trackingUrl,
+    reservation.id
+  ).run();
+
+  await appendLifecycleEvent(env, {
+    editionId: reservation.edition_id,
+    reservationId: reservation.id,
+    stage: nextStage,
+    note: String(details.note || '').trim().slice(0, 240),
+    carrier,
+    trackingNumber,
+    trackingUrl
+  });
+
+  await syncLifecycleMetafields(env, reservation, nextStage, trackingNumber);
+
+  return {
+    previousStage: transition.currentStage,
+    stage: nextStage,
+    tracking: {
+      carrier: carrier || reservation.carrier || null,
+      number: trackingNumber || reservation.tracking_number || null,
+      url: trackingUrl || reservation.tracking_url || null
+    }
+  };
+}
+
+async function updateLifecycleTracking(env, reservation, details = {}) {
+  const carrier = String(details.carrier || '').trim().slice(0, 80);
+  const trackingNumber = String(details.trackingNumber || '').trim().slice(0, 120);
+  const trackingUrl = String(details.trackingUrl || '').trim().slice(0, 500);
+
+  if (!carrier && !trackingNumber && !trackingUrl) {
+    return { updated: false };
+  }
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE reservations
+     SET carrier = CASE WHEN ? <> '' THEN ? ELSE carrier END,
+         tracking_number = CASE WHEN ? <> '' THEN ? ELSE tracking_number END,
+         tracking_url = CASE WHEN ? <> '' THEN ? ELSE tracking_url END,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`
+  ).bind(
+    carrier, carrier,
+    trackingNumber, trackingNumber,
+    trackingUrl, trackingUrl,
+    reservation.id
+  ).run();
+
+  await syncLifecycleMetafields(
+    env,
+    reservation,
+    reservation.lifecycle_stage || 'not_started',
+    trackingNumber
+  );
+
+  return { updated: true };
+}
+
+async function syncLifecycleMetafields(env, reservation, stage, trackingNumber) {
+  const fields = [];
+  if (reservation.final_shopify_order_id) {
+    fields.push(
+      metafield(reservation.final_shopify_order_id, 'object_lifecycle_stage', 'single_line_text_field', stage)
+    );
+    if (trackingNumber) {
+      fields.push(
+        metafield(reservation.final_shopify_order_id, 'tracking_number', 'single_line_text_field', trackingNumber)
+      );
+    }
+  }
+  if (reservation.shopify_customer_id) {
+    fields.push(
+      metafield(reservation.shopify_customer_id, 'object_lifecycle_stage', 'single_line_text_field', stage)
+    );
+    if (trackingNumber) {
+      fields.push(
+        metafield(reservation.shopify_customer_id, 'tracking_number', 'single_line_text_field', trackingNumber)
+      );
+    }
+  }
+  await setMetafields(env, fields);
 }
 
 async function setLookbookStatus(request, env) {
@@ -1063,6 +1452,14 @@ async function getCampaign(env, editionId) {
     "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status NOT IN ('cancelled','expired')",
     editionId
   );
+  const acquired = await scalar(env,
+    "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status = 'final_paid'",
+    editionId
+  );
+  const delivered = await scalar(env,
+    "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status = 'final_paid' AND lifecycle_stage IN ('delivered','archived')",
+    editionId
+  );
   const identityClaimed = await scalar(env,
     "SELECT COUNT(*) AS count FROM identity_claims WHERE edition_id = ? AND status NOT IN ('revoked')",
     editionId
@@ -1085,10 +1482,16 @@ async function getCampaign(env, editionId) {
       identityLimit: edition.identity_limit,
       sizeOptions: parseEditionSizeOptions(edition.size_options_csv),
       paymentWindowHours: edition.payment_window_hours,
-      standbyWindowHours: edition.standby_window_hours
+      standbyWindowHours: edition.standby_window_hours,
+      designOrigin: edition.design_origin,
+      productionOrigin: edition.production_origin,
+      founderTokensAllocated: Boolean(edition.founder_tokens_allocated_at),
+      archivePermanent: edition.state === 'archived'
     },
     counters: {
       reserved,
+      acquired,
+      delivered,
       identityClaimed,
       standby
     }
@@ -1234,6 +1637,134 @@ async function joinStandbyRecord(env, input) {
     position: row.position,
     queueStatus: row.status
   };
+}
+
+async function handleFulfillmentWebhook(request, env) {
+  const raw = await request.arrayBuffer();
+  const verified = await verifyShopifyWebhook(
+    raw,
+    request.headers.get('x-shopify-hmac-sha256'),
+    env.SHOPIFY_API_SECRET
+  );
+  if (!verified) return json({ error: 'Invalid webhook signature' }, 401);
+
+  const webhookShop = request.headers.get('x-shopify-shop-domain') || '';
+  if (env.SHOPIFY_SHOP_DOMAIN && webhookShop !== env.SHOPIFY_SHOP_DOMAIN) {
+    return json({ error: 'Invalid webhook shop' }, 401);
+  }
+
+  const webhookId = request.headers.get('x-shopify-webhook-id') || '';
+  const topic = String(request.headers.get('x-shopify-topic') || '').toLowerCase();
+  if (!['fulfillments/create', 'fulfillments/update'].includes(topic)) {
+    return json({ ok: false, error: 'unexpected_fulfillment_topic' }, 400);
+  }
+
+  if (webhookId) {
+    const seen = await env.PHAM_CAMPAIGN_DB.prepare(
+      'SELECT id FROM webhook_events WHERE id = ?'
+    ).bind(webhookId).first();
+    if (seen) return json({ ok: true, duplicate: true });
+  }
+
+  const fulfillment = JSON.parse(new TextDecoder().decode(raw));
+  const orderId = fulfillment && fulfillment.order_id
+    ? toGid('Order', fulfillment.order_id)
+    : '';
+
+  if (!orderId) {
+    const review = { ok: false, review: true, reason: 'fulfillment_order_id_missing' };
+    if (webhookId) {
+      await recordWebhook(env, webhookId, topic, 'review_required', JSON.stringify(review));
+    }
+    return json(review);
+  }
+
+  const reservation = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT *
+     FROM reservations
+     WHERE final_shopify_order_id = ?
+     LIMIT 1`
+  ).bind(orderId).first();
+
+  if (!reservation) {
+    if (webhookId) await recordWebhook(env, webhookId, topic);
+    return json({ ok: true, ignored: true, reason: 'non_pham_fulfillment' });
+  }
+
+  if (reservation.status !== 'final_paid') {
+    const review = {
+      ok: false,
+      review: true,
+      reason: 'fulfillment_before_acquisition',
+      reservationId: reservation.id,
+      reservationStatus: reservation.status
+    };
+    if (webhookId) {
+      await recordWebhook(env, webhookId, topic, 'review_required', JSON.stringify(review));
+    }
+    return json(review);
+  }
+
+  const decision = deriveLifecycleFromFulfillment(
+    fulfillment,
+    reservation.lifecycle_stage || 'not_started'
+  );
+
+  if (decision.action === 'review') {
+    const review = Object.assign({
+      ok: false,
+      review: true,
+      reservationId: reservation.id,
+      topic
+    }, decision);
+    if (webhookId) {
+      await recordWebhook(env, webhookId, topic, 'review_required', JSON.stringify(review));
+    }
+    return json(review);
+  }
+
+  let result = { stage: reservation.lifecycle_stage || 'not_started' };
+
+  if (decision.action === 'transition') {
+    try {
+      result = await persistObjectLifecycle(env, reservation, decision.stage, {
+        note: topic === 'fulfillments/create'
+          ? 'Shopify fulfillment created.'
+          : 'Shopify fulfillment updated.',
+        carrier: decision.tracking.carrier,
+        trackingNumber: decision.tracking.trackingNumber,
+        trackingUrl: decision.tracking.trackingUrl
+      });
+    } catch (error) {
+      const review = {
+        ok: false,
+        review: true,
+        reason: error && error.message ? error.message : 'fulfillment_lifecycle_transition_failed',
+        reservationId: reservation.id,
+        currentStage: reservation.lifecycle_stage || 'not_started',
+        requestedStage: decision.stage
+      };
+      if (webhookId) {
+        await recordWebhook(env, webhookId, topic, 'review_required', JSON.stringify(review));
+      }
+      return json(review);
+    }
+  } else if (decision.action === 'tracking') {
+    await updateLifecycleTracking(env, reservation, decision.tracking);
+    result = {
+      stage: reservation.lifecycle_stage || 'not_started',
+      trackingUpdated: true
+    };
+  }
+
+  if (webhookId) await recordWebhook(env, webhookId, topic);
+
+  return json({
+    ok: true,
+    reservationId: reservation.id,
+    action: decision.action,
+    stage: result.stage || decision.stage || reservation.lifecycle_stage || 'not_started'
+  });
 }
 
 async function handleOrdersPaid(request, env) {
@@ -1592,17 +2123,31 @@ async function handleFinalAcquisitionPaid(env, order) {
          final_payment_status = 'paid',
          final_shopify_order_id = ?,
          payment_deadline = NULL,
+         acquired_at = ?,
+         lifecycle_stage = 'production_queued',
+         lifecycle_updated_at = ?,
          updated_at = CURRENT_TIMESTAMP
      WHERE id = ?`
-  ).bind(finalOrderId, reservationId).run();
+  ).bind(finalOrderId, validation.paidAt, validation.paidAt, reservationId).run();
+
+  await appendLifecycleEvent(env, {
+    editionId: reservation.edition_id,
+    reservationId,
+    stage: 'production_queued',
+    note: 'Final acquisition payment confirmed.'
+  });
 
   const fields = [
-    metafield(reservation.shopify_order_id, 'final_payment_status', 'single_line_text_field', 'paid')
+    metafield(reservation.shopify_order_id, 'final_payment_status', 'single_line_text_field', 'paid'),
+    metafield(finalOrderId, 'object_lifecycle_stage', 'single_line_text_field', 'production_queued'),
+    metafield(finalOrderId, 'acquired_at', 'date_time', validation.paidAt)
   ];
 
   if (reservation.shopify_customer_id) {
     fields.push(
-      metafield(reservation.shopify_customer_id, 'current_reservation_status', 'single_line_text_field', 'final_paid')
+      metafield(reservation.shopify_customer_id, 'current_reservation_status', 'single_line_text_field', 'final_paid'),
+      metafield(reservation.shopify_customer_id, 'object_lifecycle_stage', 'single_line_text_field', 'production_queued'),
+      metafield(reservation.shopify_customer_id, 'acquired_at', 'date_time', validation.paidAt)
     );
   }
 
@@ -1666,8 +2211,9 @@ async function handleStandbyAcquisitionPaid(env, order, standbyId) {
       id, edition_id, shopify_order_id, shopify_customer_id, email, status,
       reservation_paid_cents, balance_due_cents, referral_code, standby_id,
       size_preference, final_variant_id, final_shopify_order_id,
-      final_payment_status, digital_lookbook_status
-    ) VALUES (?, ?, ?, ?, ?, 'final_paid', 0, 0, ?, ?, ?, ?, ?, 'paid', 'not_included')`
+      final_payment_status, digital_lookbook_status,
+      acquired_at, lifecycle_stage, lifecycle_updated_at
+    ) VALUES (?, ?, ?, ?, ?, 'final_paid', 0, 0, ?, ?, ?, ?, ?, 'paid', 'not_included', ?, 'production_queued', ?)`
   ).bind(
     reservationId,
     edition.id,
@@ -1678,8 +2224,17 @@ async function handleStandbyAcquisitionPaid(env, order, standbyId) {
     standbyId,
     standby.size_preference || null,
     validation.variantId,
-    shopifyOrderId
+    shopifyOrderId,
+    validation.paidAt,
+    validation.paidAt
   ).run();
+
+  await appendLifecycleEvent(env, {
+    editionId: edition.id,
+    reservationId,
+    stage: 'production_queued',
+    note: 'Standby acquisition payment confirmed.'
+  });
 
   await env.PHAM_CAMPAIGN_DB.prepare(
     `UPDATE standby
@@ -1692,7 +2247,9 @@ async function handleStandbyAcquisitionPaid(env, order, standbyId) {
     metafield(shopifyOrderId, 'edition_label', 'single_line_text_field', edition.label),
     metafield(shopifyOrderId, 'reservation_id', 'single_line_text_field', reservationId),
     metafield(shopifyOrderId, 'size_preference', 'single_line_text_field', standby.size_preference || ''),
-    metafield(shopifyOrderId, 'final_payment_status', 'single_line_text_field', 'paid')
+    metafield(shopifyOrderId, 'final_payment_status', 'single_line_text_field', 'paid'),
+    metafield(shopifyOrderId, 'object_lifecycle_stage', 'single_line_text_field', 'production_queued'),
+    metafield(shopifyOrderId, 'acquired_at', 'date_time', validation.paidAt)
   ]);
 
   if (shopifyCustomerId) {
@@ -1703,7 +2260,9 @@ async function handleStandbyAcquisitionPaid(env, order, standbyId) {
       metafield(shopifyCustomerId, 'identity_status', 'single_line_text_field', 'locked'),
       metafield(shopifyCustomerId, 'reservation_id', 'single_line_text_field', reservationId),
       metafield(shopifyCustomerId, 'size_preference', 'single_line_text_field', standby.size_preference || ''),
-      metafield(shopifyCustomerId, 'digital_lookbook_status', 'single_line_text_field', 'not_included')
+      metafield(shopifyCustomerId, 'digital_lookbook_status', 'single_line_text_field', 'not_included'),
+      metafield(shopifyCustomerId, 'object_lifecycle_stage', 'single_line_text_field', 'production_queued'),
+      metafield(shopifyCustomerId, 'acquired_at', 'date_time', validation.paidAt)
     ]);
   }
 
@@ -1726,18 +2285,26 @@ async function getPublicProvenance(env, token) {
 
   const row = await env.PHAM_CAMPAIGN_DB.prepare(
     `SELECT
+       o.id AS object_id,
        o.object_number,
        o.token_type,
        o.provenance_status,
+       o.created_at AS birth_recorded_at,
        e.label AS edition_label,
        e.product_code,
        e.edition_size,
+       e.state AS edition_state,
        e.design_origin,
        e.production_origin,
+       r.acquired_at,
+       r.lifecycle_stage,
+       r.lifecycle_updated_at,
+       r.size_preference,
        i.public_identity,
        i.engraving_name
      FROM objects o
      JOIN editions e ON e.id = o.edition_id
+     JOIN reservations r ON r.id = o.reservation_id
      LEFT JOIN identity_claims i ON i.reservation_id = o.reservation_id
      WHERE o.auth_token_hash = ?
      LIMIT 1`
@@ -1751,14 +2318,21 @@ async function getPublicProvenance(env, token) {
     ok: true,
     authenticated: true,
     object: {
+      recordId: row.object_id,
       productCode: row.product_code,
       editionLabel: row.edition_label,
       editionSize: row.edition_size,
+      editionState: row.edition_state,
       objectNumber: row.object_number,
+      size: row.size_preference || null,
       designOrigin: row.design_origin,
       productionOrigin: row.production_origin,
+      acquiredAt: row.acquired_at || null,
+      birthRecordedAt: row.birth_recorded_at || null,
+      lifecycleStage: row.lifecycle_stage || 'not_started',
+      lifecycleUpdatedAt: row.lifecycle_updated_at || null,
       provenanceStatus: row.provenance_status,
-      tokenType: row.token_type || 'pending_allocation',
+      tokenType: visibleFounderTokenType(row.token_type, row.lifecycle_stage),
       publicIdentity: row.public_identity ? String(row.engraving_name || '') : null
     }
   });
@@ -1931,7 +2505,6 @@ async function finalizeObjectNumbers(request, env) {
 async function allocateFounderTokens(request, env) {
   const body = await request.json();
   const editionId = String(body.editionId || 'edition-01');
-  const goldObjectNumber = Number(body.goldObjectNumber);
 
   if (body.confirm !== 'ALLOCATE_FOUNDER_TOKENS') {
     return json({ ok: false, error: 'explicit_confirmation_required' }, 400);
@@ -1945,44 +2518,85 @@ async function allocateFounderTokens(request, env) {
   if (edition.state !== 'sold_out') {
     return json({ ok: false, error: 'edition_not_finalized' }, 409);
   }
-
-  if (!Number.isInteger(goldObjectNumber) ||
-      goldObjectNumber < 1 ||
-      goldObjectNumber > Number(edition.edition_size)) {
-    return json({ ok: false, error: 'invalid_gold_object_number' }, 422);
-  }
-
-  const objectCount = await scalar(
-    env,
-    'SELECT COUNT(*) AS count FROM objects WHERE edition_id = ?',
-    editionId
-  );
-
-  if (objectCount !== Number(edition.edition_size)) {
+  if (edition.founder_tokens_allocated_at || edition.founder_token_gold_object_number) {
     return json({
       ok: false,
-      error: 'object_set_incomplete',
-      objectCount,
-      editionSize: Number(edition.edition_size)
+      error: 'founder_tokens_already_allocated',
+      goldObjectNumber: edition.founder_token_gold_object_number || null,
+      allocatedAt: edition.founder_tokens_allocated_at || null
     }, 409);
   }
 
-  const goldObject = await env.PHAM_CAMPAIGN_DB.prepare(
-    'SELECT id FROM objects WHERE edition_id = ? AND object_number = ?'
-  ).bind(editionId, goldObjectNumber).first();
+  const objectRows = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT id, object_number, token_type FROM objects WHERE edition_id = ? ORDER BY object_number ASC'
+  ).bind(editionId).all();
+  const objects = objectRows.results || [];
 
-  if (!goldObject) {
-    return json({ ok: false, error: 'gold_object_not_found' }, 404);
+  if (objects.length !== Number(edition.edition_size)) {
+    return json({
+      ok: false,
+      error: 'object_set_incomplete',
+      objectCount: objects.length,
+      editionSize: Number(edition.edition_size)
+    }, 409);
   }
+  if (objects.some(function(object) { return Boolean(object.token_type); })) {
+    return json({ ok: false, error: 'founder_token_partial_allocation_detected' }, 409);
+  }
+
+  const goldObjectNumber = Number(objects[secureRandomIndex(objects.length)].object_number);
+  const allocationMethod = 'crypto_random_once_v1';
 
   await env.PHAM_CAMPAIGN_DB.batch([
     env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE objects SET token_type = 'silver', updated_at = CURRENT_TIMESTAMP WHERE edition_id = ?"
-    ).bind(editionId),
+      `UPDATE editions
+       SET founder_tokens_allocated_at = CURRENT_TIMESTAMP,
+           founder_token_gold_object_number = ?,
+           founder_token_allocation_method = ?,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = ? AND founder_tokens_allocated_at IS NULL`
+    ).bind(goldObjectNumber, allocationMethod, editionId),
     env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE objects SET token_type = 'gold', updated_at = CURRENT_TIMESTAMP WHERE edition_id = ? AND object_number = ?"
-    ).bind(editionId, goldObjectNumber)
+      `UPDATE objects
+       SET token_type = CASE WHEN object_number = ? THEN 'gold' ELSE 'silver' END,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE edition_id = ?
+         AND token_type IS NULL
+         AND EXISTS (
+           SELECT 1
+           FROM editions
+           WHERE id = ?
+             AND founder_token_gold_object_number = ?
+             AND founder_token_allocation_method = ?
+         )`
+    ).bind(
+      goldObjectNumber,
+      editionId,
+      editionId,
+      goldObjectNumber,
+      allocationMethod
+    )
   ]);
+
+  const allocatedEdition = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT founder_tokens_allocated_at, founder_token_gold_object_number,
+            founder_token_allocation_method
+     FROM editions
+     WHERE id = ?`
+  ).bind(editionId).first();
+
+  if (
+    !allocatedEdition ||
+    Number(allocatedEdition.founder_token_gold_object_number) !== goldObjectNumber ||
+    allocatedEdition.founder_token_allocation_method !== allocationMethod
+  ) {
+    return json({
+      ok: false,
+      error: 'founder_tokens_already_allocated',
+      goldObjectNumber: allocatedEdition && allocatedEdition.founder_token_gold_object_number || null,
+      allocatedAt: allocatedEdition && allocatedEdition.founder_tokens_allocated_at || null
+    }, 409);
+  }
 
   const goldCount = await scalar(
     env,
@@ -2010,8 +2624,44 @@ async function allocateFounderTokens(request, env) {
     goldObjectNumber,
     goldCount,
     silverCount,
-    note: 'Allocation was explicitly selected by an authorized operator; no random draw was performed by the system.'
+    allocatedAt: allocatedEdition.founder_tokens_allocated_at,
+    allocationMethod,
+    revealPolicy: 'sealed_until_delivered'
   });
+}
+
+function secureRandomIndex(length) {
+  if (!Number.isInteger(length) || length < 1) {
+    throw new Error('invalid_random_pool_size');
+  }
+
+  const range = 0x100000000;
+  const ceiling = Math.floor(range / length) * length;
+  const value = new Uint32Array(1);
+
+  do {
+    crypto.getRandomValues(value);
+  } while (value[0] >= ceiling);
+
+  return value[0] % length;
+}
+
+async function appendLifecycleEvent(env, event) {
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    `INSERT INTO object_lifecycle_events (
+      id, edition_id, reservation_id, stage, note,
+      carrier, tracking_number, tracking_url
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).bind(
+    crypto.randomUUID(),
+    event.editionId,
+    event.reservationId,
+    event.stage,
+    event.note || null,
+    event.carrier || null,
+    event.trackingNumber || null,
+    event.trackingUrl || null
+  ).run();
 }
 
 async function sha256Hex(value) {

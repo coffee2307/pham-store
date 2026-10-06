@@ -5,12 +5,15 @@ import {
   assertDraftOrderPricing,
   buildStandbyAcquisitionDraftInput,
   canonicalizeAppProxyParams,
+  deriveLifecycleFromFulfillment,
   evaluateFinalSizeVariants,
   parseEditionSizeOptions,
   selectFinalVariantBySize,
   validateFinalAcquisitionOrder,
   validatePriorityReservationOrder,
   validateStandbyAcquisitionOrder,
+  validateLifecycleTransition,
+  visibleFounderTokenType,
   verifyAppProxyRequest,
   verifyShopifyWebhook,
 } from './worker.js';
@@ -673,4 +676,83 @@ test('campaign acquisition validators reject non-paid webhook payloads', () => {
     () => validatePriorityReservationOrder(reservationFixture),
     /reservation_order_not_paid/
   );
+});
+
+
+test('object lifecycle only advances one stage at a time', () => {
+  assert.deepEqual(
+    validateLifecycleTransition('production_queued', 'in_production'),
+    {
+      changed: true,
+      currentStage: 'production_queued',
+      nextStage: 'in_production'
+    }
+  );
+  assert.equal(
+    validateLifecycleTransition('packed', 'packed').changed,
+    false
+  );
+  assert.throws(
+    () => validateLifecycleTransition('production_queued', 'quality_control'),
+    /invalid_lifecycle_transition/
+  );
+  assert.throws(
+    () => validateLifecycleTransition('delivered', 'archived'),
+    /archive_transition_requires_edition_archive/
+  );
+});
+
+test('Founder token remains sealed until delivery', () => {
+  assert.equal(visibleFounderTokenType('', 'packed'), 'pending_allocation');
+  assert.equal(visibleFounderTokenType('gold', 'packed'), 'sealed');
+  assert.equal(visibleFounderTokenType('silver', 'dispatched'), 'sealed');
+  assert.equal(visibleFounderTokenType('gold', 'delivered'), 'gold');
+  assert.equal(visibleFounderTokenType('silver', 'archived'), 'silver');
+});
+
+
+test('fulfillment lifecycle derives dispatch only from packed objects with tracking', () => {
+  assert.deepEqual(
+    deriveLifecycleFromFulfillment({
+      tracking_company: 'DHL',
+      tracking_number: 'PHAM123',
+      tracking_url: 'https://tracking.example/PHAM123',
+      shipment_status: 'in_transit'
+    }, 'packed'),
+    {
+      action: 'transition',
+      stage: 'dispatched',
+      tracking: {
+        carrier: 'DHL',
+        trackingNumber: 'PHAM123',
+        trackingUrl: 'https://tracking.example/PHAM123'
+      }
+    }
+  );
+
+  const early = deriveLifecycleFromFulfillment({
+    tracking_number: 'PHAM123'
+  }, 'quality_control');
+  assert.equal(early.action, 'review');
+  assert.equal(early.reason, 'fulfillment_out_of_sequence');
+});
+
+test('fulfillment lifecycle only records delivered after dispatch', () => {
+  assert.equal(
+    deriveLifecycleFromFulfillment({ shipment_status: 'delivered' }, 'dispatched').stage,
+    'delivered'
+  );
+
+  const early = deriveLifecycleFromFulfillment(
+    { shipment_status: 'delivered', tracking_number: 'PHAM123' },
+    'packed'
+  );
+  assert.equal(early.action, 'review');
+  assert.equal(early.reason, 'delivery_out_of_sequence');
+
+  const alreadyDelivered = deriveLifecycleFromFulfillment(
+    { shipment_status: 'delivered', tracking_number: 'PHAM123' },
+    'delivered'
+  );
+  assert.equal(alreadyDelivered.action, 'tracking');
 });

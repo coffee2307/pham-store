@@ -8,6 +8,8 @@
 {%- assign referral_code = blank -%}
 {%- assign successful_referrals = 0 -%}
 {%- assign identity_status_key = 'locked' -%}
+{%- assign lifecycle_stage = 'NOT STARTED' -%}
+{%- assign tracking_number = blank -%}
 {%- if customer -%}
   {%- assign reservation_status = customer.metafields.pham.current_reservation_status.value | default: 'PENDING' -%}
   {%- assign object_number = customer.metafields.pham.current_object_number.value -%}
@@ -18,6 +20,8 @@
   {%- assign referral_code = customer.metafields.pham.referral_code.value -%}
   {%- assign successful_referrals = customer.metafields.pham.successful_referrals.value | default: 0 -%}
   {%- assign identity_status_key = identity_status | downcase -%}
+  {%- assign lifecycle_stage = customer.metafields.pham.object_lifecycle_stage.value | default: 'NOT STARTED' -%}
+  {%- assign tracking_number = customer.metafields.pham.tracking_number.value -%}
 {%- endif -%}
 
 <section class="pham-campaign-shell"
@@ -25,66 +29,107 @@
   data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}"
   data-currency="{{ cart.currency.iso_code | default: localization.country.currency.iso_code | default: 'USD' }}"
+  data-product-code="{{ settings.pham_campaign_product_code | default: 'PHAM-001' | escape }}"
   data-edition-size="{{ settings.pham_campaign_edition_size | default: 50 }}"
   {% if payment_deadline != blank %}data-payment-deadline="{{ payment_deadline | escape }}"{% endif %}>
   <div class="pham-campaign-inner">
     <p class="pham-campaign-kicker">PHAM · COLLECTOR ACCESS</p>
-    <h1 class="pham-campaign-title">{% if customer %}{{ customer.first_name | default: 'Collector' | escape }}{% else %}Collector{% endif %}<br>status.</h1>
+    <h1 class="pham-campaign-title">{% if customer %}{{ customer.first_name | default: 'Collector' | escape }}{% else %}Collector{% endif %}<br>record.</h1>
+    <p class="pham-campaign-lede">A private record of access, acquisition, production, delivery and provenance for your PHAM object.</p>
 
     <div class="pham-campaign-grid">
       <article class="pham-campaign-card pham-campaign-card--wide">
         {%- unless customer -%}
-          <p>Sign in with the account connected to your reservation to view live collector status.</p>
+          <h2>Collector authentication</h2>
+          <p>Sign in with the account connected to your reservation to open the private object record.</p>
           <div class="pham-campaign-actions">
-            <a class="pham-campaign-btn"
-               data-pham-final-payment-link
-               href="#"
-               hidden>Complete acquisition · {{ settings.pham_campaign_balance_due | default: '$174.01' }}</a><a class="pham-campaign-btn" href="{{ routes.account_login_url }}">Sign in</a></div>
+            <a class="pham-campaign-btn" href="{{ routes.account_login_url }}">Sign in</a>
+          </div>
         {%- else -%}
+          <h2>Object record</h2>
           <div class="pham-status-row"><span>Edition</span><strong>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</strong></div>
-          <div class="pham-status-row"><span>Product</span><strong>{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</strong></div>
-          <div class="pham-status-row"><span>Reservation</span><strong data-pham-live-reservation-status>{{ reservation_status }}</strong></div>
-          <div class="pham-status-row"><span>Object</span><strong data-pham-live-object>{% if object_number != blank %}{{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}{% else %}PENDING ASSIGNMENT{% endif %}</strong></div>
+          <div class="pham-status-row"><span>Object</span><strong data-pham-live-object>{% if object_number != blank %}{{ settings.pham_campaign_product_code | default: 'PHAM-001' }} · {{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}{% else %}{{ settings.pham_campaign_product_code | default: 'PHAM-001' }} · PENDING ASSIGNMENT{% endif %}</strong></div>
+          <div class="pham-status-row"><span>Acquisition</span><strong data-pham-live-reservation-status>{{ reservation_status }}</strong></div>
+          <div class="pham-status-row"><span>Object state</span><strong data-pham-live-lifecycle>{{ lifecycle_stage | replace: '_', ' ' | upcase }}</strong></div>
+          <div class="pham-status-row"><span>Acquired</span><strong data-pham-live-acquired>—</strong></div>
+          <div class="pham-status-row"><span>Size</span><strong data-pham-live-size>{% if size_preference != blank %}{{ size_preference }}{% else %}PENDING{% endif %}</strong></div>
           <div class="pham-status-row"><span>Identity</span><strong data-pham-live-identity-status>{{ identity_status }}</strong></div>
-          <div class="pham-status-row"><span>Size preference</span><strong data-pham-live-size>{% if size_preference != blank %}{{ size_preference }}{% else %}PENDING{% endif %}</strong></div>
-          <div class="pham-status-row"><span>Referral</span><strong data-pham-live-referral>{{ successful_referrals }} / 1 VERIFIED</strong></div>
+          <div class="pham-status-row"><span>Founder’s Token</span><strong data-pham-live-founder-token>SEALED</strong></div>
+          <div class="pham-status-row"><span>Birth Record</span><strong data-pham-live-record-id>PENDING</strong></div>
           <div class="pham-status-row"><span>Digital lookbook</span><strong data-pham-live-lookbook>{{ lookbook_status }}</strong></div>
-          <div class="pham-status-row"><span>Founder’s Token</span><strong data-pham-live-founder-token>PENDING ALLOCATION</strong></div>
-          <div class="pham-status-row"><span>Reservation paid</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
-          <div class="pham-status-row"><span>Product balance</span><strong data-pham-live-balance>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></div>
+          <div class="pham-status-row"><span>Referral</span><strong data-pham-live-referral>{{ successful_referrals }} / 1 VERIFIED</strong></div>
+          <div class="pham-status-row"><span>Reservation credit</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
+          <div class="pham-status-row"><span>Balance</span><strong data-pham-live-balance>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></div>
+          <div class="pham-status-row" data-pham-tracking-row {% if tracking_number == blank %}hidden{% endif %}>
+            <span>Tracking</span><strong data-pham-live-tracking>{{ tracking_number }}</strong>
+          </div>
           <div class="pham-status-row" data-pham-deadline-row {% if payment_deadline == blank %}hidden{% endif %}>
             <span>Payment deadline</span><strong data-pham-live-deadline>{{ payment_deadline }}</strong>
           </div>
           <div class="pham-status-row" data-pham-countdown-row {% if payment_deadline == blank %}hidden{% endif %}>
             <span>Time remaining</span><strong data-pham-payment-countdown>{% if payment_deadline != blank %}CALCULATING…{% else %}—{% endif %}</strong>
           </div>
+
           <div class="pham-campaign-actions">
+            <a class="pham-campaign-btn"
+               data-pham-final-payment-link
+               href="#"
+               hidden>Complete acquisition · {{ settings.pham_campaign_balance_due | default: '$174.01' }}</a>
+            <a class="pham-campaign-btn"
+               data-pham-birth-record-link
+               href="#"
+               hidden>Open Birth Record</a>
+            <a class="pham-campaign-btn pham-campaign-btn--ghost"
+               data-pham-tracking-link
+               href="#"
+               rel="noopener"
+               hidden>Track object</a>
             {%- if identity_status_key != 'locked' and settings.pham_campaign_identity_page_url != blank -%}
-              <a class="pham-campaign-btn" href="{{ settings.pham_campaign_identity_page_url }}">Customize Object Identity</a>
+              <a class="pham-campaign-btn pham-campaign-btn--ghost" href="{{ settings.pham_campaign_identity_page_url }}">Object Identity</a>
             {%- elsif settings.pham_campaign_referral_page_url != blank -%}
-              <a class="pham-campaign-btn" href="{{ settings.pham_campaign_referral_page_url }}">Unlock Identity by referral</a>
-            {%- endif -%}
-            {%- if settings.pham_campaign_referral_page_url != blank and referral_code != blank -%}
-              <a class="pham-campaign-btn pham-campaign-btn--ghost" href="{{ settings.pham_campaign_referral_page_url }}">Referral access</a>
+              <a class="pham-campaign-btn pham-campaign-btn--ghost" href="{{ settings.pham_campaign_referral_page_url }}">Unlock Identity</a>
             {%- endif -%}
           </div>
         {%- endunless -%}
       </article>
 
       <article class="pham-campaign-card">
+        <h2>Current instruction</h2>
+        <p data-pham-next-action-copy>PHAM will surface the next required action here as your object moves through the edition protocol.</p>
+      </article>
+
+      <article class="pham-campaign-card pham-campaign-card--full">
+        <div class="pham-lifecycle-head">
+          <div>
+            <p class="pham-campaign-mono">OBJECT LIFECYCLE</p>
+            <h2>From acquisition to delivery.</h2>
+          </div>
+          <strong data-pham-lifecycle-status>{{ lifecycle_stage | replace: '_', ' ' | upcase }}</strong>
+        </div>
+        <div class="pham-lifecycle-track" data-pham-lifecycle-track>
+          <div class="pham-lifecycle-step" data-pham-lifecycle-step="production_queued"><span>01</span><strong>ACQUIRED</strong><small>Allocation becomes an object order.</small></div>
+          <div class="pham-lifecycle-step" data-pham-lifecycle-step="in_production"><span>02</span><strong>PRODUCTION</strong><small>Construction is underway.</small></div>
+          <div class="pham-lifecycle-step" data-pham-lifecycle-step="quality_control"><span>03</span><strong>QC</strong><small>Object enters final inspection.</small></div>
+          <div class="pham-lifecycle-step" data-pham-lifecycle-step="packed"><span>04</span><strong>PACKED</strong><small>Identity and collector materials are sealed.</small></div>
+          <div class="pham-lifecycle-step" data-pham-lifecycle-step="dispatched"><span>05</span><strong>DISPATCHED</strong><small>The object has left PHAM.</small></div>
+          <div class="pham-lifecycle-step" data-pham-lifecycle-step="delivered"><span>06</span><strong>DELIVERED</strong><small>The physical object and its record are united.</small></div>
+        </div>
+      </article>
+
+      <article class="pham-campaign-card">
         <h2>Digital lookbook</h2>
         <p>
           {% if settings.pham_campaign_include_digital_lookbook %}
-            Status: <strong data-pham-live-lookbook-copy>{{ lookbook_status }}</strong>. The collector lookbook is included with the Priority Reservation and is delivered through the order’s digital entitlement once payment is confirmed.
+            Status: <strong data-pham-live-lookbook-copy>{{ lookbook_status }}</strong>. The collector edition is a private digital artifact attached to the reservation entitlement.
           {% else %}
-            No digital deliverable configured for this edition yet.
+            No digital artifact is configured for this edition.
           {% endif %}
         </p>
       </article>
 
       <article class="pham-campaign-card">
-        <h2>Next action</h2>
-        <p>When the acquisition window opens, reserved collectors receive a payment invitation for the {{ settings.pham_campaign_balance_due | default: '$174.01' }} remaining product balance with a {{ settings.pham_campaign_payment_window_hours | default: 72 }}-hour deadline. Shipping, taxes and duties may apply at checkout.</p>
+        <h2>Birth Record</h2>
+        <p>Your numbered object receives a tokenized PHAM Birth Record after the final object set is fixed. The record carries origin, assignment and lifecycle data without exposing private contact information.</p>
       </article>
     </div>
   </div>

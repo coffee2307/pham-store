@@ -634,6 +634,63 @@ function mountCollector(root){
     return String(value || 'pending').replace(/_/g, ' ').toUpperCase();
   }
 
+  function displayDate(value){
+    if(!value) return '—';
+    var parsed = new Date(value);
+    if(isNaN(parsed.getTime())) return String(value);
+    try { return parsed.toLocaleString(); }
+    catch (e) { return String(value); }
+  }
+
+  function renderLifecycle(stage){
+    var rawStage = String(stage || 'not_started');
+    var visibleStages = [
+      'production_queued',
+      'in_production',
+      'quality_control',
+      'packed',
+      'dispatched',
+      'delivered'
+    ];
+    var effectiveStage = rawStage === 'archived' ? 'delivered' : rawStage;
+    var currentIndex = visibleStages.indexOf(effectiveStage);
+    var status = root.querySelector('[data-pham-lifecycle-status]');
+    if(status) status.textContent = displayState(rawStage);
+
+    qsa('[data-pham-lifecycle-step]', root).forEach(function(step, index){
+      step.classList.remove('is-complete', 'is-current');
+      if(currentIndex < 0) return;
+      if(rawStage === 'archived' || index < currentIndex) step.classList.add('is-complete');
+      if(rawStage !== 'archived' && index === currentIndex) step.classList.add('is-current');
+      if(rawStage === 'delivered' && index === currentIndex) step.classList.add('is-complete');
+    });
+  }
+
+  function nextInstruction(reservation){
+    if(reservation.status === 'final_payment_open'){
+      return 'Complete the remaining acquisition balance before the published deadline. The allocation is released if the payment window expires.';
+    }
+
+    switch(String(reservation.lifecycleStage || 'not_started')){
+      case 'production_queued':
+        return 'Acquisition confirmed. Your object is queued for controlled production; no action is required.';
+      case 'in_production':
+        return 'Production is underway. PHAM will advance the record when the object enters final quality control.';
+      case 'quality_control':
+        return 'Your object is in final quality control. Packing begins only after inspection is cleared.';
+      case 'packed':
+        return 'The object, Identity materials and collector package are sealed. Dispatch details will appear here next.';
+      case 'dispatched':
+        return 'Your object has left PHAM. Use the tracking control in this record for carrier updates.';
+      case 'delivered':
+        return 'Delivery is recorded. The Founder’s Token is now revealed and the Birth Record remains attached to the object.';
+      case 'archived':
+        return 'This object is now part of the permanent PHAM archive. The edition will not return to production.';
+      default:
+        return 'Your reservation is recorded. PHAM will surface the next required action here as the edition advances.';
+    }
+  }
+
   function startCountdown(rawDeadline){
     if(!output || !rawDeadline) return;
 
@@ -646,10 +703,7 @@ function mountCollector(root){
     root.dataset.paymentDeadline = rawDeadline;
     if(deadlineRow) deadlineRow.hidden = false;
     if(countdownRow) countdownRow.hidden = false;
-    if(deadlineLabel){
-      try { deadlineLabel.textContent = deadline.toLocaleString(); }
-      catch (e) { deadlineLabel.textContent = rawDeadline; }
-    }
+    if(deadlineLabel) deadlineLabel.textContent = displayDate(rawDeadline);
 
     if(timer) window.clearInterval(timer);
 
@@ -686,6 +740,7 @@ function mountCollector(root){
   }
 
   if(root.dataset.paymentDeadline) startCountdown(root.dataset.paymentDeadline);
+  renderLifecycle('not_started');
 
   if(root.dataset.engineEnabled !== 'true') return;
 
@@ -695,25 +750,36 @@ function mountCollector(root){
       var identity = payload.identity || {};
       var referral = payload.referral || {};
       var editionSize = root.dataset.editionSize || '50';
+      var productCode = root.dataset.productCode || 'PHAM-001';
 
       var statusEl = root.querySelector('[data-pham-live-reservation-status]');
       var objectEl = root.querySelector('[data-pham-live-object]');
       var identityEl = root.querySelector('[data-pham-live-identity-status]');
+      var lifecycleEl = root.querySelector('[data-pham-live-lifecycle]');
+      var acquiredEl = root.querySelector('[data-pham-live-acquired]');
       var sizeEl = root.querySelector('[data-pham-live-size]');
       var referralEl = root.querySelector('[data-pham-live-referral]');
       var lookbookEl = root.querySelector('[data-pham-live-lookbook]');
       var founderTokenEl = root.querySelector('[data-pham-live-founder-token]');
+      var recordIdEl = root.querySelector('[data-pham-live-record-id]');
       var lookbookCopyEl = root.querySelector('[data-pham-live-lookbook-copy]');
       var balanceEl = root.querySelector('[data-pham-live-balance]');
       var finalPaymentLink = root.querySelector('[data-pham-final-payment-link]');
+      var birthRecordLink = root.querySelector('[data-pham-birth-record-link]');
+      var trackingRow = root.querySelector('[data-pham-tracking-row]');
+      var trackingEl = root.querySelector('[data-pham-live-tracking]');
+      var trackingLink = root.querySelector('[data-pham-tracking-link]');
+      var nextAction = root.querySelector('[data-pham-next-action-copy]');
 
       if(statusEl) statusEl.textContent = displayState(reservation.status);
       if(objectEl){
         objectEl.textContent = reservation.objectNumber
-          ? String(reservation.objectNumber).padStart(2,'0') + ' / ' + editionSize
-          : 'PENDING ASSIGNMENT';
+          ? productCode + ' · ' + String(reservation.objectNumber).padStart(2,'0') + ' / ' + editionSize
+          : productCode + ' · PENDING ASSIGNMENT';
       }
       if(identityEl) identityEl.textContent = displayState(identity.status);
+      if(lifecycleEl) lifecycleEl.textContent = displayState(reservation.lifecycleStage || 'not_started');
+      if(acquiredEl) acquiredEl.textContent = displayDate(reservation.acquiredAt);
       if(sizeEl) sizeEl.textContent = reservation.sizePreference || 'PENDING';
       if(referralEl){
         referralEl.textContent = String(referral.verifiedCount || 0) + ' / ' +
@@ -721,6 +787,7 @@ function mountCollector(root){
       }
       if(lookbookEl) lookbookEl.textContent = displayState(reservation.lookbookStatus);
       if(founderTokenEl) founderTokenEl.textContent = displayState(reservation.founderTokenType || 'pending_allocation');
+      if(recordIdEl) recordIdEl.textContent = reservation.objectRecordId || 'PENDING';
       if(lookbookCopyEl) lookbookCopyEl.textContent = displayState(reservation.lookbookStatus);
       if(balanceEl && reservation.balanceDueCents != null){
         balanceEl.textContent = formatMoney(
@@ -728,6 +795,9 @@ function mountCollector(root){
           root.dataset.currency || 'USD'
         );
       }
+      if(nextAction) nextAction.textContent = nextInstruction(reservation);
+
+      renderLifecycle(reservation.lifecycleStage || 'not_started');
 
       if(finalPaymentLink){
         var canPay = reservation.status === 'final_payment_open' && Boolean(reservation.invoiceUrl);
@@ -742,15 +812,46 @@ function mountCollector(root){
         }
       }
 
+      if(birthRecordLink){
+        if(reservation.provenanceUrl){
+          birthRecordLink.href = reservation.provenanceUrl;
+          birthRecordLink.hidden = false;
+        } else {
+          birthRecordLink.hidden = true;
+          birthRecordLink.removeAttribute('href');
+        }
+      }
+
+      if(trackingRow){
+        trackingRow.hidden = !(reservation.trackingNumber || reservation.trackingUrl);
+      }
+      if(trackingEl){
+        trackingEl.textContent = reservation.trackingNumber ||
+          (reservation.trackingUrl ? 'AVAILABLE' : '—');
+      }
+      if(trackingLink){
+        if(reservation.trackingUrl){
+          trackingLink.href = reservation.trackingUrl;
+          trackingLink.hidden = false;
+        } else {
+          trackingLink.hidden = true;
+          trackingLink.removeAttribute('href');
+        }
+      }
+
       if(reservation.paymentDeadline && reservation.status === 'final_payment_open'){
         startCountdown(reservation.paymentDeadline);
+      } else {
+        if(deadlineRow) deadlineRow.hidden = true;
+        if(countdownRow) countdownRow.hidden = true;
       }
     })
     .catch(function(error){
       if(error && error.code === 'customer_login_required') return;
-      // Keep Shopify metafield fallback visible if the engine is temporarily unavailable.
+      // Shopify metafields remain the safe fallback if the Edition Engine is unavailable.
     });
 }
+
 function mountProvenance(root){
   if(root.dataset.phamProvenanceMounted === 'true') return;
   root.dataset.phamProvenanceMounted = 'true';
@@ -760,6 +861,18 @@ function mountProvenance(root){
   var params = new URLSearchParams(window.location.search);
   var token = params.get('token') || '';
   if(!token) return;
+
+  function displayState(value){
+    return String(value || 'pending').replace(/_/g, ' ').toUpperCase();
+  }
+
+  function displayDate(value){
+    if(!value) return '—';
+    var parsed = new Date(value);
+    if(isNaN(parsed.getTime())) return String(value);
+    try { return parsed.toLocaleString(); }
+    catch (e) { return String(value); }
+  }
 
   var result = root.querySelector('[data-pham-provenance-result]');
 
@@ -776,6 +889,11 @@ function mountProvenance(root){
       var assignment = root.querySelector('[data-pham-provenance-assignment]');
       var identity = root.querySelector('[data-pham-provenance-identity]');
       var tokenType = root.querySelector('[data-pham-provenance-token]');
+      var recordId = root.querySelector('[data-pham-provenance-record-id]');
+      var size = root.querySelector('[data-pham-provenance-size]');
+      var acquired = root.querySelector('[data-pham-provenance-acquired]');
+      var birthRecorded = root.querySelector('[data-pham-provenance-birth-recorded]');
+      var lifecycle = root.querySelector('[data-pham-provenance-lifecycle]');
 
       if(product) product.textContent = object.productCode || 'PHAM OBJECT';
       if(number){
@@ -795,21 +913,22 @@ function mountProvenance(root){
       }
       if(identity){
         identity.textContent = object.publicIdentity ||
-          'Collector identity is private unless the collector explicitly opts into public display.';
+          'Collector identity remains private unless the collector explicitly opts into public display.';
       }
-      if(tokenType){
-        tokenType.textContent = String(object.tokenType || 'pending_allocation')
-          .replace(/_/g,' ')
-          .toUpperCase();
-      }
+      if(tokenType) tokenType.textContent = displayState(object.tokenType || 'pending_allocation');
+      if(recordId) recordId.textContent = object.recordId || '—';
+      if(size) size.textContent = object.size || '—';
+      if(acquired) acquired.textContent = displayDate(object.acquiredAt);
+      if(birthRecorded) birthRecorded.textContent = displayDate(object.birthRecordedAt);
+      if(lifecycle) lifecycle.textContent = displayState(object.lifecycleStage || 'not_started');
       if(result){
-        result.textContent = 'AUTHENTIC PROVENANCE RECORD · TOKEN VERIFIED';
+        result.textContent = 'AUTHENTIC PHAM BIRTH RECORD · TOKEN VERIFIED';
         result.hidden = false;
       }
     })
     .catch(function(error){
       if(result){
-        result.textContent = 'PROVENANCE NOT VERIFIED · ' +
+        result.textContent = 'BIRTH RECORD NOT VERIFIED · ' +
           (error.code === 'provenance_not_found' ? 'TOKEN NOT RECOGNIZED' : 'UNABLE TO VERIFY TOKEN');
         result.hidden = false;
       }
@@ -838,11 +957,23 @@ function mountLiveCampaign(root){
 
       var reservationText = root.querySelector('[data-pham-live-reservations]');
       var identityText = root.querySelector('[data-pham-live-identity]');
+      var acquiredText = root.querySelector('[data-pham-live-acquired-count]');
+      var deliveredText = root.querySelector('[data-pham-live-delivered-count]');
+      var designOrigin = root.querySelector('[data-pham-live-design-origin]');
+      var productionOrigin = root.querySelector('[data-pham-live-production-origin]');
+      var archiveNote = root.querySelector('[data-pham-live-archive-note]');
       var reservationMeter = root.querySelector('[data-pham-live-reservation-meter]');
       var identityMeter = root.querySelector('[data-pham-live-identity-meter]');
 
       if(reservationText) reservationText.textContent = reservations + ' / ' + editionSize;
       if(identityText) identityText.textContent = identities + ' / ' + identityLimit;
+      if(acquiredText) acquiredText.textContent = Number(payload.counters.acquired || 0) + ' / ' + editionSize;
+      if(deliveredText) deliveredText.textContent = Number(payload.counters.delivered || 0) + ' / ' + editionSize;
+      if(designOrigin && payload.edition.designOrigin) designOrigin.textContent = payload.edition.designOrigin;
+      if(productionOrigin && payload.edition.productionOrigin) productionOrigin.textContent = payload.edition.productionOrigin;
+      if(archiveNote && payload.edition.archivePermanent){
+        archiveNote.textContent = 'ARCHIVE SEALED · This edition is permanently closed. Its object set and Birth Records remain in the PHAM archive; production will not reopen.';
+      }
 
       if(reservationMeter && editionSize > 0){
         reservationMeter.style.setProperty('--pc-progress', Math.min(100, reservations / editionSize * 100) + '%');

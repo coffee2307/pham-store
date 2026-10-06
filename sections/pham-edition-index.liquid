@@ -48,11 +48,11 @@
         assign edition_status = 'PRELAUNCH'
     endcase
 
-    assign protocol_step_1 = 'Priority Reservation secures one allocation. The reservation amount is credited toward the final object price.'
-    assign protocol_step_2 = 'Object Identity can be claimed through the paid upgrade or one verified reservation referral while the shared privilege pool remains open.'
-    assign protocol_step_3 = 'When the acquisition window opens, reserved collectors complete the remaining balance within the published payment window.'
-    assign protocol_step_4 = 'Confirmed objects receive a numbered identity and provenance record covering origin, production and quality control.'
-    assign protocol_step_5 = 'Once the edition closes, its objects remain in the PHAM archive and the edition does not return to production.'
+    assign protocol_step_1 = 'Priority Reservation grants controlled access to one allocation. Its value is credited toward the final object price.'
+    assign protocol_step_2 = 'Collectors complete acquisition within the published window. Identity and object-number privileges are bound to the collector record.'
+    assign protocol_step_3 = 'Acquired objects enter a tracked production sequence from queue to construction and quality control.'
+    assign protocol_step_4 = 'Each object is packed, dispatched and delivered with its numbered Identity and tokenized Birth Record.'
+    assign protocol_step_5 = 'Only after delivery is complete does the edition enter the permanent PHAM archive. A closed edition is never reproduced.'
   endif
 -%}
 
@@ -98,19 +98,19 @@
         <ol class="pham-edition-index__steps" role="list">
           <li>
             <span>01</span>
-            <div><strong>RESERVE</strong><p>{{ protocol_step_1 }}</p></div>
+            <div><strong>ACCESS</strong><p>{{ protocol_step_1 }}</p></div>
           </li>
           <li>
             <span>02</span>
-            <div><strong>IDENTITY</strong><p>{{ protocol_step_2 }}</p></div>
+            <div><strong>ORDER</strong><p>{{ protocol_step_2 }}</p></div>
           </li>
           <li>
             <span>03</span>
-            <div><strong>ACQUIRE</strong><p>{{ protocol_step_3 }}</p></div>
+            <div><strong>PRODUCTION</strong><p>{{ protocol_step_3 }}</p></div>
           </li>
           <li>
             <span>04</span>
-            <div><strong>PROVENANCE</strong><p>{{ protocol_step_4 }}</p></div>
+            <div><strong>DELIVERY</strong><p>{{ protocol_step_4 }}</p></div>
           </li>
           <li>
             <span>05</span>

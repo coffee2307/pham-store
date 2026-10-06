@@ -7,7 +7,7 @@
     {%- if state == 'prelaunch' -%}<span class="pham-campaign-draft">PRELAUNCH DRAFT · LEGAL REVIEW REQUIRED BEFORE PAYMENT GOES LIVE</span>{%- endif -%}
     <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · RESERVATION TERMS</p>
     <h1 class="pham-campaign-title">Edition<br>terms.</h1>
-    <p class="pham-campaign-lede">Campaign-specific skeleton for the active edition. It is designed to sit alongside PHAM’s general Terms of Service, Privacy Policy and Refund Policy.</p>
+    <p class="pham-campaign-lede">Campaign-specific terms for the active edition. These terms operate alongside PHAM’s general Terms of Service, Privacy Policy and Refund Policy.</p>
 
     <div class="pham-campaign-grid">
       <article class="pham-campaign-card pham-campaign-card--full">
@@ -38,6 +38,16 @@
       <article class="pham-campaign-card pham-campaign-card--full">
         <h2>6 · Standby</h2>
         <p>After paid reservations reach the edition allocation, further customers may join a free standby queue. A promoted standby customer pays the full {{ settings.pham_campaign_final_price | default: '$199.00' }} because no reservation credit was previously paid. Queue and offer-window rules are subject to the final campaign terms.</p>
+      </article>
+
+      <article class="pham-campaign-card pham-campaign-card--full">
+        <h2>7 · Production and delivery record</h2>
+        <p>After final acquisition is confirmed, the object may move through production, quality control, packing, dispatch and delivery stages shown in Collector Access. These stages are operational records, not guaranteed delivery dates. Carrier tracking controls the shipment estimate once the object is dispatched. Any published production or delivery estimate remains subject to the final order terms, destination, customs and events outside PHAM’s reasonable control.</p>
+      </article>
+
+      <article class="pham-campaign-card pham-campaign-card--full">
+        <h2>8 · Founder’s Token</h2>
+        <p>Edition 01 is intended to include 50 collector tokens: 49 silver-tone and one gold-tone finish. Token finish does not change ownership rights in the PHAM object and PHAM does not promise a resale, investment or cash value. The allocation mechanism and any related public promotion require final jurisdictional legal review before launch; where applicable law requires a different mechanism or disclosure, PHAM may amend this part of the edition protocol before reservations open.</p>
       </article>
     </div>
   </div>

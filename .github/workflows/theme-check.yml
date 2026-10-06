@@ -39,7 +39,12 @@ jobs:
           done
 
       - name: Check PHAM backend JavaScript syntax
-        run: node --check backend/worker.js
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check backend/worker.js
+          node --check backend/admin.mjs
+          node --check backend/register-shopify-webhooks.mjs
 
       - name: Run PHAM backend tests
         run: node --test backend/worker.test.mjs

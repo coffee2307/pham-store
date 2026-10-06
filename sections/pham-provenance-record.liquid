@@ -5,7 +5,7 @@
 {%- assign auth_status = page.metafields.pham.auth_status.value | default: 'PENDING RECORD' -%}
 {%- assign public_identity = page.metafields.pham.public_identity.value -%}
 {%- assign identity_label = page.metafields.pham.identity_label.value -%}
-{%- assign token_type = page.metafields.pham.token_type.value | default: 'PENDING ALLOCATION' -%}
+{%- assign token_type = page.metafields.pham.token_type.value | default: 'SEALED' -%}
 {%- assign design_origin = page.metafields.pham.design_origin.value | default: settings.pham_campaign_origin_label | default: 'DESIGNED IN VIETNAM / 2026' -%}
 {%- assign production_origin = page.metafields.pham.production_origin.value | default: settings.pham_campaign_production_origin_label | default: 'PRODUCED IN DONGGUAN, CHINA' -%}
 
@@ -14,7 +14,7 @@
   data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
-    <p class="pham-campaign-kicker">PHAM ARCHIVE · PROVENANCE RECORD</p>
+    <p class="pham-campaign-kicker">PHAM ARCHIVE · BIRTH RECORD</p>
     <h1 class="pham-campaign-title"><span data-pham-provenance-product>{{ object_product }}</span><br><span data-pham-provenance-number>{% if object_number != blank %}OBJECT {{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}{% else %}OBJECT — / {{ settings.pham_campaign_edition_size | default: 50 }}{% endif %}</span></h1>
     <p class="pham-campaign-lede"><span data-pham-provenance-auth>{{ auth_status }}</span> · <span data-pham-provenance-edition>{{ object_edition }}</span> · <span data-pham-provenance-design-origin>{{ design_origin }}</span></p>
     <div class="pham-campaign-alert" data-pham-provenance-result hidden role="status"></div>
@@ -23,29 +23,39 @@
       <article class="pham-campaign-card pham-campaign-card--wide">
         <h2>Birth record</h2>
         <dl class="pham-provenance-timeline">
+          <div><dt>Record ID</dt><dd data-pham-provenance-record-id>PENDING</dd></div>
+          <div><dt>Object</dt><dd data-pham-provenance-assignment>{% if object_number != blank %}Assigned as Object {{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}.{% else %}Object number not yet assigned.{% endif %}</dd></div>
+          <div><dt>Size</dt><dd data-pham-provenance-size>—</dd></div>
+          <div><dt>Acquired</dt><dd data-pham-provenance-acquired>—</dd></div>
+          <div><dt>Birth recorded</dt><dd data-pham-provenance-birth-recorded>—</dd></div>
+          <div><dt>Object state</dt><dd data-pham-provenance-lifecycle>PENDING</dd></div>
           <div><dt>Design origin</dt><dd data-pham-provenance-design-origin-copy>{{ design_origin }}</dd></div>
-          <div><dt>Design record</dt><dd>{{ page.metafields.pham.design_record.value | default: 'Record will be attached after final design sign-off.' }}</dd></div>
           <div><dt>Production origin</dt><dd data-pham-provenance-production-origin>{{ production_origin }}</dd></div>
-          <div><dt>Production record</dt><dd>{{ page.metafields.pham.production_record.value | default: 'Production batch record pending.' }}</dd></div>
-          <div><dt>QC</dt><dd>{{ page.metafields.pham.qc_record.value | default: 'Final quality-control record pending.' }}</dd></div>
-          <div><dt>Assignment</dt><dd data-pham-provenance-assignment>{% if object_number != blank %}Assigned as Object {{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}.{% else %}Object number not yet assigned.{% endif %}</dd></div>
+          <div><dt>Design record</dt><dd>{{ page.metafields.pham.design_record.value | default: 'Edition design record retained by PHAM.' }}</dd></div>
+          <div><dt>Production record</dt><dd>{{ page.metafields.pham.production_record.value | default: 'Production batch record retained by PHAM.' }}</dd></div>
+          <div><dt>QC record</dt><dd>{{ page.metafields.pham.qc_record.value | default: 'Final quality-control status follows the object lifecycle.' }}</dd></div>
         </dl>
       </article>
 
       <article class="pham-campaign-card">
         <h2>Identity</h2>
-        <p data-pham-provenance-identity>{% if public_identity and identity_label != blank %}{{ identity_label }}{% else %}Collector identity is private unless the collector explicitly opts into public display.{% endif %}</p>
+        <p data-pham-provenance-identity>{% if public_identity and identity_label != blank %}{{ identity_label }}{% else %}Collector identity remains private unless the collector explicitly opts into public display.{% endif %}</p>
       </article>
 
       <article class="pham-campaign-card">
         <h2>Founder’s Token</h2>
         <div class="pham-campaign-stat"><strong data-pham-provenance-token>{{ token_type | upcase }}</strong><span>Collector token</span></div>
-        <p style="margin-top:20px">Edition 01 plans 50 collector tokens: 49 silver-tone and one gold-tone. Allocation is recorded only after PHAM confirms the final token assignment.</p>
+        <p style="margin-top:20px">Edition 01 contains 49 silver-tone tokens and one gold-tone token. Allocation is performed once by the Edition Engine and remains sealed online until delivery.</p>
       </article>
 
       <article class="pham-campaign-card">
         <h2>Authentication</h2>
-        <p>The production QR will resolve to a signed or tokenized authentication route. Sequential object URLs alone will not be treated as proof of authenticity.</p>
+        <p>This record is resolved through a tokenized QR route. The token, not the sequential object number, is the authentication secret. The public record never exposes the collector’s email, shipping address or account identifier.</p>
+      </article>
+
+      <article class="pham-campaign-card">
+        <h2>Archive principle</h2>
+        <p>Once the edition enters the PHAM archive, this record remains attached to the object. PHAM does not return to a closed edition.</p>
       </article>
     </div>
   </div>
