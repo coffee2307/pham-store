@@ -45,6 +45,61 @@ export function visibleFounderTokenType(tokenType, lifecycleStage) {
     : 'sealed';
 }
 
+export function deriveLifecycleFromFulfillment(fulfillment, currentStage) {
+  const stage = String(currentStage || 'not_started');
+  const shipmentStatus = String(fulfillment && fulfillment.shipment_status || '').trim().toLowerCase();
+  const carrier = String(fulfillment && fulfillment.tracking_company || '').trim();
+  const trackingNumber = String(
+    fulfillment && (
+      fulfillment.tracking_number ||
+      (Array.isArray(fulfillment.tracking_numbers) && fulfillment.tracking_numbers[0])
+    ) || ''
+  ).trim();
+  const trackingUrl = String(
+    fulfillment && (
+      fulfillment.tracking_url ||
+      (Array.isArray(fulfillment.tracking_urls) && fulfillment.tracking_urls[0])
+    ) || ''
+  ).trim();
+  const hasTracking = Boolean(trackingNumber || trackingUrl);
+
+  const tracking = { carrier, trackingNumber, trackingUrl };
+
+  if (shipmentStatus === 'delivered') {
+    if (stage === 'delivered' || stage === 'archived') {
+      return { action: 'tracking', stage, tracking };
+    }
+    if (stage !== 'dispatched') {
+      return {
+        action: 'review',
+        reason: 'delivery_out_of_sequence',
+        currentStage: stage,
+        requestedStage: 'delivered',
+        tracking
+      };
+    }
+    return { action: 'transition', stage: 'delivered', tracking };
+  }
+
+  if (hasTracking) {
+    if (stage === 'packed') {
+      return { action: 'transition', stage: 'dispatched', tracking };
+    }
+    if (stage === 'dispatched' || stage === 'delivered' || stage === 'archived') {
+      return { action: 'tracking', stage, tracking };
+    }
+    return {
+      action: 'review',
+      reason: 'fulfillment_out_of_sequence',
+      currentStage: stage,
+      requestedStage: 'dispatched',
+      tracking
+    };
+  }
+
+  return { action: 'noop', stage, tracking };
+}
+
 export default {
   async fetch(request, env) {
     try {
@@ -83,6 +138,10 @@ export default {
 
       if (request.method === 'POST' && url.pathname === '/webhooks/orders-paid') {
         return handleOrdersPaid(request, env);
+      }
+
+      if (request.method === 'POST' && url.pathname === '/webhooks/fulfillments') {
+        return handleFulfillmentWebhook(request, env);
       }
 
       if (request.method === 'GET' && url.pathname === '/internal/state') {
@@ -563,10 +622,12 @@ async function setObjectLifecycle(request, env) {
   const body = await request.json();
   const reservationId = String(body.reservationId || '').trim();
   const nextStage = String(body.stage || '').trim().toLowerCase();
-  const note = String(body.note || '').trim().slice(0, 240);
-  const carrier = String(body.carrier || '').trim().slice(0, 80);
-  const trackingNumber = String(body.trackingNumber || '').trim().slice(0, 120);
-  const trackingUrl = String(body.trackingUrl || '').trim().slice(0, 500);
+  const details = {
+    note: String(body.note || '').trim().slice(0, 240),
+    carrier: String(body.carrier || '').trim().slice(0, 80),
+    trackingNumber: String(body.trackingNumber || '').trim().slice(0, 120),
+    trackingUrl: String(body.trackingUrl || '').trim().slice(0, 500)
+  };
 
   if (body.confirm !== 'SET_OBJECT_LIFECYCLE') {
     return json({ ok: false, error: 'explicit_confirmation_required' }, 400);
@@ -588,29 +649,50 @@ async function setObjectLifecycle(request, env) {
     }, 409);
   }
 
-  let transition;
+  let result;
   try {
-    transition = validateLifecycleTransition(reservation.lifecycle_stage || 'not_started', nextStage);
+    result = await persistObjectLifecycle(env, reservation, nextStage, details);
   } catch (error) {
+    const code = error && error.message ? error.message : 'invalid_lifecycle_transition';
+    const status = code === 'dispatch_tracking_required' ? 422 : 409;
     return json({
       ok: false,
-      error: error.message || 'invalid_lifecycle_transition',
+      error: code,
       currentStage: reservation.lifecycle_stage || 'not_started',
       requestedStage: nextStage
-    }, 409);
+    }, status);
   }
 
+  return json(Object.assign({
+    ok: true,
+    reservationId
+  }, result));
+}
+
+async function persistObjectLifecycle(env, reservation, nextStage, details = {}) {
+  const carrier = String(details.carrier || '').trim().slice(0, 80);
+  const trackingNumber = String(details.trackingNumber || '').trim().slice(0, 120);
+  const trackingUrl = String(details.trackingUrl || '').trim().slice(0, 500);
+  const transition = validateLifecycleTransition(
+    reservation.lifecycle_stage || 'not_started',
+    nextStage
+  );
+
   if (!transition.changed) {
-    return json({
-      ok: true,
-      reservationId,
+    return {
       stage: nextStage,
-      idempotent: true
-    });
+      previousStage: transition.currentStage,
+      idempotent: true,
+      tracking: {
+        carrier: carrier || reservation.carrier || null,
+        number: trackingNumber || reservation.tracking_number || null,
+        url: trackingUrl || reservation.tracking_url || null
+      }
+    };
   }
 
   if (nextStage === 'dispatched' && !trackingNumber && !trackingUrl) {
-    return json({ ok: false, error: 'dispatch_tracking_required' }, 422);
+    throw new Error('dispatch_tracking_required');
   }
 
   await env.PHAM_CAMPAIGN_DB.prepare(
@@ -627,23 +709,70 @@ async function setObjectLifecycle(request, env) {
     carrier, carrier,
     trackingNumber, trackingNumber,
     trackingUrl, trackingUrl,
-    reservationId
+    reservation.id
   ).run();
 
   await appendLifecycleEvent(env, {
     editionId: reservation.edition_id,
-    reservationId,
+    reservationId: reservation.id,
     stage: nextStage,
-    note,
+    note: String(details.note || '').trim().slice(0, 240),
     carrier,
     trackingNumber,
     trackingUrl
   });
 
+  await syncLifecycleMetafields(env, reservation, nextStage, trackingNumber);
+
+  return {
+    previousStage: transition.currentStage,
+    stage: nextStage,
+    tracking: {
+      carrier: carrier || reservation.carrier || null,
+      number: trackingNumber || reservation.tracking_number || null,
+      url: trackingUrl || reservation.tracking_url || null
+    }
+  };
+}
+
+async function updateLifecycleTracking(env, reservation, details = {}) {
+  const carrier = String(details.carrier || '').trim().slice(0, 80);
+  const trackingNumber = String(details.trackingNumber || '').trim().slice(0, 120);
+  const trackingUrl = String(details.trackingUrl || '').trim().slice(0, 500);
+
+  if (!carrier && !trackingNumber && !trackingUrl) {
+    return { updated: false };
+  }
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE reservations
+     SET carrier = CASE WHEN ? <> '' THEN ? ELSE carrier END,
+         tracking_number = CASE WHEN ? <> '' THEN ? ELSE tracking_number END,
+         tracking_url = CASE WHEN ? <> '' THEN ? ELSE tracking_url END,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`
+  ).bind(
+    carrier, carrier,
+    trackingNumber, trackingNumber,
+    trackingUrl, trackingUrl,
+    reservation.id
+  ).run();
+
+  await syncLifecycleMetafields(
+    env,
+    reservation,
+    reservation.lifecycle_stage || 'not_started',
+    trackingNumber
+  );
+
+  return { updated: true };
+}
+
+async function syncLifecycleMetafields(env, reservation, stage, trackingNumber) {
   const fields = [];
   if (reservation.final_shopify_order_id) {
     fields.push(
-      metafield(reservation.final_shopify_order_id, 'object_lifecycle_stage', 'single_line_text_field', nextStage)
+      metafield(reservation.final_shopify_order_id, 'object_lifecycle_stage', 'single_line_text_field', stage)
     );
     if (trackingNumber) {
       fields.push(
@@ -653,7 +782,7 @@ async function setObjectLifecycle(request, env) {
   }
   if (reservation.shopify_customer_id) {
     fields.push(
-      metafield(reservation.shopify_customer_id, 'object_lifecycle_stage', 'single_line_text_field', nextStage)
+      metafield(reservation.shopify_customer_id, 'object_lifecycle_stage', 'single_line_text_field', stage)
     );
     if (trackingNumber) {
       fields.push(
@@ -662,18 +791,6 @@ async function setObjectLifecycle(request, env) {
     }
   }
   await setMetafields(env, fields);
-
-  return json({
-    ok: true,
-    reservationId,
-    previousStage: transition.currentStage,
-    stage: nextStage,
-    tracking: {
-      carrier: carrier || reservation.carrier || null,
-      number: trackingNumber || reservation.tracking_number || null,
-      url: trackingUrl || reservation.tracking_url || null
-    }
-  });
 }
 
 async function setLookbookStatus(request, env) {
@@ -1506,6 +1623,134 @@ async function joinStandbyRecord(env, input) {
     position: row.position,
     queueStatus: row.status
   };
+}
+
+async function handleFulfillmentWebhook(request, env) {
+  const raw = await request.arrayBuffer();
+  const verified = await verifyShopifyWebhook(
+    raw,
+    request.headers.get('x-shopify-hmac-sha256'),
+    env.SHOPIFY_API_SECRET
+  );
+  if (!verified) return json({ error: 'Invalid webhook signature' }, 401);
+
+  const webhookShop = request.headers.get('x-shopify-shop-domain') || '';
+  if (env.SHOPIFY_SHOP_DOMAIN && webhookShop !== env.SHOPIFY_SHOP_DOMAIN) {
+    return json({ error: 'Invalid webhook shop' }, 401);
+  }
+
+  const webhookId = request.headers.get('x-shopify-webhook-id') || '';
+  const topic = String(request.headers.get('x-shopify-topic') || '').toLowerCase();
+  if (!['fulfillments/create', 'fulfillments/update'].includes(topic)) {
+    return json({ ok: false, error: 'unexpected_fulfillment_topic' }, 400);
+  }
+
+  if (webhookId) {
+    const seen = await env.PHAM_CAMPAIGN_DB.prepare(
+      'SELECT id FROM webhook_events WHERE id = ?'
+    ).bind(webhookId).first();
+    if (seen) return json({ ok: true, duplicate: true });
+  }
+
+  const fulfillment = JSON.parse(new TextDecoder().decode(raw));
+  const orderId = fulfillment && fulfillment.order_id
+    ? toGid('Order', fulfillment.order_id)
+    : '';
+
+  if (!orderId) {
+    const review = { ok: false, review: true, reason: 'fulfillment_order_id_missing' };
+    if (webhookId) {
+      await recordWebhook(env, webhookId, topic, 'review_required', JSON.stringify(review));
+    }
+    return json(review);
+  }
+
+  const reservation = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT *
+     FROM reservations
+     WHERE final_shopify_order_id = ?
+     LIMIT 1`
+  ).bind(orderId).first();
+
+  if (!reservation) {
+    if (webhookId) await recordWebhook(env, webhookId, topic);
+    return json({ ok: true, ignored: true, reason: 'non_pham_fulfillment' });
+  }
+
+  if (reservation.status !== 'final_paid') {
+    const review = {
+      ok: false,
+      review: true,
+      reason: 'fulfillment_before_acquisition',
+      reservationId: reservation.id,
+      reservationStatus: reservation.status
+    };
+    if (webhookId) {
+      await recordWebhook(env, webhookId, topic, 'review_required', JSON.stringify(review));
+    }
+    return json(review);
+  }
+
+  const decision = deriveLifecycleFromFulfillment(
+    fulfillment,
+    reservation.lifecycle_stage || 'not_started'
+  );
+
+  if (decision.action === 'review') {
+    const review = Object.assign({
+      ok: false,
+      review: true,
+      reservationId: reservation.id,
+      topic
+    }, decision);
+    if (webhookId) {
+      await recordWebhook(env, webhookId, topic, 'review_required', JSON.stringify(review));
+    }
+    return json(review);
+  }
+
+  let result = { stage: reservation.lifecycle_stage || 'not_started' };
+
+  if (decision.action === 'transition') {
+    try {
+      result = await persistObjectLifecycle(env, reservation, decision.stage, {
+        note: topic === 'fulfillments/create'
+          ? 'Shopify fulfillment created.'
+          : 'Shopify fulfillment updated.',
+        carrier: decision.tracking.carrier,
+        trackingNumber: decision.tracking.trackingNumber,
+        trackingUrl: decision.tracking.trackingUrl
+      });
+    } catch (error) {
+      const review = {
+        ok: false,
+        review: true,
+        reason: error && error.message ? error.message : 'fulfillment_lifecycle_transition_failed',
+        reservationId: reservation.id,
+        currentStage: reservation.lifecycle_stage || 'not_started',
+        requestedStage: decision.stage
+      };
+      if (webhookId) {
+        await recordWebhook(env, webhookId, topic, 'review_required', JSON.stringify(review));
+      }
+      return json(review);
+    }
+  } else if (decision.action === 'tracking') {
+    await updateLifecycleTracking(env, reservation, decision.tracking);
+    result = {
+      stage: reservation.lifecycle_stage || 'not_started',
+      trackingUpdated: true
+    };
+  }
+
+  if (webhookId) await recordWebhook(env, webhookId, topic);
+
+  return json({
+    ok: true,
+    reservationId: reservation.id,
+    action: decision.action,
+    stage: result.stage || decision.stage || reservation.lifecycle_stage || 'not_started'
+  });
 }
 
 async function handleOrdersPaid(request, env) {
