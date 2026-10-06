@@ -6,10 +6,29 @@
         "edition_label": "EDITION 01",
         "product_code": "PHAM-001",
         "product_url": "/products/pham-001",
-        "enable_recommendation": false,
-        "intended_chest_ease": 14
+        "enable_recommendation": true,
+        "intended_chest_ease": 30,
+        "intended_shoulder_ease": 9,
+        "m_chest": 65,
+        "m_shoulder": 54,
+        "m_sleeve": 65,
+        "m_length": 63,
+        "l_chest": 67,
+        "l_shoulder": 55,
+        "l_sleeve": 66,
+        "l_length": 64,
+        "xl_chest": 69,
+        "xl_shoulder": 56,
+        "xl_sleeve": 67,
+        "xl_length": 65,
+        "xxl_chest": 71,
+        "xxl_shoulder": 57,
+        "xxl_sleeve": 68,
+        "xxl_length": 66
       }
     }
   },
-  "order": ["main"]
+  "order": [
+    "main"
+  ]
 }
