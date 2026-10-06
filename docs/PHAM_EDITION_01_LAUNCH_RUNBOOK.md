@@ -1,410 +1,466 @@
 # PHAM Edition 01 Launch Runbook
 
-This runbook is the operational sequence for opening PHAM-001 / Edition 01. It intentionally separates storefront presentation from backend state so the campaign cannot be opened by changing one theme setting alone.
+This is the operational sequence for PHAM-001 / Edition 01. It separates brand presentation, Shopify commerce, Edition Engine state and physical fulfillment so no single toggle can accidentally open the edition.
 
-## 0. Non-negotiable rule
+## 0. Launch rule
 
-Do not open Priority Reservation until all of the following are true:
+Do not open Priority Reservation until all launch gates are green.
 
-- the Cloudflare Worker is deployed;
-- D1 migrations are applied;
-- Shopify ORDERS_PAID webhook is registered;
-- Shopify App Proxy resolves /apps/pham-edition to the Worker;
-- Digital Products has the real Edition 01 lookbook attached;
-- the lookbook product is publishable and delivery has been tested end-to-end;
-- PHAM-001 Priority Reservation is ready;
-- PHAM Object Identity inventory is 15;
-- PHAM-001 final product data is correct;
-- Edition 01 terms have completed legal review;
-- shipping, tax and duty behavior has been tested;
-- staging verification passes.
+Required before launch:
 
-Theme Settings alone must never be treated as the source of truth once ENGINE ENABLED is on.
+- Cloudflare Worker deployed from the intended commit;
+- D1 schema verified and all forward migrations applied;
+- Shopify App Proxy working;
+- `ORDERS_PAID`, `FULFILLMENTS_CREATE` and `FULFILLMENTS_UPDATE` subscriptions registered;
+- Shopify app/token has the scopes required for order, product/inventory and fulfillment access used by the system;
+- Priority Reservation, Identity, lookbook and final PHAM-001 product configuration verified;
+- all configured PHAM-001 Size variants exist exactly once at $199.00;
+- real Edition 01 lookbook attached and tested;
+- shipping, tax and duty behavior tested;
+- Identity card, QR and Founder’s Token production constraints finalized;
+- campaign-specific legal review complete, including reservation/digital-content terms and Founder’s Token mechanism;
+- real staging purchase and post-purchase flow passes.
 
-## 1. Infrastructure deployment
+Theme Settings are not the live authority when the Edition Engine is enabled.
 
-Required GitHub secrets:
+## 1. D1 schema and migration audit
 
-- CLOUDFLARE_API_TOKEN
-- CLOUDFLARE_ACCOUNT_ID
-- CLOUDFLARE_D1_DATABASE_ID
-- SHOPIFY_SHOP_DOMAIN
-- SHOPIFY_ADMIN_TOKEN
-- SHOPIFY_API_SECRET
-- INTERNAL_ADMIN_KEY
-- CAMPAIGN_BACKEND_URL
-- STOREFRONT_ORIGIN
+Current repository migration chain:
+
+- `0001_initial.sql` — baseline
+- `0002_object_lifecycle.sql` — acquisition timestamp, physical object lifecycle, tracking fields, lifecycle event table and Founder’s Token allocation metadata
+
+Before deployment, confirm what the remote D1 database has already applied.
+
+Important: older repository work historically folded some schema changes into `0001_initial.sql`. If the remote D1 had already applied an earlier copy of 0001, verify that it contains every current column/index before launch. Do not assume that editing the repository copy of 0001 retroactively changes a remote database.
+
+CI command:
+
+`python backend/check-schema.py`
+
+The check reconstructs the schema from migrations and compares it with `backend/schema.sql`.
+
+## 2. Required deployment secrets
+
+GitHub Actions requires:
+
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_D1_DATABASE_ID`
+- `SHOPIFY_SHOP_DOMAIN`
+- `SHOPIFY_ADMIN_TOKEN`
+- `SHOPIFY_API_SECRET`
+- `INTERNAL_ADMIN_KEY`
+- `CAMPAIGN_BACKEND_URL`
+- `STOREFRONT_ORIGIN`
+
+The workflow must read `SHOPIFY_SHOP_DOMAIN` from the secret. Do not hard-code a myshopify domain into deployment configuration.
 
 Run:
 
-GitHub Actions -> Deploy PHAM Campaign Worker -> Run workflow
+GitHub Actions → **Deploy PHAM Campaign Worker** → Run workflow
 
-The deployment workflow:
+The workflow:
 
-1. validates secrets;
+1. validates deployment secrets;
 2. injects the D1 database ID;
-3. checks Worker syntax;
-4. runs backend tests;
-5. applies D1 migrations;
-6. deploys the Worker;
-7. uploads Worker secrets;
-8. deploys the final Worker version;
-9. registers ORDERS_PAID webhook.
+3. validates backend syntax/tests;
+4. applies D1 migrations;
+5. deploys the Worker;
+6. uploads Worker secrets;
+7. deploys the final Worker version;
+8. registers paid-order and fulfillment webhooks.
 
-## 2. Shopify App Proxy
+On a first deployment without `CAMPAIGN_BACKEND_URL`, copy the deployed Worker URL into that secret and rerun the workflow so webhook subscriptions can be created.
 
-Configure the app proxy so the storefront path:
+## 3. Shopify App Proxy
 
-/apps/pham-edition
+The storefront path:
 
-forwards to the deployed Worker.
+`/apps/pham-edition`
 
-The theme expects these routes:
+must forward to the deployed Worker.
 
-- /campaign
-- /status
-- /identity/configure
-- /standby/join
-- /provenance
+Public/collector proxy routes:
 
-Do not enable PHAM Campaign Engine in Theme Settings until the App Proxy route works.
+- `GET /campaign`
+- `GET /status`
+- `POST /identity/configure`
+- `POST /standby/join`
+- `GET /provenance`
 
-## 3. Digital lookbook
+Do not enable the Edition Engine in the theme until these routes resolve through the Shopify App Proxy.
 
-The Digital Products product is:
+## 4. Shopify webhook contract
 
-PHAM Edition 01 Collector Lookbook
+The registration script creates:
 
-Before launch:
+- `ORDERS_PAID → /webhooks/orders-paid`
+- `FULFILLMENTS_CREATE → /webhooks/fulfillments`
+- `FULFILLMENTS_UPDATE → /webhooks/fulfillments`
 
-1. attach the final real lookbook file;
-2. verify file name/version;
-3. verify the product remains a genuine included digital benefit;
-4. test purchase entitlement on a controlled test order;
-5. verify the customer can access the file;
-6. verify delivery copy and legal consent;
-7. set DIGITAL LOOKBOOK READY only after successful test.
+Every webhook is HMAC verified, shop-domain verified and deduplicated using Shopify’s webhook delivery ID.
 
-Digital Products does not currently expose download-state telemetry through the connected tooling used by this project. The campaign engine therefore treats successful reservation payment as entitlement creation and supports explicit operator reconciliation:
+Fulfillment automation is intentionally conservative:
 
-node admin.mjs mark-lookbook --reservation=PHAM-R-... --status=delivered
+- tracking on a `packed` PHAM object advances it to `dispatched`;
+- a delivered shipment advances only `dispatched → delivered`;
+- a fulfillment event that would skip required stages is placed in the review queue;
+- non-PHAM fulfillments are ignored.
 
-Allowed states:
-
-- pending
-- entitled
-- delivered
-- failed
-
-## 4. Prelaunch staging verification
-
-Keep:
-
-- Campaign State: PRELAUNCH
-- ENGINE ENABLED: OFF until App Proxy is configured
-- COMMERCE READY: OFF
-- DIGITAL LOOKBOOK READY: OFF until the real asset is tested
-
-After backend deployment and App Proxy setup:
-
-1. enable ENGINE ENABLED;
-2. keep COMMERCE READY off;
-3. run GitHub Actions -> Verify PHAM Campaign Staging.
-
-The staging workflow verifies:
-
-- Worker /health;
-- internal readiness;
-- App Proxy campaign route;
-- campaign remains closed.
-
-Do not proceed if the workflow fails.
-
-## 5. Commerce readiness
-
-Before COMMERCE READY is enabled, verify:
+## 5. Shopify commerce configuration
 
 ### Priority Reservation
-- SKU: PHAM-001-RES-E01
-- price: $24.99
-- inventory: 50
-- oversell: denied
-- shipping: not required
+
+- SKU: `PHAM-001-RES-E01`
+- Price: $24.99
+- Inventory: 50
+- Inventory tracking: ON
+- Oversell: DENY
+- Physical shipping at reservation checkout: NO
 
 ### Object Identity
-- SKU: PHAM-ID-E01
-- price: $5.00
-- inventory: 15
-- oversell: denied
-- shipping: not required at reservation checkout
 
-### Final object
-- product: PHAM-001
-- configured final price: $199.00
-- canonical size set for Edition 01: XS / S / M / L / XL
-- exactly one active Shopify variant must exist for every configured Size option
-- every configured size variant must be priced at $199.00
-- the Edition Engine readiness check fails if a configured size is missing, duplicated or mispriced
+- SKU: `PHAM-ID-E01`
+- Price: $5.00
+- Shared privilege inventory: 15
+- Oversell: DENY
+- Physical shipping at reservation checkout: NO
 
-### Lookbook
-- price: $0.00
-- included with Reservation
-- real file attached
-- digital entitlement tested
+The physical steel Identity card ships later with the final object.
 
-## 6. Open Priority Reservation
+### Final PHAM-001
 
-First enable in Theme Settings:
+- Price: $199.00
+- Canonical Size set: XS / S / M / L / XL
+- exactly one active variant for every configured Size
+- every configured variant priced exactly at $199.00
 
-- ENGINE ENABLED = ON
-- DIGITAL LOOKBOOK READY = ON
-- COMMERCE READY = ON
+Readiness fails closed on missing, duplicate or mispriced Size variants.
 
-Keep the D1 campaign state PRELAUNCH until the last step.
+### Digital lookbook
 
-Synchronize the canonical size list in the Edition Engine before readiness:
+- Included with Priority Reservation as the configured $0 digital item
+- real asset attached
+- correct version confirmed
+- entitlement tested
+- customer can actually open/download it
+- delivery/consent copy approved
 
-node admin.mjs set-size-options --sizes=XS,S,M,L,XL --confirm --edition=edition-01
+## 6. Staging setup
 
-When ENGINE ENABLED is on, the Edition Engine size list is the runtime source of truth. The Theme Setting size list is only the storefront fallback before the live engine response is loaded.
+Keep storefront gates closed while wiring production services:
 
-Run backend readiness:
+- Campaign state: `prelaunch`
+- ENGINE ENABLED: OFF until App Proxy works
+- COMMERCE READY: OFF
+- DIGITAL LOOKBOOK READY: OFF until asset test passes
 
-node admin.mjs readiness --edition=edition-01
+After Worker/App Proxy setup:
 
-Only if readiness passes, open the live campaign:
+1. enable ENGINE ENABLED;
+2. leave COMMERCE READY off;
+3. run **Verify PHAM Campaign Staging**.
 
-node admin.mjs set-state --state=reservation_open --confirm --edition=edition-01
+The workflow checks:
 
-Expected storefront behavior:
+- Worker health;
+- backend readiness;
+- App Proxy campaign route;
+- canonical Size options;
+- campaign remains closed.
 
-- Homepage CTA -> RESERVE PRIORITY ACCESS
-- Reservation checkout enabled
-- base total -> $24.99
-- with Object Identity -> $29.99
-- referral code persisted
-- lookbook $0 item bundled
-- live counters read from engine
+## 7. Canonical Size setup
 
-## 7. Reservation order processing
+Set the runtime Size list:
 
-When Shopify sends ORDERS_PAID for PHAM-001-RES-E01, the Worker fails closed before allocating a slot. It verifies:
+`node admin.mjs set-size-options --sizes=XS,S,M,L,XL --confirm --edition=edition-01`
 
-1. webhook HMAC and Shopify shop;
-2. webhook deduplication;
-3. the order is fully paid;
-4. the cart contains exactly one Reservation and one $0 Lookbook, plus at most one Identity add-on;
-5. Reservation quantity = 1 and price = $24.99;
-6. Identity, when present, quantity = 1 and price = $5.00;
-7. Lookbook quantity = 1 and price = $0.00;
-8. no unexpected campaign/non-campaign line item is mixed into the reservation order;
-9. no discount altered the campaign price;
-10. edition/product line properties match Edition 01 / PHAM-001;
-11. Reservation terms and digital-lookbook consent evidence are present;
-12. a non-empty Size Preference is present;
-13. the collector does not already hold another active Edition 01 reservation;
-14. reservation capacity remains available.
+Then run:
 
-Only after those checks does the Worker create the PHAM reservation ID/referral code, persist size preference, resolve Identity/referral state, sync Shopify metafields and move the edition to reservation_full at 50 active reservations.
+`node admin.mjs readiness --edition=edition-01`
 
-Validation discrepancies are stored as webhook review-required records instead of silently allocating inventory.
+When ENGINE ENABLED is on, this D1 Size list is authoritative. Theme Settings remain fallback presentation only.
 
-## 8. Referral reward
+## 8. Open Priority Reservation
 
-A referral counts only when:
+Only after readiness passes:
 
-- the referred reservation is paid;
-- it is a different customer;
-- it is a different email;
-- the referred reservation has not already rewarded another collector.
+1. ENGINE ENABLED = ON
+2. DIGITAL LOOKBOOK READY = ON
+3. COMMERCE READY = ON
+4. leave D1 `prelaunch` until the last step
+5. run:
 
-If valid:
+`node admin.mjs set-state --state=reservation_open --confirm --edition=edition-01`
 
-- verified referral count increments;
-- referrer receives Object Identity if a slot remains;
-- one Identity unit is removed from Shopify inventory;
-- paid and referral rewards share the same 15-slot pool.
+Expected storefront:
 
-## 9. Reservation full / standby
+- reservation CTA live;
+- reservation-only total $24.99;
+- reservation + Identity total $29.99;
+- Size Preference required;
+- lookbook included;
+- referral code carried into checkout;
+- live counters from the Edition Engine.
 
-At 50 active reservations the backend transitions to:
+## 9. Reservation payment processing
 
-reservation_full
+For a paid reservation, the Worker validates before allocating:
 
-Expected storefront behavior:
+- webhook authenticity and idempotency;
+- order status is exactly paid;
+- exact Reservation / Lookbook / optional Identity bundle;
+- quantities;
+- $24.99 Reservation, $5 Identity and $0 Lookbook prices;
+- no unexpected line item;
+- no discount changing campaign economics;
+- edition/product properties;
+- terms and digital-content consent evidence;
+- valid Size Preference;
+- one active reservation per collector/email;
+- atomic edition capacity.
 
-- paid Reservation checkout closes;
-- Standby opens;
-- Standby is free;
-- a Size Preference is required and stored with the queue entry;
-- FIFO queue position is returned by the engine.
+Validation failures are written as `review_required` instead of silently creating campaign state.
 
-No customer in Standby receives a $24.99 credit. When the engine promotes a standby entry it resolves the exact active PHAM-001 Shopify variant whose Size option matches that queue entry before creating an invoice.
+Review queue:
 
-## 10. Open final acquisition
+`node admin.mjs reviews --limit=50`
 
-Before opening final acquisition, bulk-map every active reservation to the canonical Shopify variant for its stored Size Preference:
+## 10. Referral and Identity
 
-node admin.mjs map-variants --confirm --edition=edition-01
+A referral is verified only when:
 
-This operation preflights the entire edition first and writes nothing if any size is missing, ambiguous or mispriced. For a one-off remediation, the single-reservation command remains available:
+- a different collector successfully pays for a valid Priority Reservation;
+- email/customer does not match the referrer;
+- that referred reservation has not rewarded someone else.
 
-node admin.mjs assign-variant --reservation=PHAM-R-... --variant=gid://shopify/ProductVariant/...
+If the shared pool still has capacity, one verified referral unlocks Object Identity.
 
-The single mapping command rejects inactive products, the wrong $199 price, and a Size option that does not match the reservation.
+Paid and referral unlocks consume the same 15-slot backend pool.
 
-Review any fail-closed payment events before opening final acquisition:
+Object Identity configuration supports:
 
-node admin.mjs reviews --limit=50
-
-When PHAM is ready to collect the remaining balances:
-
-node admin.mjs open-final-payment --edition=edition-01
-
-The command preflights all active reservations and fails before sending invoices if any required size mapping is missing. It is retry-safe after a partial Shopify failure and preserves an already-open payment deadline.
-
-For every active reservation the engine creates a customer-bound Shopify Draft Order using that reservation's mapped variant:
-
-PHAM-001: $199.00
-Priority Reservation Credit: -$24.99
-Remaining object balance: $174.01
-
-The customer receives the Shopify invoice with a 72-hour deadline.
-
-Collector Access displays:
-
-- reservation state;
-- live countdown;
-- invoice link;
-- remaining balance.
-
-## 11. Expiry
-
-Cron runs every 15 minutes.
-
-If a reserved collector does not pay within the final-payment window:
-
-1. the unpaid Draft Order is closed;
-2. reservation becomes expired;
-3. object-number hold is released;
-4. Identity privilege is released;
-5. Shopify Identity inventory is restored;
-6. next Standby customer is promoted.
-
-A paid Identity released because the reservation expired should be flagged for financial/policy review.
-
-## 12. Standby promotion
-
-The next FIFO Standby customer receives a Draft Order at full price:
-
-$199.00
-
-No reservation credit applies.
-
-Default offer window:
-
-48 hours
-
-If the Standby offer expires:
-
-- Draft Order is closed;
-- queue entry becomes expired;
-- next customer is promoted.
-
-If paid, the Worker accepts the order only if the offer is still active, the exact size-mapped variant is present once, price is exactly $199, no discount was applied, currency matches, and the paying customer/email matches the standby entry.
-
-After validation:
-
-- a final_paid reservation record is created;
-- Size Preference, final variant and final Shopify order are retained for audit;
-- collector gets a reservation ID/referral code for archive consistency;
-- no reservation lookbook entitlement is implied unless PHAM later changes this rule.
-
-## 13. Object Identity configuration
-
-An eligible collector can submit:
-
-- identity alias;
+- alias;
 - inscription up to 40 characters;
 - preferred object number;
-- public/private provenance identity choice.
+- public/private Birth Record Identity preference.
 
-The engine locks object numbers server-side.
+Object numbers are locked server-side. Conflicts return `object_number_taken`.
 
-If another collector already holds the requested number:
+## 11. Reservation full and standby
 
-object_number_taken
+At 50 active reservations:
 
-The customer must choose another number.
+`reservation_full`
 
-## 14. Edition finalization
+Behavior:
 
-Do not finalize objects until:
+- paid Priority Reservation closes;
+- free Standby opens;
+- Size Preference is required;
+- queue order is FIFO;
+- duplicate active standby entry is prevented.
 
-- all 50 objects are final_paid;
-- all active Identity claims are configured or revoked.
+A promoted Standby customer receives a full-price $199 Draft Order and no $24.99 reservation credit.
+
+Default offer window: 48 hours.
+
+## 12. Final acquisition
+
+Before opening the acquisition window:
+
+`node admin.mjs map-variants --confirm --edition=edition-01`
+
+The bulk operation preflights the entire edition and writes nothing if any Size mapping is missing, ambiguous or mispriced.
+
+One-off repair:
+
+`node admin.mjs assign-variant --reservation=PHAM-R-... --variant=gid://shopify/ProductVariant/...`
+
+Review fail-closed events, then open:
+
+`node admin.mjs open-final-payment --edition=edition-01`
+
+Reserved collector Draft Order:
+
+- PHAM-001: $199.00
+- Priority Reservation credit: -$24.99
+- Balance: $174.01
+- Window: 72 hours
+
+A successful final payment stores the final Shopify order, acquisition timestamp and automatically starts the object at `production_queued`.
+
+Collector Access then changes from payment-oriented status to the private object record.
+
+## 13. Expiry and standby replacement
+
+Cron checks expiration every 15 minutes.
+
+If the 72-hour final-payment window expires:
+
+- unpaid Draft Order closes;
+- reservation becomes expired;
+- held object number is released;
+- Identity privilege is released;
+- referral-unlocked Identity inventory is reconciled;
+- next eligible Standby record is promoted.
+
+If a paid Identity add-on becomes detached from an expired reservation, treat it as a financial/policy review case.
+
+## 14. Production lifecycle
+
+After acquisition, use the operator workflow until production systems provide their own integration.
+
+Advance one stage at a time:
+
+`node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=in_production --confirm`
+
+`node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=quality_control --confirm`
+
+`node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=packed --confirm`
+
+Do not mark `packed` until the final object, Identity materials, Founder’s Token package and QR/Birth Record insert required for that collector are physically reconciled.
+
+Every change creates an append-only lifecycle event.
+
+## 15. Dispatch and delivery
+
+Preferred path: create/update the Shopify fulfillment with real tracking information.
+
+When Shopify sends fulfillment tracking for an object currently at `packed`, the Worker records carrier/tracking and moves it to:
+
+`dispatched`
+
+When Shopify later reports shipment status `delivered`, the Worker moves:
+
+`dispatched → delivered`
+
+Manual recovery path:
+
+`node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=dispatched --carrier=DHL --tracking=... --tracking-url=... --confirm`
+
+`node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=delivered --confirm`
+
+Dispatch cannot be recorded without a tracking number or URL.
+
+## 16. Edition finalization and Birth Records
+
+Do not finalize the object set until:
+
+- all 50 objects are `final_paid`;
+- active Identity claims are configured or revoked.
 
 Run:
 
-node admin.mjs finalize-objects --confirm --edition=edition-01
+`node admin.mjs finalize-objects --confirm --edition=edition-01`
 
-The engine then:
+The engine:
 
-1. preserves chosen Identity numbers;
-2. assigns remaining numbers to non-Identity collectors;
-3. creates object records;
+1. preserves valid requested object numbers;
+2. assigns remaining numbers deterministically to remaining acquired collectors;
+3. creates 50 object records;
 4. generates unpredictable QR tokens;
-5. stores only token hashes for authentication lookup;
-6. creates provenance URLs;
-7. changes the edition to sold_out.
+5. stores token hashes for authentication lookup;
+6. creates permanent tokenized Birth Record URLs;
+7. moves the edition to `sold_out`.
 
-QR URL format:
+QR format:
 
-https://phamofficial.com/pages/provenance?token=<unpredictable-token>
+`https://phamofficial.com/pages/provenance?token=<unpredictable-token>`
 
-The public provenance page validates the token through App Proxy.
+The public Birth Record does not expose private collector contact/account data.
 
-## 15. Founder’s Token
+## 17. Founder’s Token
 
-Founder’s Token allocation is intentionally not randomized by the purchase system.
-
-Edition 01 target:
+Technical Edition 01 target:
 
 - 49 silver-tone
 - 1 gold-tone
 
-After objects are finalized, an authorized operator explicitly selects the gold object:
+The operator no longer chooses the gold recipient.
 
-node admin.mjs allocate-tokens --gold=<object-number> --confirm --edition=edition-01
+After final object creation, and only after the Founder’s Token mechanism has passed final legal review, run:
 
-The system verifies exactly:
+`node admin.mjs allocate-tokens --confirm --edition=edition-01`
 
-- 1 gold
-- 49 silver
+The Edition Engine:
 
-Do not market or automate the gold allocation as a purchase-linked random prize until the promotional mechanism has received jurisdictional legal review.
+- performs one cryptographically secure random allocation;
+- stores the allocation metadata once;
+- rejects repeated/concurrent allocation attempts;
+- verifies exactly 1 gold and 49 silver;
+- exposes only `SEALED` to the collector/public Birth Record until that object reaches `delivered`.
 
-## 16. Archive
+Do not describe the gold-tone finish as an investment, cash-value prize or guaranteed resale benefit.
 
-After Edition 01 is complete and archive material is ready:
+## 18. Digital lookbook reconciliation
 
-node admin.mjs set-state --state=archived --confirm --edition=edition-01
+Backend status values:
 
-Future editions reuse the same state machine and backend architecture with a new edition record and product configuration.
+- `pending`
+- `entitled`
+- `delivered`
+- `failed`
 
-## Emergency controls
+When delivery tooling cannot update the engine directly:
 
-To close Reservation before the edition fills:
+`node admin.mjs mark-lookbook --reservation=PHAM-R-... --status=delivered`
 
-node admin.mjs set-state --state=prelaunch --confirm --edition=edition-01
+Retain delivery evidence and asset version in the actual digital-product system where available.
 
-This stops the engine from reporting reservation_open. The storefront uses the engine state and fails closed.
+## 19. Archive
 
-For any discrepancy involving money, Identity inventory, object number, referral attribution or final payment:
+Archive is permitted only when the engine verifies:
 
-1. do not manually alter multiple systems independently;
-2. preserve Shopify order data;
-3. preserve D1 records;
-4. stop the campaign if necessary;
+- 50 final-paid reservations;
+- 50 object records;
+- 50 delivered objects;
+- 1 gold Founder’s Token;
+- 49 silver Founder’s Tokens.
+
+Then:
+
+`node admin.mjs set-state --state=archived --confirm --edition=edition-01`
+
+The engine writes archived lifecycle events and permanently changes the edition state.
+
+The Edition page becomes the public edition ledger; it should remain accessible as part of PHAM’s archive.
+
+**PHAM does not return to an edition once it is closed.**
+
+## 20. Emergency controls
+
+Close Priority Reservation before capacity:
+
+`node admin.mjs set-state --state=prelaunch --confirm --edition=edition-01`
+
+For money, Identity inventory, object-number, referral, Size mapping, fulfillment or lifecycle discrepancies:
+
+1. stop the relevant campaign action if necessary;
+2. preserve Shopify order/fulfillment data;
+3. preserve D1 records and webhook review entries;
+4. do not manually edit multiple systems independently;
 5. reconcile through the operator workflow;
 6. document the correction.
+
+## 21. Final staging acceptance
+
+Before live opening, execute at least:
+
+- Reservation-only purchase ($24.99);
+- Reservation + Identity purchase ($29.99);
+- lookbook entitlement and real access;
+- referral conversion;
+- Size mapping;
+- final $174.01 reserved-collector invoice;
+- full $199 standby invoice;
+- final payment validation;
+- object lifecycle through Production → QC → Packed;
+- Shopify fulfillment → Dispatch;
+- Shopify fulfillment update → Delivered;
+- Birth Record token authentication;
+- Founder’s Token allocation in a non-production test dataset if legal review is still pending;
+- archive gate rejection while any object is undelivered.
+
+Only after all checks pass should live Priority Reservation open.
