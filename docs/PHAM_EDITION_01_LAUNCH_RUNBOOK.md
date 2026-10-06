@@ -143,6 +143,8 @@ The physical steel Identity card ships later with the final object.
 - exactly one active variant for every configured Size
 - every configured variant priced exactly at $199.00
 - prelaunch final-object inventory may remain zero; do not expose sellable inventory until the acquisition inventory plan is reconciled against actual reservation Size Preferences
+- PHAM-001 Size Guide page: `/pages/pham-001-size-guide`
+- before enabling Fit Assistant, enter verified production measurements for M / L / XL / XXL: flat chest width, shoulder, sleeve and body length; do not use generic reference measurements
 
 Readiness fails closed on missing, duplicate or mispriced Size variants.
 
