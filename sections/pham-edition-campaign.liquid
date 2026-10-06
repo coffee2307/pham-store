@@ -71,6 +71,19 @@
         <h2>Founder’s Token</h2>
         <p>Edition 01 contains 50 collector tokens: 49 silver-tone and one gold-tone. The gold token is allocated once by the Edition Engine after the object set is finalized. Its result stays sealed to the collector until delivery.</p>
       </article>
+      <article class="pham-campaign-card pham-campaign-card--full">
+        <h2>Edition ledger</h2>
+        <div class="pham-edition-ledger">
+          <div><span>Object set</span><strong>{{ edition_size }} / {{ edition_size }}</strong></div>
+          <div><span>Acquired</span><strong data-pham-live-acquired-count>{{ claimed }} / {{ edition_size }}</strong></div>
+          <div><span>Delivered</span><strong data-pham-live-delivered-count>0 / {{ edition_size }}</strong></div>
+          <div><span>Design origin</span><strong data-pham-live-design-origin>{{ settings.pham_campaign_origin_label | default: 'VIETNAM / 2026' }}</strong></div>
+          <div><span>Production origin</span><strong data-pham-live-production-origin>{{ settings.pham_campaign_production_origin_label | default: 'DONGGUAN, CHINA' }}</strong></div>
+          <div><span>Reproduction</span><strong>NEVER AFTER ARCHIVE</strong></div>
+        </div>
+        <p class="pham-edition-ledger__note" data-pham-live-archive-note>When every acquired object completes delivery, the edition can enter the permanent PHAM archive. Its object set and Birth Records remain; production does not reopen.</p>
+      </article>
+
     </div>
   </div>
 </section>
