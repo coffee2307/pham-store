@@ -2853,6 +2853,12 @@
       },
       {
         "type": "url",
+        "id": "pham_campaign_size_guide_page_url",
+        "label": "Edition size guide",
+        "info": "Edition-specific fit guide. PHAM-001 / Edition 01 uses its own page rather than a global brand size chart."
+      },
+      {
+        "type": "url",
         "id": "pham_campaign_reservation_page_url",
         "label": "Reservation page"
       },
