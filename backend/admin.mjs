@@ -92,6 +92,29 @@ switch(command){
     break;
   }
 
+  case 'set-lifecycle': {
+    if(!hasFlag('--confirm')){
+      fail('Refusing to change object lifecycle without --confirm.');
+    }
+    const reservationId = valueArg('--reservation');
+    const stage = valueArg('--stage');
+    if(!reservationId) fail('Provide --reservation=<PHAM reservation ID>.');
+    if(!stage) fail('Provide --stage=in_production|quality_control|packed|dispatched|delivered.');
+    await request('/internal/lifecycle/set', {
+      method:'POST',
+      body:{
+        reservationId,
+        stage,
+        carrier:valueArg('--carrier'),
+        trackingNumber:valueArg('--tracking'),
+        trackingUrl:valueArg('--tracking-url'),
+        note:valueArg('--note'),
+        confirm:'SET_OBJECT_LIFECYCLE'
+      }
+    });
+    break;
+  }
+
   case 'mark-lookbook': {
     const reservationId = valueArg('--reservation');
     const status = valueArg('--status');
@@ -191,15 +214,10 @@ switch(command){
     if(!hasFlag('--confirm')){
       fail('Refusing to allocate Founder’s Tokens without --confirm.');
     }
-    const gold = Number(valueArg('--gold'));
-    if(!Number.isInteger(gold) || gold < 1){
-      fail('Provide --gold=<object number>.');
-    }
     await request('/internal/tokens/allocate', {
       method:'POST',
       body:{
         editionId:editionArg(),
-        goldObjectNumber:gold,
         confirm:'ALLOCATE_FOUNDER_TOKENS'
       }
     });
@@ -221,6 +239,11 @@ Commands:
   node admin.mjs readiness [--edition=edition-01]
   node admin.mjs reviews [--limit=50]
   node admin.mjs set-state --state=reservation_open --confirm [--edition=edition-01]
+  node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=in_production --confirm
+  node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=quality_control --confirm
+  node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=packed --confirm
+  node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=dispatched --carrier=DHL --tracking=... --tracking-url=https://... --confirm
+  node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=delivered --confirm
   node admin.mjs mark-lookbook --reservation=PHAM-R-... --status=delivered
   node admin.mjs assign-variant --reservation=PHAM-R-... --variant=gid://shopify/ProductVariant/...
   node admin.mjs map-variants --confirm [--edition=edition-01]
@@ -228,6 +251,6 @@ Commands:
   node admin.mjs open-final-payment [--edition=edition-01]
   node admin.mjs promote-standby [--edition=edition-01]
   node admin.mjs finalize-objects --confirm [--edition=edition-01]
-  node admin.mjs allocate-tokens --gold=17 --confirm [--edition=edition-01]
+  node admin.mjs allocate-tokens --confirm [--edition=edition-01]
 `);
 }
