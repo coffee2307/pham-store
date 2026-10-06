@@ -16,33 +16,39 @@
   assign campaign_cta_label = blank
   assign campaign_cta_price = blank
 
-  if settings.pham_campaign_enabled and settings.pham_campaign_engine_enabled
+  if settings.pham_campaign_enabled
     assign campaign_cta_active = true
-    assign campaign_cta_url = settings.pham_campaign_edition_page_url
-    assign campaign_cta_label = 'CHECK EDITION ACCESS'
-    assign campaign_cta_price = settings.pham_campaign_final_price
-  elsif settings.pham_campaign_enabled and pham_campaign_state != 'prelaunch'
-    assign campaign_cta_active = true
-    case pham_campaign_state
-      when 'reservation_open'
-        assign campaign_cta_url = settings.pham_campaign_reservation_page_url
-        assign campaign_cta_label = 'RESERVE PRIORITY ACCESS'
-        assign campaign_cta_price = settings.pham_campaign_reservation_price
-      when 'reservation_full'
-        assign campaign_cta_url = settings.pham_campaign_standby_page_url
-        assign campaign_cta_label = 'JOIN STANDBY'
-        assign campaign_cta_price = 'FREE'
-      when 'final_payment'
-        assign campaign_cta_url = settings.pham_campaign_collector_page_url
-        assign campaign_cta_label = 'COLLECTOR ACCESS'
-        assign campaign_cta_price = settings.pham_campaign_balance_due
-      when 'sold_out'
-        assign campaign_cta_url = settings.pham_campaign_edition_page_url
-        assign campaign_cta_label = 'VIEW EDITION'
-      when 'archived'
-        assign campaign_cta_url = settings.pham_campaign_edition_page_url
-        assign campaign_cta_label = 'VIEW ARCHIVE'
-    endcase
+
+    if settings.pham_campaign_engine_enabled
+      assign campaign_cta_url = settings.pham_campaign_edition_page_url | default: '/pages/edition-01'
+      assign campaign_cta_label = 'CHECK EDITION ACCESS'
+      assign campaign_cta_price = settings.pham_campaign_final_price
+    else
+      case pham_campaign_state
+        when 'prelaunch'
+          assign campaign_cta_url = settings.pham_campaign_edition_page_url | default: '/pages/edition-01'
+          assign campaign_cta_label = 'EDITION 01 · ACCESS SOON'
+        when 'reservation_open'
+          assign campaign_cta_url = settings.pham_campaign_reservation_page_url
+          assign campaign_cta_label = 'RESERVE PRIORITY ACCESS'
+          assign campaign_cta_price = settings.pham_campaign_reservation_price
+        when 'reservation_full'
+          assign campaign_cta_url = settings.pham_campaign_standby_page_url
+          assign campaign_cta_label = 'JOIN STANDBY'
+          assign campaign_cta_price = 'FREE'
+        when 'final_payment'
+          assign campaign_cta_url = settings.pham_campaign_collector_page_url
+          assign campaign_cta_label = 'COLLECTOR ACCESS'
+          assign campaign_cta_price = settings.pham_campaign_balance_due
+        when 'sold_out'
+          assign campaign_cta_url = settings.pham_campaign_edition_page_url | default: '/pages/edition-01'
+          assign campaign_cta_label = 'VIEW EDITION'
+        when 'archived'
+          assign campaign_cta_url = settings.pham_campaign_edition_page_url | default: '/pages/edition-01'
+          assign campaign_cta_label = 'VIEW ARCHIVE'
+      endcase
+    endif
+
     if campaign_cta_url == blank
       assign campaign_cta_active = false
     endif
