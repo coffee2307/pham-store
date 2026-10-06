@@ -885,7 +885,6 @@ function mountProvenance(root){
       var edition = root.querySelector('[data-pham-provenance-edition]');
       var design = root.querySelector('[data-pham-provenance-design-origin]');
       var designCopy = root.querySelector('[data-pham-provenance-design-origin-copy]');
-      var production = root.querySelector('[data-pham-provenance-production-origin]');
       var assignment = root.querySelector('[data-pham-provenance-assignment]');
       var identity = root.querySelector('[data-pham-provenance-identity]');
       var tokenType = root.querySelector('[data-pham-provenance-token]');
@@ -905,7 +904,6 @@ function mountProvenance(root){
       if(edition) edition.textContent = object.editionLabel || '';
       if(design) design.textContent = object.designOrigin || '';
       if(designCopy) designCopy.textContent = object.designOrigin || '';
-      if(production) production.textContent = object.productionOrigin || '';
       if(assignment){
         assignment.textContent = 'Assigned as Object ' +
           String(object.objectNumber || '—').padStart(2,'0') +
@@ -960,7 +958,6 @@ function mountLiveCampaign(root){
       var acquiredText = root.querySelector('[data-pham-live-acquired-count]');
       var deliveredText = root.querySelector('[data-pham-live-delivered-count]');
       var designOrigin = root.querySelector('[data-pham-live-design-origin]');
-      var productionOrigin = root.querySelector('[data-pham-live-production-origin]');
       var archiveNote = root.querySelector('[data-pham-live-archive-note]');
       var reservationMeter = root.querySelector('[data-pham-live-reservation-meter]');
       var identityMeter = root.querySelector('[data-pham-live-identity-meter]');
@@ -970,7 +967,6 @@ function mountLiveCampaign(root){
       if(acquiredText) acquiredText.textContent = Number(payload.counters.acquired || 0) + ' / ' + editionSize;
       if(deliveredText) deliveredText.textContent = Number(payload.counters.delivered || 0) + ' / ' + editionSize;
       if(designOrigin && payload.edition.designOrigin) designOrigin.textContent = payload.edition.designOrigin;
-      if(productionOrigin && payload.edition.productionOrigin) productionOrigin.textContent = payload.edition.productionOrigin;
       if(archiveNote && payload.edition.archivePermanent){
         archiveNote.textContent = 'ARCHIVE SEALED · This edition is permanently closed. Its object set and Birth Records remain in the PHAM archive; production will not reopen.';
       }
