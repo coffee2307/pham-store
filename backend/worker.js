@@ -11,6 +11,19 @@ export const OBJECT_LIFECYCLE_STAGES = [
   'archived'
 ];
 
+export const REQUIRED_RUNTIME_SCOPES = [
+  'read_orders',
+  'write_orders',
+  'read_customers',
+  'write_customers',
+  'read_draft_orders',
+  'write_draft_orders',
+  'read_inventory',
+  'write_inventory',
+  'read_products',
+  'read_fulfillments'
+];
+
 export function validateLifecycleTransition(currentStage, nextStage) {
   const current = String(currentStage || 'not_started');
   const next = String(nextStage || '');
@@ -1167,17 +1180,6 @@ export function evaluateFinalSizeVariants(variants, expectedSizes, finalPriceCen
 
 async function getReadiness(env, editionId) {
   const checks = [];
-  const requiredScopes = [
-    'read_orders',
-    'write_orders',
-    'read_customers',
-    'write_customers',
-    'read_draft_orders',
-    'write_draft_orders',
-    'read_inventory',
-    'write_inventory',
-    'read_products'
-  ];
 
   function check(name, ok, detail) {
     checks.push({ name, ok: Boolean(ok), detail: detail || null });
@@ -1229,12 +1231,12 @@ async function getReadiness(env, editionId) {
     check('shopify.admin_api', false, error.message || String(error));
   }
 
-  const missingScopes = requiredScopes.filter(function(scope) {
+  const missingScopes = REQUIRED_RUNTIME_SCOPES.filter(function(scope) {
     return !scopes.includes(scope);
   });
 
   check('shopify.runtime_scopes', missingScopes.length === 0, {
-    required: requiredScopes,
+    required: REQUIRED_RUNTIME_SCOPES,
     missing: missingScopes
   });
 
@@ -1789,7 +1791,7 @@ async function handleOrdersPaid(request, env) {
 
   const order = JSON.parse(new TextDecoder().decode(raw));
   const reservationLine = findLineBySku(order, 'PHAM-001-RES-E01');
-  const finalLine = findLineBySku(order, 'PHAM-001-E01');
+  const finalLine = findFinalAcquisitionLine(order);
   const finalReservationId = orderAttribute(order, 'PHAM Reservation ID');
   const finalStandbyId = orderAttribute(order, 'PHAM Standby ID');
 
@@ -3837,6 +3839,13 @@ export function validateFinalAcquisitionOrder({ order, reservation, edition }) {
     paidAt: paidAt.toISOString(),
     discountCents: totalDiscountCents
   };
+}
+
+export function findFinalAcquisitionLine(order) {
+  return (order && order.line_items || []).find(function(line) {
+    const sku = String(line && line.sku || '');
+    return sku === 'PHAM-001-E01' || sku.startsWith('PHAM-001-E01-');
+  }) || null;
 }
 
 function findLineBySku(order, sku) {

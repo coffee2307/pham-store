@@ -7,7 +7,9 @@ import {
   canonicalizeAppProxyParams,
   deriveLifecycleFromFulfillment,
   evaluateFinalSizeVariants,
+  findFinalAcquisitionLine,
   parseEditionSizeOptions,
+  REQUIRED_RUNTIME_SCOPES,
   selectFinalVariantBySize,
   validateFinalAcquisitionOrder,
   validatePriorityReservationOrder,
@@ -755,4 +757,27 @@ test('fulfillment lifecycle only records delivered after dispatch', () => {
     'delivered'
   );
   assert.equal(alreadyDelivered.action, 'tracking');
+});
+
+
+test('recognizes size-specific PHAM-001 final acquisition SKUs', () => {
+  const order = {
+    line_items: [
+      { sku: 'PHAM-001-E01-M', quantity: 1 },
+      { sku: 'UNRELATED-SKU', quantity: 1 },
+    ],
+  };
+
+  assert.equal(
+    findFinalAcquisitionLine(order).sku,
+    'PHAM-001-E01-M'
+  );
+  assert.equal(
+    findFinalAcquisitionLine({ line_items: [{ sku: 'PHAM-001-RES-E01' }] }),
+    null
+  );
+});
+
+test('runtime readiness requires fulfillment read access', () => {
+  assert.ok(REQUIRED_RUNTIME_SCOPES.includes('read_fulfillments'));
 });

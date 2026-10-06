@@ -32,6 +32,8 @@ Current repository migration chain:
 
 Before deployment, confirm what the remote D1 database has already applied.
 
+Use GitHub Actions → **Audit PHAM Campaign Production** for a read-only migration/schema snapshot. This workflow requires the three Cloudflare GitHub secrets before it can run.
+
 Important: older repository work historically folded some schema changes into `0001_initial.sql`. If the remote D1 had already applied an earlier copy of 0001, verify that it contains every current column/index before launch. Do not assume that editing the repository copy of 0001 retroactively changes a remote database.
 
 CI command:
@@ -133,8 +135,15 @@ The physical steel Identity card ships later with the final object.
 
 - Price: $199.00
 - Canonical Size set: XS / S / M / L / XL
+- SKU convention:
+  - XS → `PHAM-001-E01-XS`
+  - S → `PHAM-001-E01-S`
+  - M → `PHAM-001-E01-M`
+  - L → `PHAM-001-E01-L`
+  - XL → `PHAM-001-E01-XL`
 - exactly one active variant for every configured Size
 - every configured variant priced exactly at $199.00
+- prelaunch final-object inventory may remain zero; do not expose sellable inventory until the acquisition inventory plan is reconciled against actual reservation Size Preferences
 
 Readiness fails closed on missing, duplicate or mispriced Size variants.
 
