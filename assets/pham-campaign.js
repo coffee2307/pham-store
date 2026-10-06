@@ -750,6 +750,7 @@ function mountCollector(root){
       var identity = payload.identity || {};
       var referral = payload.referral || {};
       var editionSize = root.dataset.editionSize || '50';
+      var productCode = root.dataset.productCode || 'PHAM-001';
 
       var statusEl = root.querySelector('[data-pham-live-reservation-status]');
       var objectEl = root.querySelector('[data-pham-live-object]');
@@ -773,8 +774,8 @@ function mountCollector(root){
       if(statusEl) statusEl.textContent = displayState(reservation.status);
       if(objectEl){
         objectEl.textContent = reservation.objectNumber
-          ? 'PHAM-001 · ' + String(reservation.objectNumber).padStart(2,'0') + ' / ' + editionSize
-          : 'PHAM-001 · PENDING ASSIGNMENT';
+          ? productCode + ' · ' + String(reservation.objectNumber).padStart(2,'0') + ' / ' + editionSize
+          : productCode + ' · PENDING ASSIGNMENT';
       }
       if(identityEl) identityEl.textContent = displayState(identity.status);
       if(lifecycleEl) lifecycleEl.textContent = displayState(reservation.lifecycleStage || 'not_started');
