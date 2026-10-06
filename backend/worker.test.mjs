@@ -11,6 +11,8 @@ import {
   validateFinalAcquisitionOrder,
   validatePriorityReservationOrder,
   validateStandbyAcquisitionOrder,
+  validateLifecycleTransition,
+  visibleFounderTokenType,
   verifyAppProxyRequest,
   verifyShopifyWebhook,
 } from './worker.js';
@@ -673,4 +675,36 @@ test('campaign acquisition validators reject non-paid webhook payloads', () => {
     () => validatePriorityReservationOrder(reservationFixture),
     /reservation_order_not_paid/
   );
+});
+
+
+test('object lifecycle only advances one stage at a time', () => {
+  assert.deepEqual(
+    validateLifecycleTransition('production_queued', 'in_production'),
+    {
+      changed: true,
+      currentStage: 'production_queued',
+      nextStage: 'in_production'
+    }
+  );
+  assert.equal(
+    validateLifecycleTransition('packed', 'packed').changed,
+    false
+  );
+  assert.throws(
+    () => validateLifecycleTransition('production_queued', 'quality_control'),
+    /invalid_lifecycle_transition/
+  );
+  assert.throws(
+    () => validateLifecycleTransition('delivered', 'archived'),
+    /archive_transition_requires_edition_archive/
+  );
+});
+
+test('Founder token remains sealed until delivery', () => {
+  assert.equal(visibleFounderTokenType('', 'packed'), 'pending_allocation');
+  assert.equal(visibleFounderTokenType('gold', 'packed'), 'sealed');
+  assert.equal(visibleFounderTokenType('silver', 'dispatched'), 'sealed');
+  assert.equal(visibleFounderTokenType('gold', 'delivered'), 'gold');
+  assert.equal(visibleFounderTokenType('silver', 'archived'), 'silver');
 });
