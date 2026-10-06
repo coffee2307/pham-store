@@ -36,8 +36,8 @@ Theme Settings remain a presentation fallback. When the Edition Engine is enable
 - Standby: free FIFO queue
 - Standby acquisition: full $199.00
 - Standby offer window: 48 hours
-- Canonical size set: XS / S / M / L / XL
-- Edition 01 final SKU pattern: `PHAM-001-E01-XS|S|M|L|XL`
+- Canonical size set for PHAM-001 / Edition 01: M / L / XL / XXL
+- Edition 01 final SKU pattern: `PHAM-001-E01-M|L|XL|XXL`
 - Final invoice variant: exact Shopify variant matching the stored Size Preference
 
 ## Object lifecycle
