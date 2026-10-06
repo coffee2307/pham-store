@@ -27,26 +27,53 @@
       <div class="pham-fit__copy">
         <p class="pham-fit__eyebrow">01 / FIT INTENT</p>
         <h2>Cropped by design.<br>Room through the body.</h2>
-        <p>{{ product_code }} is a cropped bomber. Size should be judged by the finished garment measurements, your chest and shoulder measurements, and how much room you want through the body—not by the letter on another brand's label.</p>
-        <p>For the most reliable comparison, measure a jacket you already own and like, laid flat, then compare it with the finished-garment chart below.</p>
-        <p>Edition 01 is graded from the XL production-sample tech pack. XL is the design anchor; M, L and XXL preserve the same cropped, dropped-shoulder and oversized proportions through point-specific grade rules.</p>
+        <p class="pham-fit__lead">{{ product_code }} is cut short through the body with a dropped shoulder and controlled volume. Choose by finished-garment measurements—not by another brand's size label.</p>
+        <div class="pham-fit__fit-points" aria-label="PHAM-001 fit characteristics">
+          <div><span>01</span><strong>CROPPED BODY</strong><em>Shorter hem, deliberate proportion.</em></div>
+          <div><span>02</span><strong>DROPPED SHOULDER</strong><em>Relaxed shoulder line by design.</em></div>
+          <div><span>03</span><strong>ROOM THROUGH BODY</strong><em>Built for controlled oversized ease.</em></div>
+        </div>
+        <p class="pham-fit__compare-note"><strong>Best reference:</strong> measure a jacket you already like, laid flat, then compare A–D with the chart below.</p>
       </div>
 
-      <div class="pham-fit__figure" aria-label="Technical mannequin showing PHAM-001 measurement points">
-        <svg viewBox="0 0 360 460" role="img" aria-labelledby="PhamFitFigureTitle">
-          <title id="PhamFitFigureTitle">Technical mannequin and jacket measurement points</title>
-          <g fill="none" stroke="currentColor" stroke-width="1.2">
-            <circle cx="180" cy="54" r="30"/>
-            <path d="M145 88 C132 108 124 145 127 195 L136 310 C140 344 153 388 160 430"/>
-            <path d="M215 88 C228 108 236 145 233 195 L224 310 C220 344 207 388 200 430"/>
-            <path d="M145 94 C160 105 200 105 215 94"/>
-            <path d="M127 150 L82 245 M233 150 L278 245 M82 245 L70 340 M278 245 L290 340"/>
-            <path d="M142 112 C118 125 108 160 112 214 L120 270 C145 284 215 284 240 270 L248 214 C252 160 242 125 218 112"/>
-            <path d="M112 165 H248 M142 112 H218 M252 124 L289 245 M260 112 V270"/>
-            <path d="M180 112 L180 270" stroke-dasharray="4 5"/>
+      <div class="pham-fit__figure" aria-label="Technical flat drawing of PHAM-001 with garment measurement points">
+        <svg viewBox="0 0 520 420" role="img" aria-labelledby="PhamFitFigureTitle">
+          <title id="PhamFitFigureTitle">PHAM-001 technical flat and garment measurement points</title>
+          <defs>
+            <marker id="phamFitArrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto-start-reverse">
+              <path d="M0,0 L7,3.5 L0,7 Z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <g stroke-width="1.5">
+              <path d="M247 58 Q260 48 273 58 L303 72 L350 86 L389 119 L448 226 L415 244 L347 152 L339 311 Q260 330 181 311 L173 152 L105 244 L72 226 L131 119 L170 86 L217 72 Z"/>
+              <path d="M217 72 Q231 98 260 100 Q289 98 303 72"/>
+              <path d="M247 58 L238 91 M273 58 L282 91"/>
+              <path d="M260 100 V318"/>
+              <path d="M181 311 Q260 324 339 311"/>
+              <path d="M78 224 L111 244 M409 244 L442 224"/>
+              <path d="M188 218 L229 204 L236 232 L194 244 Z"/>
+              <path d="M332 218 L291 204 L284 232 L326 244 Z"/>
+              <path d="M173 152 Q181 126 203 110 M347 152 Q339 126 317 110"/>
+              <path d="M181 311 L179 287 M339 311 L341 287"/>
+            </g>
+            <g stroke-width="1" opacity=".45">
+              <path d="M155 170 H365"/>
+              <path d="M260 100 V318" stroke-dasharray="4 6"/>
+              <path d="M131 119 L105 244 M389 119 L415 244"/>
+            </g>
+            <g stroke-width="1.2" marker-start="url(#phamFitArrow)" marker-end="url(#phamFitArrow)">
+              <path d="M181 186 H339"/>
+              <path d="M203 109 H317"/>
+              <path d="M321 105 L420 237"/>
+              <path d="M367 101 V311"/>
+            </g>
           </g>
-          <g fill="currentColor" font-size="11" font-family="Arial, sans-serif">
-            <text x="174" y="157">A</text><text x="176" y="103">B</text><text x="292" y="190">C</text><text x="267" y="196">D</text>
+          <g fill="#050505" stroke="currentColor" stroke-width="1">
+            <circle cx="260" cy="186" r="13"/><circle cx="260" cy="109" r="13"/><circle cx="372" cy="171" r="13"/><circle cx="367" cy="206" r="13"/>
+          </g>
+          <g fill="currentColor" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" dominant-baseline="middle">
+            <text x="260" y="186">A</text><text x="260" y="109">B</text><text x="372" y="171">C</text><text x="367" y="206">D</text>
           </g>
         </svg>
         <div class="pham-fit__figure-key">
@@ -59,7 +86,7 @@
       <div class="pham-fit__section-head">
         <p class="pham-fit__eyebrow">02 / FINISHED GARMENT</p>
         <h2>{{ product_code }} measurements</h2>
-        <p>Measurements below refer to the garment itself, laid flat. Chest is measured pit-to-pit. XL comes directly from the production-sample tech pack; M, L and XXL are graded from that anchor and must be confirmed against the factory's graded pattern before bulk cutting.</p>
+        <p>Garment measurements, laid flat. Chest is pit-to-pit. XL is the current tech-pack anchor; M, L and XXL follow the Edition 01 grading proposal.</p>
       </div>
 
       <div class="pham-fit__table-wrap">
@@ -89,7 +116,7 @@
         <div><span>STARTING RANGE</span><strong>XL</strong><em>106–109 CM</em></div>
         <div><span>STARTING RANGE</span><strong>XXL</strong><em>110–114 CM</em></div>
       </div>
-      <p class="pham-fit__selection-note">Below 98 cm chest, M will read more relaxed. Above 114 cm, XXL will read closer. Use the Fit Assistant to shift one or more sizes according to the silhouette you want.</p>
+      <p class="pham-fit__selection-note">Use these ranges as a starting point. For the most accurate choice, compare the garment chart with a jacket you already like.</p>
     </section>
 
     <section class="pham-fit__section">
@@ -108,7 +135,7 @@
     <section class="pham-fit__section">
       <div class="pham-fit__section-head">
         <p class="pham-fit__eyebrow">04 / FIT ASSISTANT</p><h2>Find your PHAM-001 fit.</h2>
-        <p>Height and weight provide context only. Chest is the primary fit input; shoulder is the secondary check for the dropped-shoulder silhouette. Your inputs stay in this browser and are not submitted to PHAM.</p>
+        <p>Chest drives the recommendation; shoulder refines it. Height and weight are context only. Your measurements stay in this browser.</p>
       </div>
 
       <div class="pham-fit__assistant-grid">
@@ -147,6 +174,43 @@
 
 <style>
 .pham-fit{background:#050505;color:#f2f2ef;min-height:100vh;padding:clamp(96px,10vw,150px) 0 80px}.pham-fit *{box-sizing:border-box}.pham-fit__inner{width:min(1180px,calc(100% - 40px));margin:0 auto}.pham-fit__hero{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;padding-bottom:32px;border-bottom:1px solid #2b2b2b}.pham-fit__kicker,.pham-fit__eyebrow,.pham-fit__hero-meta,.pham-fit__result-label,.pham-fit__calibration{font:500 11px/1.4 monospace;letter-spacing:.14em;text-transform:uppercase}.pham-fit__hero h1{font-size:clamp(48px,8vw,112px);line-height:.86;letter-spacing:-.055em;margin:18px 0 0;font-weight:500}.pham-fit__hero-meta{display:grid;gap:8px;text-align:right;color:#9a9a96}.pham-fit__notice{display:grid;grid-template-columns:1fr 2fr;gap:30px;padding:18px 0;border-bottom:1px solid #2b2b2b;font-size:12px;letter-spacing:.04em}.pham-fit__notice span{color:#a4a4a0}.pham-fit__intro-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:64px;padding:80px 0}.pham-fit__copy h2,.pham-fit__section-head h2{font-size:clamp(34px,5vw,68px);line-height:.96;letter-spacing:-.04em;margin:16px 0 28px;font-weight:500}.pham-fit__copy>p:not(.pham-fit__eyebrow),.pham-fit__section-head>p:not(.pham-fit__eyebrow){max-width:680px;color:#aaa9a5;font-size:15px;line-height:1.7}.pham-fit__figure{border:1px solid #292929;padding:24px;background:#090909}.pham-fit__figure svg{display:block;width:100%;max-height:440px;color:#d7d7d2}.pham-fit__figure-key{display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid #292929;padding-top:18px;font:500 11px/1.4 monospace;color:#9a9a96}.pham-fit__figure-key b{color:#fff;margin-right:8px}.pham-fit__section{padding:72px 0;border-top:1px solid #2b2b2b}.pham-fit__section-head{display:grid;grid-template-columns:180px 1fr;column-gap:30px}.pham-fit__section-head h2,.pham-fit__section-head>p:last-child{grid-column:2}.pham-fit__table-wrap{overflow:auto;margin-top:40px}.pham-fit__table{width:100%;border-collapse:collapse;min-width:720px}.pham-fit__table th,.pham-fit__table td{padding:20px 16px;border-bottom:1px solid #292929;text-align:left;font-size:13px}.pham-fit__table thead th{font:500 10px/1.4 monospace;letter-spacing:.1em;color:#858580;text-transform:uppercase}.pham-fit__table tbody th{font-size:22px;font-weight:500}.pham-fit__calibration{margin:22px 0 0;color:#a8a8a3}.pham-fit__selection{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#292929;border:1px solid #292929;margin-top:28px}.pham-fit__selection>div{background:#070707;padding:20px;display:grid;gap:12px}.pham-fit__selection span{font:500 9px/1.4 monospace;letter-spacing:.08em;color:#777}.pham-fit__selection strong{font-size:28px;font-weight:500}.pham-fit__selection em{font:500 11px monospace;font-style:normal;color:#aaa}.pham-fit__selection-note{font-size:12px;line-height:1.6;color:#858580;margin:14px 0 0}.pham-fit__measure-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#292929;margin-top:42px;border:1px solid #292929}.pham-fit__measure-grid article{background:#070707;padding:26px;min-height:210px}.pham-fit__measure-grid article>span{font:500 10px monospace;color:#777}.pham-fit__measure-grid h3{font-size:20px;margin:42px 0 12px}.pham-fit__measure-grid p,.pham-fit__compare p{font-size:13px;line-height:1.65;color:#9e9e99}.pham-fit__compare{display:grid;grid-template-columns:1fr 2fr;gap:30px;margin-top:28px;padding:24px;border:1px solid #292929}.pham-fit__compare strong{font:500 11px monospace;letter-spacing:.1em}.pham-fit__compare p{margin:0}.pham-fit__assistant-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#292929;border:1px solid #292929;margin-top:42px}.pham-fit__form,.pham-fit__result{background:#070707;padding:clamp(24px,4vw,48px)}.pham-fit__form{display:grid;grid-template-columns:1fr 1fr;gap:20px}.pham-fit__form>label>span,.pham-fit__form legend{display:block;margin-bottom:8px;font:500 10px monospace;letter-spacing:.1em;text-transform:uppercase;color:#8c8c87}.pham-fit__form>label>div{display:flex;border-bottom:1px solid #444;align-items:center}.pham-fit__form input[type=number]{width:100%;background:transparent;border:0;color:#fff;padding:10px 0;font-size:20px;outline:0}.pham-fit__form em{font:500 10px monospace;color:#777;font-style:normal}.pham-fit__form fieldset{grid-column:1/-1;border:0;padding:14px 0 0;margin:0;display:flex;gap:8px;flex-wrap:wrap}.pham-fit__radio input{position:absolute;opacity:0;pointer-events:none}.pham-fit__radio span{display:block;border:1px solid #343434;padding:11px 16px;font:500 10px monospace;letter-spacing:.08em;cursor:pointer}.pham-fit__radio input:checked+span{background:#f0f0eb;color:#050505;border-color:#f0f0eb}.pham-fit__form button{grid-column:1/-1;margin-top:8px;background:#f0f0eb;color:#050505;border:0;padding:16px 20px;font:600 11px monospace;letter-spacing:.12em;cursor:pointer}.pham-fit__result{display:flex;flex-direction:column;justify-content:center;min-height:440px}.pham-fit__result-label{color:#777}.pham-fit__result-size{font-size:clamp(90px,14vw,180px);line-height:.8;letter-spacing:-.07em;margin:36px 0 28px}.pham-fit__result h3{font-size:24px;margin:0 0 12px}.pham-fit__result p{max-width:500px;color:#9f9f9a;line-height:1.65;font-size:13px}.pham-fit__result-meta{margin-top:24px;font:500 10px/1.7 monospace;letter-spacing:.06em;color:#858580;text-transform:uppercase;white-space:pre-line}.pham-fit__footer{display:flex;justify-content:space-between;gap:40px;padding-top:32px;border-top:1px solid #2b2b2b}.pham-fit__footer p{max-width:680px;color:#8f8f8b;font-size:12px;line-height:1.6;margin:0}.pham-fit__footer a{color:#fff;text-decoration:none;font:500 11px monospace;letter-spacing:.08em;white-space:nowrap}@media(max-width:760px){.pham-fit__inner{width:min(100% - 24px,1180px)}.pham-fit__hero,.pham-fit__notice,.pham-fit__intro-grid,.pham-fit__section-head,.pham-fit__compare,.pham-fit__assistant-grid{grid-template-columns:1fr}.pham-fit__hero-meta{text-align:left}.pham-fit__notice{gap:8px}.pham-fit__intro-grid{gap:36px;padding:56px 0}.pham-fit__section{padding:52px 0}.pham-fit__section-head h2,.pham-fit__section-head>p:last-child{grid-column:1}.pham-fit__measure-grid,.pham-fit__selection{grid-template-columns:1fr 1fr}.pham-fit__measure-grid article{min-height:180px}.pham-fit__form{grid-template-columns:1fr}.pham-fit__form fieldset,.pham-fit__form button{grid-column:1}.pham-fit__result{min-height:360px}.pham-fit__footer{flex-direction:column}}@media(max-width:480px){.pham-fit__measure-grid,.pham-fit__selection{grid-template-columns:1fr}}
+/* PHAM fit guide readability + technical-flat pass */
+.pham-fit__inner{width:min(1280px,calc(100% - 56px))}
+.pham-fit__hero-meta{font-size:12px;line-height:1.45}
+.pham-fit__notice{grid-template-columns:minmax(260px,.8fr) 1.6fr;font-size:13px;line-height:1.5;padding:20px 0}
+.pham-fit__intro-grid{grid-template-columns:minmax(0,1fr) minmax(420px,.92fr);gap:clamp(54px,6vw,92px);padding:72px 0 84px;align-items:center}
+.pham-fit__copy h2{max-width:11ch;font-size:clamp(42px,5.2vw,72px);line-height:.94;margin-bottom:24px}
+.pham-fit__copy .pham-fit__lead{max-width:52ch;color:#d1d0cb;font-size:17px;line-height:1.58;margin:0}
+.pham-fit__fit-points{display:grid;margin-top:30px;border-top:1px solid #2d2d2d}
+.pham-fit__fit-points>div{display:grid;grid-template-columns:44px 1fr;column-gap:16px;padding:16px 0;border-bottom:1px solid #252525}
+.pham-fit__fit-points span{grid-row:1/3;color:#6f6f6b;font:600 10px/1.4 monospace;letter-spacing:.1em}
+.pham-fit__fit-points strong{color:#f2f2ef;font:600 12px/1.35 monospace;letter-spacing:.09em}
+.pham-fit__fit-points em{margin-top:4px;color:#979792;font:400 14px/1.45 var(--font-body,Arial,sans-serif);font-style:normal}
+.pham-fit__copy .pham-fit__compare-note{max-width:54ch;margin:22px 0 0;color:#aaa9a5;font-size:14px;line-height:1.55}
+.pham-fit__compare-note strong{color:#f0f0eb;font-weight:600}
+.pham-fit__figure{padding:30px;background:linear-gradient(180deg,#0a0a0a,#070707)}
+.pham-fit__figure svg{max-height:430px;color:#e2e2dd}
+.pham-fit__figure-key{font-size:12px;gap:12px;padding-top:20px}
+.pham-fit__section-head>p:not(.pham-fit__eyebrow){font-size:15.5px;line-height:1.62;max-width:62ch}
+.pham-fit__table th,.pham-fit__table td{font-size:14px;padding:21px 18px}
+.pham-fit__selection-note{font-size:13.5px;max-width:72ch}
+.pham-fit__measure-grid p,.pham-fit__compare p{font-size:14px;line-height:1.6}
+.pham-fit__result p{font-size:14px;line-height:1.6}
+.pham-fit__footer p{font-size:13px}
+@media(max-width:900px){
+  .pham-fit__inner{width:min(100% - 32px,1280px)}
+  .pham-fit__intro-grid{grid-template-columns:1fr;gap:42px;padding:56px 0 64px}
+  .pham-fit__copy h2{max-width:12ch}
+  .pham-fit__figure{padding:22px}
+}
+@media(max-width:560px){
+  .pham-fit__inner{width:min(100% - 24px,1280px)}
+  .pham-fit__notice{font-size:12.5px}
+  .pham-fit__copy .pham-fit__lead{font-size:16px}
+  .pham-fit__fit-points em{font-size:13px}
+  .pham-fit__figure{padding:16px}
+  .pham-fit__figure-key{font-size:11px}
+}
 </style>
 
 <script>

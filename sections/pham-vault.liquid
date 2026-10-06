@@ -18,6 +18,11 @@
   assign acquisition_cta_text = section.settings.cta_label
   assign acquisition_price_text = blank
   assign acquisition_status_text = blank
+  assign acquisition_title = settings.pham_campaign_product_code | default: 'PHAM-001'
+  assign acquisition_subtitle = settings.pham_campaign_edition_label | default: 'EDITION 01'
+  assign acquisition_fact_1 = blank
+  assign acquisition_fact_2 = blank
+  assign acquisition_fact_3 = blank
 
   if settings.pham_campaign_enabled
     case pham_campaign_state
@@ -29,6 +34,11 @@
         assign acquisition_cta_text = 'RESERVE PRIORITY ACCESS'
         assign acquisition_price_text = settings.pham_campaign_reservation_price
         assign acquisition_status_text = 'PRIORITY RESERVATION OPEN'
+        assign acquisition_title = settings.pham_campaign_product_code | default: 'PHAM-001'
+        assign acquisition_subtitle = 'PRIORITY RESERVATION'
+        assign acquisition_fact_1 = 'SECURES ONE EDITION 01 ALLOCATION'
+        assign acquisition_fact_2 = 'RESERVATION CREDITED TOWARD THE $199 OBJECT'
+        assign acquisition_fact_3 = 'COLLECTOR LOOKBOOK INCLUDED'
       when 'reservation_full'
         if settings.pham_campaign_standby_page_url != blank
           assign object_url = settings.pham_campaign_standby_page_url
@@ -177,25 +187,55 @@
 
       <article class="pham-vault__chapter pham-vault__chapter--purchase" data-pham-vault-chapter="3" aria-hidden="true">
         <p class="pham-vault__kicker">04 / ACQUISITION</p>
-        <h2 class="pham-vault__display">
-          {%- if featured_product != blank -%}{{ featured_product.title }}{%- else -%}{{ section.settings.chapter_4_title }}{%- endif -%}
+        <h2 class="pham-vault__display pham-vault__display--purchase">
+          <span data-pham-acquisition-title>{{ acquisition_title }}</span>
+          <span data-pham-acquisition-subtitle>{{ acquisition_subtitle }}</span>
         </h2>
         {%- if featured_product != blank -%}
-          <p class="pham-vault__price" data-pham-campaign-price>{% if acquisition_price_text != blank %}{{ acquisition_price_text }}{% else %}{{ featured_product.price | money }}{% endif %}</p>
-          <p class="pham-vault__availability" data-pham-campaign-status>
-            {%- if acquisition_status_text != blank -%}
-              {{ acquisition_status_text }}
-            {%- elsif featured_product.available -%}
-              {{ section.settings.available_label }}
-            {%- else -%}
-              {{ section.settings.sold_out_label }}
-            {%- endif -%}
-          </p>
+          <div class="pham-vault__purchase-meta">
+            <p class="pham-vault__price" data-pham-campaign-price>{% if acquisition_price_text != blank %}{{ acquisition_price_text }}{% else %}{{ featured_product.price | money }}{% endif %}</p>
+            <p class="pham-vault__availability" data-pham-campaign-status>
+              {%- if acquisition_status_text != blank -%}
+                {{ acquisition_status_text }}
+              {%- elsif featured_product.available -%}
+                {{ section.settings.available_label }}
+              {%- else -%}
+                {{ section.settings.sold_out_label }}
+              {%- endif -%}
+            </p>
+          </div>
         {%- endif -%}
-        <p class="pham-vault__copy">{{ section.settings.chapter_4_body }}</p>
+        <p class="pham-vault__copy pham-vault__copy--purchase" data-pham-acquisition-copy>
+          {%- if pham_campaign_state == 'reservation_open' -%}
+            A confirmed reservation holds one of 50 Edition 01 allocations while capacity remains.
+          {%- else -%}
+            {{ section.settings.chapter_4_body }}
+          {%- endif -%}
+        </p>
+        {%- if acquisition_fact_1 != blank -%}
+          <ul class="pham-vault__purchase-facts" data-pham-acquisition-facts aria-label="Priority reservation benefits">
+            <li data-pham-acquisition-fact>{{ acquisition_fact_1 }}</li>
+            <li data-pham-acquisition-fact>{{ acquisition_fact_2 }}</li>
+            <li data-pham-acquisition-fact>{{ acquisition_fact_3 }}</li>
+          </ul>
+        {%- else -%}
+          <ul class="pham-vault__purchase-facts" data-pham-acquisition-facts hidden aria-label="Campaign facts">
+            <li data-pham-acquisition-fact></li>
+            <li data-pham-acquisition-fact></li>
+            <li data-pham-acquisition-fact></li>
+          </ul>
+        {%- endif -%}
         <a class="pham-vault__cta" href="{{ object_url }}" data-pham-magnetic data-pham-campaign-primary>
           <span>{{ acquisition_cta_text }}</span><span aria-hidden="true">&#8599;</span>
         </a>
+        <div class="pham-vault__purchase-links">
+          {%- if settings.pham_campaign_size_guide_page_url != blank -%}
+            <a href="{{ settings.pham_campaign_size_guide_page_url }}">SIZE GUIDE</a>
+          {%- endif -%}
+          {%- if settings.pham_campaign_edition_page_url != blank -%}
+            <a href="{{ settings.pham_campaign_edition_page_url }}">EDITION DETAILS</a>
+          {%- endif -%}
+        </div>
       </article>
     </div>
 

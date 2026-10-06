@@ -95,7 +95,11 @@ function campaignPresentation(context, state){
     entryLabel: null,
     primaryLabel: null,
     price: null,
-    status: null
+    status: null,
+    acquisitionTitle: context.productCode || 'PHAM-001',
+    acquisitionSubtitle: context.edition || 'EDITION 01',
+    acquisitionCopy: null,
+    acquisitionFacts: []
   };
 
   switch(state){
@@ -105,6 +109,13 @@ function campaignPresentation(context, state){
       presentation.primaryLabel = 'RESERVE PRIORITY ACCESS';
       presentation.price = context.reservationPrice || '$24.99';
       presentation.status = 'PRIORITY RESERVATION OPEN';
+      presentation.acquisitionSubtitle = 'PRIORITY RESERVATION';
+      presentation.acquisitionCopy = 'A confirmed reservation holds one of 50 Edition 01 allocations while capacity remains.';
+      presentation.acquisitionFacts = [
+        'SECURES ONE EDITION 01 ALLOCATION',
+        'RESERVATION CREDITED TOWARD THE $199 OBJECT',
+        'COLLECTOR LOOKBOOK INCLUDED'
+      ];
       break;
     case 'reservation_full':
       presentation.url = context.standbyPageUrl || '/pages/standby';
@@ -112,6 +123,13 @@ function campaignPresentation(context, state){
       presentation.primaryLabel = 'JOIN STANDBY · FREE';
       presentation.price = 'FREE';
       presentation.status = 'EDITION RESERVED · STANDBY OPEN';
+      presentation.acquisitionSubtitle = 'STANDBY ACCESS';
+      presentation.acquisitionCopy = 'Edition 01 is currently fully reserved. Join the standby queue without payment.';
+      presentation.acquisitionFacts = [
+        'EDITION 01 ALLOCATION CURRENTLY FULL',
+        'JOIN STANDBY AT NO COST',
+        'OFFERS RELEASE IN QUEUE ORDER WHEN SPACE OPENS'
+      ];
       break;
     case 'final_payment':
       presentation.url = context.collectorPageUrl || '/pages/reservation-status';
@@ -119,16 +137,27 @@ function campaignPresentation(context, state){
       presentation.primaryLabel = 'COMPLETE ACQUISITION';
       presentation.price = context.balanceDue || '$174.01';
       presentation.status = 'ACQUISITION WINDOW OPEN';
+      presentation.acquisitionSubtitle = 'ACQUISITION WINDOW';
+      presentation.acquisitionCopy = 'Reserved collectors can complete the remaining balance during the active acquisition window.';
+      presentation.acquisitionFacts = [
+        'YOUR RESERVATION CREDIT IS APPLIED',
+        'COMPLETE THE REMAINING BALANCE WITHIN THE WINDOW',
+        'COLLECTOR ACCESS TRACKS THE OBJECT RECORD'
+      ];
       break;
     case 'sold_out':
       presentation.entryLabel = 'VIEW EDITION';
       presentation.primaryLabel = 'VIEW EDITION';
       presentation.status = 'EDITION CLOSED';
+      presentation.acquisitionSubtitle = 'EDITION CLOSED';
+      presentation.acquisitionCopy = 'Edition 01 is closed. The object remains visible as part of the PHAM archive.';
       break;
     case 'archived':
       presentation.entryLabel = 'VIEW ARCHIVE';
       presentation.primaryLabel = 'VIEW ARCHIVE';
       presentation.status = 'ARCHIVED';
+      presentation.acquisitionSubtitle = 'ARCHIVED';
+      presentation.acquisitionCopy = 'Edition 01 is archived and will not return to production.';
       break;
     default:
       return null;
@@ -160,6 +189,28 @@ function applyGlobalCampaignState(context, state){
 
   qsa('[data-pham-campaign-status]').forEach(function(node){
     if(presentation.status) node.textContent = presentation.status;
+  });
+
+  qsa('[data-pham-acquisition-title]').forEach(function(node){
+    if(presentation.acquisitionTitle) node.textContent = presentation.acquisitionTitle;
+  });
+
+  qsa('[data-pham-acquisition-subtitle]').forEach(function(node){
+    if(presentation.acquisitionSubtitle) node.textContent = presentation.acquisitionSubtitle;
+  });
+
+  qsa('[data-pham-acquisition-copy]').forEach(function(node){
+    if(presentation.acquisitionCopy) node.textContent = presentation.acquisitionCopy;
+  });
+
+  qsa('[data-pham-acquisition-facts]').forEach(function(list){
+    var facts = Array.isArray(presentation.acquisitionFacts) ? presentation.acquisitionFacts : [];
+    var items = qsa('[data-pham-acquisition-fact]', list);
+    list.hidden = facts.length === 0;
+    items.forEach(function(item, index){
+      item.textContent = facts[index] || '';
+      item.hidden = !facts[index];
+    });
   });
 
   var indexLabels = {
