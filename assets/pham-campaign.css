@@ -65,3 +65,11 @@
 .pham-identity-public-choice{display:flex;gap:12px;align-items:flex-start;margin:20px 0;color:var(--pc-soft);font-size:.86rem;line-height:1.55}
 .pham-identity-public-choice input{margin-top:3px}
 .pham-number-grid button:disabled{opacity:.28;cursor:not-allowed}
+
+.pham-edition-ledger{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--pc-line);border-left:1px solid var(--pc-line);margin-top:8px}
+.pham-edition-ledger>div{display:grid;gap:12px;min-height:108px;padding:18px;border-right:1px solid var(--pc-line);border-bottom:1px solid var(--pc-line)}
+.pham-edition-ledger span{color:var(--pc-dim);font:500 8px/1.35 var(--font-mono,monospace);letter-spacing:.14em;text-transform:uppercase}
+.pham-edition-ledger strong{align-self:end;color:#fff;font:500 clamp(.92rem,1.4vw,1.18rem)/1.25 var(--font-mono,monospace);letter-spacing:.06em;text-transform:uppercase}
+.pham-edition-ledger__note{margin-top:22px!important;max-width:78ch}
+@media(max-width:800px){.pham-edition-ledger{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.pham-edition-ledger{grid-template-columns:1fr}}
