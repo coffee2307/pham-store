@@ -1486,7 +1486,6 @@ async function getCampaign(env, editionId) {
       paymentWindowHours: edition.payment_window_hours,
       standbyWindowHours: edition.standby_window_hours,
       designOrigin: edition.design_origin,
-      productionOrigin: edition.production_origin,
       founderTokensAllocated: Boolean(edition.founder_tokens_allocated_at),
       archivePermanent: edition.state === 'archived'
     },
@@ -2297,7 +2296,6 @@ async function getPublicProvenance(env, token) {
        e.edition_size,
        e.state AS edition_state,
        e.design_origin,
-       e.production_origin,
        r.acquired_at,
        r.lifecycle_stage,
        r.lifecycle_updated_at,
@@ -2328,7 +2326,6 @@ async function getPublicProvenance(env, token) {
       objectNumber: row.object_number,
       size: row.size_preference || null,
       designOrigin: row.design_origin,
-      productionOrigin: row.production_origin,
       acquiredAt: row.acquired_at || null,
       birthRecordedAt: row.birth_recorded_at || null,
       lifecycleStage: row.lifecycle_stage || 'not_started',

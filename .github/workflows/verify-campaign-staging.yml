@@ -48,7 +48,7 @@ jobs:
           set -euo pipefail
           url="${STOREFRONT_ORIGIN%/}/apps/pham-edition/campaign?edition=edition-01"
           body="$(mktemp)"
-          code="$(curl --silent --show-error --location --output "$body" --write-out '%{http_code}' "$url")"
+          code="$(curl --silent --show-error --location --user-agent 'PHAM-Staging-E2E/1.0' --header 'Accept: application/json' --output "$body" --write-out '%{http_code}' "$url")"
           cat "$body"
           echo
           if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
@@ -63,13 +63,93 @@ jobs:
               console.error("App Proxy response is missing edition/counters");
               process.exit(1);
             }
-            if(!Array.isArray(body.edition.sizeOptions) || body.edition.sizeOptions.length === 0){
-              console.error("App Proxy response is missing canonical sizeOptions");
+            const expectedSizes=["M","L","XL","XXL"];
+            if(!Array.isArray(body.edition.sizeOptions) || JSON.stringify(body.edition.sizeOptions) !== JSON.stringify(expectedSizes)){
+              console.error("App Proxy canonical sizeOptions mismatch:", body.edition.sizeOptions);
+              process.exit(1);
+            }
+            if(body.edition.state !== "prelaunch"){
+              console.error("Staging campaign must remain prelaunch, got:", body.edition.state);
+              process.exit(1);
+            }
+            if(!body.edition.designOrigin){
+              console.error("Public campaign response is missing designOrigin");
+              process.exit(1);
+            }
+            if(Object.prototype.hasOwnProperty.call(body.edition, "productionOrigin")){
+              console.error("Public campaign response must not expose productionOrigin");
               process.exit(1);
             }
             console.log("App Proxy state:", body.edition.state);
             console.log("Sizes:", body.edition.sizeOptions.join(", "));
             console.log("Reserved:", body.counters.reserved + "/" + body.edition.editionSize);
+            console.log("Design origin:", body.edition.designOrigin);
+          ' "$body"
+
+      - name: Anonymous collector route stays private
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="${STOREFRONT_ORIGIN%/}/apps/pham-edition/status?edition=edition-01"
+          body="$(mktemp)"
+          code="$(curl --silent --show-error --location --user-agent 'PHAM-Staging-E2E/1.0' --header 'Accept: application/json' --output "$body" --write-out '%{http_code}' "$url")"
+          cat "$body"
+          echo
+          if [ "$code" -ne 401 ]; then
+            echo "::error::Anonymous collector status must return HTTP 401, got $code"
+            exit 1
+          fi
+          node -e '
+            const fs=require("fs");
+            const body=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
+            if(body.error !== "customer_login_required"){
+              console.error("Unexpected collector auth error:", body);
+              process.exit(1);
+            }
+          ' "$body"
+
+      - name: Invalid Birth Record token fails closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="${STOREFRONT_ORIGIN%/}/apps/pham-edition/provenance?token=invalid"
+          body="$(mktemp)"
+          code="$(curl --silent --show-error --location --user-agent 'PHAM-Staging-E2E/1.0' --header 'Accept: application/json' --output "$body" --write-out '%{http_code}' "$url")"
+          cat "$body"
+          echo
+          if [ "$code" -ne 422 ]; then
+            echo "::error::Invalid Birth Record token must return HTTP 422, got $code"
+            exit 1
+          fi
+          node -e '
+            const fs=require("fs");
+            const body=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
+            if(body.error !== "invalid_provenance_token"){
+              console.error("Unexpected provenance error:", body);
+              process.exit(1);
+            }
+          ' "$body"
+
+      - name: Standby POST cannot mutate prelaunch
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="${STOREFRONT_ORIGIN%/}/apps/pham-edition/standby/join"
+          body="$(mktemp)"
+          code="$(curl --silent --show-error --location --user-agent 'PHAM-Staging-E2E/1.0' --header 'Accept: application/json' --header 'Content-Type: application/json' --request POST --data '{"editionId":"edition-01","email":"staging-e2e@example.invalid","name":"PHAM staging","country":"VN","size":"M"}' --output "$body" --write-out '%{http_code}' "$url")"
+          cat "$body"
+          echo
+          if [ "$code" -ne 409 ]; then
+            echo "::error::Standby must remain closed in prelaunch; expected HTTP 409, got $code"
+            exit 1
+          fi
+          node -e '
+            const fs=require("fs");
+            const body=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
+            if(body.error !== "standby_not_open"){
+              console.error("Unexpected standby prelaunch result:", body);
+              process.exit(1);
+            }
           ' "$body"
 
       - name: Verify launch remains closed
