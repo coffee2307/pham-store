@@ -56,6 +56,15 @@ for (const file of sizeGuideFiles) {
   }
 }
 
+const edition01ProductTemplate = fs.readFileSync('templates/product.json', 'utf8');
+const edition01Reservation = fs.readFileSync('sections/pham-reservation-gateway.liquid', 'utf8');
+if (!edition01ProductTemplate.includes('"size_guide_handle": "pham-001-size-guide"')) {
+  failures.push('PHAM-001 product template must link to its Edition-specific size guide.');
+}
+if (!edition01Reservation.includes("pham_campaign_size_guide_page_url")) {
+  failures.push('Edition 01 reservation flow must link to the PHAM-001 size guide.');
+}
+
 if (fs.existsSync('sections/pham-size-guide.liquid')) {
   const sizeGuide = fs.readFileSync('sections/pham-size-guide.liquid', 'utf8');
   for (const size of ['M', 'L', 'XL', 'XXL']) {
