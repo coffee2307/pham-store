@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS editions (
   currency_code TEXT NOT NULL DEFAULT 'USD',
   design_origin TEXT NOT NULL DEFAULT 'DESIGNED IN VIETNAM / 2026',
   production_origin TEXT NOT NULL DEFAULT 'PRODUCED IN DONGGUAN, CHINA',
+  founder_tokens_allocated_at TEXT,
+  founder_token_gold_object_number INTEGER,
+  founder_token_allocation_method TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -43,6 +46,12 @@ CREATE TABLE IF NOT EXISTS reservations (
   final_draft_order_id TEXT,
   final_invoice_url TEXT,
   final_shopify_order_id TEXT UNIQUE,
+  acquired_at TEXT,
+  lifecycle_stage TEXT NOT NULL DEFAULT 'not_started',
+  lifecycle_updated_at TEXT,
+  carrier TEXT,
+  tracking_number TEXT,
+  tracking_url TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (edition_id) REFERENCES editions(id),
@@ -113,6 +122,20 @@ CREATE TABLE IF NOT EXISTS objects (
   UNIQUE (edition_id, object_number)
 );
 
+CREATE TABLE IF NOT EXISTS object_lifecycle_events (
+  id TEXT PRIMARY KEY,
+  edition_id TEXT NOT NULL,
+  reservation_id TEXT NOT NULL,
+  stage TEXT NOT NULL,
+  note TEXT,
+  carrier TEXT,
+  tracking_number TEXT,
+  tracking_url TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (edition_id) REFERENCES editions(id),
+  FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+);
+
 CREATE TABLE IF NOT EXISTS webhook_events (
   id TEXT PRIMARY KEY,
   topic TEXT NOT NULL,
@@ -151,6 +174,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_standby_active_email
 
 CREATE INDEX IF NOT EXISTS idx_standby_queue
   ON standby(edition_id, status, position);
+
+CREATE INDEX IF NOT EXISTS idx_object_lifecycle_reservation
+  ON object_lifecycle_events(reservation_id, created_at);
 
 INSERT OR IGNORE INTO editions (
   id, label, product_code, edition_size, state,
