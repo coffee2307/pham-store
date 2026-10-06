@@ -94,4 +94,4 @@ jobs:
         shell: bash
         run: |
           echo "::notice::Worker deployed, but CAMPAIGN_BACKEND_URL is not configured yet."
-          echo "::notice::Copy the deployed Worker URL into the CAMPAIGN_BACKEND_URL GitHub secret, then rerun this workflow to register ORDERS_PAID."
+          echo "::notice::Copy the deployed Worker URL into the CAMPAIGN_BACKEND_URL GitHub secret, then rerun this workflow to register ORDERS_PAID plus FULFILLMENTS_CREATE/UPDATE."
