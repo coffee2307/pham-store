@@ -2259,6 +2259,7 @@ async function allocateFounderTokens(request, env) {
     return json({
       ok: false,
       error: 'founder_tokens_already_allocated',
+      goldObjectNumber: edition.founder_token_gold_object_number || null,
       allocatedAt: edition.founder_tokens_allocated_at || null
     }, 409);
   }
@@ -2285,20 +2286,54 @@ async function allocateFounderTokens(request, env) {
 
   await env.PHAM_CAMPAIGN_DB.batch([
     env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE objects SET token_type = 'silver', updated_at = CURRENT_TIMESTAMP WHERE edition_id = ? AND token_type IS NULL"
-    ).bind(editionId),
-    env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE objects SET token_type = 'gold', updated_at = CURRENT_TIMESTAMP WHERE edition_id = ? AND object_number = ?"
-    ).bind(editionId, goldObjectNumber),
-    env.PHAM_CAMPAIGN_DB.prepare(
       `UPDATE editions
        SET founder_tokens_allocated_at = CURRENT_TIMESTAMP,
            founder_token_gold_object_number = ?,
            founder_token_allocation_method = ?,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = ? AND founder_tokens_allocated_at IS NULL`
-    ).bind(goldObjectNumber, allocationMethod, editionId)
+    ).bind(goldObjectNumber, allocationMethod, editionId),
+    env.PHAM_CAMPAIGN_DB.prepare(
+      `UPDATE objects
+       SET token_type = CASE WHEN object_number = ? THEN 'gold' ELSE 'silver' END,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE edition_id = ?
+         AND token_type IS NULL
+         AND EXISTS (
+           SELECT 1
+           FROM editions
+           WHERE id = ?
+             AND founder_token_gold_object_number = ?
+             AND founder_token_allocation_method = ?
+         )`
+    ).bind(
+      goldObjectNumber,
+      editionId,
+      editionId,
+      goldObjectNumber,
+      allocationMethod
+    )
   ]);
+
+  const allocatedEdition = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT founder_tokens_allocated_at, founder_token_gold_object_number,
+            founder_token_allocation_method
+     FROM editions
+     WHERE id = ?`
+  ).bind(editionId).first();
+
+  if (
+    !allocatedEdition ||
+    Number(allocatedEdition.founder_token_gold_object_number) !== goldObjectNumber ||
+    allocatedEdition.founder_token_allocation_method !== allocationMethod
+  ) {
+    return json({
+      ok: false,
+      error: 'founder_tokens_already_allocated',
+      goldObjectNumber: allocatedEdition && allocatedEdition.founder_token_gold_object_number || null,
+      allocatedAt: allocatedEdition && allocatedEdition.founder_tokens_allocated_at || null
+    }, 409);
+  }
 
   const goldCount = await scalar(
     env,
@@ -2326,6 +2361,7 @@ async function allocateFounderTokens(request, env) {
     goldObjectNumber,
     goldCount,
     silverCount,
+    allocatedAt: allocatedEdition.founder_tokens_allocated_at,
     allocationMethod,
     revealPolicy: 'sealed_until_delivered'
   });
