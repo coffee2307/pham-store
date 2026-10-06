@@ -103,14 +103,14 @@
             {%- endif -%}
 
             <a href="{{ focus_product.url }}" class="pham-btn pham-product-focus__cta pham-product-focus__cta--preorder">
-              <span>SECURE PRE-ORDER</span>
+              <span>VIEW EDITION ACCESS</span>
               <span class="pham-product-focus__cta-arrow" aria-hidden="true">&rarr;</span>
             </a>
 
             <ul class="pham-product-focus__specs" role="list">
               <li>
                 <span class="pham-eyebrow">Origin</span>
-                <span>{{ section.settings.spec_origin | default: 'Atelier · Vietnam' }}</span>
+                <span>{{ section.settings.spec_origin | default: 'Designed in Vietnam' }}</span>
               </li>
               <li>
                 <span class="pham-eyebrow">Construction</span>
@@ -118,7 +118,7 @@
               </li>
               <li>
                 <span class="pham-eyebrow">Edition</span>
-                <span>{{ section.settings.spec_edition | default: 'Edition · 01 / Origin' }}</span>
+                <span>{{ section.settings.spec_edition | default: 'Edition 01 · 50 objects' }}</span>
               </li>
             </ul>
 
