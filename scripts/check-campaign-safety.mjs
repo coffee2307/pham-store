@@ -118,7 +118,7 @@ const includeLookbook = s.pham_campaign_include_digital_lookbook === true;
 const lookbookReady = s.pham_campaign_lookbook_ready === true;
 const engineEnabled = s.pham_campaign_engine_enabled === true;
 const engineProxyPath = String(s.pham_campaign_engine_proxy_path || '').trim();
-const configuredSizes = String(s.pham_campaign_size_options || 'XS,S,M,L,XL')
+const configuredSizes = String(s.pham_campaign_size_options || 'M,L,XL,XXL')
   .split(',')
   .map(value => value.trim())
   .filter(Boolean);
