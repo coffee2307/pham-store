@@ -17,10 +17,10 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       SHOPIFY_SHOP_DOMAIN: ${{ secrets.SHOPIFY_SHOP_DOMAIN }}
-      SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+      SHOPIFY_CLIENT_ID: ${{ secrets.SHOPIFY_CLIENT_ID }}
+      SHOPIFY_CLIENT_SECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
       CAMPAIGN_BACKEND_URL: ${{ secrets.CAMPAIGN_BACKEND_URL }}
       CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
-      SHOPIFY_API_SECRET: ${{ secrets.SHOPIFY_API_SECRET }}
       INTERNAL_ADMIN_KEY: ${{ secrets.INTERNAL_ADMIN_KEY }}
 
     steps:
@@ -44,8 +44,8 @@ jobs:
             CLOUDFLARE_ACCOUNT_ID
             CLOUDFLARE_D1_DATABASE_ID
             SHOPIFY_SHOP_DOMAIN
-            SHOPIFY_ADMIN_TOKEN
-            SHOPIFY_API_SECRET
+            SHOPIFY_CLIENT_ID
+            SHOPIFY_CLIENT_SECRET
             INTERNAL_ADMIN_KEY
           )
           for key in "${required[@]}"; do
@@ -79,15 +79,15 @@ jobs:
       - name: Upload Worker secrets
         shell: bash
         run: |
-          printf '%s' "${SHOPIFY_ADMIN_TOKEN}" | npx wrangler secret put SHOPIFY_ADMIN_TOKEN
-          printf '%s' "${SHOPIFY_API_SECRET}" | npx wrangler secret put SHOPIFY_API_SECRET
+          printf '%s' "${SHOPIFY_CLIENT_ID}" | npx wrangler secret put SHOPIFY_CLIENT_ID
+          printf '%s' "${SHOPIFY_CLIENT_SECRET}" | npx wrangler secret put SHOPIFY_CLIENT_SECRET
           printf '%s' "${INTERNAL_ADMIN_KEY}" | npx wrangler secret put INTERNAL_ADMIN_KEY
 
       - name: Deploy final Worker version
         run: npx wrangler deploy
 
       - name: Register Shopify webhooks
-        if: ${{ env.SHOPIFY_ADMIN_TOKEN != '' && env.CAMPAIGN_BACKEND_URL != '' }}
+        if: ${{ env.SHOPIFY_CLIENT_ID != '' && env.SHOPIFY_CLIENT_SECRET != '' && env.CAMPAIGN_BACKEND_URL != '' }}
         run: node register-shopify-webhooks.mjs
 
       - name: First-deploy webhook reminder
