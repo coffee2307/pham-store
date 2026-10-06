@@ -8,6 +8,7 @@ import {
   deriveLifecycleFromFulfillment,
   evaluateFinalSizeVariants,
   findFinalAcquisitionLine,
+  getShopifyAccessToken,
   parseEditionSizeOptions,
   REQUIRED_RUNTIME_SCOPES,
   selectFinalVariantBySize,
@@ -779,4 +780,52 @@ test('recognizes size-specific PHAM-001 final acquisition SKUs', () => {
 
 test('runtime readiness requires fulfillment read access', () => {
   assert.ok(REQUIRED_RUNTIME_SCOPES.includes('read_fulfillments'));
+});
+
+
+test('exchanges Shopify client credentials for an Admin API token', async () => {
+  let requestUrl = '';
+  let requestOptions = null;
+
+  const token = await getShopifyAccessToken({
+    SHOPIFY_SHOP_DOMAIN: 'client-credentials-test.myshopify.com',
+    SHOPIFY_CLIENT_ID: 'client-id-test',
+    SHOPIFY_CLIENT_SECRET: 'client-secret-test',
+  }, async (url, options) => {
+    requestUrl = url;
+    requestOptions = options;
+    return {
+      ok: true,
+      async json() {
+        return {
+          access_token: 'token-from-client-credentials',
+          expires_in: 86400,
+        };
+      },
+    };
+  });
+
+  assert.equal(token, 'token-from-client-credentials');
+  assert.equal(
+    requestUrl,
+    'https://client-credentials-test.myshopify.com/admin/oauth/access_token'
+  );
+  assert.equal(requestOptions.method, 'POST');
+  assert.equal(
+    requestOptions.headers['content-type'],
+    'application/x-www-form-urlencoded'
+  );
+  assert.equal(requestOptions.body.get('grant_type'), 'client_credentials');
+  assert.equal(requestOptions.body.get('client_id'), 'client-id-test');
+  assert.equal(requestOptions.body.get('client_secret'), 'client-secret-test');
+});
+
+test('keeps legacy Shopify Admin token as an explicit fallback', async () => {
+  const token = await getShopifyAccessToken({
+    SHOPIFY_ADMIN_TOKEN: 'legacy-token',
+  }, async () => {
+    throw new Error('client credentials exchange should not run');
+  });
+
+  assert.equal(token, 'legacy-token');
 });
