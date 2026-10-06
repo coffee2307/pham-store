@@ -119,7 +119,7 @@ export default {
       const url = new URL(request.url);
 
       if (['/campaign', '/status', '/identity/configure', '/standby/join', '/provenance'].includes(url.pathname)) {
-        const proxyAuth = await verifyAppProxyRequest(url, env.SHOPIFY_API_SECRET, env.SHOPIFY_SHOP_DOMAIN);
+        const proxyAuth = await verifyAppProxyRequest(url, shopifySigningSecret(env), env.SHOPIFY_SHOP_DOMAIN);
         if (!proxyAuth.ok) return json({ ok: false, error: proxyAuth.error }, proxyAuth.status);
 
         if (request.method === 'GET' && url.pathname === '/campaign') {
@@ -1186,8 +1186,8 @@ async function getReadiness(env, editionId) {
   }
 
   check('env.SHOPIFY_SHOP_DOMAIN', Boolean(env.SHOPIFY_SHOP_DOMAIN), env.SHOPIFY_SHOP_DOMAIN || null);
-  check('env.SHOPIFY_ADMIN_TOKEN', Boolean(env.SHOPIFY_ADMIN_TOKEN), env.SHOPIFY_ADMIN_TOKEN ? 'configured' : 'missing');
-  check('env.SHOPIFY_API_SECRET', Boolean(env.SHOPIFY_API_SECRET), env.SHOPIFY_API_SECRET ? 'configured (App Proxy + webhook HMAC)' : 'missing');
+  check('env.SHOPIFY_CLIENT_ID', Boolean(env.SHOPIFY_CLIENT_ID), env.SHOPIFY_CLIENT_ID ? 'configured' : 'missing');
+  check('env.SHOPIFY_CLIENT_SECRET', Boolean(env.SHOPIFY_CLIENT_SECRET), env.SHOPIFY_CLIENT_SECRET ? 'configured (Admin API auth + App Proxy + webhook HMAC)' : 'missing');
   check('env.INTERNAL_ADMIN_KEY', Boolean(env.INTERNAL_ADMIN_KEY), env.INTERNAL_ADMIN_KEY ? 'configured' : 'missing');
   check('env.STOREFRONT_ORIGIN', Boolean(env.STOREFRONT_ORIGIN), env.STOREFRONT_ORIGIN || null);
 
@@ -1240,7 +1240,7 @@ async function getReadiness(env, editionId) {
     missing: missingScopes
   });
 
-  if (edition && env.SHOPIFY_ADMIN_TOKEN && missingScopes.length === 0) {
+  if (edition && scopes.length > 0 && missingScopes.length === 0) {
     try {
       const resourceResult = await shopifyGraphQL(env, `query PhamBackendReadiness(
         $variantId: ID!,
@@ -1646,7 +1646,7 @@ async function handleFulfillmentWebhook(request, env) {
   const verified = await verifyShopifyWebhook(
     raw,
     request.headers.get('x-shopify-hmac-sha256'),
-    env.SHOPIFY_API_SECRET
+    shopifySigningSecret(env)
   );
   if (!verified) return json({ error: 'Invalid webhook signature' }, 401);
 
@@ -1771,7 +1771,7 @@ async function handleFulfillmentWebhook(request, env) {
 
 async function handleOrdersPaid(request, env) {
   const raw = await request.arrayBuffer();
-  const verified = await verifyShopifyWebhook(raw, request.headers.get('x-shopify-hmac-sha256'), env.SHOPIFY_API_SECRET);
+  const verified = await verifyShopifyWebhook(raw, request.headers.get('x-shopify-hmac-sha256'), shopifySigningSecret(env));
   if (!verified) return json({ error: 'Invalid webhook signature' }, 401);
 
   const webhookShop = request.headers.get('x-shopify-shop-domain') || '';
@@ -3904,16 +3904,74 @@ async function setMetafields(env, metafields) {
   if (errors.length) throw new Error('Shopify metafield update failed: ' + JSON.stringify(errors));
 }
 
-async function shopifyGraphQL(env, query, variables) {
-  if (!env.SHOPIFY_SHOP_DOMAIN || !env.SHOPIFY_ADMIN_TOKEN) {
-    throw new Error('Shopify backend secrets are not configured');
+const shopifyTokenCache = new Map();
+
+function shopifySigningSecret(env) {
+  return env.SHOPIFY_CLIENT_SECRET || env.SHOPIFY_API_SECRET || '';
+}
+
+export async function getShopifyAccessToken(env, fetchImpl = fetch) {
+  if (env.SHOPIFY_ADMIN_TOKEN) return env.SHOPIFY_ADMIN_TOKEN;
+
+  const shop = String(env.SHOPIFY_SHOP_DOMAIN || '').trim();
+  const clientId = String(env.SHOPIFY_CLIENT_ID || '').trim();
+  const clientSecret = String(env.SHOPIFY_CLIENT_SECRET || '').trim();
+
+  if (!shop || !clientId || !clientSecret) {
+    throw new Error('Shopify client credentials are not configured');
   }
 
+  const cacheKey = shop + '|' + clientId;
+  const cached = shopifyTokenCache.get(cacheKey);
+  const now = Date.now();
+  if (cached && cached.expiresAt > now) return cached.accessToken;
+
+  const body = new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: clientId,
+    client_secret: clientSecret
+  });
+
+  const response = await fetchImpl(`https://${shop}/admin/oauth/access_token`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded',
+      'accept': 'application/json'
+    },
+    body
+  });
+
+  const payload = await response.json().catch(function() { return {}; });
+  if (!response.ok || !payload.access_token) {
+    throw new Error(
+      'Shopify client credentials exchange failed: ' +
+      JSON.stringify(payload.errors || payload.error || payload)
+    );
+  }
+
+  const expiresIn = Math.max(60, Number(payload.expires_in || 86400));
+  const safetyWindowSeconds = Math.min(300, Math.floor(expiresIn / 10));
+  const expiresAt = now + Math.max(30, expiresIn - safetyWindowSeconds) * 1000;
+
+  shopifyTokenCache.set(cacheKey, {
+    accessToken: payload.access_token,
+    expiresAt
+  });
+
+  return payload.access_token;
+}
+
+async function shopifyGraphQL(env, query, variables) {
+  if (!env.SHOPIFY_SHOP_DOMAIN) {
+    throw new Error('Shopify shop domain is not configured');
+  }
+
+  const accessToken = await getShopifyAccessToken(env);
   const response = await fetch(`https://${env.SHOPIFY_SHOP_DOMAIN}/admin/api/2026-10/graphql.json`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
-      'x-shopify-access-token': env.SHOPIFY_ADMIN_TOKEN
+      'x-shopify-access-token': accessToken
     },
     body: JSON.stringify({ query, variables })
   });
