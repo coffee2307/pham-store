@@ -197,7 +197,7 @@
 .pham-reservation-commerce__details summary::-webkit-details-marker{display:none}
 .pham-reservation-commerce__details details p{max-width:74ch;margin:0 0 18px!important;color:var(--pc-soft)!important;font-size:.88rem!important;line-height:1.6!important}
 @media(max-width:980px){
-  .pham-reservation-commerce__layout{grid-template-columns:1fr}
+  .pham-reservation-commerce__layout{grid-template-columns:minmax(0,1fr)}
   .pham-reservation-commerce__media{position:relative;top:auto}
   .pham-reservation-commerce__image-frame{aspect-ratio:1/1}
   .pham-reservation-commerce__head h1{max-width:none}
@@ -220,4 +220,9 @@
   .pham-reservation-commerce__timeline li{min-height:0;border-right:0;border-bottom:1px solid var(--pc-line)}
   .pham-reservation-commerce__timeline li:last-child{border-bottom:0}
   .pham-reservation-commerce__timeline li strong{margin-top:10px}
+}
+
+/* Phase 0-2 QA: keep the long reservation title inside narrow mobile viewports. */
+@media(max-width:700px){
+  .pham-reservation-commerce__head h1{font-size:clamp(2.15rem,10.7vw,2.9rem);line-height:.9;letter-spacing:-.045em}
 }
