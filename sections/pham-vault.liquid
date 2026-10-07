@@ -29,6 +29,9 @@
 
   if settings.pham_campaign_enabled
     case pham_campaign_state
+      when 'prelaunch'
+        assign acquisition_price_text = settings.pham_campaign_final_price | default: '$199.00'
+        assign acquisition_status_text = 'ACCESS SOON'
       when 'reservation_open'
         if settings.pham_campaign_reservation_page_url != blank
           assign object_url = settings.pham_campaign_reservation_page_url
@@ -102,16 +105,23 @@
         <div class="pham-vault__orbit-cards">
           <div class="pham-vault__orbit-core" data-pham-vault-core aria-hidden="true">
             <span class="pham-vault__core-eyebrow">PHAM ATELIER / {{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span>
-            <span class="pham-vault__core-title" data-text="PHAM">PHAM</span>
             <span class="pham-vault__core-meta">
               <span>{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</span>
               <span>{{ settings.pham_campaign_edition_size | default: 50 }} OBJECTS</span>
               <span>{{ settings.pham_campaign_origin_label | default: 'VIETNAM / 2026' }}</span>
             </span>
           </div>
+          {%- assign vault_product = section.settings.product -%}
+          {%- if vault_product == blank or vault_product == nil -%}
+            {%- assign vault_product = all_products['pham-001'] -%}
+          {%- endif -%}
           {%- if section.blocks.size > 0 -%}
             {%- for block in section.blocks -%}
               {%- assign card_image = block.settings.image -%}
+              {%- if card_image == blank and vault_product != blank and vault_product.images.size > 0 -%}
+                {%- assign fallback_image_index = forloop.index0 | modulo: vault_product.images.size -%}
+                {%- assign card_image = vault_product.images[fallback_image_index] -%}
+              {%- endif -%}
               {%- assign card_alt = block.settings.alt_text | default: card_image.alt | default: 'PHAM archive image' -%}
               {%- if forloop.first -%}
                 {%- assign card_loading = 'eager' -%}
