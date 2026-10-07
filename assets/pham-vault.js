@@ -542,9 +542,23 @@
         orbit.style.width =
           'min(' + acquisitionWidthVw.toFixed(3) + 'vw, ' +
           acquisitionWidthPx.toFixed(1) + 'px)';
+        orbit.style.top = '';
+        orbit.style.height = '';
+      } else if (window.innerWidth < 600) {
+        const compactHeight = window.innerHeight <= 740;
+        const baseTop = 39;
+        const finalTop = compactHeight ? 34 : 33;
+        const baseHeight = compactHeight ? 35 : 40;
+        const finalHeight = compactHeight ? 32 : 35;
+        orbit.style.left = '';
+        orbit.style.width = '';
+        orbit.style.top = (baseTop + (finalTop - baseTop) * outroEase).toFixed(3) + '%';
+        orbit.style.height = (baseHeight + (finalHeight - baseHeight) * outroEase).toFixed(3) + '%';
       } else {
         orbit.style.left = '';
         orbit.style.width = '';
+        orbit.style.top = '';
+        orbit.style.height = '';
       }
 
       const orbitRadius = radius * scrollSpacing * pointerSpacing * introRadiusBoost * outroRadiusBoost;
