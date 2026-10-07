@@ -44,7 +44,11 @@
       script.dataset.phamModelViewer = 'true';
       script.addEventListener('load', finish, { once: true });
       script.addEventListener('error', reject, { once: true });
+      script.fetchPriority = 'high';
       document.head.appendChild(script);
+    }).catch(function (error) {
+      window.__PHAM_MODEL_VIEWER_PROMISE__ = null;
+      throw error;
     });
 
     return window.__PHAM_MODEL_VIEWER_PROMISE__;
@@ -392,6 +396,17 @@
     }
 
     switches.forEach(function (button) {
+      if (button.dataset.phamStageSwitch === 'model' && !constrainedNetwork) {
+        const warmModelViewer = function () {
+          ensureModelViewerLibrary().catch(function () {
+            // Intent warming is opportunistic. A later click can retry.
+          });
+        };
+        button.addEventListener('pointerenter', warmModelViewer, { once: true, passive: true });
+        button.addEventListener('focus', warmModelViewer, { once: true });
+        button.addEventListener('touchstart', warmModelViewer, { once: true, passive: true });
+      }
+
       button.addEventListener('click', function () {
         if (button.disabled || button.getAttribute('aria-disabled') === 'true') return;
         show(button.dataset.phamStageSwitch);
