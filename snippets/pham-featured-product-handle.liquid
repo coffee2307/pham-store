@@ -28,6 +28,10 @@
   endif
 
   if pham_product == blank or pham_product == nil
+    assign pham_product = all_products['pham-001']
+  endif
+
+  if pham_product == blank or pham_product == nil
     for pham_item in collections.all.products limit: 1
       assign pham_product = pham_item
     endfor
