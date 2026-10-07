@@ -602,10 +602,27 @@
         scrollEmphasis * 0.085;
       const cardContentOpacity = 1 - scrollEmphasis * 0.48;
 
-      root.style.setProperty('--vault-pointer-energy', pointerEnergy.toFixed(3));
-      root.style.setProperty('--vault-card-content-opacity', cardContentOpacity.toFixed(3));
-      root.style.setProperty('--vault-scroll-zoom', scrollZoom.toFixed(4));
-      root.style.setProperty('--vault-scroll-spacing', scrollSpacing.toFixed(4));
+      const pointerEnergyCss = pointerEnergy.toFixed(3);
+      const cardContentOpacityCss = cardContentOpacity.toFixed(3);
+      const scrollZoomCss = scrollZoom.toFixed(4);
+      const scrollSpacingCss = scrollSpacing.toFixed(4);
+
+      if (pointerEnergyCss !== lastPointerEnergyCss) {
+        root.style.setProperty('--vault-pointer-energy', pointerEnergyCss);
+        lastPointerEnergyCss = pointerEnergyCss;
+      }
+      if (cardContentOpacityCss !== lastCardContentOpacityCss) {
+        root.style.setProperty('--vault-card-content-opacity', cardContentOpacityCss);
+        lastCardContentOpacityCss = cardContentOpacityCss;
+      }
+      if (scrollZoomCss !== lastScrollZoomCss) {
+        root.style.setProperty('--vault-scroll-zoom', scrollZoomCss);
+        lastScrollZoomCss = scrollZoomCss;
+      }
+      if (scrollSpacingCss !== lastScrollSpacingCss) {
+        root.style.setProperty('--vault-scroll-spacing', scrollSpacingCss);
+        lastScrollSpacingCss = scrollSpacingCss;
+      }
 
       if (orbitCore && !cardDialogOpen) {
         orbitCore.style.transform =
