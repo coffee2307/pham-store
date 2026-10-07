@@ -74,6 +74,10 @@
     </noscript>
     <link rel="preload" as="style" href="{{ 'pham-theme.css' | asset_url }}">
     {{ 'pham-theme.css' | asset_url | stylesheet_tag }}
+    {%- if request.page_type == 'index' -%}
+      <link rel="preload" as="style" href="{{ 'pham-vault.css' | asset_url }}">
+      {{ 'pham-vault.css' | asset_url | stylesheet_tag }}
+    {%- endif -%}
     <script src="{{ 'pham-security.js' | asset_url }}" defer></script>
     {%- if request.path contains '/challenge' -%}
       <script src="{{ 'pham-challenge.js' | asset_url }}" defer></script>
