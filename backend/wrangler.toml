@@ -9,7 +9,7 @@ STOREFRONT_ORIGIN = "https://phamofficial.com"
 [[d1_databases]]
 binding = "PHAM_CAMPAIGN_DB"
 database_name = "pham-campaign"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "9b76e042-1928-4e6d-a6f3-bce983e5a842"
 migrations_dir = "migrations"
 
 [triggers]
