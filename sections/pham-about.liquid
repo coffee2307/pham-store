@@ -85,6 +85,13 @@
 </section>
 
 <style>
+  .pham-about-section,
+  .pham-about {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
   .pham-about {
     position: relative;
     isolation: isolate;
@@ -95,10 +102,26 @@
   }
   .pham-about__grid { position: absolute; z-index: -1; inset: 0; background: linear-gradient(rgba(255,255,255,.027) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.027) 1px, transparent 1px); background-size: 72px 72px; mask-image: linear-gradient(to bottom, #000, transparent 86%); }
   .pham-about__inner {
-    max-width: 1240px;
+    width: 100%;
+    max-width: min(1240px, 100%);
+    min-width: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
-    column-gap: clamp(48px, 10vw, 150px);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+    column-gap: clamp(32px, 7vw, 96px);
+    overflow-x: clip;
+  }
+  .pham-about__inner > *,
+  .pham-about__head,
+  .pham-about__body,
+  .pham-about__principles,
+  .pham-about__principle,
+  .pham-about__record,
+  .pham-about__record-block,
+  .pham-about__edition-note,
+  .pham-about__origin,
+  .pham-about__origin > * {
+    min-width: 0;
+    max-width: 100%;
   }
   .pham-about__head {
     display: flex;
@@ -123,6 +146,9 @@
   }
   .pham-about__title-line {
     display: block;
+    max-width: 100%;
+    overflow-wrap: normal;
+    word-break: normal;
   }
   .pham-about__subtitle {
     margin: 30px 0 0;
@@ -193,6 +219,9 @@
   }
   .pham-about__record-copy {
     margin: 0;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: normal;
     font-family: var(--font-body);
     font-size: clamp(.96rem, 1.15vw, 1.1rem);
     line-height: 1.8;
@@ -219,13 +248,21 @@
   .pham-about__origin p,.pham-about__origin span,.pham-about__origin strong { margin: 0; font: 400 9px/1.45 var(--font-mono); letter-spacing: .08em; }
   .pham-about__origin p,.pham-about__origin span { color: rgba(242,242,239,.44); }
   .pham-about__origin div { display: grid; gap: 6px; }
-  .pham-about__origin strong { color: rgba(242,242,239,.9); }
+  .pham-about__origin strong {
+    min-width: 0;
+    max-width: 100%;
+    color: rgba(242,242,239,.9);
+    overflow-wrap: anywhere;
+  }
   .pham-about__back {
     grid-column: 1 / -1;
     margin: var(--space-2xl) 0 0;
   }
   @media (max-width: 899px) {
-    .pham-about__inner { grid-template-columns: minmax(0, 1fr); }
+    .pham-about__inner {
+      grid-template-columns: minmax(0, 1fr);
+      column-gap: 0;
+    }
     .pham-about__head,
     .pham-about__body,
     .pham-about__record,
