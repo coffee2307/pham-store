@@ -128,6 +128,7 @@ html.pham-header-is-hidden {
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
+  will-change: left, width, transform;
 }
 .pham-vault__orbit-stage.is-dragging { cursor: grabbing; }
 
@@ -879,11 +880,6 @@ html.pham-header-is-hidden {
 }
 
 @media (min-width: 900px) {
-  .pham-vault.is-acquisition .pham-vault__orbit-stage {
-    left: 43%;
-    width: min(66vw, 1080px);
-  }
-
   .pham-vault.is-acquisition .pham-vault__chapter--purchase {
     left: auto;
     right: clamp(42px, 5vw, 84px);
