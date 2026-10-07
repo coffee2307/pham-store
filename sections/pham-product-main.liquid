@@ -61,6 +61,7 @@
 <section class="pham-product-main"
          id="MainProduct-{{ product.id }}"
          data-pham-product-main
+         {% if is_lookbook_benefit %}data-pham-lookbook-benefit data-pham-locked-price="{{ display_product_price | escape }}"{% endif %}
          data-section-id="{{ section.id }}"
          data-product-id="{{ product.id }}"
          data-pham-preorder-open="{% if pham_preorder_open %}true{% else %}false{% endif %}"
@@ -110,7 +111,7 @@
             </p>
             {%- if is_lookbook_benefit -%}
               <p class="pham-product-main__price-note">DUE TODAY · CREDITED TOWARD THE $199 OBJECT</p>
-              <p class="pham-product-main__benefit-note">Collector Lookbook is a $0 digital entitlement included with the reservation; it is not sold separately.</p>
+              <p class="pham-product-main__benefit-note">Collector Lookbook is included at no additional charge and is not sold separately.</p>
             {%- elsif product.price_varies -%}
               <p class="pham-product-main__price-note">Price varies by option</p>
             {%- endif -%}
@@ -1456,6 +1457,44 @@
     update();
   })();
 </script>
+
+{%- if is_lookbook_benefit -%}
+<script>
+(function(){
+  var root = document.getElementById('MainProduct-{{ product.id }}');
+  if (!root) return;
+  var lockedPrice = {{ display_product_price | json }};
+  var scheduled = false;
+
+  function enforceLockedPrice(){
+    scheduled = false;
+    var price = root.querySelector('[data-pham-product-price]');
+    if (!price) return;
+    var current = price.querySelector('.pham-product-main__price-current');
+    if (!current){
+      price.textContent = '';
+      current = document.createElement('span');
+      current.className = 'pham-product-main__price-current';
+      price.appendChild(current);
+    }
+    if (current.textContent.trim() !== lockedPrice) current.textContent = lockedPrice;
+  }
+
+  function scheduleLock(){
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(enforceLockedPrice);
+  }
+
+  enforceLockedPrice();
+  new MutationObserver(scheduleLock).observe(root, {subtree:true, childList:true, characterData:true});
+  root.addEventListener('change', scheduleLock);
+  document.addEventListener('shopify:section:load', scheduleLock);
+  window.setTimeout(enforceLockedPrice, 250);
+  window.setTimeout(enforceLockedPrice, 1200);
+})();
+</script>
+{%- endif -%}
 
 {% schema %}
 {
