@@ -61,15 +61,22 @@
 
         {%- if settings.pham_campaign_include_digital_lookbook -%}
           <div class="pham-campaign-alert">
-            <strong>DIGITAL BENEFIT INCLUDED.</strong> After confirmed reservation payment, PHAM will deliver the {{ settings.pham_campaign_digital_lookbook_label | default: 'edition-exclusive digital lookbook' }} through the order’s digital entitlement. This is a real digital deliverable and does not override consumer rights that apply by law.
+            <strong>DIGITAL BENEFIT INCLUDED · NO ADDITIONAL CHARGE.</strong> The {{ settings.pham_campaign_digital_lookbook_label | default: 'edition-exclusive digital lookbook' }} is included with a confirmed Priority Reservation. Shopify may show it as a separate <strong>$0.00 digital-benefit line item</strong> so the delivery entitlement can be recorded and fulfilled; it is not a standalone free product.
             <br><br>
-            <span class="pham-campaign-mono">DELIVERY PIPELINE · {% if digital_delivery_ready %}READY{% else %}NOT READY{% endif %}</span>
+            <span class="pham-campaign-mono">DIGITAL ENTITLEMENT · {% if digital_delivery_ready %}READY{% else %}NOT READY{% endif %}</span>
           </div>
         {%- endif -%}
 
         <div class="pham-config-field pham-reservation-size">
-          <label for="PhamReservationSize-{{ section.id }}">Size preference</label>
-          <select id="PhamReservationSize-{{ section.id }}" data-pham-size-preference required>
+          <div class="pham-reservation-size__head">
+            <div>
+              <span class="pham-reservation-size__eyebrow">SIZE PREFERENCE</span>
+              <h3>Choose your PHAM-001 size</h3>
+            </div>
+            <span class="pham-reservation-size__status" data-pham-size-status>NOT SELECTED</span>
+          </div>
+
+          <select id="PhamReservationSize-{{ section.id }}" class="pham-reservation-size__native" data-pham-size-preference required aria-label="PHAM-001 size preference">
             <option value="">SELECT SIZE</option>
             {%- for option in size_options -%}
               {%- assign clean_option = option | strip -%}
@@ -78,8 +85,25 @@
               {%- endif -%}
             {%- endfor -%}
           </select>
-          <small>This records your current size preference. Final size is confirmed only when the matching PHAM-001 variant is assigned before the acquisition invoice.</small>
-          <a class="pham-campaign-inline-link" href="{{ settings.pham_campaign_size_guide_page_url | default: '/pages/pham-001-size-guide' }}">OPEN PHAM-001 FIT &amp; SIZE GUIDE →</a>
+
+          <div class="pham-reservation-size__choices" data-pham-size-choices role="radiogroup" aria-label="Select PHAM-001 size">
+            <button type="button" data-pham-size-choice="M" role="radio" aria-checked="false"><strong>M</strong><span>98–101 CM</span></button>
+            <button type="button" data-pham-size-choice="L" role="radio" aria-checked="false"><strong>L</strong><span>102–105 CM</span></button>
+            <button type="button" data-pham-size-choice="XL" role="radio" aria-checked="false"><strong>XL</strong><span>106–109 CM</span></button>
+            <button type="button" data-pham-size-choice="XXL" role="radio" aria-checked="false"><strong>XXL</strong><span>110–114 CM</span></button>
+          </div>
+
+          <div class="pham-reservation-size__assist">
+            <div>
+              <strong>QUICK FIT NOTE</strong>
+              <p>PHAM-001 is cropped with a dropped shoulder and room through the body. Chest is the best starting point; compare a jacket you already like for the most reliable choice.</p>
+            </div>
+            <a class="pham-reservation-size__guide" href="{{ settings.pham_campaign_size_guide_page_url | default: '/pages/pham-001-size-guide' }}">
+              <span>VIEW DETAILED SIZE GUIDE</span><span aria-hidden="true">↗</span>
+            </a>
+          </div>
+
+          <small class="pham-reservation-size__fineprint">Your selection records the current size preference for this reservation. Final size is confirmed against the matching PHAM-001 variant before the acquisition invoice.</small>
         </div>
 
         <div class="pham-reservation-upgrade">

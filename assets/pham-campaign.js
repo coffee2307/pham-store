@@ -445,6 +445,8 @@ function mountReservation(root){
   var submit = root.querySelector('[data-pham-reservation-submit]');
   var identity = root.querySelector('[data-pham-identity-upgrade]');
   var sizePreference = root.querySelector('[data-pham-size-preference]');
+  var sizeChoices = qsa('[data-pham-size-choice]', root);
+  var sizeStatus = root.querySelector('[data-pham-size-status]');
   var total = root.querySelector('[data-pham-reservation-total]');
   var error = root.querySelector('[data-pham-reservation-error]');
 
@@ -466,13 +468,24 @@ function mountReservation(root){
     return checks.length > 0 && checks.every(function(x){ return x.checked; });
   }
 
+  function syncSizeUI(){
+    var selected = sizePreference ? String(sizePreference.value || '') : '';
+    sizeChoices.forEach(function(button){
+      var active = String(button.dataset.phamSizeChoice || '') === selected;
+      button.classList.toggle('is-selected', active);
+      button.setAttribute('aria-checked', active ? 'true' : 'false');
+    });
+    if(sizeStatus) sizeStatus.textContent = selected ? ('SELECTED · ' + selected) : 'NOT SELECTED';
+  }
+
   function sync(){
     var addIdentity = !!(identity && identity.checked && !identity.disabled);
     if(total) total.textContent = formatMoney(reservationPrice + (addIdentity ? identityPrice : 0), currency);
 
     if(submit){
       var lookbookValid = !includeLookbook || (lookbookReady && lookbookVariantId !== '');
-      var ready = canCheckout && liveReservationOpen && consentReady() && reservationVariantId !== '' && lookbookValid;
+      var sizeReady = !!(sizePreference && String(sizePreference.value || '').trim());
+      var ready = canCheckout && liveReservationOpen && consentReady() && sizeReady && reservationVariantId !== '' && lookbookValid;
       submit.disabled = !ready;
       submit.setAttribute('aria-disabled', ready ? 'false' : 'true');
       submit.classList.toggle('is-disabled', !ready);
@@ -481,7 +494,14 @@ function mountReservation(root){
 
   checks.forEach(function(x){ x.addEventListener('change', sync); });
   if(identity) identity.addEventListener('change', sync);
-  if(sizePreference) sizePreference.addEventListener('change', sync);
+  if(sizePreference) sizePreference.addEventListener('change', function(){ syncSizeUI(); sync(); });
+  sizeChoices.forEach(function(button){
+    button.addEventListener('click', function(){
+      if(!sizePreference) return;
+      sizePreference.value = String(button.dataset.phamSizeChoice || '');
+      sizePreference.dispatchEvent(new Event('change', { bubbles:true }));
+    });
+  });
 
   if(submit){
     submit.addEventListener('click', function(){
@@ -556,6 +576,8 @@ function mountReservation(root){
     });
   }
 
+  syncSizeUI();
+
   if(engineEnabled){
     proxyRequest(root, '/campaign?edition=' + encodeURIComponent(root.dataset.editionId || 'edition-01'))
       .then(function(payload){
@@ -564,6 +586,7 @@ function mountReservation(root){
 
         if(sizePreference && payload && payload.edition){
           syncSizeSelect(sizePreference, payload.edition.sizeOptions || []);
+          syncSizeUI();
         }
 
         if(identity && payload && payload.counters && payload.edition){
