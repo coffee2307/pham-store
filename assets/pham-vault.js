@@ -79,6 +79,10 @@
     let dialogPlaneTilt = 0;
     let dialogPlaneYaw = 0;
     let dialogPlaneLean = 0;
+    let expandedImage = null;
+    let expandedImageSource = null;
+    let expandedImageSrcset = null;
+    let expandedImageSizes = null;
     let mobileOrbitResume = 1;
 
     function measureOrbit() {
@@ -239,6 +243,14 @@
         expandedSource.style.transform = sourceCardTransform;
       }
 
+      if (expandedImage) {
+        if (expandedImageSource !== null) expandedImage.setAttribute('src', expandedImageSource);
+        if (expandedImageSrcset !== null) expandedImage.setAttribute('srcset', expandedImageSrcset);
+        else expandedImage.removeAttribute('srcset');
+        if (expandedImageSizes !== null) expandedImage.setAttribute('sizes', expandedImageSizes);
+        else expandedImage.removeAttribute('sizes');
+      }
+
       cards.forEach(function (card) {
         card.classList.remove('is-occluded-by-expanded');
       });
@@ -264,6 +276,10 @@
       }
 
       expandedSource = null;
+      expandedImage = null;
+      expandedImageSource = null;
+      expandedImageSrcset = null;
+      expandedImageSizes = null;
       sourceCardTransform = '';
       dialogOpenScrollY = 0;
       dialogPlaneTilt = 0;
@@ -337,6 +353,24 @@
       cardDialogSettled = false;
       if (window.innerWidth < 600) mobileOrbitResume = 0;
       expandedSource = card;
+      expandedImage = card.querySelector('img');
+      if (expandedImage) {
+        expandedImageSource = expandedImage.getAttribute('src');
+        expandedImageSrcset = expandedImage.getAttribute('srcset');
+        expandedImageSizes = expandedImage.getAttribute('sizes');
+        const expandedSrc = card.dataset.phamExpandedSrc;
+        if (expandedSrc) {
+          const highResolutionImage = new Image();
+          highResolutionImage.decoding = 'async';
+          highResolutionImage.onload = function () {
+            if (!cardDialogOpen || expandedSource !== card || !expandedImage) return;
+            expandedImage.removeAttribute('srcset');
+            expandedImage.removeAttribute('sizes');
+            expandedImage.src = expandedSrc;
+          };
+          highResolutionImage.src = expandedSrc;
+        }
+      }
       if (card.getAttribute('role') === 'button') card.setAttribute('aria-expanded', 'true');
       dialogReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
