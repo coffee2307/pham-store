@@ -33,7 +33,7 @@
         <p class="pham-campaign-mono">Edition allocation</p>
         <div class="pham-campaign-stat"><strong data-pham-live-reservations>{{ claimed }} / {{ edition_size }}</strong><span>Reserved</span></div>
         <div class="pham-campaign-meter" data-pham-live-reservation-meter style="--pc-progress: {{ reservation_progress | at_most: 100 }}%"><i></i></div>
-        <div class="pham-campaign-actions">
+        <div class="pham-campaign-actions" data-pham-live-actions>
           {%- if state == 'reservation_open' and settings.pham_campaign_reservation_page_url != blank -%}
             <a class="pham-campaign-btn" href="{{ settings.pham_campaign_reservation_page_url }}">Reserve {{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</a>
           {%- elsif state == 'reservation_full' and settings.pham_campaign_standby_page_url != blank -%}
