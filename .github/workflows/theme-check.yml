@@ -46,6 +46,9 @@ jobs:
           node --check backend/admin.mjs
           node --check backend/register-shopify-webhooks.mjs
 
+      - name: Check PHAM backend config
+        run: node scripts/check-backend-config.mjs
+
       - name: Run PHAM backend tests
         run: node --test backend/worker.test.mjs
 
