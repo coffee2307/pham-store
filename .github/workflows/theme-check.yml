@@ -2,7 +2,7 @@ name: Theme Check
 
 on:
   push:
-    branches: [main]
+    branches: [main, perf-vault-repair]
   pull_request:
     branches: [main]
 
