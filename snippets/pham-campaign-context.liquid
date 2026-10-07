@@ -4,6 +4,9 @@
 {
   "enabled": {{ settings.pham_campaign_enabled | default: false | json }},
   "engineEnabled": {{ settings.pham_campaign_engine_enabled | default: false | json }},
+  "commerceReady": {{ settings.pham_campaign_commerce_ready | default: false | json }},
+  "includeLookbook": {{ settings.pham_campaign_include_digital_lookbook | default: false | json }},
+  "lookbookReady": {{ settings.pham_campaign_lookbook_ready | default: false | json }},
   "engineProxy": {{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | json }},
   "state": {{ pham_campaign_state | json }},
   "editionId": {{ settings.pham_campaign_edition_id | default: 'edition-01' | json }},
