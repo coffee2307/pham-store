@@ -2,6 +2,13 @@
 @media (max-width: 900px) { :root { --pham-header-offset: 64px; } }
 @media (max-width: 749px) { :root { --pham-header-offset: 60px; } }
 
+/* The vault only reserves header space while the header is visible.
+   Without this state override, the sticky viewport leaves a black band
+   after the fixed header slides out of view. */
+html.pham-header-is-hidden {
+  --pham-header-offset: 0px !important;
+}
+
 .pham-vault {
   --vault-progress: 0;
   --vault-pointer-x: 0;

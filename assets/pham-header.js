@@ -112,13 +112,16 @@
       if (Math.abs(delta) >= SCROLL_DELTA_MIN && !this.menuOpen) {
         if (delta > 0 && y > HIDE_THRESHOLD) {
           this.el.classList.add(HIDDEN_CLASS);
+          document.documentElement.classList.add('pham-header-is-hidden');
         } else if (delta < 0) {
           this.el.classList.remove(HIDDEN_CLASS);
+          document.documentElement.classList.remove('pham-header-is-hidden');
         }
       }
 
       if (y <= 0) {
         this.el.classList.remove(HIDDEN_CLASS);
+        document.documentElement.classList.remove('pham-header-is-hidden');
       }
 
       this.lastY = y;
