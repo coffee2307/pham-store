@@ -84,7 +84,11 @@
     let expandedImageSrcset = null;
     let expandedImageSizes = null;
     let mobileOrbitResume = 1;
-    let orbitReadyFrames = 0;
+    let orbitPrimeStartedAt = performance.now();
+    let orbitStableFrames = 0;
+    let orbitPrimeWidth = 0;
+    let orbitPrimeCardWidth = 0;
+    let orbitPrimeRadius = 0;
 
     function measureOrbit() {
       const width = orbit.clientWidth;
@@ -666,12 +670,49 @@
       });
 
       if (orbitCards && !orbitCards.classList.contains('is-positioned')) {
-        // Keep the cards hidden while the first layout/radius/3D transforms
-        // settle. Revealing on the very first RAF exposed a visible size jump
-        // from the unprimed geometry to the measured orbit.
-        orbitReadyFrames += 1;
-        if (orbitReadyFrames >= 4) {
-          orbitCards.classList.add('is-positioned');
+        // Prime the actual responsive geometry until it is stable. On a cold
+        // load the first measurement can happen before the final stylesheet,
+        // fonts and image decode have settled, which made radius jump from
+        // its minimum clamp to the real desktop radius after the cards were
+        // already visible.
+        measureOrbit();
+
+        const primeWidth = orbit.clientWidth;
+        const primeCardWidth = cards[0]
+          ? Number.parseFloat(window.getComputedStyle(cards[0]).width) || 0
+          : 0;
+        const geometryStable =
+          Math.abs(primeWidth - orbitPrimeWidth) < 0.5 &&
+          Math.abs(primeCardWidth - orbitPrimeCardWidth) < 0.5 &&
+          Math.abs(radius - orbitPrimeRadius) < 0.5;
+
+        orbitStableFrames = geometryStable ? orbitStableFrames + 1 : 0;
+        orbitPrimeWidth = primeWidth;
+        orbitPrimeCardWidth = primeCardWidth;
+        orbitPrimeRadius = radius;
+
+        const imagesReady = cards.every(function (card) {
+          const image = card.querySelector('img');
+          return !image || image.complete;
+        });
+        const fontsReady = !document.fonts || document.fonts.status === 'loaded';
+        const elapsed = performance.now() - orbitPrimeStartedAt;
+        const layoutReady =
+          primeWidth > 300 &&
+          primeCardWidth > 80 &&
+          orbitStableFrames >= 8 &&
+          document.readyState === 'complete' &&
+          fontsReady &&
+          (imagesReady || elapsed > 1400);
+
+        if (layoutReady) {
+          // Wait one more paint so the transforms calculated with the final
+          // radius are already committed before opacity is released.
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              if (orbitCards) orbitCards.classList.add('is-positioned');
+            });
+          });
         }
       }
 
