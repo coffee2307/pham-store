@@ -84,6 +84,7 @@
     let expandedImageSrcset = null;
     let expandedImageSizes = null;
     let mobileOrbitResume = 1;
+    let orbitReadyFrames = 0;
 
     function measureOrbit() {
       const width = orbit.clientWidth;
@@ -665,7 +666,13 @@
       });
 
       if (orbitCards && !orbitCards.classList.contains('is-positioned')) {
-        orbitCards.classList.add('is-positioned');
+        // Keep the cards hidden while the first layout/radius/3D transforms
+        // settle. Revealing on the very first RAF exposed a visible size jump
+        // from the unprimed geometry to the measured orbit.
+        orbitReadyFrames += 1;
+        if (orbitReadyFrames >= 4) {
+          orbitCards.classList.add('is-positioned');
+        }
       }
 
       frame = requestAnimationFrame(render);
