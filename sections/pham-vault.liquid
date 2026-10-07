@@ -3,6 +3,9 @@
   assign pham_campaign_state = pham_campaign_state_raw | strip
   assign featured_product = section.settings.product
   if featured_product == blank
+    assign featured_product = all_products['pham-001']
+  endif
+  if featured_product == blank
     assign featured_product = collections.all.products.first
   endif
 
