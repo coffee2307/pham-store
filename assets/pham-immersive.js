@@ -14,9 +14,16 @@
     let frame = null;
     let targetX = 0;
     let targetY = 0;
+    let pointerX = 0;
+    let pointerY = 0;
 
     function render() {
       frame = null;
+      const rect = hero.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        targetX = ((pointerX - rect.left) / rect.width - 0.5) * 2;
+        targetY = ((pointerY - rect.top) / rect.height - 0.5) * 2;
+      }
       hero.style.setProperty('--ph-ry', (8 + targetX * 9).toFixed(2) + 'deg');
       hero.style.setProperty('--ph-rx', (-7 - targetY * 7).toFixed(2) + 'deg');
       hero.style.setProperty('--ph-x', (targetX * 10).toFixed(1) + 'px');
@@ -24,9 +31,8 @@
     }
 
     hero.addEventListener('pointermove', function (event) {
-      const rect = hero.getBoundingClientRect();
-      targetX = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-      targetY = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+      pointerX = event.clientX;
+      pointerY = event.clientY;
       if (!frame) frame = requestAnimationFrame(render);
     }, { passive: true });
 
