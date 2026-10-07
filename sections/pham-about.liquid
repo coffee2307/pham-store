@@ -225,8 +225,12 @@
     margin: var(--space-2xl) 0 0;
   }
   @media (max-width: 899px) {
-    .pham-about__inner { grid-template-columns: 1fr; }
-    .pham-about__record { grid-template-columns: 1fr; }
+    .pham-about__inner { grid-template-columns: minmax(0, 1fr); }
+    .pham-about__head,
+    .pham-about__body,
+    .pham-about__record,
+    .pham-about__origin { min-width: 0; }
+    .pham-about__record { grid-template-columns: minmax(0, 1fr); }
     .pham-about__edition-note { grid-column: auto; }
     .pham-about__body { margin-bottom: 60px; }
     .pham-about__origin { grid-template-columns: 1fr 1fr; }
@@ -234,7 +238,12 @@
   }
   @media (max-width: 599px) {
     .pham-about { padding-block: 96px 72px; }
-    .pham-about__title { font-size: clamp(3.2rem, 19vw, 5.6rem); }
+    .pham-about__title {
+      font-size: clamp(2.85rem, 15.8vw, 4.8rem);
+      letter-spacing: -.055em;
+    }
+    .pham-about__title-line { max-width: 100%; }
+    .pham-about__title-line:last-child { font-size: .82em; }
     .pham-about__head { margin-bottom: 48px; }
     .pham-about__paragraph { font-size: .96rem; }
     .pham-about__record { gap: 40px; margin-top: 64px; padding-top: 32px; }
