@@ -133,6 +133,7 @@
               {%- endif -%}
               <figure class="pham-vault__orbit-card"
                       data-pham-vault-card
+                      {% if card_image != blank %}data-pham-expanded-src="{{ card_image | image_url: width: 1800 }}"{% endif %}
                       {% if block.settings.link == blank %}tabindex="0" role="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Open {{ card_alt | escape }}"{% endif %}
                       {{ block.shopify_attributes }}>
                 <div class="pham-vault__orbit-card-face">
