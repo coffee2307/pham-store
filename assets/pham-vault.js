@@ -117,6 +117,7 @@
     function setChapter(index) {
       if (currentChapter === index) return;
       currentChapter = index;
+      root.classList.toggle('is-acquisition', index === chapters.length - 1);
       chapters.forEach(function (chapter, chapterIndex) {
         const selected = chapterIndex === index;
         chapter.classList.toggle('is-active', selected);
