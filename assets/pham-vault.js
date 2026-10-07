@@ -625,19 +625,27 @@
       }
 
       if (orbitCore && !cardDialogOpen) {
-        orbitCore.style.transform =
+        const coreTransform =
           'translate3d(calc(-50% + ' + coreShiftX.toFixed(2) + 'px), calc(-50% + ' + coreShiftY.toFixed(2) + 'px), 0) ' +
           'rotateX(' + coreTiltX.toFixed(2) + 'deg) rotateY(' + coreTiltY.toFixed(2) + 'deg) ' +
           'scale(' + coreScale.toFixed(4) + ')';
+        if (coreTransform !== lastCoreTransform) {
+          orbitCore.style.transform = coreTransform;
+          lastCoreTransform = coreTransform;
+        }
       }
 
       if (!cardDialogOpen) {
-        orbitPlane.style.transform =
+        const planeTransform =
           'translate3d(' + pointerShiftX.toFixed(2) + 'px,' + pointerShiftY.toFixed(2) + 'px,0) ' +
           'rotateX(' + (currentTilt * (1 - outroEase)).toFixed(2) + 'deg) ' +
           'rotateY(' + ringTiltY.toFixed(2) + 'deg) ' +
           'rotateZ(' + orbitLean.toFixed(2) + 'deg) ' +
           'scale(' + scrollZoom.toFixed(4) + ')';
+        if (planeTransform !== lastPlaneTransform) {
+          orbitPlane.style.transform = planeTransform;
+          lastPlaneTransform = planeTransform;
+        }
       }
 
       const compactOrbit = window.innerWidth < 600;
