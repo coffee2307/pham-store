@@ -870,6 +870,37 @@ html.pham-header-is-hidden {
     box-shadow 640ms cubic-bezier(.37,0,.63,1) !important;
 }
 
+.pham-vault__orbit-card.is-tarot-expanded img {
+  filter: grayscale(1) contrast(1.04) !important;
+  opacity: 1 !important;
+  image-rendering: auto;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+@media (min-width: 900px) {
+  .pham-vault.is-acquisition .pham-vault__orbit-stage {
+    left: 43%;
+    width: min(66vw, 1080px);
+  }
+
+  .pham-vault.is-acquisition .pham-vault__chapter--purchase {
+    left: auto;
+    right: clamp(42px, 5vw, 84px);
+    width: min(24vw, 380px);
+    z-index: 12;
+  }
+
+  .pham-vault.is-acquisition .pham-vault__chapter--purchase .pham-vault__display {
+    font-size: clamp(1.9rem, 2.55vw, 2.9rem);
+    line-height: .94;
+  }
+
+  .pham-vault.is-acquisition .pham-vault__display--purchase span:last-child {
+    max-width: 10.5ch;
+  }
+}
+
 .pham-vault-card-dialog {
   position: absolute;
   z-index: 14;
