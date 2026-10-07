@@ -530,6 +530,23 @@
       const outroRadiusBoost = 1 + outroEase * (compactIntro ? 0.10 : tabletIntro ? 0.12 : 0.14);
       const outroDepthBoost = outroEase * (compactIntro ? 12 : tabletIntro ? 20 : 30);
 
+      // Desktop acquisition composition used to jump from 50% to 43% when
+      // the chapter class flipped. Drive the stage position from the same
+      // smoothed scroll progress instead so the move is continuous in both
+      // directions and remains synchronized with the orbit choreography.
+      if (window.innerWidth >= 900) {
+        const acquisitionLeft = 50 - outroEase * 7;
+        const acquisitionWidthVw = 68 - outroEase * 2;
+        const acquisitionWidthPx = 1120 - outroEase * 40;
+        orbit.style.left = acquisitionLeft.toFixed(3) + '%';
+        orbit.style.width =
+          'min(' + acquisitionWidthVw.toFixed(3) + 'vw, ' +
+          acquisitionWidthPx.toFixed(1) + 'px)';
+      } else {
+        orbit.style.left = '';
+        orbit.style.width = '';
+      }
+
       const orbitRadius = radius * scrollSpacing * pointerSpacing * introRadiusBoost * outroRadiusBoost;
       const step = Math.PI * 2 / cards.length;
       const responsiveRotation = rotation + currentPointerX * 0.12 * currentPointerPresence;
