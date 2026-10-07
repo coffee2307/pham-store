@@ -18,6 +18,8 @@
     assign pham_robots_noindex = true
   elsif request.path contains '/pages/standby'
     assign pham_robots_noindex = true
+  elsif request.path contains '/products/pham-edition-01-collector-lookbook'
+    assign pham_robots_noindex = true
   endif
 -%}
 {%- if pham_robots_noindex -%}

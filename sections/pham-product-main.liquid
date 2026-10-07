@@ -31,6 +31,15 @@
   assign short_tagline     = product.metafields.custom.short_tagline.value
   assign edition_number    = product.metafields.custom.edition_number.value
   assign shipping_window   = product.metafields.custom.shipping_window.value
+
+  assign is_lookbook_benefit = false
+  assign display_product_title = product.title
+  assign display_product_price = current_variant.price | money
+  if product.handle == 'pham-edition-01-collector-lookbook'
+    assign is_lookbook_benefit = true
+    assign display_product_title = 'PHAM-001 PRIORITY RESERVATION'
+    assign display_product_price = settings.pham_campaign_reservation_price | default: '$24.99'
+  endif
 -%}
 {%- capture construction_content -%}
   {%- if product.metafields.custom.construction != blank -%}
@@ -72,7 +81,10 @@
           {%- if show_vendor -%}
             <p class="pham-eyebrow pham-product-main__vendor">{{ pham_vendor_label }}</p>
           {%- endif -%}
-          <h1 class="pham-product-main__title">{{ product.title }}</h1>
+          <h1 class="pham-product-main__title">{{ display_product_title }}</h1>
+          {%- if is_lookbook_benefit -%}
+            <p class="pham-product-main__tagline">Priority Reservation for PHAM-001 / Edition 01. Collector Lookbook included at no additional charge.</p>
+          {%- endif -%}
           {%- if short_tagline != blank -%}
             <p class="pham-product-main__tagline">{{ short_tagline }}</p>
           {%- endif -%}
@@ -82,14 +94,19 @@
 
           <div class="pham-product-main__price-block">
             <p class="pham-product-main__price" data-pham-product-price>
-              {%- if on_sale -%}
+              {%- if is_lookbook_benefit -%}
+                <span class="pham-product-main__price-current">{{ display_product_price }}</span>
+              {%- elsif on_sale -%}
                 <s class="pham-product-main__price-compare">{{ product.compare_at_price | money }}</s>
                 <span class="pham-product-main__price-current pham-product-main__price-current--sale">{{ current_variant.price | money }}</span>
               {%- else -%}
                 <span class="pham-product-main__price-current">{{ current_variant.price | money }}</span>
               {%- endif -%}
             </p>
-            {%- if product.price_varies -%}
+            {%- if is_lookbook_benefit -%}
+              <p class="pham-product-main__price-note">DUE TODAY · CREDITED TOWARD THE $199 OBJECT</p>
+              <p class="pham-product-main__benefit-note">Collector Lookbook is a $0 digital entitlement included with the reservation; it is not sold separately.</p>
+            {%- elsif product.price_varies -%}
               <p class="pham-product-main__price-note">Price varies by option</p>
             {%- endif -%}
           </div>
@@ -522,6 +539,12 @@
     letter-spacing: var(--tracking-wide);
     text-transform: uppercase;
     color: var(--color-smoke);
+  }
+  .pham-product-main__benefit-note {
+    margin: 6px 0 0;
+    max-width: 52ch;
+    color: var(--color-bone-60);
+    font: 400 .82rem/1.55 var(--font-body);
   }
   .pham-product-main__sku {
     font-family: var(--font-mono);

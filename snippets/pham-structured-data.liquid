@@ -157,7 +157,7 @@
       }
     }
     {%- endif -%}
-    {%- if request.page_type == 'product' and product != blank -%}
+    {%- if request.page_type == 'product' and product != blank and product.handle != 'pham-edition-01-collector-lookbook' -%}
     ,
     {
       "@type": "Product",
