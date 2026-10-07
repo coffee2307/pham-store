@@ -12,7 +12,7 @@
     "pham-product-spotlight": {
       "type": "pham-product-spotlight",
       "settings": {
-        "product": "",
+        "product": "pham-001",
         "image_limit": 3,
         "eyebrow": "PHAM ATELIER · EDITION 01",
         "description": "",
