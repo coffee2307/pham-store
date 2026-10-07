@@ -357,7 +357,7 @@
     "logo_height": 36,
     "logo_height_mobile": 28,
     "pham_campaign_enabled": true,
-    "pham_campaign_state": "prelaunch",
+    "pham_campaign_state": "reservation_open",
     "pham_campaign_edition_label": "EDITION 01",
     "pham_campaign_product_code": "PHAM-001",
     "pham_campaign_origin_label": "DESIGNED IN VIETNAM / 2026",
@@ -388,7 +388,7 @@
     "pham_campaign_identity_product": "pham-object-identity",
     "pham_campaign_lookbook_ready": false,
     "pham_campaign_lookbook_product": "pham-edition-01-collector-lookbook",
-    "pham_campaign_engine_enabled": false,
+    "pham_campaign_engine_enabled": true,
     "pham_campaign_engine_proxy_path": "/apps/pham-edition",
     "pham_campaign_edition_id": "edition-01"
   },
