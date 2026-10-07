@@ -709,7 +709,12 @@
       const deltaX = event.clientX - dragStartX;
       const deltaY = event.clientY - dragStartY;
       const distance = Math.hypot(deltaX, deltaY);
-      const threshold = event.pointerType === 'mouse' ? 3 : 7;
+      const isTouch = event.pointerType === 'touch';
+      const isMouse = event.pointerType === 'mouse';
+      const threshold = isMouse ? 4 : isTouch ? 6 : 5;
+      const dragGain = isMouse ? 0.0064 : isTouch ? 0.0165 : 0.0095;
+      const inertiaLimit = isMouse ? 2.35 : isTouch ? 4.8 : 3.2;
+      const inertiaBlend = isMouse ? 0.30 : isTouch ? 0.48 : 0.38;
 
       if (!horizontalDrag && distance > threshold) {
         horizontalDrag = true;
@@ -720,19 +725,19 @@
 
       event.preventDefault();
 
-      dragTargetRotation = dragStartRotation + deltaX * 0.0105;
-      targetPointerX = clamp(deltaX / Math.max(orbit.clientWidth * 0.30, 1), -1, 1);
-      targetPointerY = clamp(deltaY / Math.max(orbit.clientHeight * 0.30, 1), -1, 1);
-      targetPointerPresence = 0.94;
+      dragTargetRotation = dragStartRotation + deltaX * dragGain;
+      targetPointerX = clamp(deltaX / Math.max(orbit.clientWidth * (isTouch ? 0.22 : 0.34), 1), -1, 1);
+      targetPointerY = clamp(deltaY / Math.max(orbit.clientHeight * (isTouch ? 0.24 : 0.34), 1), -1, 1);
+      targetPointerPresence = isTouch ? 0.82 : 0.94;
 
       const now = performance.now();
       const elapsed = Math.max((now - lastPointerTime) / 1000, 0.012);
       const instantaneous = clamp(
-        (event.clientX - lastPointerX) * 0.0105 / elapsed,
-        -3.8,
-        3.8
+        (event.clientX - lastPointerX) * dragGain / elapsed,
+        -inertiaLimit,
+        inertiaLimit
       );
-      velocity = velocity * 0.58 + instantaneous * 0.42;
+      velocity = velocity * (1 - inertiaBlend) + instantaneous * inertiaBlend;
       lastPointerX = event.clientX;
       lastPointerTime = now;
     }
@@ -764,7 +769,7 @@
       if (!horizontalIntent) return;
 
       event.preventDefault();
-      velocity = clamp(velocity + event.deltaX * 0.0032, -3.4, 3.4);
+      velocity = clamp(velocity + event.deltaX * 0.0019, -2.45, 2.45);
     }
 
     orbit.addEventListener('pointerdown', beginOrbitDrag);
