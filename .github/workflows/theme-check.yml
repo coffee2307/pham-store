@@ -55,6 +55,9 @@ jobs:
       - name: Check PHAM campaign launch gates
         run: node scripts/check-campaign-safety.mjs
 
+      - name: Check PHAM performance budget
+        run: node scripts/check-performance-budget.mjs
+
       - name: Check PHAM Edition Engine syntax
         run: npm --prefix apps/edition-engine run check
 
