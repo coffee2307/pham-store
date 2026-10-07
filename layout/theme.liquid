@@ -62,6 +62,10 @@
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    {%- if request.page_type == 'product' -%}
+      <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+      <link rel="dns-prefetch" href="//ajax.googleapis.com">
+    {%- endif -%}
     {%- assign pham_text_fonts_url = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400&display=swap' -%}
     {%- assign pham_display_fonts_url = 'https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&display=optional' -%}
     <link rel="preload" as="style" href="{{ pham_text_fonts_url }}">
