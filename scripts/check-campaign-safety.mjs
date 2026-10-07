@@ -132,6 +132,16 @@ if (schemaRaw.includes('pham_campaign_production_origin_label') || raw.includes(
   failures.push('Public provenance privacy failure: production origin must not be configurable as storefront copy.');
 }
 
+const homepageTemplate = fs.readFileSync('templates/index.json', 'utf8');
+const homepageVault = fs.readFileSync('sections/pham-vault.liquid', 'utf8');
+
+if (!homepageTemplate.includes('"product": "pham-001"')) {
+  failures.push('PHAM homepage acquisition must pin the featured product to PHAM-001.');
+}
+if (!homepageVault.includes("all_products['pham-001']")) {
+  failures.push('PHAM Vault must fall back to PHAM-001 before collections.all to prevent $0 digital products from becoming the acquisition object.');
+}
+
 const productTemplate = fs.readFileSync('templates/product.json', 'utf8');
 const productMain = fs.readFileSync('sections/pham-product-main.liquid', 'utf8');
 const productFocus = fs.readFileSync('sections/pham-product-focus.liquid', 'utf8');
