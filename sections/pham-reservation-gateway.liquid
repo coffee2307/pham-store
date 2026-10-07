@@ -4,6 +4,7 @@
 {%- assign reservation_product = settings.pham_campaign_reservation_product -%}
 {%- assign identity_product = settings.pham_campaign_identity_product -%}
 {%- assign lookbook_product = settings.pham_campaign_lookbook_product -%}
+{%- assign object_product = all_products['pham-001'] -%}
 {%- assign reservation_variant = reservation_product.selected_or_first_available_variant -%}
 {%- assign identity_variant = identity_product.selected_or_first_available_variant -%}
 {%- assign lookbook_variant = lookbook_product.selected_or_first_available_variant -%}
@@ -26,7 +27,7 @@
   {%- endif -%}
 {%- endif -%}
 
-<section class="pham-campaign-shell"
+<section class="pham-campaign-shell pham-reservation-commerce"
   data-pham-reservation-gateway
   data-commerce-ready="{% if commerce_ready %}true{% else %}false{% endif %}"
   data-can-checkout="{% if can_checkout %}true{% else %}false{% endif %}"
@@ -43,34 +44,71 @@
   data-edition-id="{{ settings.pham_campaign_edition_id | default: 'edition-01' | escape }}"
   data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
+
   <div class="pham-campaign-inner">
-    {%- if commerce_ready == false or settings.pham_campaign_engine_enabled == false and state == 'prelaunch' -%}<span class="pham-campaign-draft">PRELAUNCH SKELETON · PAYMENT DISABLED</span>{%- endif -%}
-    <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · PRIORITY RESERVATION</p>
-    <h1 class="pham-campaign-title">Reserve<br>{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</h1>
-    <p class="pham-campaign-lede">Priority Reservation is designed as a paid allocation toward a numbered object, not a standard free mailing-list signup.</p>
+    <div class="pham-reservation-commerce__layout">
+      <div class="pham-reservation-commerce__media">
+        <div class="pham-reservation-commerce__image-frame">
+          {%- if object_product != blank and object_product.featured_image != blank -%}
+            <img
+              src="{{ object_product.featured_image | image_url: width: 1200 }}"
+              alt="{{ object_product.featured_image.alt | default: 'PHAM-001 Edition 01' | escape }}"
+              width="{{ object_product.featured_image.width }}"
+              height="{{ object_product.featured_image.height }}"
+              loading="eager"
+              data-pham-reservation-image>
+          {%- else -%}
+            <div class="pham-reservation-commerce__image-placeholder">PHAM-001</div>
+          {%- endif -%}
+        </div>
 
-    <div class="pham-campaign-grid">
-      <article class="pham-campaign-card pham-campaign-card--wide">
-        <h2>Reservation ledger</h2>
-        <ul class="pham-campaign-list">
-          <li><span>Due today</span><strong data-pham-reservation-total>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></li>
-          <li><span>Credited toward object</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></li>
-          <li><span>Remaining product balance</span><strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></li>
-          <li><span>Acquisition window</span><strong>{{ settings.pham_campaign_payment_window_hours | default: 72 }} HOURS</strong></li>
-        </ul>
-
-        {%- if settings.pham_campaign_include_digital_lookbook -%}
-          <div class="pham-campaign-alert">
-            <strong>DIGITAL BENEFIT INCLUDED · NO ADDITIONAL CHARGE.</strong> The {{ settings.pham_campaign_digital_lookbook_label | default: 'edition-exclusive digital lookbook' }} is included with a confirmed Priority Reservation. Shopify may show it as a separate <strong>$0.00 digital-benefit line item</strong> so the delivery entitlement can be recorded and fulfilled; it is not a standalone free product.
-            <br><br>
-            <span class="pham-campaign-mono">DIGITAL ENTITLEMENT · {% if digital_delivery_ready %}READY{% else %}NOT READY{% endif %}</span>
+        {%- if object_product != blank and object_product.images.size > 1 -%}
+          <div class="pham-reservation-commerce__thumbs" aria-label="PHAM-001 product images">
+            {%- for image in object_product.images limit: 4 -%}
+              <button type="button"
+                class="{% if forloop.first %}is-active{% endif %}"
+                data-pham-reservation-thumb
+                data-image-src="{{ image | image_url: width: 1200 }}"
+                aria-label="View PHAM-001 image {{ forloop.index }}">
+                <img src="{{ image | image_url: width: 180 }}" alt="" width="90" height="110" loading="lazy">
+              </button>
+            {%- endfor -%}
           </div>
         {%- endif -%}
+
+        <div class="pham-reservation-commerce__edition-note">
+          <span>EDITION 01</span>
+          <strong>50 NUMBERED OBJECTS</strong>
+        </div>
+      </div>
+
+      <div class="pham-reservation-commerce__buy">
+        <header class="pham-reservation-commerce__head">
+          <p class="pham-reservation-commerce__eyebrow">{{ settings.pham_campaign_product_code | default: 'PHAM-001' }} / {{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</p>
+          <h1>Priority<br>Reservation</h1>
+          <div class="pham-reservation-commerce__price-row">
+            <strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong>
+            <span>DUE TODAY</span>
+          </div>
+          <p class="pham-reservation-commerce__credit">{{ settings.pham_campaign_reservation_price | default: '$24.99' }} is credited toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} final object price.</p>
+          <p class="pham-reservation-commerce__balance">Remaining later: <strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong> · final payment window {{ settings.pham_campaign_payment_window_hours | default: 72 }} hours</p>
+          {%- unless can_checkout -%}
+            <span class="pham-reservation-commerce__launch-note">
+              {% if state == 'reservation_full' %}RESERVATION FULL{% elsif commerce_ready == false %}CHECKOUT OPENS AT LAUNCH{% elsif digital_delivery_ready == false %}RESERVATION PREPARING{% else %}RESERVATION NOT OPEN{% endif %}
+            </span>
+          {%- endunless -%}
+        </header>
+
+        <section class="pham-reservation-commerce__steps" aria-label="How Priority Reservation works">
+          <div><span>01</span><strong>RESERVE</strong><small>Pay {{ settings.pham_campaign_reservation_price | default: '$24.99' }} and secure an allocation.</small></div>
+          <div><span>02</span><strong>CONFIRM</strong><small>Choose your preferred size and enter Collector Access.</small></div>
+          <div><span>03</span><strong>COMPLETE</strong><small>Pay {{ settings.pham_campaign_balance_due | default: '$174.01' }} when final payment opens.</small></div>
+        </section>
 
         <div class="pham-config-field pham-reservation-size">
           <div class="pham-reservation-size__head">
             <div>
-              <span class="pham-reservation-size__eyebrow">SIZE PREFERENCE</span>
+              <span class="pham-reservation-size__eyebrow">SELECT SIZE</span>
               <h3>Choose your PHAM-001 size</h3>
             </div>
             <span class="pham-reservation-size__status" data-pham-size-status>NOT SELECTED</span>
@@ -80,9 +118,7 @@
             <option value="">SELECT SIZE</option>
             {%- for option in size_options -%}
               {%- assign clean_option = option | strip -%}
-              {%- if clean_option != blank -%}
-                <option value="{{ clean_option | escape }}">{{ clean_option | escape }}</option>
-              {%- endif -%}
+              {%- if clean_option != blank -%}<option value="{{ clean_option | escape }}">{{ clean_option | escape }}</option>{%- endif -%}
             {%- endfor -%}
           </select>
 
@@ -93,73 +129,102 @@
             <button type="button" data-pham-size-choice="XXL" role="radio" aria-checked="false"><strong>XXL</strong><span>110–114 CM</span></button>
           </div>
 
-          <div class="pham-reservation-size__assist">
-            <div>
-              <strong>QUICK FIT NOTE</strong>
-              <p>PHAM-001 is cropped with a dropped shoulder and room through the body. Chest is the best starting point; compare a jacket you already like for the most reliable choice.</p>
-            </div>
-            <a class="pham-reservation-size__guide" href="{{ settings.pham_campaign_size_guide_page_url | default: '/pages/pham-001-size-guide' }}">
-              <span>VIEW DETAILED SIZE GUIDE</span><span aria-hidden="true">↗</span>
-            </a>
+          <div class="pham-reservation-size__help">
+            <span>Cropped body · dropped shoulder · roomy fit</span>
+            <a href="{{ settings.pham_campaign_size_guide_page_url | default: '/pages/pham-001-size-guide' }}">NOT SURE? VIEW SIZE GUIDE →</a>
           </div>
-
-          <small class="pham-reservation-size__fineprint">Your selection records the current size preference for this reservation. Final size is confirmed against the matching PHAM-001 variant before the acquisition invoice.</small>
         </div>
 
-        <div class="pham-reservation-upgrade">
+        <div class="pham-reservation-commerce__addon">
           <label class="pham-reservation-upgrade__choice{% unless identity_open %} is-closed{% endunless %}">
             <span>
-              <input type="checkbox"
-                     data-pham-identity-upgrade
-                     {% unless identity_open %}disabled{% endunless %}>
+              <input type="checkbox" data-pham-identity-upgrade {% unless identity_open %}disabled{% endunless %}>
               <span>
-                <strong>ADD OBJECT IDENTITY</strong>
-                <small>Custom stainless-steel card · inscription · preferred object-number request · QR provenance</small>
+                <span class="pham-reservation-commerce__optional">OPTIONAL ADD-ON</span>
+                <strong>OBJECT IDENTITY</strong>
+                <small>Stainless-steel collector card · inscription · preferred number request · QR Birth Record</small>
               </span>
             </span>
             <strong>+ {{ settings.pham_campaign_identity_price | default: '$5.00' }}</strong>
           </label>
-          <p class="pham-reservation-upgrade__meta">
-            {% if identity_open %}
-              {{ identity_claimed }} / {{ identity_limit }} IDENTITY PRIVILEGES CLAIMED · PAID AND REFERRAL UNLOCKS SHARE THE SAME POOL
-            {% else %}
-              IDENTITY PRIVILEGE CLOSED
-            {% endif %}
-          </p>
+          <span class="pham-reservation-commerce__availability">{% if identity_open %}{{ identity_limit | minus: identity_claimed }} OF {{ identity_limit }} AVAILABLE{% else %}CURRENTLY UNAVAILABLE{% endif %}</span>
         </div>
 
-        <div class="pham-campaign-consent">
-          <label><input type="checkbox" data-pham-required-consent> <span>I understand the reservation credit, remaining product balance and {{ settings.pham_campaign_payment_window_hours | default: 72 }}-hour acquisition window. Shipping, taxes and duties may apply at final checkout.</span></label>
+        <div class="pham-reservation-commerce__included">
+          <div><span>✓</span><p><strong>COLLECTOR LOOKBOOK</strong><small>Included after confirmed reservation</small></p></div>
+          <div><span>✓</span><p><strong>COLLECTOR ACCESS</strong><small>Track reservation and edition status</small></p></div>
+        </div>
+
+        <div class="pham-reservation-commerce__summary">
+          <div class="pham-reservation-commerce__summary-head"><span>ORDER SUMMARY</span><span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span></div>
+          <div class="pham-reservation-commerce__summary-row"><span>Priority Reservation</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
+          <div class="pham-reservation-commerce__summary-row" data-pham-identity-summary hidden><span>Object Identity</span><strong>+ {{ settings.pham_campaign_identity_price | default: '$5.00' }}</strong></div>
+          <div class="pham-reservation-commerce__summary-row"><span>Collector Lookbook</span><strong>INCLUDED</strong></div>
+          <div class="pham-reservation-commerce__summary-total"><span>DUE TODAY</span><strong data-pham-reservation-total>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
+          <div class="pham-reservation-commerce__later"><span>Remaining PHAM-001 balance later</span><strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></div>
+        </div>
+
+        <div class="pham-campaign-consent pham-reservation-commerce__consent">
+          <label><input type="checkbox" data-pham-required-consent> <span>I accept the reservation terms and {{ settings.pham_campaign_payment_window_hours | default: 72 }}-hour final payment window.</span></label>
           {%- if settings.pham_campaign_include_digital_lookbook -%}
-            <label><input type="checkbox" data-pham-required-consent> <span>I request delivery of the digital lookbook after payment and understand that digital-content rights can vary by jurisdiction.</span></label>
+            <label><input type="checkbox" data-pham-required-consent> <span>Deliver the included Collector Lookbook after payment.</span></label>
           {%- endif -%}
         </div>
 
-        <div class="pham-campaign-actions">
+        <div class="pham-reservation-commerce__checkout">
+          <div><span>DUE TODAY</span><strong data-pham-reservation-total>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
           {%- if can_checkout -%}
-            <button type="button"
-                    class="pham-campaign-btn is-disabled"
-                    data-pham-reservation-submit
-                    aria-disabled="true"
-                    disabled>Continue to secure checkout</button>
+            <button type="button" class="pham-campaign-btn is-disabled" data-pham-reservation-submit aria-disabled="true" disabled>RESERVE PHAM-001</button>
           {%- else -%}
-            <span class="pham-campaign-btn" aria-disabled="true">{% if state == 'reservation_full' %}Reservation full{% elsif commerce_ready == false %}Commerce not ready{% elsif digital_delivery_ready == false %}Digital delivery not ready{% else %}Reservation not open{% endif %}</span>
+            <span class="pham-campaign-btn" aria-disabled="true">{% if state == 'reservation_full' %}RESERVATION FULL{% elsif commerce_ready == false %}CHECKOUT OPENS AT LAUNCH{% elsif digital_delivery_ready == false %}RESERVATION PREPARING{% else %}RESERVATION NOT OPEN{% endif %}</span>
           {%- endif -%}
-          {%- if settings.pham_campaign_terms_page_url != blank -%}<a class="pham-campaign-btn pham-campaign-btn--ghost" href="{{ settings.pham_campaign_terms_page_url }}">Edition terms</a>{%- endif -%}
         </div>
         <p class="pham-campaign-error" data-pham-reservation-error hidden role="alert"></p>
-      </article>
-
-      <article class="pham-campaign-card">
-        <h2>Object Identity</h2>
-        <p>Add the stainless-steel Object Identity privilege for {{ settings.pham_campaign_identity_price | default: '$5.00' }}, subject to the shared {{ settings.pham_campaign_identity_limit | default: 15 }}-privilege cap. This add-on is separate from the {{ settings.pham_campaign_reservation_price | default: '$24.99' }} product credit and is not deducted from the final object price. The same privilege can be unlocked through one verified successful reservation referral.</p>
-      </article>
-
-      <article class="pham-campaign-card">
-        <h2>After reservation</h2>
-        <p>Collector status, referral progress, Identity configuration and the final acquisition invitation live inside Collector Access. After acquisition, the same record follows the object through production, delivery and its permanent Birth Record.</p>
-      </article>
+        <div class="pham-reservation-commerce__microcopy">
+          <span>Secure checkout</span>
+          <span>{{ settings.pham_campaign_reservation_price | default: '$24.99' }} credited toward final price</span>
+          {%- if settings.pham_campaign_terms_page_url != blank -%}<a href="{{ settings.pham_campaign_terms_page_url }}">Edition terms</a>{%- endif -%}
+        </div>
+      </div>
     </div>
+
+    <section class="pham-reservation-commerce__below">
+      <div class="pham-reservation-commerce__included-grid">
+        <article><span>01</span><strong>ALLOCATION</strong><p>One of 50 Edition 01 objects is held while your reservation remains valid.</p></article>
+        <article><span>02</span><strong>DIGITAL LOOKBOOK</strong><p>Edition-exclusive digital artifact delivered after confirmed payment.</p></article>
+        <article><span>03</span><strong>COLLECTOR ACCESS</strong><p>Your reservation, referral, payment invitation and object record in one place.</p></article>
+      </div>
+
+      <div class="pham-reservation-commerce__timeline">
+        <p>AFTER YOU RESERVE</p>
+        <ol>
+          <li><span>01</span><strong>RESERVATION CONFIRMED</strong></li>
+          <li><span>02</span><strong>SIZE + COLLECTOR ACCESS</strong></li>
+          <li><span>03</span><strong>FINAL PAYMENT INVITATION</strong></li>
+          <li><span>04</span><strong>PRODUCTION</strong></li>
+          <li><span>05</span><strong>DELIVERY + BIRTH RECORD</strong></li>
+        </ol>
+      </div>
+
+      <div class="pham-reservation-commerce__details">
+        <details>
+          <summary>HOW PRIORITY RESERVATION WORKS <span>+</span></summary>
+          <p>The {{ settings.pham_campaign_reservation_price | default: '$24.99' }} reservation secures an Edition 01 allocation while capacity remains and is credited toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} final PHAM-001 price.</p>
+        </details>
+        <details>
+          <summary>FINAL PAYMENT &amp; SHIPPING <span>+</span></summary>
+          <p>When acquisition opens, reserved collectors receive a final payment invitation. The remaining {{ settings.pham_campaign_balance_due | default: '$174.01' }} is due within {{ settings.pham_campaign_payment_window_hours | default: 72 }} hours. Shipping, duties and taxes may apply at final checkout.</p>
+        </details>
+        <details>
+          <summary>OBJECT IDENTITY <span>+</span></summary>
+          <p>The optional {{ settings.pham_campaign_identity_price | default: '$5.00' }} Object Identity add-on includes a custom stainless-steel card, inscription, preferred object-number request and QR Birth Record. Availability is limited to {{ identity_limit }} privileges.</p>
+        </details>
+        <details>
+          <summary>COLLECTOR LOOKBOOK <span>+</span></summary>
+          <p>The Collector Lookbook is included at no additional charge. Shopify may record it as a separate $0 digital-benefit line item so the digital delivery entitlement can be fulfilled after payment.</p>
+        </details>
+      </div>
+    </section>
   </div>
 </section>
 

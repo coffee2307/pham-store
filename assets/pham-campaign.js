@@ -447,7 +447,10 @@ function mountReservation(root){
   var sizePreference = root.querySelector('[data-pham-size-preference]');
   var sizeChoices = qsa('[data-pham-size-choice]', root);
   var sizeStatus = root.querySelector('[data-pham-size-status]');
-  var total = root.querySelector('[data-pham-reservation-total]');
+  var totals = qsa('[data-pham-reservation-total]', root);
+  var identitySummary = root.querySelector('[data-pham-identity-summary]');
+  var reservationImage = root.querySelector('[data-pham-reservation-image]');
+  var reservationThumbs = qsa('[data-pham-reservation-thumb]', root);
   var error = root.querySelector('[data-pham-reservation-error]');
 
   var canCheckout = root.dataset.canCheckout === 'true';
@@ -480,7 +483,9 @@ function mountReservation(root){
 
   function sync(){
     var addIdentity = !!(identity && identity.checked && !identity.disabled);
-    if(total) total.textContent = formatMoney(reservationPrice + (addIdentity ? identityPrice : 0), currency);
+    var dueToday = formatMoney(reservationPrice + (addIdentity ? identityPrice : 0), currency);
+    totals.forEach(function(node){ node.textContent = dueToday; });
+    if(identitySummary) identitySummary.hidden = !addIdentity;
 
     if(submit){
       var lookbookValid = !includeLookbook || (lookbookReady && lookbookVariantId !== '');
@@ -500,6 +505,15 @@ function mountReservation(root){
       if(!sizePreference) return;
       sizePreference.value = String(button.dataset.phamSizeChoice || '');
       sizePreference.dispatchEvent(new Event('change', { bubbles:true }));
+    });
+  });
+
+  reservationThumbs.forEach(function(button){
+    button.addEventListener('click', function(){
+      var src = button.dataset.imageSrc || '';
+      if(!reservationImage || !src) return;
+      reservationImage.src = src;
+      reservationThumbs.forEach(function(item){ item.classList.toggle('is-active', item === button); });
     });
   });
 
@@ -570,7 +584,7 @@ function mountReservation(root){
         }
         submit.disabled = false;
         submit.classList.remove('is-busy');
-        submit.textContent = 'Continue to secure checkout';
+        submit.textContent = 'RESERVE PHAM-001';
         sync();
       });
     });
