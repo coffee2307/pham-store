@@ -89,6 +89,16 @@ function readCampaignContext(){
   catch (e) { return null; }
 }
 
+function effectiveCampaignState(context, state){
+  var normalized = String(state || 'prelaunch');
+  if(normalized === 'reservation_open'){
+    var commerceReady = context && context.commerceReady === true;
+    var lookbookReady = !context || context.includeLookbook !== true || context.lookbookReady === true;
+    if(!commerceReady || !lookbookReady) return 'prelaunch';
+  }
+  return normalized;
+}
+
 function campaignPresentation(context, state){
   var presentation = {
     url: context.editionPageUrl || '/pages/edition-01',
@@ -96,7 +106,7 @@ function campaignPresentation(context, state){
     primaryLabel: null,
     price: null,
     status: null,
-    acquisitionTitle: context.productCode || 'PHAM-001',
+    acquisitionTitle: context.productCode || context.product || 'PHAM-001',
     acquisitionSubtitle: context.edition || 'EDITION 01',
     acquisitionCopy: null,
     acquisitionFacts: []
@@ -265,7 +275,9 @@ function mountGlobalCampaignRuntime(){
   .then(function(payload){
     if(!payload || !payload.edition) return;
     window.__PHAM_CAMPAIGN_LIVE__ = payload;
-    applyGlobalCampaignState(context, payload.edition.state);
+    var effectiveState = effectiveCampaignState(context, payload.edition.state);
+    document.documentElement.dataset.phamCampaignState = effectiveState;
+    applyGlobalCampaignState(context, effectiveState);
   })
   .catch(function(){
     // Server-rendered Theme Settings remain the safe fallback.
@@ -1040,6 +1052,38 @@ function mountLiveCampaign(root){
       var editionSize = Number(payload.edition.editionSize || 0);
       var identities = Number(payload.counters.identityClaimed || 0);
       var identityLimit = Number(payload.edition.identityLimit || 0);
+      var context = readCampaignContext() || {};
+      var liveState = effectiveCampaignState(context, payload.edition.state);
+      var presentation = campaignPresentation(context, liveState);
+
+      var stateText = root.querySelector('[data-pham-live-state]');
+      var liveActions = root.querySelector('[data-pham-live-actions]');
+      if(stateText){
+        stateText.textContent = presentation && presentation.status
+          ? presentation.status
+          : 'PRELAUNCH · SYSTEM IN PREPARATION';
+      }
+      if(liveActions){
+        var actionLabel = null;
+        if(liveState === 'reservation_open') actionLabel = 'RESERVE ' + (context.productCode || context.product || 'PHAM-001');
+        else if(liveState === 'reservation_full') actionLabel = 'JOIN STANDBY · FREE';
+        else if(liveState === 'final_payment') actionLabel = 'COLLECTOR ACCESS';
+
+        liveActions.replaceChildren();
+        if(actionLabel && presentation){
+          var actionLink = document.createElement('a');
+          actionLink.className = 'pham-campaign-btn';
+          actionLink.href = presentation.url;
+          actionLink.textContent = actionLabel;
+          liveActions.appendChild(actionLink);
+        }else{
+          var disabledAction = document.createElement('span');
+          disabledAction.className = 'pham-campaign-btn';
+          disabledAction.setAttribute('aria-disabled', 'true');
+          disabledAction.textContent = liveState === 'sold_out' ? 'EDITION CLOSED' : liveState === 'archived' ? 'ARCHIVED' : 'NOT YET OPEN';
+          liveActions.appendChild(disabledAction);
+        }
+      }
 
       var reservationText = root.querySelector('[data-pham-live-reservations]');
       var identityText = root.querySelector('[data-pham-live-identity]');
