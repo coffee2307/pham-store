@@ -84,11 +84,13 @@
     let expandedImageSrcset = null;
     let expandedImageSizes = null;
     let mobileOrbitResume = 1;
-    let orbitPrimeStartedAt = performance.now();
-    let orbitStableFrames = 0;
-    let orbitPrimeWidth = 0;
-    let orbitPrimeCardWidth = 0;
-    let orbitPrimeRadius = 0;
+    let lastPointerEnergyCss = '';
+    let lastCardContentOpacityCss = '';
+    let lastScrollZoomCss = '';
+    let lastScrollSpacingCss = '';
+    let lastCoreTransform = '';
+    let lastPlaneTransform = '';
+    let lastOrbitLayoutKey = '';
 
     function measureOrbit() {
       const width = orbit.clientWidth;
