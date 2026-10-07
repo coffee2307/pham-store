@@ -30,6 +30,11 @@ assert(
   productTemplate.includes('"default_view": "image"'),
   'PHAM product viewer must default to IMAGE so the 3D model is user-initiated.'
 );
+assert(
+  productTemplate.includes('PHAM-optimized-4096-j90-v3.glb') &&
+    !productTemplate.includes('/9151f5eebff102c8/PHAM.glb'),
+  'PHAM product viewer must keep the optimized 3D model instead of the legacy 10 MB GLB.'
+);
 
 const productStage = fs.readFileSync('sections/pham-product-3d.liquid', 'utf8');
 assert(
