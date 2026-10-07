@@ -357,7 +357,7 @@
     "logo_height": 36,
     "logo_height_mobile": 28,
     "pham_campaign_enabled": true,
-    "pham_campaign_state": "reservation_open",
+    "pham_campaign_state": "prelaunch",
     "pham_campaign_edition_label": "EDITION 01",
     "pham_campaign_product_code": "PHAM-001",
     "pham_campaign_origin_label": "DESIGNED IN VIETNAM / 2026",
