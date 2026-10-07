@@ -84,13 +84,11 @@
     let expandedImageSrcset = null;
     let expandedImageSizes = null;
     let mobileOrbitResume = 1;
-    let lastPointerEnergyCss = '';
-    let lastCardContentOpacityCss = '';
-    let lastScrollZoomCss = '';
-    let lastScrollSpacingCss = '';
-    let lastCoreTransform = '';
-    let lastPlaneTransform = '';
-    let lastOrbitLayoutKey = '';
+    let orbitPrimeStartedAt = performance.now();
+    let orbitStableFrames = 0;
+    let orbitPrimeWidth = 0;
+    let orbitPrimeCardWidth = 0;
+    let orbitPrimeRadius = 0;
 
     function measureOrbit() {
       const width = orbit.clientWidth;
@@ -602,50 +600,25 @@
         scrollEmphasis * 0.085;
       const cardContentOpacity = 1 - scrollEmphasis * 0.48;
 
-      const pointerEnergyCss = pointerEnergy.toFixed(3);
-      const cardContentOpacityCss = cardContentOpacity.toFixed(3);
-      const scrollZoomCss = scrollZoom.toFixed(4);
-      const scrollSpacingCss = scrollSpacing.toFixed(4);
-
-      if (pointerEnergyCss !== lastPointerEnergyCss) {
-        root.style.setProperty('--vault-pointer-energy', pointerEnergyCss);
-        lastPointerEnergyCss = pointerEnergyCss;
-      }
-      if (cardContentOpacityCss !== lastCardContentOpacityCss) {
-        root.style.setProperty('--vault-card-content-opacity', cardContentOpacityCss);
-        lastCardContentOpacityCss = cardContentOpacityCss;
-      }
-      if (scrollZoomCss !== lastScrollZoomCss) {
-        root.style.setProperty('--vault-scroll-zoom', scrollZoomCss);
-        lastScrollZoomCss = scrollZoomCss;
-      }
-      if (scrollSpacingCss !== lastScrollSpacingCss) {
-        root.style.setProperty('--vault-scroll-spacing', scrollSpacingCss);
-        lastScrollSpacingCss = scrollSpacingCss;
-      }
+      root.style.setProperty('--vault-pointer-energy', pointerEnergy.toFixed(3));
+      root.style.setProperty('--vault-card-content-opacity', cardContentOpacity.toFixed(3));
+      root.style.setProperty('--vault-scroll-zoom', scrollZoom.toFixed(4));
+      root.style.setProperty('--vault-scroll-spacing', scrollSpacing.toFixed(4));
 
       if (orbitCore && !cardDialogOpen) {
-        const coreTransform =
+        orbitCore.style.transform =
           'translate3d(calc(-50% + ' + coreShiftX.toFixed(2) + 'px), calc(-50% + ' + coreShiftY.toFixed(2) + 'px), 0) ' +
           'rotateX(' + coreTiltX.toFixed(2) + 'deg) rotateY(' + coreTiltY.toFixed(2) + 'deg) ' +
           'scale(' + coreScale.toFixed(4) + ')';
-        if (coreTransform !== lastCoreTransform) {
-          orbitCore.style.transform = coreTransform;
-          lastCoreTransform = coreTransform;
-        }
       }
 
       if (!cardDialogOpen) {
-        const planeTransform =
+        orbitPlane.style.transform =
           'translate3d(' + pointerShiftX.toFixed(2) + 'px,' + pointerShiftY.toFixed(2) + 'px,0) ' +
           'rotateX(' + (currentTilt * (1 - outroEase)).toFixed(2) + 'deg) ' +
           'rotateY(' + ringTiltY.toFixed(2) + 'deg) ' +
           'rotateZ(' + orbitLean.toFixed(2) + 'deg) ' +
           'scale(' + scrollZoom.toFixed(4) + ')';
-        if (planeTransform !== lastPlaneTransform) {
-          orbitPlane.style.transform = planeTransform;
-          lastPlaneTransform = planeTransform;
-        }
       }
 
       const compactOrbit = window.innerWidth < 600;
