@@ -469,7 +469,11 @@
       const delta = Math.min((time - previousTime) / 1000, 0.1);
       previousTime = time;
       smoothProgress = damp(smoothProgress, progress, 5.5, delta);
-      root.style.setProperty('--vault-progress', smoothProgress.toFixed(4));
+      const progressCss = smoothProgress.toFixed(4);
+      if (progressCss !== root.dataset.phamVaultProgressCss) {
+        root.style.setProperty('--vault-progress', progressCss);
+        root.dataset.phamVaultProgressCss = progressCss;
+      }
       setChapter(Math.min(chapters.length - 1, Math.floor(smoothProgress * chapters.length)));
 
       if (!reducedMotion) {
