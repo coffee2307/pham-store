@@ -536,9 +536,10 @@
       // directions and remains synchronized with the orbit choreography.
       if (window.innerWidth >= 900) {
         const acquisitionLeft = 50 - outroEase * 7;
+        const acquisitionShiftPx = outroEase * 60;
         const acquisitionWidthVw = 68 - outroEase * 2;
         const acquisitionWidthPx = 1120 - outroEase * 40;
-        orbit.style.left = acquisitionLeft.toFixed(3) + '%';
+        orbit.style.left = 'calc(' + acquisitionLeft.toFixed(3) + '% - ' + acquisitionShiftPx.toFixed(1) + 'px)';
         orbit.style.width =
           'min(' + acquisitionWidthVw.toFixed(3) + 'vw, ' +
           acquisitionWidthPx.toFixed(1) + 'px)';
