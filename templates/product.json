@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "main": {
@@ -65,8 +74,8 @@
     "product-3d": {
       "type": "pham-product-3d",
       "settings": {
-        "model_url": "https://cdn.shopify.com/3d/models/o/9151f5eebff102c8/PHAM.glb",
-        "poster_url": "https://cdn.shopify.com/s/files/1/0863/2454/3744/files/preview_images/PHAM.png?v=1791085276",
+        "model_url": "https://cdn.shopify.com/3d/models/o/7e31d85f77c21e5a/PHAM-optimized-4096-j90-v3.glb",
+        "poster_url": "https://cdn.shopify.com/s/files/1/0863/2454/3744/files/preview_images/PHAM-optimized-4096-j90-v3.jpg?v=1791395901",
         "default_view": "image",
         "model_alt": "Interactive 3D study of PHAM-001, the Edition 01 cropped bomber by PHAM",
         "object_code": "PHAM-001",
