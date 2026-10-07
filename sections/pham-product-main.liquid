@@ -1424,7 +1424,7 @@
       document.body.style.overflow = '';
       if (modalImg) {
         modalImg.removeAttribute('srcset');
-        modalImg.src = '';
+        modalImg.removeAttribute('src');
       }
       if (lastFocused && typeof lastFocused.focus === 'function') {
         try { lastFocused.focus(); } catch (e) {}
