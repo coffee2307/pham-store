@@ -35,6 +35,7 @@
   assign is_lookbook_benefit = false
   assign display_product_title = product.title
   assign display_product_price = current_variant.price | money
+  assign pham_object_product = all_products['pham-001']
   if product.handle == 'pham-edition-01-collector-lookbook'
     assign is_lookbook_benefit = true
     assign display_product_title = 'PHAM-001 PRIORITY RESERVATION'
@@ -70,7 +71,11 @@
     {%- comment -%} ============= LEFT: GALLERY (e-commerce layout) ============= {%- endcomment -%}
     <div class="pham-product-main__media reveal-up">
       {%- assign gallery_image_blocks = section.blocks | where: 'type', 'gallery_image' -%}
-      {% render 'pham-product-gallery', product: product, section_id: section.id, gallery_blocks: gallery_image_blocks %}
+      {%- if is_lookbook_benefit and pham_object_product != blank -%}
+        {% render 'pham-product-gallery', product: pham_object_product, section_id: section.id, gallery_blocks: blank %}
+      {%- else -%}
+        {% render 'pham-product-gallery', product: product, section_id: section.id, gallery_blocks: gallery_image_blocks %}
+      {%- endif -%}
     </div>
 
     {%- comment -%} ============= RIGHT: STICKY PANEL ============= {%- endcomment -%}
@@ -118,7 +123,7 @@
           {%- endif -%}
         </header>
 
-        {%- if section.settings.show_object_record -%}
+        {%- if section.settings.show_object_record and is_lookbook_benefit == false -%}
           <section class="pham-object-record reveal-up" data-pham-delay="100" aria-label="PHAM object identity">
             <div class="pham-object-record__head">
               <span>OBJECT RECORD</span>
