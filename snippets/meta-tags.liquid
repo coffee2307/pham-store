@@ -82,11 +82,9 @@
   assign pham_og_image_height = 630
 
   if page_image != blank
-    if request.page_type == 'product' or request.page_type == 'article'
-      assign pham_og_image_url = page_image | image_url: width: 1200
-      assign pham_og_image_width = page_image.width
-      assign pham_og_image_height = page_image.height
-    endif
+    assign pham_og_image_url = page_image | image_url: width: 1200
+    assign pham_og_image_width = page_image.width
+    assign pham_og_image_height = page_image.height
   endif
 
   unless pham_og_image_url contains 'https://'
