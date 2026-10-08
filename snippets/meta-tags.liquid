@@ -31,16 +31,10 @@
 
 {%- comment -%} PHAM: view transitions disabled — prevents white flash between pages {%- endcomment -%}
 
-{%- capture pham_seo_title_raw -%}
-  {%- render 'pham-seo-title' -%}
-{%- endcapture -%}
-{%- assign pham_seo_title = pham_seo_title_raw | strip_html | strip -%}
-
-{%- capture pham_seo_description_raw -%}
-  {%- render 'pham-seo-description' -%}
-{%- endcapture -%}
-{%- assign pham_seo_description = pham_seo_description_raw | strip -%}
-
+{%- liquid
+  assign pham_seo_title = page_title | default: shop.name | strip_html | strip
+  assign pham_seo_description = page_description | default: shop.description | default: settings.pham_seo_default_description | strip_html | strip | truncate: 320
+-%}
 {%- liquid
   assign og_url = canonical_url | default: request.origin
   assign og_type = 'website'
@@ -142,7 +136,7 @@
   content="{{ og_description | escape }}"
 >
 
-<title>{{ pham_seo_title }}{% if current_page != 1 %} — Page {{ current_page }}{% endif %}{% unless pham_seo_title contains "PHAM Atelier" %} | PHAM Atelier{% endunless %}</title>
+<title>{{ pham_seo_title | escape }}{% if current_page != 1 %} - Page {{ current_page }}{% endif %}{% unless pham_seo_title contains shop.name %} - {{ shop.name | escape }}{% endunless %}</title>
 
 <link
   rel="canonical"
