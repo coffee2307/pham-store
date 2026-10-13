@@ -85,12 +85,12 @@
       <div class="pham-reservation-commerce__buy">
         <header class="pham-reservation-commerce__head">
           <p class="pham-reservation-commerce__eyebrow">{{ settings.pham_campaign_product_code | default: 'PHAM-001' }} / {{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</p>
-          <h1>Priority<br>Reservation</h1>
+          <h1>Secure Your<br>PHAM-001</h1>
           <div class="pham-reservation-commerce__price-row">
             <strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong>
-            <span>DUE TODAY</span>
+            <span>DEPOSIT DUE TODAY</span>
           </div>
-          <p class="pham-reservation-commerce__credit">{{ settings.pham_campaign_reservation_price | default: '$24.99' }} is credited toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} final object price.</p>
+          <p class="pham-reservation-commerce__credit">{{ settings.pham_campaign_reservation_price | default: '$24.99' }} is your first payment toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} PHAM-001 jacket, not an additional access fee.</p>
           <p class="pham-reservation-commerce__balance">Remaining later: <strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong> · final payment window {{ settings.pham_campaign_payment_window_hours | default: 72 }} hours</p>
           {%- unless can_checkout -%}
             <span class="pham-reservation-commerce__launch-note">
@@ -100,9 +100,9 @@
         </header>
 
         <section class="pham-reservation-commerce__steps" aria-label="How Priority Reservation works">
-          <div><span>01</span><strong>RESERVE</strong><small>Pay {{ settings.pham_campaign_reservation_price | default: '$24.99' }} and secure an allocation.</small></div>
-          <div><span>02</span><strong>CONFIRM</strong><small>Choose your preferred size and enter Collector Access.</small></div>
-          <div><span>03</span><strong>COMPLETE</strong><small>Pay {{ settings.pham_campaign_balance_due | default: '$174.01' }} when final payment opens.</small></div>
+          <div><span>01</span><strong>PLACE DEPOSIT</strong><small>Pay {{ settings.pham_campaign_reservation_price | default: '$24.99' }} and secure an allocation.</small></div>
+          <div><span>02</span><strong>CONFIRM</strong><small>Confirm your preferred size and review your reservation status.</small></div>
+          <div><span>03</span><strong>PAY BALANCE</strong><small>Pay {{ settings.pham_campaign_balance_due | default: '$174.01' }} when final payment opens.</small></div>
         </section>
 
         <div class="pham-config-field pham-reservation-size">
@@ -135,6 +135,20 @@
           </div>
         </div>
 
+        <div class="pham-reservation-payment-paths" aria-label="PHAM-001 payment options" style="display:grid;gap:12px;margin:22px 0;">
+          <div style="border:1px solid rgba(255,255,255,.35);padding:18px;">
+            <span style="font-size:11px;letter-spacing:.12em;">AVAILABLE WHEN RESERVATIONS OPEN</span>
+            <h3 style="margin:8px 0;">DEPOSIT PRE-ORDER · {{ settings.pham_campaign_reservation_price | default: '$24.99' }} TODAY</h3>
+            <p>Pay toward your {{ settings.pham_campaign_final_price | default: '$199.00' }} PHAM-001 jacket. The remaining {{ settings.pham_campaign_balance_due | default: '$174.01' }} is payable within the announced final-payment window. Shipping, duties and taxes are additional where applicable.</p>
+          </div>
+          <div style="border:1px solid rgba(255,255,255,.18);padding:18px;">
+            <span style="font-size:11px;letter-spacing:.12em;">PENDING PAYMENT INTEGRATION</span>
+            <h3 style="margin:8px 0;">FULL PRE-ORDER · {{ settings.pham_campaign_final_price | default: '$199.00' }}</h3>
+            <p>One payment, no remaining jacket balance. This option will be enabled only after checkout and inventory allocation are verified. It is not available for payment yet.</p>
+          </div>
+          <p style="font-size:12px;line-height:1.7;">Both options refer to the same limited-edition jacket. A deposit is not an extra priority-access charge. Review the edition terms for production conditions, timing, cancellations and refunds before checkout.</p>
+        </div>
+
         <div class="pham-reservation-commerce__addon">
           <label class="pham-reservation-upgrade__choice{% unless identity_open %} is-closed{% endunless %}">
             <span>
@@ -157,7 +171,7 @@
 
         <div class="pham-reservation-commerce__summary">
           <div class="pham-reservation-commerce__summary-head"><span>ORDER SUMMARY</span><span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span></div>
-          <div class="pham-reservation-commerce__summary-row"><span>Priority Reservation</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
+          <div class="pham-reservation-commerce__summary-row"><span>PHAM-001 jacket deposit</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
           <div class="pham-reservation-commerce__summary-row" data-pham-identity-summary hidden><span>Object Identity</span><strong>+ {{ settings.pham_campaign_identity_price | default: '$5.00' }}</strong></div>
           <div class="pham-reservation-commerce__summary-row"><span>Collector Lookbook</span><strong>INCLUDED</strong></div>
           <div class="pham-reservation-commerce__summary-total"><span>DUE TODAY</span><strong data-pham-reservation-total>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
@@ -174,7 +188,7 @@
         <div class="pham-reservation-commerce__checkout">
           <div><span>DUE TODAY</span><strong data-pham-reservation-total>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
           {%- if can_checkout -%}
-            <button type="button" class="pham-campaign-btn is-disabled" data-pham-reservation-submit aria-disabled="true" disabled>RESERVE PHAM-001</button>
+            <button type="button" class="pham-campaign-btn is-disabled" data-pham-reservation-submit aria-disabled="true" disabled>PLACE $24.99 DEPOSIT</button>
           {%- else -%}
             <span class="pham-campaign-btn" aria-disabled="true">{% if state == 'reservation_full' %}RESERVATION FULL{% elsif commerce_ready == false %}CHECKOUT OPENS AT LAUNCH{% elsif digital_delivery_ready == false %}RESERVATION PREPARING{% else %}RESERVATION NOT OPEN{% endif %}</span>
           {%- endif -%}
@@ -208,7 +222,7 @@
 
       <div class="pham-reservation-commerce__details">
         <details>
-          <summary>HOW PRIORITY RESERVATION WORKS <span>+</span></summary>
+          <summary>HOW THE DEPOSIT WORKS <span>+</span></summary>
           <p>The {{ settings.pham_campaign_reservation_price | default: '$24.99' }} reservation secures an Edition 01 allocation while capacity remains and is credited toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} final PHAM-001 price.</p>
         </details>
         <details>

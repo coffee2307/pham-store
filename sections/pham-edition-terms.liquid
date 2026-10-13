@@ -11,8 +11,8 @@
 
     <div class="pham-campaign-grid">
       <article class="pham-campaign-card pham-campaign-card--full">
-        <h2>1 · Priority Reservation</h2>
-        <p>A confirmed Priority Reservation records a customer’s place within the active edition, subject to payment confirmation, fraud review and the campaign terms in force at purchase. The reservation amount is {{ settings.pham_campaign_reservation_price | default: '$24.99' }} and is intended to be credited toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} object price.</p>
+        <h2>1 · PHAM-001 jacket deposit</h2>
+        <p>The {{ settings.pham_campaign_reservation_price | default: '$24.99' }} deposit is an initial payment toward one {{ settings.pham_campaign_final_price | default: '$199.00' }} PHAM-001 jacket, not a separate access fee. The deposit is credited to the jacket price. A confirmed deposit records an allocation subject to payment confirmation, edition capacity, fraud review and the final terms disclosed at checkout.</p>
       </article>
 
       <article class="pham-campaign-card pham-campaign-card--full">
@@ -21,13 +21,13 @@
       </article>
 
       <article class="pham-campaign-card pham-campaign-card--full">
-        <h2>3 · Final acquisition</h2>
+        <h2>3 · Remaining balance</h2>
         <p>When the acquisition window opens, a reserved collector is expected to receive a request for the remaining product balance of {{ settings.pham_campaign_balance_due | default: '$174.01' }}. Shipping, taxes and duties may be added at checkout according to destination and applicable rules. The planned payment window is {{ settings.pham_campaign_payment_window_hours | default: 72 }} hours. If the balance is not paid within the valid window, PHAM may release the allocation, subject to applicable law and the final published terms.</p>
       </article>
 
       <article class="pham-campaign-card pham-campaign-card--full">
-        <h2>4 · Reservation refunds</h2>
-        <p>The commercial intent is that confirmed reservation fees are non-refundable after the agreed reservation and digital benefits are supplied, except where PHAM cancels the allocation or applicable consumer law requires a cancellation, refund or other remedy. This clause requires jurisdictional review before launch and must not be represented as overriding mandatory consumer rights.</p>
+        <h2>4 · Deposits, cancellations and refunds</h2>
+        <p>The deposit is part of the jacket purchase price rather than an independent access fee. Conditions for cancellation, deposit refunds, production thresholds and non-payment of the remaining balance must be finalized and clearly disclosed before checkout opens. Customers retain mandatory cancellation and refund rights under applicable law. If PHAM cannot fulfill an order, it will provide the refund or other remedy required under the published terms and applicable law.</p>
       </article>
 
       <article class="pham-campaign-card pham-campaign-card--full">
@@ -36,7 +36,7 @@
       </article>
 
       <article class="pham-campaign-card pham-campaign-card--full">
-        <h2>6 · Standby</h2>
+        <h2>6 · Free standby</h2>
         <p>After paid reservations reach the edition allocation, further customers may join a free standby queue. A promoted standby customer pays the full {{ settings.pham_campaign_final_price | default: '$199.00' }} because no reservation credit was previously paid. Queue and offer-window rules are subject to the final campaign terms.</p>
       </article>
 

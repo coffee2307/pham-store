@@ -10,8 +10,8 @@
 {%- assign identity_progress = 0 -%}
 {%- if identity_limit > 0 -%}{%- assign identity_progress = identity_claimed | times: 100.0 | divided_by: identity_limit -%}{%- endif -%}
 {%- case state -%}
-  {%- when 'reservation_open' -%}{%- assign state_label = 'PRIORITY RESERVATION OPEN' -%}
-  {%- when 'reservation_full' -%}{%- assign state_label = 'PRIORITY RESERVATION CLOSED · STANDBY OPEN' -%}
+  {%- when 'reservation_open' -%}{%- assign state_label = 'PHAM-001 DEPOSIT PRE-ORDER OPEN' -%}
+  {%- when 'reservation_full' -%}{%- assign state_label = 'PHAM-001 DEPOSITS FULL · STANDBY OPEN' -%}
   {%- when 'final_payment' -%}{%- assign state_label = 'ACQUISITION WINDOW OPEN' -%}
   {%- when 'sold_out' -%}{%- assign state_label = 'EDITION CLOSED' -%}
   {%- when 'archived' -%}{%- assign state_label = 'ARCHIVED' -%}

@@ -161,7 +161,7 @@ for (const [file, source, phrase] of staleProductCopy) {
   }
 }
 
-if (!productCta.includes("when 'prelaunch'") || !productCta.includes("EDITION 01 · ACCESS SOON")) {
+if (!productCta.includes("when 'prelaunch'") || !productCta.includes("PHAM-001 · PRE-ORDER SOON")) {
   failures.push('PHAM product access copy failure: prelaunch campaign CTA must stay inside the Edition protocol.');
 }
 
