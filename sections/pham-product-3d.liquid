@@ -1,18 +1,5 @@
 {%- liquid
   assign model_url = section.settings.model_url | strip
-  assign poster_image = section.settings.poster_image
-  assign poster_url = section.settings.poster_url | strip
-  assign has_poster = false
-  if poster_image != blank or poster_url != blank
-    assign has_poster = true
-  endif
-
-  assign default_view = section.settings.default_view
-  if model_url == blank
-    assign default_view = 'image'
-  elsif has_poster == false
-    assign default_view = 'model'
-  endif
 -%}
 
 <script src="{{ 'pham-product-stage.js' | asset_url }}" defer></script>
@@ -21,8 +8,6 @@
   class="pham-object-stage"
   data-pham-object-stage
   data-has-model="{% if model_url != blank %}true{% else %}false{% endif %}"
-  data-default-view="{{ default_view }}"
-  data-image-mode-label="{{ section.settings.image_mode_label | escape }}"
   data-model-mode-label="{{ section.settings.model_mode_label | escape }}"
   data-loading-mode-label="{{ section.settings.model_loading_label | escape }}"
   data-error-mode-label="{{ section.settings.model_error_label | escape }}"
@@ -41,42 +26,12 @@
   </header>
 
   <div class="pham-object-stage__viewer">
-    <div class="pham-object-stage__image-view" data-pham-stage-image{% if default_view == 'model' and has_poster == false %} hidden{% endif %}>
-      {%- if poster_image != blank -%}
-        {{
-          poster_image
-          | image_url: width: 1800
-          | image_tag:
-            loading: 'eager',
-            fetchpriority: 'high',
-            widths: '600, 900, 1200, 1500, 1800',
-            sizes: '(max-width: 749px) 92vw, 62vw',
-            class: 'pham-object-stage__fallback-image',
-            alt: section.settings.model_alt
-        }}
-      {%- elsif poster_url != blank -%}
-        <img
-          src="{{ poster_url | escape }}"
-          class="pham-object-stage__fallback-image"
-          alt="{{ section.settings.model_alt | escape }}"
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
-          width="1800"
-          height="1800"
-        >
-      {%- else -%}
-        <div class="pham-object-stage__empty" aria-hidden="true"><span>PHAM</span><i></i><span>OBJECT</span></div>
-      {%- endif -%}
-    </div>
-
     {%- if model_url != blank -%}
-      <div class="pham-object-stage__model-view" data-pham-stage-model hidden></div>
+      <div class="pham-object-stage__model-view" data-pham-stage-model></div>
       <template data-pham-stage-model-template>
         <model-viewer
           class="pham-object-stage__model"
           src="{{ model_url | escape }}"
-          {% if poster_image != blank %}poster="{{ poster_image | image_url: width: 1600 }}"{% elsif poster_url != blank %}poster="{{ poster_url | escape }}"{% endif %}
           alt="{{ section.settings.model_alt | escape }}"
           loading="eager"
           reveal="auto"
@@ -90,10 +45,8 @@
           field-of-view="32deg"
         ></model-viewer>
       </template>
-    {%- endif -%}
 
-    {%- if model_url != blank -%}
-      <div class="pham-object-stage__loader" data-pham-stage-loader hidden role="status" aria-live="polite">
+      <div class="pham-object-stage__loader" data-pham-stage-loader role="status" aria-live="polite">
         <div class="pham-object-stage__loader-copy">
           <span data-pham-stage-loader-label>{{ section.settings.model_loading_label }}</span>
           <span aria-hidden="true" data-pham-stage-progress-value>00%</span>
@@ -105,19 +58,8 @@
       <p class="pham-object-stage__fallback-note" data-pham-stage-error hidden>
         {{ section.settings.model_error_label }}
       </p>
-    {%- endif -%}
+      <p class="pham-object-stage__mode" data-pham-stage-mode>{{ section.settings.model_mode_label }}</p>
 
-    <p class="pham-object-stage__mode" data-pham-stage-mode>
-      {%- if default_view == 'model' -%}
-        {{ section.settings.model_mode_label }}
-      {%- elsif has_poster -%}
-        {{ section.settings.image_mode_label }}
-      {%- else -%}
-        {{ section.settings.model_empty_label }}
-      {%- endif -%}
-    </p>
-
-    {%- if model_url != blank -%}
       <div class="pham-object-stage__rotate-hint" data-pham-stage-rotate-hint hidden aria-hidden="true">
         <svg viewBox="0 0 72 42" aria-hidden="true" focusable="false">
           <path d="M11 28C18 11 45 7 59 19" />
@@ -125,13 +67,10 @@
         </svg>
         <span>{{ section.settings.interaction_label }}</span>
       </div>
-    {%- endif -%}
-
-    {%- if model_url != blank and has_poster -%}
-      <div class="pham-object-stage__switcher" role="group" aria-label="{{ section.settings.viewer_label | escape }}">
-        <button type="button"{% if default_view == 'image' %} class="is-active"{% endif %} data-pham-stage-switch="image" aria-pressed="{% if default_view == 'image' %}true{% else %}false{% endif %}">{{ section.settings.image_label }}</button>
-        <button type="button"{% if default_view == 'model' %} class="is-active"{% endif %} data-pham-stage-switch="model" aria-pressed="{% if default_view == 'model' %}true{% else %}false{% endif %}">{{ section.settings.model_label }}</button>
-      </div>
+    {%- else -%}
+      <p class="pham-object-stage__fallback-note" data-pham-stage-error>
+        {{ section.settings.model_empty_label }}
+      </p>
     {%- endif -%}
   </div>
 
@@ -142,7 +81,7 @@
 </section>
 
 <style>
-  .pham-object-stage { --stage-media-shift: 0px; --stage-poster-shift: var(--stage-media-shift); --stage-poster-y-shift: 0px; --stage-poster-scale: 1.15; --stage-switch-shift: 0px; position: relative; min-height: max(720px, 100svh); overflow: hidden; isolation: isolate; display: grid; grid-template-rows: auto 1fr auto; background: #050505; color: #f2f2ef; border-bottom: 1px solid rgba(255,255,255,.12); }
+  .pham-object-stage { --stage-media-shift: 0px; position: relative; min-height: max(720px, 100svh); overflow: hidden; isolation: isolate; display: grid; grid-template-rows: auto 1fr auto; background: #050505; color: #f2f2ef; border-bottom: 1px solid rgba(255,255,255,.12); }
   .pham-object-stage__grid { position: absolute; z-index: 0; inset: 0; background: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px), radial-gradient(circle at 50% 48%, #1a1a1a 0, #080808 55%, #050505 85%); background-size: 80px 80px, 80px 80px, auto; mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent); }
   .pham-object-stage__meta { position: absolute; z-index: 4; top: 88px; left: 0; right: 0; display: flex; justify-content: space-between; color: rgba(242,242,239,.42); font: 400 9px/1 var(--font-mono); pointer-events: none; }
   .pham-object-stage__meta p { margin: 0; }
@@ -151,15 +90,11 @@
   .pham-object-stage__title { width: min(470px, 40vw); margin: 0; font: 400 clamp(2.8rem, 6vw, 6.8rem)/.94 var(--font-display); letter-spacing: 0; }
   .pham-object-stage__body { width: min(340px, 34vw); margin: 24px 0 0; color: rgba(242,242,239,.62); font: 400 .92rem/1.65 var(--font-body); }
   .pham-object-stage__viewer { position: absolute; z-index: 2; inset: 54px 0 32px; display: grid; place-items: center; overflow: hidden; overflow: clip; }
-  .pham-object-stage__image-view,.pham-object-stage__model-view { width: 100%; height: 100%; display: grid; place-items: center; overflow: hidden; isolation: isolate; contain: layout paint; }
-  .pham-object-stage__model-view[hidden],.pham-object-stage__image-view[hidden] { display: none; }
-  .pham-object-stage__model-view.is-preloading { position: absolute; inset: 0; z-index: -1; opacity: 0; pointer-events: none; }
+  .pham-object-stage__model-view { width: 100%; height: 100%; display: grid; place-items: center; overflow: hidden; isolation: isolate; contain: layout paint; }
   .pham-object-stage__model { display: block; width: min(70vw, 960px); max-width: 100%; height: 86vh; max-height: 100%; min-height: 620px; overflow: hidden; background: transparent; --poster-color: transparent; touch-action: pan-y; transform: translate3d(var(--stage-media-shift),0,0); }
-  .pham-object-stage__fallback-image { width: min(72vw, 980px); max-width: none; height: 86vh; object-fit: contain; filter: saturate(.76) contrast(1.08) drop-shadow(0 50px 60px rgba(0,0,0,.74)); transform: translate3d(var(--stage-poster-shift),var(--stage-poster-y-shift),0) scale(var(--stage-poster-scale)); transform-origin: center center; transition: filter 900ms ease; }
-  .pham-object-stage:hover .pham-object-stage__fallback-image { transform: translate3d(var(--stage-poster-shift),var(--stage-poster-y-shift),0) scale(var(--stage-poster-scale)); filter: saturate(.88) contrast(1.04) drop-shadow(0 58px 70px rgba(0,0,0,.82)); }
   .pham-object-stage__mode { position: absolute; right: var(--gutter); top: 50%; margin: 0; writing-mode: vertical-rl; color: rgba(242,242,239,.43); font: 400 9px/1 var(--font-mono); }
-  .pham-object-stage__loader { position: absolute; z-index: 7; left: calc(50% + var(--stage-switch-shift)); bottom: 100px; width: min(192px, calc(100vw - (var(--gutter) * 2))); transform: translateX(-50%); color: rgba(242,242,239,.76); font: 500 8px/1 var(--font-mono); letter-spacing: .12em; pointer-events: none; }
-  .pham-object-stage__loader[hidden],.pham-object-stage__fallback-note[hidden] { display: none; }
+  .pham-object-stage__loader { position: absolute; z-index: 7; left: calc(50% + var(--stage-media-shift)); bottom: 100px; width: min(192px, calc(100vw - (var(--gutter) * 2))); transform: translateX(-50%); color: rgba(242,242,239,.76); font: 500 8px/1 var(--font-mono); letter-spacing: .12em; pointer-events: none; }
+  .pham-object-stage__loader[hidden], .pham-object-stage__fallback-note[hidden] { display: none; }
   .pham-object-stage__loader-copy { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
   .pham-object-stage__loader-track { display: block; width: 100%; height: 1px; margin-top: 10px; overflow: hidden; background: rgba(255,255,255,.14); }
   .pham-object-stage__loader-track i { display: block; width: 100%; height: 100%; background: #f2f2ef; transform: scaleX(0); transform-origin: left center; transition: transform 140ms linear; will-change: transform; }
@@ -170,24 +105,13 @@
   .pham-object-stage__rotate-hint svg { width: 58px; height: 34px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; animation: pham-stage-rotate-hint 1.9s ease-in-out infinite; }
   .pham-object-stage__rotate-hint span { font: 500 8px/1 var(--font-mono); letter-spacing: .14em; white-space: nowrap; }
   @keyframes pham-stage-rotate-hint { 0%,100% { transform: rotate(-4deg) translateX(-2px); opacity: .48; } 50% { transform: rotate(4deg) translateX(3px); opacity: .9; } }
-  .pham-object-stage__switcher { position: absolute; z-index: 6; left: calc(50% + var(--stage-switch-shift)); bottom: 40px; display: flex; padding: 4px; border: 1px solid rgba(255,255,255,.2); background: rgba(5,5,5,.72); backdrop-filter: blur(14px); transform: translateX(-50%); }
-  .pham-object-stage__switcher button { min-width: 92px; min-height: 42px; padding: 0 16px; border: 0; color: rgba(242,242,239,.52); background: transparent; cursor: pointer; font: 600 9px/1 var(--font-mono); letter-spacing: .08em; }
-  .pham-object-stage__switcher button.is-active { color: #050505; background: #f2f2ef; }
-  .pham-object-stage__empty { width: min(48vw, 620px); aspect-ratio: 4/5; display: grid; grid-template-columns: 1fr auto 1fr; place-items: center; border: 1px solid rgba(255,255,255,.16); color: rgba(255,255,255,.38); font: 400 1rem/1 var(--font-display); }
-  .pham-object-stage__empty span:first-child { justify-self: end; }.pham-object-stage__empty span:last-child { justify-self: start; }.pham-object-stage__empty i { width: 1px; height: 70%; margin: 0 24px; background: rgba(255,255,255,.16); }
   .pham-object-stage__controls { position: absolute; z-index: 5; left: 0; right: 0; bottom: 26px; display: flex; justify-content: space-between; align-items: center; font: 400 9px/1 var(--font-mono); }
-  .pham-object-stage__controls p { margin: 0; color: rgba(242,242,239,.44); }.pham-object-stage__controls a { color: rgba(242,242,239,.78); text-decoration: none; }
-  @media (min-width: 1024px) {
-    .pham-object-stage {
-      --stage-media-shift: clamp(46px, 5vw, 88px);
-      --stage-poster-shift: calc(var(--stage-media-shift) - 14px);
-      --stage-poster-scale: 1.14;
-      --stage-switch-shift: var(--stage-media-shift);
-    }
-  }
-  @media (min-width: 600px) and (max-width: 899px) { .pham-object-stage { min-height: 900px; --stage-poster-scale: 1.16; --stage-poster-shift: -18px; }.pham-object-stage__title { width: min(70%, 520px); }.pham-object-stage__viewer { inset: 190px 0 82px; }.pham-object-stage__model { width: 90vw; height: 66vh; min-height: 500px; }.pham-object-stage__fallback-image { width: 88vw; max-width: none; height: 66vh; margin-top: 72px; } }
+  .pham-object-stage__controls p { margin: 0; color: rgba(242,242,239,.44); }
+  .pham-object-stage__controls a { color: rgba(242,242,239,.78); text-decoration: none; }
+  @media (min-width: 1024px) { .pham-object-stage { --stage-media-shift: clamp(46px, 5vw, 88px); } }
+  @media (min-width: 600px) and (max-width: 899px) { .pham-object-stage { min-height: 900px; }.pham-object-stage__title { width: min(70%, 520px); }.pham-object-stage__viewer { inset: 190px 0 82px; }.pham-object-stage__model { width: 90vw; height: 66vh; min-height: 500px; } }
   @media (max-width: 599px) {
-    .pham-object-stage { min-height: 820px; --stage-media-shift: -6px; --stage-poster-scale: 1.15; --stage-poster-shift: -21px; --stage-poster-y-shift: 2px; --stage-switch-shift: 2px; }
+    .pham-object-stage { min-height: 820px; --stage-media-shift: -6px; }
     .pham-object-stage__meta { top: 66px; }
     .pham-object-stage__intro { top: 92px; }
     .pham-object-stage__intro .pham-object-stage__eyebrow { display: none; }
@@ -195,40 +119,29 @@
     .pham-object-stage__body { width: 88%; margin-top: 10px; font-size: .82rem; line-height: 1.52; }
     .pham-object-stage__viewer { inset: 230px 0 74px; }
     .pham-object-stage__model { width: 100vw; height: 56vh; min-height: 430px; }
-    .pham-object-stage__fallback-image { width: 108vw; max-width: none; height: 58vh; margin-top: 0; }
     .pham-object-stage__mode { display: none; }
-    .pham-object-stage__loader { left: calc(50% + var(--stage-switch-shift)); bottom: 88px; width: min(172px, calc(100vw - (var(--gutter) * 2))); }
+    .pham-object-stage__loader { left: calc(50% + var(--stage-media-shift)); bottom: 88px; width: min(172px, calc(100vw - (var(--gutter) * 2))); }
     .pham-object-stage__fallback-note { bottom: 82px; }
     .pham-object-stage__rotate-hint { left: 50%; top: auto; bottom: 88px; flex-direction: row; gap: 7px; transform: translateX(-50%); }
     .pham-object-stage__rotate-hint.is-visible { transform: translateX(-50%) translateY(-4px); }
     .pham-object-stage__rotate-hint svg { width: 46px; height: 28px; }
-    .pham-object-stage__switcher { bottom: 28px; }
-    .pham-object-stage__switcher button { min-width: 82px; min-height: 44px; }
     .pham-object-stage__controls { bottom: 20px; }
     .pham-object-stage__controls p { display: none; }
   }
   @media (orientation: landscape) and (max-height: 520px) and (min-width: 600px) and (max-width: 899px) {
-    .pham-object-stage {
-      min-height: 560px;
-      --stage-media-shift: 150px;
-      --stage-poster-shift: 150px;
-      --stage-poster-scale: 1.06;
-      --stage-switch-shift: 150px;
-    }
+    .pham-object-stage { min-height: 560px; --stage-media-shift: 150px; }
     .pham-object-stage__meta { top: 42px; }
     .pham-object-stage__intro { top: 86px; }
     .pham-object-stage__title { width: 44vw; font-size: clamp(2.2rem, 5vw, 3.5rem); }
     .pham-object-stage__body { width: 34vw; margin-top: 14px; font-size: .8rem; line-height: 1.45; }
     .pham-object-stage__viewer { inset: 36px 0 44px; }
     .pham-object-stage__model { width: 58vw; height: 100%; min-height: 0; }
-    .pham-object-stage__fallback-image { width: 58vw; height: 100%; margin-top: 0; }
     .pham-object-stage__mode { display: none; }
-    .pham-object-stage__switcher { bottom: 16px; }
     .pham-object-stage__loader { bottom: 66px; }
     .pham-object-stage__fallback-note { bottom: 62px; }
     .pham-object-stage__controls { bottom: 12px; }
   }
-  @media (prefers-reduced-motion: reduce) { .pham-object-stage__fallback-image { transition: none; }.pham-object-stage:hover .pham-object-stage__fallback-image { transform: translate3d(var(--stage-poster-shift),var(--stage-poster-y-shift),0) scale(var(--stage-poster-scale)); }.pham-object-stage__rotate-hint svg { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .pham-object-stage__rotate-hint svg { animation: none; } }
 </style>
 
 {% schema %}
@@ -237,24 +150,17 @@
   "tag": "section",
   "class": "pham-product-stage-section",
   "settings": [
-    { "type": "header", "content": "Independent media" },
-    { "type": "text", "id": "model_url", "label": "GLB model URL", "info": "Upload the GLB under Content > Files, then paste its CDN URL here. This source is independent from product media." },
-    { "type": "image_picker", "id": "poster_image", "label": "Poster / image view", "info": "Independent presentation image shown while the model loads or when IMAGE is selected." },
-    { "type": "text", "id": "poster_url", "label": "Poster URL (migration fallback)", "info": "Optional direct image URL. The image picker above takes priority." },
-    { "type": "select", "id": "default_view", "label": "Default view", "default": "model", "options": [{ "value": "model", "label": "3D model" }, { "value": "image", "label": "Image" }] },
+    { "type": "header", "content": "Interactive 3D model" },
+    { "type": "text", "id": "model_url", "label": "GLB model URL", "info": "Upload the GLB under Content > Files, then paste its CDN URL here." },
     { "type": "text", "id": "model_alt", "label": "Model description", "default": "Interactive 3D study of the PHAM garment" },
     { "type": "text", "id": "object_code", "label": "Object code", "default": "PHAM-001" },
     { "type": "header", "content": "Copy" },
     { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "DIGITAL GARMENT STUDY / 001" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "INSPECT THE FORM" },
     { "type": "textarea", "id": "body", "label": "Description", "default": "Rotate the object and inspect the silhouette before entering the product archive." },
-    { "type": "text", "id": "viewer_label", "label": "Viewer switch label", "default": "Independent media view" },
-    { "type": "text", "id": "image_label", "label": "Image view label", "default": "IMAGE" },
-    { "type": "text", "id": "model_label", "label": "3D view label", "default": "3D" },
-    { "type": "text", "id": "image_mode_label", "label": "Image mode status", "default": "IMAGE STUDY" },
-    { "type": "text", "id": "model_mode_label", "label": "3D mode status", "default": "3D MODEL / LIVE" },
+    { "type": "text", "id": "model_mode_label", "label": "3D model status", "default": "3D MODEL / LIVE" },
     { "type": "text", "id": "model_loading_label", "label": "3D loading status", "default": "LOADING GEOMETRY" },
-    { "type": "text", "id": "model_error_label", "label": "3D fallback status", "default": "3D VIEW UNAVAILABLE · IMAGE MODE ACTIVE" },
+    { "type": "text", "id": "model_error_label", "label": "3D unavailable message", "default": "3D VIEW UNAVAILABLE" },
     { "type": "text", "id": "interaction_label", "label": "3D interaction help", "default": "DRAG TO ROTATE" },
     { "type": "text", "id": "model_empty_label", "label": "Missing model message", "default": "ADD A GLB URL IN THEME EDITOR" }
   ],
