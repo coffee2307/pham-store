@@ -21,8 +21,12 @@
       }
 
       if (existing) {
-        existing.addEventListener('load', finish, { once: true });
-        existing.addEventListener('error', reject, { once: true });
+        if (window.customElements && window.customElements.whenDefined) {
+          window.customElements.whenDefined('model-viewer').then(resolve, reject);
+        } else {
+          existing.addEventListener('load', finish, { once: true });
+          existing.addEventListener('error', reject, { once: true });
+        }
         return;
       }
 
