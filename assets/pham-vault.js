@@ -665,7 +665,7 @@
         card.classList.toggle('is-front', isFront);
         card.style.zIndex = String(Math.round(state.depth * 100) + (isFront ? 2 : 0));
         card.style.opacity = String(Math.min(1, 0.34 + state.depth * 0.66 + focus * 0.04));
-        card.style.filter = 'brightness(' + (0.48 + state.depth * 0.58 + focus * 0.05).toFixed(3) + ')';
+        // Depth is already conveyed by card opacity; avoid filtering and softening image textures.
         card.style.transform =
           'translate3d(-50%, -50%, 0) ' +
           'rotateY(' + state.visualAngle.toFixed(5) + 'rad) ' +

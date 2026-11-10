@@ -161,7 +161,7 @@
   backface-visibility: visible;
   transform-style: preserve-3d;
   transform-origin: center;
-  will-change: transform, opacity, filter;
+  will-change: transform, opacity;
 }
 .pham-vault__orbit-card-face {
   position: relative;
@@ -220,7 +220,8 @@
   height: 100%;
   object-fit: cover;
   pointer-events: none;
-  filter: grayscale(1) contrast(1.08);
+  filter: none;
+  image-rendering: auto;
 }
 .pham-vault__orbit-core {
   position: absolute;
@@ -868,7 +869,7 @@
 }
 
 .pham-vault__orbit-card.is-tarot-expanded img {
-  filter: grayscale(1) contrast(1.04) !important;
+  filter: none !important;
   opacity: 1 !important;
   image-rendering: auto;
   backface-visibility: hidden;
