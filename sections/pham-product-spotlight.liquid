@@ -33,9 +33,12 @@
     <div class="pham-product-spotlight__grid">
 
       <div class="pham-product-spotlight__media reveal-up">
-        {%- if product.images.size > 0 -%}
+        {%- if section.settings.spotlight_image_1 != blank -%}
           <div class="pham-product-spotlight__gallery pham-product-scroll-gallery" data-pham-spotlight-gallery>
-            {%- for image in product.images limit: section.settings.image_limit -%}
+            {%- for spotlight_slot in (1..3) -%}
+              {%- assign spotlight_key = 'spotlight_image_' | append: spotlight_slot -%}
+              {%- assign image = section.settings[spotlight_key] -%}
+              {%- if image == blank -%}{%- continue -%}{%- endif -%}
               {%- liquid
                 case forloop.index0
                   when 0
@@ -690,15 +693,10 @@
       "id": "product",
       "label": "Featured product"
     },
-    {
-      "type": "range",
-      "id": "image_limit",
-      "label": "Gallery images shown",
-      "min": 1,
-      "max": 8,
-      "step": 1,
-      "default": 3
-    },
+    { "type": "header", "content": "Spotlight lookbook" },
+    { "type": "image_picker", "id": "spotlight_image_1", "label": "Lookbook image 1" },
+    { "type": "image_picker", "id": "spotlight_image_2", "label": "Lookbook image 2" },
+    { "type": "image_picker", "id": "spotlight_image_3", "label": "Lookbook image 3" },
     {
       "type": "header",
       "content": "Copy"

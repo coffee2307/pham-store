@@ -1,0 +1,192 @@
+{%- assign editorial_image = section.settings.editorial_image -%}
+
+<section class="pham-editorial-stage" data-pham-editorial-stage aria-label="{{ section.settings.heading | escape }}">
+  <div class="pham-editorial-stage__ambient" aria-hidden="true"></div>
+
+  {%- if editorial_image != blank -%}
+    <div class="pham-editorial-stage__visual">
+      {{ editorial_image
+        | image_url: width: 2200
+        | image_tag:
+          loading: 'eager',
+          fetchpriority: 'high',
+          decoding: 'async',
+          widths: '480, 768, 1024, 1440, 1800, 2200',
+          sizes: '(max-width: 699px) 100vw, 68vw',
+          class: 'pham-editorial-stage__image',
+          alt: 'PHAM-001 black cropped bomber, rear editorial view'
+      }}
+    </div>
+  {%- endif -%}
+
+  <div class="pham-editorial-stage__meta pham-container">
+    <p>PHAM / EDITION 01</p>
+    <p>{{ section.settings.object_code }}</p>
+  </div>
+
+  <div class="pham-editorial-stage__content pham-container">
+    <div class="pham-editorial-stage__copy">
+      <p class="pham-editorial-stage__eyebrow">{{ section.settings.eyebrow }}</p>
+      <h1 class="pham-editorial-stage__title">{{ section.settings.heading }}</h1>
+      <p class="pham-editorial-stage__description">{{ section.settings.body }}</p>
+      <a class="pham-editorial-stage__cta" href="#MainProduct-{{ product.id }}">
+        <span>EXPLORE PHAM-001</span>
+        <span aria-hidden="true">↓</span>
+      </a>
+    </div>
+  </div>
+  <div class="pham-editorial-stage__footer pham-container">
+    <span>PHAM / THE FIRST OBJECT</span>
+    <span>DESIGNED IN VIETNAM — EDITION 01</span>
+  </div>
+</section>
+
+<style>
+  .pham-editorial-stage {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    min-height: clamp(730px, 100svh, 1080px);
+    background: #090b0e;
+    color: #f5f3f0;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+  }
+  .pham-editorial-stage__ambient {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(ellipse 68% 82% at 76% 27%, rgba(125,120,116,.12), transparent 72%),
+      radial-gradient(ellipse 56% 64% at 16% 76%, rgba(32,35,39,.5), transparent 77%),
+      linear-gradient(116deg, #07090c 0%, #0b0d10 54%, #151719 100%);
+  }
+  .pham-editorial-stage__visual {
+    position: absolute;
+    inset-block: 0;
+    right: 0;
+    width: 69%;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .pham-editorial-stage__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 54%;
+  }
+  .pham-editorial-stage__visual::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, #090b0e 0%, rgba(9,11,14,.92) 10%, rgba(9,11,14,.67) 28%, rgba(9,11,14,.16) 56%, rgba(9,11,14,0) 79%),
+      linear-gradient(0deg, rgba(9,11,14,.85) 0%, transparent 19%, transparent 85%, rgba(9,11,14,.18) 100%);
+  }
+  .pham-editorial-stage__meta,
+  .pham-editorial-stage__footer {
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    font: 500 10px/1.4 var(--font-mono);
+    letter-spacing: .13em;
+    color: rgba(244,244,241,.5);
+  }
+  .pham-editorial-stage__meta { top: clamp(86px, 9vw, 132px); }
+  .pham-editorial-stage__footer { bottom: 28px; }
+  .pham-editorial-stage__meta p { margin: 0; }
+  .pham-editorial-stage__content { position: relative; width: 100%; z-index: 2; }
+  .pham-editorial-stage__copy { max-width: 550px; padding: 112px 0 72px; }
+  .pham-editorial-stage__eyebrow {
+    margin: 0 0 22px;
+    font: 500 10px/1.4 var(--font-mono);
+    letter-spacing: .18em;
+    color: rgba(242,242,239,.58);
+  }
+  .pham-editorial-stage__title {
+    max-width: 570px;
+    margin: 0;
+    font: 400 clamp(4.1rem, 7.2vw, 8.6rem)/.92 var(--font-display);
+    letter-spacing: -.045em;
+    text-wrap: balance;
+  }
+  .pham-editorial-stage__description {
+    max-width: 335px;
+    margin: 30px 0 38px;
+    font: 400 clamp(.88rem, 1.1vw, 1rem)/1.7 var(--font-body);
+    color: rgba(242,242,239,.72);
+  }
+  .pham-editorial-stage__cta {
+    display: inline-flex;
+    gap: 25px;
+    align-items: center;
+    border-bottom: 1px solid rgba(242,242,239,.65);
+    padding: 0 0 11px;
+    color: #f6f5f1;
+    text-decoration: none;
+    font: 600 10px/1.2 var(--font-mono);
+    letter-spacing: .13em;
+    transition: opacity 180ms ease, gap 180ms ease;
+  }
+  .pham-editorial-stage__cta:hover { gap: 33px; opacity: .8; }
+  .pham-editorial-stage__cta:focus-visible { outline: 2px solid #f6f5f1; outline-offset: 6px; }
+
+  @media (max-width: 899px) {
+    .pham-editorial-stage { min-height: 910px; }
+    .pham-editorial-stage__visual { width: 80%; }
+    .pham-editorial-stage__copy { max-width: 430px; }
+    .pham-editorial-stage__title { font-size: clamp(3.65rem, 8.5vw, 5.6rem); }
+    .pham-editorial-stage__visual::after {
+      background: linear-gradient(90deg, #090b0e 0%, rgba(9,11,14,.9) 22%, rgba(9,11,14,.12) 75%),
+                  linear-gradient(0deg, rgba(9,11,14,.68), transparent 22%);
+    }
+  }
+  @media (max-width: 699px) {
+    .pham-editorial-stage { min-height: 860px; min-height: max(860px, 106svh); align-items: flex-start; }
+    .pham-editorial-stage__meta { top: 82px; font-size: 9px; }
+    .pham-editorial-stage__meta p:last-child { display: none; }
+    .pham-editorial-stage__visual { left: 0; right: 0; top: 300px; bottom: 0; width: 100%; }
+    .pham-editorial-stage__image { object-position: 50% 57%; transform: scale(1.12); transform-origin: center 42%; }
+    .pham-editorial-stage__visual::after {
+      background: linear-gradient(180deg, #090b0e 0%, #090b0e 24%, rgba(9,11,14,.96) 29%, rgba(9,11,14,.12) 43%, transparent 48%, rgba(9,11,14,.05) 77%, #090b0e 100%),
+                  linear-gradient(90deg, rgba(9,11,14,.25), transparent 45%);
+    }
+    .pham-editorial-stage__content { padding-top: 176px; }
+    .pham-editorial-stage__copy { max-width: 95%; padding: 0; }
+    .pham-editorial-stage__eyebrow { font-size: 9px; margin-bottom: 13px; }
+    .pham-editorial-stage__title { font-size: clamp(3.25rem, 11.4vw, 5.7rem); max-width: 90%; }
+    .pham-editorial-stage__description { max-width: 285px; margin: 14px 0 23px; font-size: .8rem; line-height: 1.6; }
+    .pham-editorial-stage__footer { bottom: 23px; font-size: 8px; }
+    .pham-editorial-stage__footer span:last-child { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pham-editorial-stage__cta { transition: none; }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "PHAM Editorial stage",
+  "tag": "section",
+  "class": "pham-product-editorial-section",
+  "settings": [
+    { "type": "header", "content": "Hero image" },
+    { "type": "image_picker", "id": "editorial_image", "label": "Editorial image" },
+    { "type": "text", "id": "object_code", "label": "Object code", "default": "PHAM-001" },
+    { "type": "header", "content": "Copy" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "EDITION 01 / PHAM ATELIER" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "THE FIRST OBJECT" },
+    { "type": "textarea", "id": "body", "label": "Description", "default": "Designed to be felt. Built to be worn. The inaugural PHAM object is defined by controlled volume, a cropped form and uncompromising detail." }
+  ],
+  "presets": [{ "name": "PHAM Editorial stage", "category": "PHAM" }],
+  "enabled_on": { "templates": ["product"] }
+}
+{% endschema %}

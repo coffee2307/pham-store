@@ -13,7 +13,9 @@
       "type": "pham-product-spotlight",
       "settings": {
         "product": "pham-001",
-        "image_limit": 3,
+        "spotlight_image_1": "shopify://shop_images/pham-001-orbit-08.png",
+        "spotlight_image_2": "shopify://shop_images/pham-001-orbit-06.png",
+        "spotlight_image_3": "shopify://shop_images/pham-001-orbit-03.png",
         "eyebrow": "PHAM ATELIER · EDITION 01",
         "description": "",
         "preorder_label": "PRIORITY ACCESS COMING SOON",
