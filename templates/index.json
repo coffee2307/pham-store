@@ -29,17 +29,16 @@
         "look_1": {
           "type": "image",
           "settings": {
-            "image": "shopify://shop_images/pham001-1.jpg",
-            "image_2": "shopify://shop_images/pham001-2.jpg",
-            "image_3": "shopify://shop_images/pham001-3.jpg",
-            "image_4": "shopify://shop_images/pham001-4.jpg",
+            "image": "shopify://shop_images/pham-001-silhouette-detail-01.png",
+            "image_2": "shopify://shop_images/pham-001-silhouette-detail-02.png",
+            "image_3": "shopify://shop_images/pham-001-silhouette-detail-03.png",
             "enable_carousel": true,
             "autoplay_seconds": 5,
             "enable_lightbox": true,
             "size": "lg",
             "aspect": "4-5",
             "parallax_speed": 0.2,
-            "caption": "PHAM ATELIER · EDITION 01 · FRAME 01",
+            "caption": "PHAM-001 · CONSTRUCTION DETAILS · EDITION 01",
             "caption_position": "below",
             "overlay_eyebrow": "LOOK · 01",
             "overlay_text": "The Silhouette"

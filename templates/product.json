@@ -35,40 +35,48 @@
         "object_record_note": "Each released object is paired with its own identity card and individual edition identifier."
       },
       "blocks": {
-        "gallery_male_002": {
+        "gallery_orbit_08": {
           "type": "gallery_image",
           "settings": {
-            "image": "shopify://shop_images/sketch-male-002.png",
-            "alt": "PHAM-001 front styling study — Edition 01 by PHAM"
+            "image": "shopify://shop_images/pham-001-orbit-08.png",
+            "alt": "PHAM-001 lookbook — three-quarter front view"
           }
         },
-        "gallery_male_001": {
+        "gallery_orbit_06": {
           "type": "gallery_image",
           "settings": {
-            "image": "shopify://shop_images/sketch-male-001.png",
-            "alt": "PHAM-001 alternate styling study — Edition 01 by PHAM"
+            "image": "shopify://shop_images/pham-001-orbit-06.png",
+            "alt": "PHAM-001 lookbook — jacket front with hands in pockets"
           }
         },
-        "gallery_female_002": {
+        "gallery_orbit_03": {
           "type": "gallery_image",
           "settings": {
-            "image": "shopify://shop_images/sketch-female-002.png",
-            "alt": "PHAM-001 front styling study on model — Edition 01 by PHAM"
+            "image": "shopify://shop_images/pham-001-orbit-03.png",
+            "alt": "PHAM-001 lookbook — three-quarter back view"
           }
         },
-        "gallery_female_001": {
+        "gallery_orbit_07": {
           "type": "gallery_image",
           "settings": {
-            "image": "shopify://shop_images/sketch-female-001.png",
-            "alt": "PHAM-001 alternate styling study on model — Edition 01 by PHAM"
+            "image": "shopify://shop_images/pham-001-orbit-07.png",
+            "alt": "PHAM-001 lookbook — open jacket and inner construction"
+          }
+        },
+        "gallery_orbit_04": {
+          "type": "gallery_image",
+          "settings": {
+            "image": "shopify://shop_images/pham-001-orbit-04-v2.png",
+            "alt": "PHAM-001 lookbook — front panel and zipper details"
           }
         }
       },
       "block_order": [
-        "gallery_male_002",
-        "gallery_male_001",
-        "gallery_female_002",
-        "gallery_female_001"
+        "gallery_orbit_08",
+        "gallery_orbit_06",
+        "gallery_orbit_03",
+        "gallery_orbit_07",
+        "gallery_orbit_04"
       ]
     },
     "product-3d": {
