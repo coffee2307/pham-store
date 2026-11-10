@@ -122,64 +122,64 @@
         "orbit_01": {
           "type": "orbit_card",
           "settings": {
-            "image": "shopify://shop_images/pham001-1.jpg",
-            "alt_text": "PHAM archive frame 01",
+            "image": "shopify://shop_images/pham-001-orbit-01.png",
+            "alt_text": "PHAM-001 editorial lookbook frame 01",
             "link": ""
           }
         },
         "orbit_02": {
           "type": "orbit_card",
           "settings": {
-            "image": "shopify://shop_images/pham001-2.jpg",
-            "alt_text": "PHAM archive frame 02",
+            "image": "shopify://shop_images/pham-001-orbit-02.png",
+            "alt_text": "PHAM-001 editorial lookbook frame 02",
             "link": ""
           }
         },
         "orbit_03": {
           "type": "orbit_card",
           "settings": {
-            "image": "shopify://shop_images/pham001-3.jpg",
-            "alt_text": "PHAM archive frame 03",
+            "image": "shopify://shop_images/pham-001-orbit-03.png",
+            "alt_text": "PHAM-001 editorial lookbook frame 03",
             "link": ""
           }
         },
         "orbit_04": {
           "type": "orbit_card",
           "settings": {
-            "image": "shopify://shop_images/pham001-4.jpg",
-            "alt_text": "PHAM archive frame 04",
+            "image": "shopify://shop_images/pham-001-orbit-04.png",
+            "alt_text": "PHAM-001 editorial lookbook frame 04",
             "link": ""
           }
         },
         "orbit_05": {
           "type": "orbit_card",
           "settings": {
-            "image": "shopify://shop_images/pham001-2.jpg",
-            "alt_text": "PHAM archive frame 05",
+            "image": "shopify://shop_images/pham-001-orbit-05.png",
+            "alt_text": "PHAM-001 editorial lookbook frame 05",
             "link": ""
           }
         },
         "orbit_06": {
           "type": "orbit_card",
           "settings": {
-            "image": "shopify://shop_images/pham001-4.jpg",
-            "alt_text": "PHAM archive frame 06",
+            "image": "shopify://shop_images/pham-001-orbit-06.png",
+            "alt_text": "PHAM-001 editorial lookbook frame 06",
             "link": ""
           }
         },
         "orbit_07": {
           "type": "orbit_card",
           "settings": {
-            "image": "shopify://shop_images/pham001-1.jpg",
-            "alt_text": "PHAM archive frame 07",
+            "image": "shopify://shop_images/pham-001-orbit-07.png",
+            "alt_text": "PHAM-001 editorial lookbook frame 07",
             "link": ""
           }
         },
         "orbit_08": {
           "type": "orbit_card",
           "settings": {
-            "image": "shopify://shop_images/pham001-3.jpg",
-            "alt_text": "PHAM archive frame 08",
+            "image": "shopify://shop_images/pham-001-orbit-08.png",
+            "alt_text": "PHAM-001 editorial lookbook frame 08",
             "link": ""
           }
         }
