@@ -913,6 +913,28 @@
     opacity 500ms cubic-bezier(.37,0,.63,1),
     visibility 0s linear 0s;
 }
+.pham-vault-card-dialog.is-settled {
+  /* Keep the final 2D image above the 3D card layer for native-resolution rendering. */
+  z-index: 19;
+}
+.pham-vault-card-dialog__photo {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  max-width: none;
+  box-sizing: border-box;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,.34);
+  opacity: 0;
+  pointer-events: none;
+  filter: none;
+  transform: none;
+  image-rendering: auto;
+  transition: opacity 180ms ease;
+}
+.pham-vault-card-dialog.is-settled .pham-vault-card-dialog__photo.is-ready {
+  opacity: 1;
+}
 .pham-vault-card-dialog__backdrop {
   position: absolute;
   inset: 0;

@@ -80,6 +80,7 @@
     let dialogPlaneYaw = 0;
     let dialogPlaneLean = 0;
     let expandedImage = null;
+    let expandedPhoto = null;
     let expandedImageSource = null;
     let expandedImageSrcset = null;
     let expandedImageSizes = null;
@@ -150,10 +151,19 @@
       cardDialog.setAttribute('aria-hidden', 'true');
       cardDialog.innerHTML =
         '<div class="pham-vault-card-dialog__backdrop" data-pham-vault-card-dismiss></div>' +
+        '<img class="pham-vault-card-dialog__photo" data-pham-vault-expanded-photo alt="" aria-hidden="true" decoding="async" />' +
         '<button type="button" class="pham-vault-card-dialog__close" data-pham-vault-card-close aria-label="Close expanded archive image">&times;</button>';
 
       sticky.appendChild(cardDialog);
       cardDialogClose = cardDialog.querySelector('[data-pham-vault-card-close]');
+      expandedPhoto = cardDialog.querySelector('[data-pham-vault-expanded-photo]');
+      expandedPhoto.addEventListener('load', function () {
+        expandedPhoto.classList.add('is-ready');
+        if (cardDialogSettled) positionExpandedPhoto();
+      });
+      expandedPhoto.addEventListener('error', function () {
+        expandedPhoto.classList.remove('is-ready');
+      });
       cardDialog.querySelector('[data-pham-vault-card-dismiss]').addEventListener('click', closeCardDialog);
       cardDialogClose.addEventListener('click', closeCardDialog);
     }
@@ -215,13 +225,30 @@
       });
     }
 
+    function positionExpandedPhoto() {
+      if (!expandedPhoto || !expandedSource || !cardDialog) return;
+      const face = expandedSource.querySelector('.pham-vault__orbit-card-face');
+      if (!face) return;
+      const rect = face.getBoundingClientRect();
+      const parent = cardDialog.getBoundingClientRect();
+      expandedPhoto.style.left = (rect.left - parent.left) + 'px';
+      expandedPhoto.style.top = (rect.top - parent.top) + 'px';
+      expandedPhoto.style.width = rect.width + 'px';
+      expandedPhoto.style.height = rect.height + 'px';
+    }
+
     function settleCardDialogOpen() {
       if (!cardDialogOpen || cardDialogClosing) return;
+      positionExpandedPhoto();
       cardDialogSettled = true;
       root.classList.add('is-card-settled');
       cardDialog.classList.add('is-settled');
       if (cardDialogClose) cardDialogClose.focus({ preventScroll: true });
     }
+
+    window.addEventListener('resize', function () {
+      if (cardDialogSettled) requestAnimationFrame(positionExpandedPhoto);
+    }, { passive: true });
 
     function cancelDialogAnimations() {
       if (cardDialogAnimation) {
@@ -246,6 +273,11 @@
       if (expandedSource) {
         expandedSource.classList.remove('is-tarot-expanded');
         expandedSource.style.transform = sourceCardTransform;
+      }
+
+      if (expandedPhoto) {
+        expandedPhoto.classList.remove('is-ready');
+        expandedPhoto.removeAttribute('src');
       }
 
       if (expandedImage) {
@@ -359,6 +391,15 @@
       if (window.innerWidth < 600) mobileOrbitResume = 0;
       expandedSource = card;
       expandedImage = card.querySelector('img');
+      if (expandedPhoto) {
+        expandedPhoto.classList.remove('is-ready');
+        expandedPhoto.removeAttribute('src');
+        const fullResolutionSrc = card.dataset.phamExpandedSrc || (expandedImage && expandedImage.currentSrc);
+        if (fullResolutionSrc) {
+          expandedPhoto.setAttribute('src', fullResolutionSrc);
+          expandedPhoto.fetchPriority = 'high';
+        }
+      }
       if (expandedImage) {
         expandedImageSource = expandedImage.getAttribute('src');
         expandedImageSrcset = expandedImage.getAttribute('srcset');
