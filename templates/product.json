@@ -83,6 +83,7 @@
       "type": "pham-product-editorial",
       "settings": {
         "editorial_image": "shopify://shop_images/pham-home-editorial-background-009.png",
+        "mobile_image": "shopify://shop_images/pham-product-editorial-mobile-no-logo.png",
         "object_code": "PHAM-001",
         "eyebrow": "PHAM ATELIER / EDITION 01",
         "heading": "THE FIRST OBJECT",

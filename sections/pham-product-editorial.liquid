@@ -1,21 +1,31 @@
 {%- assign editorial_image = section.settings.editorial_image -%}
+{%- assign editorial_mobile_image = section.settings.mobile_image -%}
 
 <section class="pham-editorial-stage" data-pham-editorial-stage aria-label="{{ section.settings.heading | escape }}">
   <div class="pham-editorial-stage__ambient" aria-hidden="true"></div>
 
   {%- if editorial_image != blank -%}
     <div class="pham-editorial-stage__visual">
-      {{ editorial_image
-        | image_url: width: 2200
-        | image_tag:
-          loading: 'eager',
-          fetchpriority: 'high',
-          decoding: 'async',
-          widths: '480, 768, 1024, 1440, 1800, 2200',
-          sizes: '(max-width: 699px) 100vw, 68vw',
-          class: 'pham-editorial-stage__image',
-          alt: 'PHAM-001 black cropped bomber, rear editorial view'
-      }}
+      <picture class="pham-editorial-stage__picture">
+        {%- if editorial_mobile_image != blank -%}
+          <source
+            media="(max-width: 699px)"
+            srcset="{{ editorial_mobile_image | image_url: width: 480 }} 480w, {{ editorial_mobile_image | image_url: width: 720 }} 720w, {{ editorial_mobile_image | image_url: width: 853 }} 853w"
+            sizes="100vw"
+          >
+        {%- endif -%}
+        {{ editorial_image
+          | image_url: width: 2200
+          | image_tag:
+            loading: 'eager',
+            fetchpriority: 'high',
+            decoding: 'async',
+            widths: '480, 768, 1024, 1440, 1800, 2200',
+            sizes: '(max-width: 699px) 100vw, 68vw',
+            class: 'pham-editorial-stage__image',
+            alt: 'PHAM-001 black cropped bomber, rear editorial view'
+        }}
+      </picture>
     </div>
   {%- endif -%}
 
@@ -71,6 +81,7 @@
     pointer-events: none;
     overflow: hidden;
   }
+  .pham-editorial-stage__picture { display: block; width: 100%; height: 100%; }
   .pham-editorial-stage__image {
     display: block;
     width: 100%;
@@ -150,20 +161,29 @@
     }
   }
   @media (max-width: 699px) {
-    .pham-editorial-stage { min-height: 860px; min-height: max(860px, 106svh); align-items: flex-start; }
+    .pham-editorial-stage { min-height: 845px; min-height: max(845px, 100svh); align-items: flex-start; background: #090b0e; }
+    .pham-editorial-stage__ambient {
+      background: radial-gradient(ellipse 84% 53% at 79% 65%, rgba(63,63,63,.24), transparent 76%),
+                  linear-gradient(#080a0d, #0e1013 65%, #090b0e);
+    }
     .pham-editorial-stage__meta { top: 82px; font-size: 9px; }
     .pham-editorial-stage__meta p:last-child { display: none; }
-    .pham-editorial-stage__visual { left: 0; right: 0; top: 300px; bottom: 0; width: 100%; }
-    .pham-editorial-stage__image { object-position: 50% 57%; transform: scale(1.12); transform-origin: center 42%; }
-    .pham-editorial-stage__visual::after {
-      background: linear-gradient(180deg, #090b0e 0%, #090b0e 24%, rgba(9,11,14,.96) 29%, rgba(9,11,14,.12) 43%, transparent 48%, rgba(9,11,14,.05) 77%, #090b0e 100%),
-                  linear-gradient(90deg, rgba(9,11,14,.25), transparent 45%);
+    .pham-editorial-stage__visual { left: 0; right: 0; top: 335px; bottom: 0; width: 100%; }
+    .pham-editorial-stage__image {
+      object-position: 38% 43%;
+      transform: none;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 85%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 85%, transparent 100%);
     }
-    .pham-editorial-stage__content { padding-top: 176px; }
+    .pham-editorial-stage__visual::after {
+      background: linear-gradient(90deg, rgba(9,11,14,.14), transparent 62%),
+                  linear-gradient(0deg, #090b0e 0%, transparent 17%, transparent 95%);
+    }
+    .pham-editorial-stage__content { padding-top: 127px; }
     .pham-editorial-stage__copy { max-width: 95%; padding: 0; }
     .pham-editorial-stage__eyebrow { font-size: 9px; margin-bottom: 13px; }
-    .pham-editorial-stage__title { font-size: clamp(3.25rem, 11.4vw, 5.7rem); max-width: 90%; }
-    .pham-editorial-stage__description { max-width: 285px; margin: 14px 0 23px; font-size: .8rem; line-height: 1.6; }
+    .pham-editorial-stage__title { font-size: clamp(3.2rem, 11vw, 4.6rem); max-width: 92%; }
+    .pham-editorial-stage__description { max-width: 270px; margin: 14px 0 23px; font-size: .8rem; line-height: 1.6; }
     .pham-editorial-stage__footer { bottom: 23px; font-size: 8px; }
     .pham-editorial-stage__footer span:last-child { display: none; }
   }
@@ -179,7 +199,8 @@
   "class": "pham-product-editorial-section",
   "settings": [
     { "type": "header", "content": "Hero image" },
-    { "type": "image_picker", "id": "editorial_image", "label": "Editorial image" },
+    { "type": "image_picker", "id": "editorial_image", "label": "Editorial image (desktop)" },
+    { "type": "image_picker", "id": "mobile_image", "label": "Editorial image (mobile, no embedded logo)" },
     { "type": "text", "id": "object_code", "label": "Object code", "default": "PHAM-001" },
     { "type": "header", "content": "Copy" },
     { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "EDITION 01 / PHAM ATELIER" },
