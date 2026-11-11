@@ -1,0 +1,113 @@
+{
+  "sections": {
+    "main": {
+      "type": "pham-founder-story",
+      "settings": {
+        "eyebrow": "PHAM / FOUNDER JOURNAL",
+        "title": "Building PHAM, from the beginning.",
+        "lead": "I started PHAM at sixteen, still in high school, without a funded business, an industry network or a team. This is the story of learning to build the first object—and the questions that still have to be answered.",
+        "present_heading": "The first edition is still being built.",
+        "present_body_1": "PHAM-001 is the first release I want to put into the world. Its planned edition is fifty individually identified pieces. Before that can mean something to anyone else, the final product has to deserve their trust. That means being clear about the sample, the changes being considered and the reality of production.",
+        "present_body_2": "I cannot promise that building this will be easy or that every attempt will work. I can keep learning, improve the object and explain decisions with more care than hype. The story is not that I succeeded at sixteen. The story is that I started—and I am still doing the work."
+      },
+      "blocks": {
+        "chapter_01": {
+          "type": "chapter",
+          "settings": {
+            "number": "01",
+            "category": "THE FIRST DECISION",
+            "title": "There was no head start.",
+            "body_1": "I began PHAM in 2026, when I was sixteen and still in high school. I had no investor, no professional team and no established contacts in fashion. There was no finished collection waiting to be launched. Starting felt less like opening a company and more like deciding to take responsibility for a problem I did not yet know how to solve.",
+            "body_2": "I could not afford to make mistakes endlessly or hire someone to handle every part of the process. I spent time understanding fabrics, garment shapes, production terminology and how to describe an idea precisely enough for another person to manufacture it. The first resource I had to build was knowledge."
+          }
+        },
+        "chapter_02": {
+          "type": "chapter",
+          "settings": {
+            "number": "02",
+            "category": "FROM IDEA TO TECH PACK",
+            "title": "Turning an idea into something that can be made.",
+            "body_1": "PHAM-001 began as a cropped bomber: controlled volume, a distinct shoulder construction, contrasting panels and adjustable side details. I wanted it to look deliberate rather than loud. It was much easier to imagine that silhouette than to translate it into real measurements, seams, materials and hardware.",
+            "body_2": "I prepared technical documents, asked manufacturers questions and discussed a small production quantity. I worked with a factory overseas while based in Vietnam, which meant communicating through messages and references instead of standing beside the person making the garment. Every vague instruction risked becoming an expensive misunderstanding."
+          }
+        },
+        "chapter_03": {
+          "type": "chapter",
+          "settings": {
+            "number": "03",
+            "category": "THE FIRST SAMPLE",
+            "title": "A sample is a lesson, not a finish line.",
+            "body_1": "When the first sample arrived, I was relieved to see that much of the design was real: the silhouette worked, the fit looked promising and the workmanship gave me confidence to continue. For the first time, PHAM-001 was not only a technical drawing or a screen full of ideas.",
+            "body_2": "But after using that sample for the lookbook, I saw things I wanted to change. Some areas looked too flat on camera, while the contrasting panels did not communicate the effect I had imagined. That put me in a difficult position: the images had already been made, another sample meant more cost, and I still wanted the eventual product to be better. The honest answer was not to pretend the first version was perfect."
+          }
+        },
+        "chapter_04": {
+          "type": "chapter",
+          "settings": {
+            "number": "04",
+            "category": "BEYOND THE GARMENT",
+            "title": "The work people rarely see.",
+            "body_1": "A fashion brand needs more than a jacket. I had to think about packaging, product photographs, the website, size information, edition identity, customer communication, international delivery and how a limited release could work without promising more than I could fulfil. Each small decision affected the next one.",
+            "body_2": "I was also doing this while studying. A difficult week at school did not make supplier questions disappear. Limited money affected how quickly I could test improvements, and without a large team there was no easy way to delegate every setback. I kept trying to reduce the risks I could control: checking the physical product before marketing it seriously and being clear about what was still under development."
+          }
+        },
+        "chapter_05": {
+          "type": "chapter",
+          "settings": {
+            "number": "05",
+            "category": "EDITION 01",
+            "title": "Finding fifty people who believe in a first attempt.",
+            "body_1": "The first planned edition has fifty jackets. Fifty sounds modest next to large fashion brands, but for a name nobody has heard of, it is a serious challenge. It is not enough to make a piece I like; I need to earn the trust of people who have never met me and give them a reason to believe the garment is worth the price.",
+            "body_2": "There is no guarantee the release will sell out. Production needs resources, marketing has a cost and potential interest does not automatically become a paid order. I am choosing to show the design, the progress and the uncertainty rather than tell people that success has already happened. I want the first fifty pieces to mean something because of the work behind them—not because of a promise of instant success."
+          }
+        },
+        "obstacle_01": {
+          "type": "obstacle",
+          "settings": {
+            "number": "01",
+            "title": "CAPITAL & CASH FLOW",
+            "body": "A physical sample, additional revisions, packaging and a first production run all require money before a customer receives an object. I have had to make choices about what can be tested now and what must wait."
+          }
+        },
+        "obstacle_02": {
+          "type": "obstacle",
+          "settings": {
+            "number": "02",
+            "title": "DISTANCE & COMMUNICATION",
+            "body": "Coordinating production from Vietnam with an overseas workshop means explaining construction details remotely, reviewing references carefully and accepting that some problems only become obvious in a physical sample."
+          }
+        },
+        "obstacle_03": {
+          "type": "obstacle",
+          "settings": {
+            "number": "03",
+            "title": "TIME & RESPONSIBILITY",
+            "body": "School and exams still have their place. Design, sourcing, customer experience and the online store must be worked on around them, often without a team available to take over."
+          }
+        },
+        "obstacle_04": {
+          "type": "obstacle",
+          "settings": {
+            "number": "04",
+            "title": "EARNING TRUST",
+            "body": "An unknown independent label cannot rely on reputation built over many collections. The real challenge is to make the product, its measurements, its release conditions and its limitations clear enough for customers to decide for themselves."
+          }
+        }
+      },
+      "block_order": [
+        "chapter_01",
+        "chapter_02",
+        "chapter_03",
+        "chapter_04",
+        "chapter_05",
+        "obstacle_01",
+        "obstacle_02",
+        "obstacle_03",
+        "obstacle_04"
+      ]
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

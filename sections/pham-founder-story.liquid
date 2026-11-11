@@ -1,0 +1,236 @@
+<!-- PHAM / Founder Story — Editorial page -->
+<section class="pham-founder" aria-labelledby="pham-founder-title">
+  <div class="pham-founder__shell">
+    <nav class="pham-founder__breadcrumb" aria-label="Breadcrumb">
+      <a href="{{ routes.root_url }}">PHAM</a>
+      <span aria-hidden="true">/</span>
+      <a href="/pages/about">ABOUT</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">FOUNDER STORY</span>
+    </nav>
+
+    <header class="pham-founder__hero">
+      <div class="pham-founder__hero-main">
+        <p class="pham-founder__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        <h1 id="pham-founder-title">{{ section.settings.title | escape }}</h1>
+        <p class="pham-founder__lead">{{ section.settings.lead | escape }}</p>
+        <a class="pham-founder__jump" href="#pham-founder-story">READ THE STORY <span aria-hidden="true">↓</span></a>
+      </div>
+      <aside class="pham-founder__facts" aria-label="Founder and brand facts">
+        <p class="pham-founder__facts-label">FOUNDER'S RECORD</p>
+        <dl>
+          <div><dt>FOUNDER</dt><dd>Coffee Pham</dd></div>
+          <div><dt>FOUNDED</dt><dd>2026 · VIETNAM</dd></div>
+          <div><dt>STARTING POINT</dt><dd>16 YEARS OLD · STILL IN SCHOOL</dd></div>
+          <div><dt>FIRST OBJECT</dt><dd>PHAM-001 · CROPPED BOMBER</dd></div>
+        </dl>
+        <p class="pham-founder__facts-footnote">A personal account of a work in progress, not a story of a finished success.</p>
+      </aside>
+    </header>
+
+    <section id="pham-founder-story" class="pham-founder__story" aria-labelledby="pham-founder-story-title">
+      <div class="pham-founder__section-heading">
+        <p class="pham-founder__eyebrow">01 / THE JOURNEY</p>
+        <h2 id="pham-founder-story-title">How it began.<br>What it took.</h2>
+        <p>From the first sketch to the questions that still have to be answered.</p>
+      </div>
+
+      <div class="pham-founder__chapters">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'chapter' -%}
+            <article class="pham-founder__chapter" {{ block.shopify_attributes }}>
+              <div class="pham-founder__chapter-aside">
+                <span class="pham-founder__chapter-number">{{ block.settings.number | escape }}</span>
+                <span class="pham-founder__chapter-category">{{ block.settings.category | escape }}</span>
+              </div>
+              <div class="pham-founder__chapter-copy">
+                <h3>{{ block.settings.title | escape }}</h3>
+                <p>{{ block.settings.body_1 | escape }}</p>
+                {%- if block.settings.body_2 != blank -%}<p>{{ block.settings.body_2 | escape }}</p>{%- endif -%}
+              </div>
+            </article>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </section>
+
+    <section class="pham-founder__obstacles" aria-labelledby="pham-founder-obstacles-title">
+      <div class="pham-founder__section-heading">
+        <p class="pham-founder__eyebrow">02 / THE REAL CONSTRAINTS</p>
+        <h2 id="pham-founder-obstacles-title">The parts you<br>don't see in a lookbook.</h2>
+        <p>Each of these constraints has shaped how the first edition is being built.</p>
+      </div>
+      <div class="pham-founder__obstacles-grid">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'obstacle' -%}
+            <article class="pham-founder__obstacle" {{ block.shopify_attributes }}>
+              <span class="pham-founder__obstacle-index">{{ block.settings.number | escape }}</span>
+              <h3>{{ block.settings.title | escape }}</h3>
+              <p>{{ block.settings.body | escape }}</p>
+            </article>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </section>
+
+    <section class="pham-founder__present" aria-labelledby="pham-founder-present-title">
+      <div class="pham-founder__present-meta">
+        <p class="pham-founder__eyebrow">03 / WHERE THINGS STAND</p>
+        <span>AN UNFINISHED BEGINNING</span>
+      </div>
+      <div>
+        <h2 id="pham-founder-present-title">{{ section.settings.present_heading | escape }}</h2>
+        <p>{{ section.settings.present_body_1 | escape }}</p>
+        <p>{{ section.settings.present_body_2 | escape }}</p>
+        <p class="pham-founder__signature">Coffee Pham <span>FOUNDER / PHAM</span></p>
+      </div>
+    </section>
+
+    <nav class="pham-founder__end-links" aria-label="Explore more about PHAM">
+      <a href="/products/pham-001">
+        <span><strong>THE FIRST OBJECT</strong><small>PHAM-001 / THE PRODUCT</small></span>
+        <span aria-hidden="true">→</span>
+      </a>
+      <a href="/pages/about">
+        <span><strong>ABOUT PHAM</strong><small>PHILOSOPHY / DESIGN / THE EDITION</small></span>
+        <span aria-hidden="true">→</span>
+      </a>
+    </nav>
+  </div>
+</section>
+
+<style>
+.pham-founder{background:#0a0b0d;color:#f1f0ed;padding:clamp(104px,10vw,142px) 0 100px;min-height:100vh;overflow:clip}
+.pham-founder *, .pham-founder *::before, .pham-founder *::after{box-sizing:border-box}
+.pham-founder__shell{width:min(1170px,calc(100% - 64px));margin-inline:auto}
+.pham-founder__eyebrow,.pham-founder__breadcrumb,.pham-founder__facts-label,.pham-founder__chapter-number,.pham-founder__chapter-category,.pham-founder__obstacle-index,.pham-founder__present-meta>span{font:600 11px/1.5 var(--font-mono,monospace);letter-spacing:.12em;color:#a7a6a2}
+.pham-founder__breadcrumb{display:flex;align-items:center;gap:13px;min-height:40px;margin-bottom:clamp(36px,5vw,64px);flex-wrap:wrap}
+.pham-founder__breadcrumb a{color:#c7c6c2;text-decoration:none;display:inline-flex;align-items:center;min-height:40px}
+.pham-founder__breadcrumb a:hover,.pham-founder__breadcrumb a:focus-visible{color:#fff;text-decoration:underline;text-underline-offset:4px}
+.pham-founder__hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.6fr);gap:clamp(38px,7vw,100px);align-items:end;padding-bottom:clamp(60px,8vw,108px)}
+.pham-founder__hero-main{min-width:0}
+.pham-founder__hero h1{margin:18px 0 24px;max-width:13ch;font:400 clamp(3.2rem,6.4vw,6.3rem)/1.03 var(--font-display,Arial,sans-serif);letter-spacing:-.05em;text-wrap:balance}
+.pham-founder__lead{max-width:58ch;color:#c8c7c3;font:400 clamp(16px,1.3vw,19px)/1.7 var(--font-body,Arial,sans-serif);margin:0}
+.pham-founder__jump{display:inline-flex;align-items:center;justify-content:space-between;gap:32px;margin-top:30px;padding:14px 3px;min-height:48px;border-bottom:1px solid #aaa9a6;color:#e9e8e5;text-decoration:none;font:650 12px/1.4 var(--font-body,Arial,sans-serif);letter-spacing:.08em}
+.pham-founder__jump span{font-size:18px}
+.pham-founder__facts{border-top:1px solid #55575b;padding-top:17px}
+.pham-founder__facts-label{margin:0 0 10px}
+.pham-founder__facts dl{margin:0}
+.pham-founder__facts dl>div{display:grid;grid-template-columns:38% minmax(0,1fr);gap:10px;padding:15px 0;border-bottom:1px solid #33363a}
+.pham-founder__facts dt{font:600 11px/1.55 var(--font-mono,monospace);letter-spacing:.045em;color:#999a9c}
+.pham-founder__facts dd{margin:0;color:#e7e6e2;font:500 13px/1.6 var(--font-body,Arial,sans-serif);overflow-wrap:anywhere}
+.pham-founder__facts-footnote{max-width:32ch;margin:21px 0 0;color:#a9a8a4;font:400 12px/1.7 var(--font-body,Arial,sans-serif)}
+.pham-founder__story,.pham-founder__obstacles,.pham-founder__present{padding:clamp(65px,8vw,116px) 0;border-top:1px solid #3d3f42;scroll-margin-top:85px}
+.pham-founder__section-heading{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.55fr);column-gap:35px;align-items:end;margin-bottom:39px}
+.pham-founder__section-heading .pham-founder__eyebrow{grid-column:1/-1;margin:0 0 15px}
+.pham-founder__section-heading h2{font:400 clamp(2.1rem,4.1vw,4rem)/1.14 var(--font-display,Arial,sans-serif);letter-spacing:-.04em;margin:0}
+.pham-founder__section-heading>p:last-child{margin:0;max-width:34ch;color:#bab9b4;font:400 14px/1.7 var(--font-body,Arial,sans-serif)}
+.pham-founder__chapters{border-top:1px solid #34373b}
+.pham-founder__chapter{display:grid;grid-template-columns:minmax(220px,.46fr) minmax(0,1fr);gap:clamp(26px,5vw,78px);padding:clamp(28px,4.5vw,56px) 0;border-bottom:1px solid #34373b}
+.pham-founder__chapter-aside{display:flex;align-items:flex-start;gap:18px;padding-top:6px}
+.pham-founder__chapter-number{display:grid;place-items:center;flex:0 0 38px;height:38px;border:1px solid #53555a;font-size:12px;color:#dddcd8}
+.pham-founder__chapter-category{padding-top:8px;max-width:20ch}
+.pham-founder__chapter-copy{max-width:72ch}
+.pham-founder__chapter-copy h3{font:500 clamp(1.5rem,2.4vw,2.45rem)/1.22 var(--font-display,Arial,sans-serif);margin:0 0 20px;letter-spacing:-.025em}
+.pham-founder__chapter-copy p{color:#c6c5c1;font:400 clamp(15px,1.08vw,17px)/1.83 var(--font-body,Arial,sans-serif);margin:0 0 17px}
+.pham-founder__chapter-copy p:last-child{margin-bottom:0}
+.pham-founder__obstacles-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.pham-founder__obstacle{min-width:0;min-height:210px;padding:24px 26px 30px;background:#131518;border:1px solid #36393c}
+.pham-founder__obstacle-index{display:block;margin-bottom:28px}
+.pham-founder__obstacle h3{font:550 21px/1.35 var(--font-body,Arial,sans-serif);margin:0 0 10px}
+.pham-founder__obstacle p{max-width:48ch;margin:0;color:#bcbab6;font:400 14px/1.77 var(--font-body,Arial,sans-serif)}
+.pham-founder__present{display:grid;grid-template-columns:minmax(220px,.48fr) minmax(0,1fr);gap:clamp(35px,6vw,90px);align-items:start}
+.pham-founder__present-meta{display:flex;flex-direction:column;gap:15px}
+.pham-founder__present-meta .pham-founder__eyebrow{margin:0}
+.pham-founder__present h2{font:400 clamp(2.2rem,4vw,3.8rem)/1.12 var(--font-display,Arial,sans-serif);letter-spacing:-.035em;margin:0 0 22px}
+.pham-founder__present p:not(.pham-founder__signature){margin:0 0 20px;max-width:71ch;font:400 clamp(15px,1.13vw,17px)/1.8 var(--font-body,Arial,sans-serif);color:#c8c7c2}
+.pham-founder__signature{display:flex;align-items:center;gap:20px;padding-top:20px;border-top:1px solid #393b3f;margin:28px 0 0;color:#f2f1ef;font:500 20px/1.4 var(--font-display,Arial,sans-serif)}
+.pham-founder__signature span{color:#aaa9a5;font:600 10px/1.45 var(--font-mono,monospace);letter-spacing:.1em}
+.pham-founder__end-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding-top:8px}
+.pham-founder__end-links a{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:108px;border:1px solid #5a5b5e;padding:20px 22px;color:#efeeeb;text-decoration:none;background:#151619}
+.pham-founder__end-links a:hover,.pham-founder__end-links a:focus-visible{border-color:#f1f0ec;background:#25262a}
+.pham-founder__end-links a>span:first-child{display:flex;flex-direction:column;gap:7px}
+.pham-founder__end-links strong{font:650 13px/1.4 var(--font-body,Arial,sans-serif);letter-spacing:.05em}
+.pham-founder__end-links small{font:500 11px/1.5 var(--font-mono,monospace);color:#aaa9a5;letter-spacing:.03em}
+.pham-founder__end-links a>span:last-child{font-size:24px}
+.pham-founder a:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media(max-width:920px){
+.pham-founder__hero{grid-template-columns:minmax(0,1.1fr) minmax(230px,.9fr);gap:30px}
+.pham-founder__chapter{grid-template-columns:190px minmax(0,1fr);gap:32px}
+.pham-founder__section-heading{grid-template-columns:minmax(0,1fr)}
+.pham-founder__section-heading>p:last-child{margin-top:14px}
+}
+@media(max-width:700px){
+.pham-founder{padding:90px 0 68px}
+.pham-founder__shell{width:calc(100% - 32px)}
+.pham-founder__breadcrumb{gap:10px;margin-bottom:26px;font-size:10px}
+.pham-founder__hero{grid-template-columns:1fr;gap:32px;padding-bottom:58px}
+.pham-founder__hero h1{max-width:17ch;font-size:clamp(2.8rem,10.8vw,4.3rem);margin:12px 0 18px}
+.pham-founder__lead{font-size:15px;line-height:1.72}
+.pham-founder__jump{margin-top:20px}
+.pham-founder__facts{max-width:none}
+.pham-founder__facts dl>div{grid-template-columns:135px minmax(0,1fr);gap:8px;padding:11px 0}
+.pham-founder__facts-footnote{max-width:none}
+.pham-founder__story,.pham-founder__obstacles,.pham-founder__present{padding:57px 0}
+.pham-founder__section-heading{margin-bottom:27px}
+.pham-founder__section-heading h2{font-size:clamp(2rem,7.5vw,3.1rem)}
+.pham-founder__section-heading>p:last-child{font-size:13px;margin-top:12px}
+.pham-founder__chapter{grid-template-columns:1fr;gap:14px;padding:29px 0}
+.pham-founder__chapter-aside{gap:12px}
+.pham-founder__chapter-number{flex-basis:34px;height:34px}
+.pham-founder__chapter-copy h3{font-size:clamp(1.45rem,6vw,2rem);margin-bottom:15px}
+.pham-founder__chapter-copy p{font-size:15px;line-height:1.76;margin-bottom:14px}
+.pham-founder__obstacles-grid{grid-template-columns:1fr;gap:9px}
+.pham-founder__obstacle{min-height:0;padding:19px 20px 23px}
+.pham-founder__obstacle-index{margin-bottom:17px}
+.pham-founder__obstacle h3{font-size:18px}
+.pham-founder__obstacle p{font-size:14px}
+.pham-founder__present{grid-template-columns:1fr;gap:19px}
+.pham-founder__present-meta{gap:5px}
+.pham-founder__present h2{font-size:clamp(2rem,7.7vw,3rem)}
+.pham-founder__present p:not(.pham-founder__signature){font-size:15px;line-height:1.75}
+.pham-founder__end-links{grid-template-columns:1fr;gap:8px}
+.pham-founder__end-links a{min-height:88px;padding:16px 18px}
+}
+@media(prefers-reduced-motion:reduce){
+.pham-founder__end-links a{scroll-behavior:auto}
+}
+</style>
+{% schema %}
+{
+  "name": "PHAM Founder Story",
+  "tag": "section",
+  "class": "pham-founder-section",
+  "settings": [
+    {"type":"text","id":"eyebrow","label":"Header eyebrow","default":"PHAM / FOUNDER JOURNAL"},
+    {"type":"text","id":"title","label":"Main heading","default":"Building PHAM, from the beginning."},
+    {"type":"textarea","id":"lead","label":"Introductory statement","default":"I started PHAM at sixteen, still in high school, without a funded business, an industry network or a team. This is the story of learning to build the first object—and the questions that still have to be answered."},
+    {"type":"text","id":"present_heading","label":"Current chapter heading","default":"The first edition is still being built."},
+    {"type":"textarea","id":"present_body_1","label":"Current chapter, paragraph one","default":"PHAM-001 is the first release I want to put into the world. Its planned edition is fifty numbered pieces. Before that can mean something to anyone else, the final product must deserve their trust. That means being clear about the sample, the changes being considered and the reality of production."},
+    {"type":"textarea","id":"present_body_2","label":"Current chapter, paragraph two","default":"I cannot promise that building this will be easy or that every attempt will work. I can keep learning, keep improving the object and explain decisions with more care than hype. The story is not that I succeeded at sixteen. The story is that I started—and I am still doing the work."}
+  ],
+  "blocks": [
+    {
+      "type":"chapter",
+      "name":"Story chapter",
+      "settings":[
+        {"type":"text","id":"number","label":"Chapter number","default":"01"},
+        {"type":"text","id":"category","label":"Chapter category","default":"THE BEGINNING"},
+        {"type":"text","id":"title","label":"Chapter title","default":"A starting point, not a shortcut."},
+        {"type":"textarea","id":"body_1","label":"Paragraph one","default":"I did not inherit a fashion label or a set of people ready to build it. I began by learning what I did not know, one practical problem at a time."},
+        {"type":"textarea","id":"body_2","label":"Paragraph two","default":"There were more unanswered questions than resources to answer them, but each decision brought the first object a little closer."}
+      ]
+    },
+    {
+      "type":"obstacle",
+      "name":"Real constraint",
+      "settings":[
+        {"type":"text","id":"number","label":"Constraint number","default":"01"},
+        {"type":"text","id":"title","label":"Constraint title","default":"Working without a head start"},
+        {"type":"textarea","id":"body","label":"Constraint description","default":"Building a first product without an established business or team changes the cost of every mistake."}
+      ]
+    }
+  ],
+  "presets":[{"name":"PHAM Founder Story"}]
+}
+{% endschema %}

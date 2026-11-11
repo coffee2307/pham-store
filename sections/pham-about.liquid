@@ -60,6 +60,10 @@
           {%- if section.settings.founder_body_3 != blank -%}
             <p class="pham-about__record-copy">{{ section.settings.founder_body_3 }}</p>
           {%- endif -%}
+          <a class="pham-about__founder-story-link" href="/pages/founder-story">
+            <span>READ THE FOUNDER'S STORY</span>
+            <span aria-hidden="true">→</span>
+          </a>
         </div>
       </div>
 
@@ -491,6 +495,31 @@
   @media(prefers-reduced-motion:reduce) {
     .pham-about__resources a { transition: none; }
   }
+
+
+  .pham-about__founder-story-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    align-self: flex-start;
+    gap: 28px;
+    min-height: 48px;
+    margin-top: 2px;
+    padding: 12px 17px;
+    border: 1px solid rgba(242,242,239,.65);
+    background: #202125;
+    color: #f1f0ee;
+    text-decoration: none;
+    font: 700 12px/1.35 var(--font-body);
+    letter-spacing: .055em;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .pham-about__founder-story-link:hover,
+  .pham-about__founder-story-link:focus-visible {
+    background: #323338;
+    border-color: #fff;
+  }
+  .pham-about__founder-story-link span:last-child { font-size: 19px; }
 
 </style>
 

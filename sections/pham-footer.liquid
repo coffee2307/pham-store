@@ -56,18 +56,28 @@
         {%- endif -%}
       </div>
 
-      {%- comment -%} ============== COLUMN 2 — QUICK MENU ============== {%- endcomment -%}
-      <div class="pham-footer__col pham-footer__col--menu">
+      {%- comment -%} ============== COLUMN 2 — EXPLORE ============== {%- endcomment -%}
+      <nav class="pham-footer__col pham-footer__col--menu" aria-label="Explore PHAM">
         <h3 class="pham-footer__heading">{{ section.settings.menu_heading }}</h3>
         <ul class="pham-footer__menu" role="list">
           <li class="pham-footer__menu-item"><a href="{{ routes.root_url }}" class="pham-footer__link">HOME</a></li>
           <li class="pham-footer__menu-item"><a href="{{ footer_product_url }}" class="pham-footer__link">PRODUCT</a></li>
+          <li class="pham-footer__menu-item"><a href="/pages/edition-01" class="pham-footer__link">EDITION 01</a></li>
+          <li class="pham-footer__menu-item"><a href="/pages/pham-001-size-guide" class="pham-footer__link">SIZE GUIDE</a></li>
+        </ul>
+      </nav>
+
+      {%- comment -%} ============== COLUMN 3 — THE LABEL ============== {%- endcomment -%}
+      <nav class="pham-footer__col pham-footer__col--story" aria-label="The PHAM label">
+        <h3 class="pham-footer__heading">THE LABEL</h3>
+        <ul class="pham-footer__menu" role="list">
           <li class="pham-footer__menu-item"><a href="/pages/about" class="pham-footer__link">ABOUT</a></li>
+          <li class="pham-footer__menu-item"><a href="/pages/founder-story" class="pham-footer__link">FOUNDER STORY</a></li>
           <li class="pham-footer__menu-item"><a href="/pages/contact" class="pham-footer__link">CONTACT</a></li>
         </ul>
-      </div>
+      </nav>
 
-      {%- comment -%} ============== COLUMN 3 — NEWSLETTER ============== {%- endcomment -%}
+      {%- comment -%} ============== COLUMN 4 — NEWSLETTER ============== {%- endcomment -%}
       <div class="pham-footer__col pham-footer__col--newsletter">
         <h3 class="pham-footer__heading">{{ section.settings.newsletter_heading }}</h3>
         <p class="pham-footer__newsletter-copy">{{ section.settings.newsletter_text }}</p>
@@ -134,6 +144,71 @@
     </div>
   </div>
 </footer>
+
+<style>
+/* PHAM / FOOTER V2 — tidy information hierarchy, 2026-11 */
+.pham-footer {
+  padding-block: clamp(50px, 5vw, 72px) 27px;
+}
+.pham-footer__grid {
+  display: grid;
+  grid-template-columns: minmax(200px, 1.12fr) minmax(132px, .64fr) minmax(156px, .76fr) minmax(260px, 1.2fr);
+  align-items: start;
+  gap: clamp(22px, 3.2vw, 55px);
+}
+.pham-footer__col { gap: 13px; min-width: 0; }
+.pham-footer__heading { margin: 0 0 3px; font-size: 12px; letter-spacing: .09em; }
+.pham-footer .pham-footer__menu { display: flex; flex-direction: column; gap: 0; }
+.pham-footer__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 8px 0;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: normal;
+  text-wrap: balance;
+}
+.pham-footer__tagline { max-width: 32ch; font-size: 14px; line-height: 1.55; }
+.pham-footer__socials { margin-top: 3px; }
+.pham-footer__newsletter-copy { max-width: 39ch; }
+.pham-footer__divider { margin: clamp(35px, 4vw, 52px) 0 14px; }
+.pham-footer__policies { margin-bottom: 14px; }
+.pham-footer__policies-list { gap: 2px clamp(16px, 2vw, 32px); }
+.pham-footer__bottom { align-items: center; gap: 14px; }
+@media (min-width: 750px) and (max-width: 1100px) {
+  .pham-footer__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 31px 38px; }
+  .pham-footer__col--brand { grid-column: 1; grid-row: 1; }
+  .pham-footer__col--newsletter { grid-column: 2; grid-row: 1; max-width: none; }
+  .pham-footer__col--menu { grid-column: 1; grid-row: 2; }
+  .pham-footer__col--story { grid-column: 2; grid-row: 2; }
+}
+@media (max-width: 749px) {
+  .pham-footer { padding-block: 44px 25px; }
+  .pham-footer__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(14px, 5vw, 24px);
+    row-gap: 29px;
+  }
+  .pham-footer__col--brand { grid-column: 1 / -1; gap: 12px; }
+  .pham-footer__col--menu { grid-column: 1; }
+  .pham-footer__col--story { grid-column: 2; }
+  .pham-footer__col--newsletter {
+    grid-column: 1 / -1;
+    padding-top: 25px;
+    border-top: 1px solid rgba(255,255,255,.16);
+    max-width: none;
+  }
+  .pham-footer__heading { font-size: 12px; }
+  .pham-footer__link { min-height: 42px; font-size: 12px; letter-spacing: .025em; }
+  .pham-footer__tagline { font-size: 14px; }
+  .pham-footer__newsletter-copy { font-size: 13px; max-width: 49ch; }
+  .pham-footer__form-row { flex-direction: row; }
+  .pham-footer__submit { min-height: 48px; flex-basis: 114px; }
+  .pham-footer__divider { margin: 28px 0 12px; }
+  .pham-footer__policies-list { gap: 0 13px; }
+}
+</style>
 
 {% schema %}
 {
