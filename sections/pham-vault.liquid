@@ -178,7 +178,7 @@
         <div class="pham-vault__entry-actions">
           <span class="pham-vault__cue">{{ section.settings.scroll_label }}</span>
           {%- if featured_product != blank -%}
-            <a class="pham-vault__entry-link" href="{{ object_url }}" data-pham-campaign-entry>{{ entry_cta_text }} <span aria-hidden="true">&#8599;</span></a>
+            <a class="pham-vault__entry-link" href="{{ object_url }}" data-pham-campaign-entry>{{ entry_cta_text }}</a>
           {%- endif -%}
         </div>
       </article>
@@ -240,7 +240,7 @@
           </ul>
         {%- endif -%}
         <a class="pham-vault__cta" href="{{ object_url }}" data-pham-magnetic data-pham-campaign-primary>
-          <span>{{ acquisition_cta_text }}</span><span aria-hidden="true">&#8599;</span>
+          <span>{{ acquisition_cta_text }}</span>
         </a>
         <div class="pham-vault__purchase-links">
           {%- if settings.pham_campaign_size_guide_page_url != blank -%}

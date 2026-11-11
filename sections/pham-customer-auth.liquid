@@ -76,7 +76,7 @@
             {{ section.settings.register_prompt | default: 'New to PHAM?' }}
             <a href="{{ routes.account_register_url }}" class="pham-auth__link">
               {{ section.settings.register_link_label | default: 'Create account' }}
-            </a>
+</a>
           </p>
         </div>
 
@@ -193,7 +193,7 @@
           {{ section.settings.login_prompt | default: 'Already have an account?' }}
           <a href="{{ routes.account_login_url }}" class="pham-auth__link">
             {{ section.settings.login_link_label | default: 'Sign in' }}
-          </a>
+</a>
         </p>
 
       {%- when 'reset_password' -%}
@@ -277,9 +277,9 @@
     {%- if show_back -%}
       <p class="pham-contact__back">
         <a href="{{ routes.root_url }}" class="pham-back-link pham-contact__back-link">
-          <span class="pham-back-link__arrow" aria-hidden="true">&larr;</span>
+
           <span class="pham-back-link__label">RETURN TO ATELIER</span>
-        </a>
+</a>
       </p>
     {%- endif -%}
   </div>

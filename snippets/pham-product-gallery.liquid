@@ -37,7 +37,7 @@
                 class="pham-pdp-gallery__nav pham-pdp-gallery__nav--prev"
                 data-pham-gallery-prev
                 aria-label="Previous image">
-          <span aria-hidden="true">&lsaquo;</span>
+          <span class="pham-control-word" aria-hidden="true">PREV</span>
         </button>
       {%- endif -%}
 
@@ -97,7 +97,7 @@
                 class="pham-pdp-gallery__nav pham-pdp-gallery__nav--next"
                 data-pham-gallery-next
                 aria-label="Next image">
-          <span aria-hidden="true">&rsaquo;</span>
+          <span class="pham-control-word" aria-hidden="true">NEXT</span>
         </button>
         <p class="pham-pdp-gallery__counter" data-pham-gallery-counter aria-live="polite">
           <span data-pham-gallery-current>1</span> / {{ media_count }}
@@ -112,7 +112,7 @@
                 data-pham-thumb-prev
                 aria-label="Scroll thumbnails left"
                 hidden>
-          <span aria-hidden="true">&lsaquo;</span>
+          <span class="pham-control-word" aria-hidden="true">PREV</span>
         </button>
         <div class="pham-pdp-gallery__thumbs" data-pham-gallery-thumbs role="tablist" aria-label="Product thumbnails">
           {%- assign thumb_index = 0 -%}
@@ -153,7 +153,7 @@
                 data-pham-thumb-next
                 aria-label="Scroll thumbnails right"
                 hidden>
-          <span aria-hidden="true">&rsaquo;</span>
+          <span class="pham-control-word" aria-hidden="true">NEXT</span>
         </button>
       </div>
     {%- endif -%}

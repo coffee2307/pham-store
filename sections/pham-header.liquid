@@ -76,28 +76,28 @@
               <li class="pham-header__menu-item {% if request.page_type == 'index' %}is-active{% endif %}">
                 <a href="{{ routes.root_url }}" class="pham-header__menu-link"{% if request.page_type == 'index' %} aria-current="page"{% endif %}>
                   <span class="pham-header__menu-label">{{ home_label | upcase | escape }}</span>
-                </a>
+</a>
               </li>
             {%- endif -%}
             {%- if show_product and feat_product != blank and feat_product != nil -%}
               <li class="pham-header__menu-item {% if request.page_type == 'product' %}is-active{% endif %}">
                 <a href="{{ product_url }}" class="pham-header__menu-link"{% if request.page_type == 'product' %} aria-current="page"{% endif %}>
                   <span class="pham-header__menu-label">{{ product_label | upcase | escape }}</span>
-                </a>
+</a>
               </li>
             {%- endif -%}
             {%- if show_about -%}
               <li class="pham-header__menu-item {% if template.name == 'page' and page.handle == 'about' %}is-active{% endif %}">
                 <a href="{{ about_url }}" class="pham-header__menu-link"{% if template.name == 'page' and page.handle == 'about' %} aria-current="page"{% endif %}>
                   <span class="pham-header__menu-label">{{ about_label | upcase | escape }}</span>
-                </a>
+</a>
               </li>
             {%- endif -%}
             {%- if show_contact -%}
               <li class="pham-header__menu-item {% if template.name == 'page' and page.handle == 'contact' %}is-active{% endif %}">
                 <a href="{{ contact_url }}" class="pham-header__menu-link"{% if template.name == 'page' and page.handle == 'contact' %} aria-current="page"{% endif %}>
                   <span class="pham-header__menu-label">{{ contact_label | upcase | escape }}</span>
-                </a>
+</a>
               </li>
             {%- endif -%}
           </ul>
@@ -114,7 +114,7 @@
                   <li class="pham-header__menu-item {% if link.active %}is-active{% endif %}">
                     <a href="{{ link.url }}" class="pham-header__menu-link"{% if link.active %} aria-current="page"{% endif %}>
                       <span class="pham-header__menu-label">{% render 'pham-nav-label', title: link.title, url: link.url %}</span>
-                    </a>
+</a>
                   </li>
                 {%- endunless -%}
               {%- endfor -%}
@@ -133,7 +133,7 @@
             <line x1="12.5" y1="12.5" x2="16.5" y2="16.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
           </svg>
           <span class="pham-visually-hidden">Search</span>
-        </a>
+</a>
       {%- endif -%}
 
       {%- if show_account -%}
@@ -159,7 +159,7 @@
               <path d="M3 16c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/>
             </svg>
             <span class="pham-visually-hidden">{% if customer %}Account{% else %}Sign in{% endif %}</span>
-          </a>
+</a>
         {%- endif -%}
       {%- endif -%}
 
@@ -211,32 +211,32 @@
             <li class="pham-header__drawer-item">
               <a href="{{ routes.root_url }}" class="pham-header__drawer-link"{% if request.page_type == 'index' %} aria-current="page"{% endif %}>
                 <span class="pham-header__drawer-link-label">{{ home_label | upcase | escape }}</span>
-                <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
-              </a>
+
+</a>
             </li>
           {%- endif -%}
           {%- if show_product and feat_product != blank and feat_product != nil -%}
             <li class="pham-header__drawer-item">
               <a href="{{ product_url }}" class="pham-header__drawer-link"{% if request.page_type == 'product' %} aria-current="page"{% endif %}>
                 <span class="pham-header__drawer-link-label">{{ product_label | upcase | escape }}</span>
-                <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
-              </a>
+
+</a>
             </li>
           {%- endif -%}
           {%- if show_about -%}
             <li class="pham-header__drawer-item">
               <a href="{{ about_url }}" class="pham-header__drawer-link"{% if template.name == 'page' and page.handle == 'about' %} aria-current="page"{% endif %}>
                 <span class="pham-header__drawer-link-label">{{ about_label | upcase | escape }}</span>
-                <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
-              </a>
+
+</a>
             </li>
           {%- endif -%}
           {%- if show_contact -%}
             <li class="pham-header__drawer-item">
               <a href="{{ contact_url }}" class="pham-header__drawer-link"{% if template.name == 'page' and page.handle == 'contact' %} aria-current="page"{% endif %}>
                 <span class="pham-header__drawer-link-label">{{ contact_label | upcase | escape }}</span>
-                <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
-              </a>
+
+</a>
             </li>
           {%- endif -%}
         </ul>
@@ -253,8 +253,8 @@
                 <li class="pham-header__drawer-item">
                   <a href="{{ link.url }}" class="pham-header__drawer-link"{% if link.active %} aria-current="page"{% endif %}>
                     <span class="pham-header__drawer-link-label">{% render 'pham-nav-label', title: link.title, url: link.url %}</span>
-                    <span class="pham-header__drawer-link-arrow" aria-hidden="true">&rarr;</span>
-                  </a>
+
+</a>
                   {%- if link.links.size > 0 -%}
                     <ul class="pham-header__drawer-submenu" role="list">
                       {%- for sublink in link.links -%}
@@ -277,7 +277,7 @@
         <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
            class="pham-header__drawer-util">
           {% if customer %}ACCOUNT{% else %}SIGN IN{% endif %}
-        </a>
+</a>
       </div>
       {%- assign pham_facebook = settings.pham_social_facebook | default: 'https://www.facebook.com/profile.php?id=61590900803027' -%}
       {%- if settings.pham_social_instagram != blank or settings.pham_social_tiktok != blank or pham_facebook != blank -%}
@@ -328,7 +328,7 @@
       "type": "product",
       "id": "featured_product",
       "label": "Featured product (header)",
-      "info": "Section-level override. Falls back to PHAM Brand → Featured product."
+      "info": "Section-level override. Falls back to PHAM Brand / Featured product."
     },
     {
       "type": "checkbox",

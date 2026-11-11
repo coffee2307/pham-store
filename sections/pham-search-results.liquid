@@ -77,14 +77,14 @@
                       <span class="pham-eyebrow">Journal</span>
                       <h3 class="pham-search__article-title">{{ result.title }}</h3>
                     </div>
-                  </a>
+</a>
                 </div>
               {%- elsif result.object_type == 'page' -%}
                 <div class="pham-search__cell pham-search__cell--page" role="listitem">
                   <a href="{{ result.url }}" class="pham-search__page">
                     <span class="pham-eyebrow">Page</span>
                     <h3 class="pham-search__page-title">{{ result.title }}</h3>
-                  </a>
+</a>
                 </div>
               {%- endif -%}
             {%- endfor -%}
@@ -93,11 +93,11 @@
           {%- if paginate.pages > 1 -%}
             <nav class="pham-search__pagination" role="navigation" aria-label="Pagination">
               {%- if paginate.previous -%}
-                <a href="{{ paginate.previous.url }}" class="pham-search__page-link" rel="prev">&larr; Previous</a>
+                <a href="{{ paginate.previous.url }}" class="pham-search__page-link" rel="prev"> Previous</a>
               {%- endif -%}
               <span class="pham-search__page-info">Page {{ paginate.current_page }} of {{ paginate.pages }}</span>
               {%- if paginate.next -%}
-                <a href="{{ paginate.next.url }}" class="pham-search__page-link" rel="next">Next &rarr;</a>
+                <a href="{{ paginate.next.url }}" class="pham-search__page-link" rel="next">Next</a>
               {%- endif -%}
             </nav>
           {%- endif -%}
@@ -107,8 +107,8 @@
           <p class="pham-search__empty-text">No pieces match this search.</p>
           <a href="{{ sr_product_url }}" class="pham-search__empty-cta">
             <span>View the Edition</span>
-            <span aria-hidden="true">&rarr;</span>
-          </a>
+
+</a>
         </div>
       {%- endif -%}
     {%- endif -%}

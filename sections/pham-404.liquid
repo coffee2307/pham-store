@@ -19,12 +19,12 @@
       <a href="{{ routes.root_url }}" class="pham-404__cta">
         <span class="pham-404__cta-fill" aria-hidden="true"></span>
         <span class="pham-404__cta-label">{{ section.settings.cta_label | default: 'Return to atelier' }}</span>
-        <span class="pham-404__cta-arrow" aria-hidden="true">&rarr;</span>
-      </a>
+
+</a>
       {%- if section.settings.secondary_label != blank -%}
         <a href="{{ nf_secondary_link }}" class="pham-404__secondary">
           {{ section.settings.secondary_label }}
-        </a>
+</a>
       {%- endif -%}
     </div>
   </div>

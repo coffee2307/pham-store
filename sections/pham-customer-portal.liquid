@@ -49,7 +49,7 @@
                         · {{ order_item.financial_status_label }}
                         · {{ order_item.total_price | money }}
                       </span>
-                    </a>
+</a>
                   </li>
                 {%- endfor -%}
               </ul>
@@ -62,7 +62,7 @@
       {%- when 'order' -%}
         <div class="pham-portal__panel">
           <p class="pham-portal__back">
-            <a href="{{ routes.account_url }}" class="pham-auth__link">&larr; {{ section.settings.back_to_account | default: 'Back to account' }}</a>
+            <a href="{{ routes.account_url }}" class="pham-auth__link"> {{ section.settings.back_to_account | default: 'Back to account' }}</a>
           </p>
 
           <header class="pham-portal__order-head">
@@ -133,7 +133,7 @@
       {%- when 'addresses' -%}
         <div class="pham-portal__panel">
           <p class="pham-portal__back">
-            <a href="{{ routes.account_url }}" class="pham-auth__link">&larr; {{ section.settings.back_to_account | default: 'Back to account' }}</a>
+            <a href="{{ routes.account_url }}" class="pham-auth__link"> {{ section.settings.back_to_account | default: 'Back to account' }}</a>
           </p>
 
           {%- paginate customer.addresses by 8 -%}
@@ -268,9 +268,9 @@
     {%- if show_back -%}
       <p class="pham-auth__back">
         <a href="{{ routes.root_url }}" class="pham-back-link">
-          <span class="pham-back-link__arrow" aria-hidden="true">&larr;</span>
+
           <span class="pham-back-link__label">RETURN TO ATELIER</span>
-        </a>
+</a>
       </p>
     {%- endif -%}
   </div>

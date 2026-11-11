@@ -42,11 +42,11 @@
         {%- capture product_url -%}{%- render 'pham-featured-product-url' -%}{%- endcapture -%}
         <a class="pham-immersive-hero__cta" href="{{ section.settings.cta_link | default: product_url | strip }}">
           <span>{{ section.settings.cta_label | default: 'DISCOVER EDITION 01' }}</span>
-          <span aria-hidden="true">↗</span>
-        </a>
+
+</a>
         <a class="pham-immersive-hero__scroll" href="#pham-immersive-hero-next-{{ section.id }}">
           <span>SCROLL TO EXPLORE</span><i aria-hidden="true"></i>
-        </a>
+</a>
       </div>
     </div>
 

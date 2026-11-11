@@ -57,9 +57,9 @@
                       {%- endif -%}
                     </p>
                   {%- endif -%}
-                  <span class="pham-blog__read">Read &rarr;</span>
+                  <span class="pham-blog__read">Read </span>
                 </div>
-              </a>
+</a>
             </article>
           {%- endfor -%}
         </div>
@@ -67,11 +67,11 @@
         {%- if paginate.pages > 1 -%}
           <nav class="pham-blog__pagination" role="navigation" aria-label="Journal pagination">
             {%- if paginate.previous -%}
-              <a href="{{ paginate.previous.url }}" class="pham-blog__page-link" rel="prev">&larr; Previous</a>
+              <a href="{{ paginate.previous.url }}" class="pham-blog__page-link" rel="prev"> Previous</a>
             {%- endif -%}
             <span class="pham-blog__page-info">Page {{ paginate.current_page }} of {{ paginate.pages }}</span>
             {%- if paginate.next -%}
-              <a href="{{ paginate.next.url }}" class="pham-blog__page-link" rel="next">Next &rarr;</a>
+              <a href="{{ paginate.next.url }}" class="pham-blog__page-link" rel="next">Next</a>
             {%- endif -%}
           </nav>
         {%- endif -%}

@@ -244,7 +244,7 @@
 
           {%- if section.settings.show_size_guide_link and size_guide_page != blank -%}
             {%- capture size_guide_content -%}
-              <p><a href="{{ size_guide_page.url }}" class="pham-product-main__guide-link">View full size guide &rarr;</a></p>
+              <p><a href="{{ size_guide_page.url }}" class="pham-product-main__guide-link">View full size guide</a></p>
             {%- endcapture -%}
             {%- assign size_id = section.id | append: '-size' -%}
             {% render 'pham-accordion', heading: section.settings.size_guide_heading, content: size_guide_content, id: size_id %}
@@ -252,7 +252,7 @@
 
           {%- if section.settings.show_faq_link and faq_page != blank -%}
             {%- capture faq_content -%}
-              <p><a href="{{ faq_page.url }}" class="pham-product-main__guide-link">Read frequently asked questions &rarr;</a></p>
+              <p><a href="{{ faq_page.url }}" class="pham-product-main__guide-link">Read frequently asked questions</a></p>
             {%- endcapture -%}
             {%- assign faq_id = section.id | append: '-faq' -%}
             {% render 'pham-accordion', heading: section.settings.faq_heading, content: faq_content, id: faq_id %}

@@ -150,13 +150,13 @@
                             class="pham-lookbook-v2__carousel-nav pham-lookbook-v2__carousel-nav--prev"
                             data-pham-carousel-prev
                             aria-label="Previous image">
-                      <span aria-hidden="true">&lsaquo;</span>
+                      <span class="pham-control-word" aria-hidden="true">PREV</span>
                     </button>
                     <button type="button"
                             class="pham-lookbook-v2__carousel-nav pham-lookbook-v2__carousel-nav--next"
                             data-pham-carousel-next
                             aria-label="Next image">
-                      <span aria-hidden="true">&rsaquo;</span>
+                      <span class="pham-control-word" aria-hidden="true">NEXT</span>
                     </button>
                     <p class="pham-lookbook-v2__carousel-counter" aria-live="polite">
                       <span data-pham-carousel-current>1</span> / {{ img_count }}
@@ -229,8 +229,8 @@
                 {%- if block.settings.cta_label != blank -%}
                   <a href="{{ block.settings.cta_link | default: '#' }}" class="pham-back-link pham-lookbook-v2__editorial-cta">
                     <span class="pham-back-link__label">{{ block.settings.cta_label }}</span>
-                    <span class="pham-back-link__arrow" aria-hidden="true">&rarr;</span>
-                  </a>
+
+</a>
                 {%- endif -%}
               </div>
             </div>
@@ -318,7 +318,7 @@
               class="pham-lookbook-v2__lightbox-nav pham-lookbook-v2__lightbox-nav--prev"
               data-pham-lightbox-prev
               aria-label="Previous image">
-        <span aria-hidden="true">&lsaquo;</span>
+        <span class="pham-control-word" aria-hidden="true">PREV</span>
       </button>
 
       <div class="pham-lookbook-v2__lightbox-viewport" data-pham-lightbox-viewport>
@@ -337,7 +337,7 @@
               class="pham-lookbook-v2__lightbox-nav pham-lookbook-v2__lightbox-nav--next"
               data-pham-lightbox-next
               aria-label="Next image">
-        <span aria-hidden="true">&rsaquo;</span>
+        <span class="pham-control-word" aria-hidden="true">NEXT</span>
       </button>
     </div>
   </div>

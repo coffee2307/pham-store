@@ -94,7 +94,7 @@
         <span class="pham-product-spotlight__add-label">{{ campaign_cta_label }}</span>
         <span class="pham-product-spotlight__add-price">{% if campaign_cta_price != blank %}{{ campaign_cta_price }}{% else %}{{ current_variant.price | money }}{% endif %}</span>
       </span>
-    </a>
+</a>
   {%- else -%}
     <a href="{{ campaign_cta_url }}"
        class="pham-product-main__cta pham-product-main__cta--preorder"
@@ -102,9 +102,9 @@
       <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
       <span class="pham-product-main__cta-inner">
         <span class="pham-product-main__cta-label">{{ campaign_cta_label }}</span>
-        <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
+
       </span>
-    </a>
+</a>
   {%- endif -%}
 
 {%- elsif pham_preorder_open -%}
@@ -117,7 +117,7 @@
         <span class="pham-product-spotlight__add-label" data-pham-spotlight-btn-label>{{ preorder_label }}</span>
         <span class="pham-product-spotlight__add-price" data-pham-spotlight-btn-price>{{ current_variant.price | money }}</span>
       </span>
-    </a>
+</a>
   {%- else -%}
     <a href="{{ waitlist_variant_url | escape }}"
        class="pham-product-main__cta pham-product-main__cta--preorder"
@@ -126,9 +126,9 @@
       <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
       <span class="pham-product-main__cta-inner">
         <span class="pham-product-main__cta-label" data-pham-product-cta-label>{{ preorder_label }}</span>
-        <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
+
       </span>
-    </a>
+</a>
   {%- endif -%}
 
 {%- elsif direct_purchase and variant_available -%}
@@ -170,7 +170,7 @@
         <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
         <span class="pham-product-main__cta-inner">
           <span class="pham-product-main__cta-label" data-pham-product-cta-label>{{ add_label }}</span>
-          <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
+
         </span>
       </button>
     </form>
@@ -196,7 +196,7 @@
       <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
       <span class="pham-product-main__cta-inner">
         <span class="pham-product-main__cta-label">{{ closed_label }}</span>
-        <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
+
       </span>
     </button>
     <p class="pham-product-main__closed-note">{{ closed_note }}</p>
@@ -222,7 +222,7 @@
       <span class="pham-product-main__cta-fill" aria-hidden="true"></span>
       <span class="pham-product-main__cta-inner">
         <span class="pham-product-main__cta-label">{{ sold_label }}</span>
-        <span class="pham-product-main__cta-arrow" aria-hidden="true">&rarr;</span>
+
       </span>
     </button>
     <p class="pham-product-main__closed-note">{{ sold_note }}</p>

@@ -325,7 +325,7 @@
     var hint = document.createElement('p');
     hint.className = 'pham-policy-table-hint';
     hint.setAttribute('aria-hidden', 'true');
-    hint.textContent = 'Vuốt ngang để xem thêm →';
+    hint.textContent = 'Vuốt ngang để xem thêm';
 
     shell.appendChild(fade);
     shell.appendChild(hint);

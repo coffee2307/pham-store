@@ -38,7 +38,7 @@
                     {%- else -%}
                       <div class="pham-cart-page__img pham-skeleton" aria-hidden="true"></div>
                     {%- endif -%}
-                  </a>
+</a>
                   <div class="pham-cart-page__meta">
                     <a href="{{ item.url }}" class="pham-cart-page__name">{{ item.product.title }}</a>
                     {%- unless item.product.has_only_default_variant -%}
@@ -146,8 +146,8 @@
         <p class="pham-cart-page__empty-sub">Begin the edition.</p>
         <a href="{{ cart_product_url }}" class="pham-cart-page__empty-cta">
           <span>View the Edition</span>
-          <span aria-hidden="true">&rarr;</span>
-        </a>
+
+</a>
       </div>
     {%- endif -%}
   </div>

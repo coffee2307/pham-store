@@ -4507,3 +4507,54 @@ body.pham-challenge-page .shopify-section-group-footer-group {
     font-size: min(var(--text-base), 4vw);
   }
 }
+
+/* PHAM interface audit: minimal controls, no decorative arrows. */
+.pham-control-word {
+  font: 600 9px/1.15 var(--font-mono, monospace);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pham-pdp-gallery__nav,
+.pham-pdp-gallery__thumb-nav,
+.pham-lookbook-v2__carousel-nav,
+.pham-lookbook-v2__lightbox-nav {
+  min-width: 44px;
+  font-size: 10px;
+  letter-spacing: .06em;
+}
+:is(
+  .pham-header__drawer-close,
+  .pham-cart-drawer__close,
+  .pham-lookbook-v2__lightbox-close,
+  .pham-product-main__zoom-close,
+  .pham-vault-card-dialog__close
+) {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  color: var(--color-bone, #eeeef0);
+}
+:is(
+  .pham-header__drawer-close,
+  .pham-cart-drawer__close,
+  .pham-lookbook-v2__lightbox-close,
+  .pham-product-main__zoom-close,
+  .pham-vault-card-dialog__close
+):hover {
+  border: 0 !important;
+  background: transparent !important;
+  color: #fff;
+  opacity: .78;
+}
+:is(
+  .pham-header__drawer-close,
+  .pham-cart-drawer__close,
+  .pham-lookbook-v2__lightbox-close,
+  .pham-product-main__zoom-close,
+  .pham-vault-card-dialog__close
+):focus-visible {
+  outline: 1px solid rgba(255,255,255,.85) !important;
+  outline-offset: 3px;
+}

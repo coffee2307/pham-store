@@ -157,7 +157,7 @@
                   {%- endif -%}
                 {%- endfor -%}
               </select>
-              <span class="pham-collection-sort__caret" aria-hidden="true">&darr;</span>
+
             </label>
           {%- endif -%}
         </div>
@@ -177,20 +177,20 @@
                   <a href="{{ v.url_to_remove }}" class="pham-collection-filters__chip">
                     <span>{{ v.label | escape }}</span>
                     <span aria-hidden="true">×</span>
-                  </a>
+</a>
                 {%- endfor -%}
                 {%- if f.type == 'price_range' -%}
                   {%- if f.min_value.value != nil -%}
                     <a href="{{ f.min_value.url_to_remove }}" class="pham-collection-filters__chip">
                       <span>Min {{ f.min_value.value | money_without_currency }}</span>
                       <span aria-hidden="true">×</span>
-                    </a>
+</a>
                   {%- endif -%}
                   {%- if f.max_value.value != nil -%}
                     <a href="{{ f.max_value.url_to_remove }}" class="pham-collection-filters__chip">
                       <span>Max {{ f.max_value.value | money_without_currency }}</span>
                       <span aria-hidden="true">×</span>
-                    </a>
+</a>
                   {%- endif -%}
                 {%- endif -%}
               {%- endfor -%}
@@ -224,7 +224,7 @@
               <span class="pham-collection-grid__more-meta">
                 {{ collection.products.size | plus: paginate.current_offset }} / {{ collection.products_count }}
               </span>
-            </a>
+</a>
           </div>
         {%- endif -%}
       {%- else -%}
@@ -711,7 +711,7 @@
       "id": "enable_filtering",
       "label": "Enable filtering",
       "default": true,
-      "info": "Uses Shopify's Online Store 2.0 storefront filters configured in Admin → Customize → Search & discovery."
+      "info": "Uses Shopify's Online Store 2.0 storefront filters configured in Admin  Customize  Search & discovery."
     },
     {
       "type": "checkbox",
