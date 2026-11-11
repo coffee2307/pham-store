@@ -4558,3 +4558,39 @@ body.pham-challenge-page .shopify-section-group-footer-group {
   outline: 1px solid rgba(255,255,255,.85) !important;
   outline-offset: 3px;
 }
+
+/* PHAM-READABILITY-20261111 */
+/* Critical text stays readable; decorative microtype remains available elsewhere. */
+.pham-footer__heading { font-size: 12px; letter-spacing: .1em; margin-bottom: 8px; }
+.pham-footer__newsletter-copy { font-family: var(--font-body); font-size: 13px; letter-spacing: .015em; line-height: 1.65; text-transform: none; color: rgba(242,242,239,.76); }
+.pham-footer__link { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; letter-spacing: .055em; padding-block: 8px; }
+.pham-footer__policy-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; letter-spacing: .05em; line-height: 1.45; }
+.pham-footer__social--facebook { min-height: 44px; font-size: 12px; letter-spacing: .07em; }
+.pham-footer__submit { font-size: 12px; letter-spacing: .07em; }
+.pham-footer__copyright { font-size: 11px; letter-spacing: .06em; line-height: 1.5; }
+@media (max-width: 749px) {
+  .pham-footer { padding-block: 48px 28px; }
+  .pham-footer__grid { gap: 34px; }
+  .pham-footer__col { gap: 12px; }
+  .pham-footer__tagline { font-size: 14px; line-height: 1.5; }
+  .pham-footer__menu { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0 16px; }
+  .pham-footer__menu-item { min-width: 0; }
+  .pham-footer__form-row { flex-direction: row; align-items: stretch; }
+  .pham-footer__input { flex: 1 1 auto; width: 1%; min-width: 0; }
+  .pham-footer__submit { width: auto; flex: 0 0 116px; border-top: 0; border-left: 1px solid var(--color-bone); min-height: 48px; padding: 12px 8px; }
+  .pham-footer__divider { margin: 26px 0 14px; }
+  .pham-footer__policies-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 12px; }
+  .pham-footer__policies { margin-bottom: 16px; }
+  .pham-footer__bottom { gap: 12px; }
+}
+
+/* PHAM readability follow-up: contact form and intermediate-width footer */
+.pham-contact__label { font-size: 12px; letter-spacing: .06em; color: rgba(242,242,239,.82); }
+.pham-contact__privacy { font-size: 12px; line-height: 1.55; }
+.pham-contact__submit { min-height: 48px; font-size: 12px; letter-spacing: .08em; }
+@media (min-width: 750px) and (max-width: 900px) {
+  .pham-footer { padding-block: 48px 30px; }
+  .pham-footer__grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 32px; }
+  .pham-footer__col--newsletter { grid-column: 1 / -1; max-width: 620px; }
+  .pham-footer__divider { margin: 28px 0 16px; }
+}

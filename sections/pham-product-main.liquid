@@ -1093,6 +1093,29 @@
       height: 64px;
     }
   }
+
+  /* PHAM-READABILITY-20261111 */
+
+  /* Product choices and technical labels: readability and touch-target pass */
+  .pham-variant-group__legend { font-size: 12px; letter-spacing: .08em; color: rgba(242,242,239,.76); gap: 14px; }
+  .pham-variant-group__value { font-size: 13px; font-weight: 600; color: var(--color-white); }
+  .pham-variant-group__values { gap: 10px; }
+  .pham-radio-label { min-width: 54px; height: 48px; min-height: 48px; padding-inline: 16px; font-size: 14px; font-weight: 600; letter-spacing: .02em; }
+  .pham-radio:checked + .pham-radio-label { border-color: var(--color-white); color: var(--color-white); background: rgba(255,255,255,.09); }
+  .pham-object-record__head { font-size: 11px; letter-spacing: .08em; color: rgba(242,242,239,.65); }
+  .pham-object-record__grid dt, .pham-object-record__grid dd { font-size: 11px; line-height: 1.5; letter-spacing: .035em; }
+  .pham-object-record__grid dt { color: rgba(242,242,239,.64); }
+  .pham-object-record__note { font-size: .85rem; }
+  .pham-product-main__guide-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; }
+  .pham-product-main .pham-pdp-gallery__nav,
+  .pham-product-main .pham-pdp-gallery__thumb-nav { min-height: 44px; }
+  .pham-product-main__closed-note, .pham-product-main__preorder-note { font-size: 12px; }
+  .pham-trust__item { font-size: 11px; letter-spacing: .04em; }
+  @media (max-width: 520px) {
+    .pham-object-record__grid > div { grid-template-columns: 115px minmax(0,1fr); gap: 10px; }
+    .pham-object-record__grid dt, .pham-object-record__grid dd { overflow-wrap: anywhere; }
+  }
+
 </style>
 
 <script>
