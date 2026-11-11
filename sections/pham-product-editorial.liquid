@@ -38,7 +38,8 @@
     <div class="pham-editorial-stage__copy">
       <p class="pham-editorial-stage__eyebrow">{{ section.settings.eyebrow }}</p>
       <h1 class="pham-editorial-stage__title">{{ section.settings.heading }}</h1>
-      <p class="pham-editorial-stage__description">{{ section.settings.body }}</p>
+      <p class="pham-editorial-stage__description pham-editorial-stage__description--desktop">{{ section.settings.body }}</p>
+      <p class="pham-editorial-stage__description pham-editorial-stage__description--mobile">{{ section.settings.mobile_body | default: section.settings.body }}</p>
       <a class="pham-editorial-stage__cta" href="#MainProduct-{{ product.id }}">
         <span>EXPLORE PHAM-001</span>
         <span aria-hidden="true">↓</span>
@@ -135,6 +136,7 @@
     font: 400 clamp(.88rem, 1.1vw, 1rem)/1.7 var(--font-body);
     color: rgba(242,242,239,.72);
   }
+  .pham-editorial-stage__description--mobile { display: none; }
   .pham-editorial-stage__cta {
     display: inline-flex;
     gap: 25px;
@@ -161,31 +163,67 @@
     }
   }
   @media (max-width: 699px) {
-    .pham-editorial-stage { min-height: 845px; min-height: max(845px, 100svh); align-items: flex-start; background: #090b0e; }
-    .pham-editorial-stage__ambient {
-      background: radial-gradient(ellipse 84% 53% at 79% 65%, rgba(63,63,63,.24), transparent 76%),
-                  linear-gradient(#080a0d, #0e1013 65%, #090b0e);
+    .pham-editorial-stage {
+      min-height: clamp(790px, 100svh, 920px);
+      height: auto;
+      align-items: stretch;
+      background: #090b0e;
     }
-    .pham-editorial-stage__meta { top: 82px; font-size: 9px; }
-    .pham-editorial-stage__meta p:last-child { display: none; }
-    .pham-editorial-stage__visual { left: 0; right: 0; top: 335px; bottom: 0; width: 100%; }
+    .pham-editorial-stage__ambient { background: #090b0e; }
+    .pham-editorial-stage__visual {
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
     .pham-editorial-stage__image {
-      object-position: 38% 43%;
+      object-position: 50% 50%;
       transform: none;
-      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 85%, transparent 100%);
-      mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 85%, transparent 100%);
+      -webkit-mask-image: none;
+      mask-image: none;
     }
     .pham-editorial-stage__visual::after {
-      background: linear-gradient(90deg, rgba(9,11,14,.14), transparent 62%),
-                  linear-gradient(0deg, #090b0e 0%, transparent 17%, transparent 95%);
+      background: linear-gradient(180deg,
+        rgba(9,11,14,.34) 0%,
+        transparent 17%,
+        transparent 37%,
+        rgba(9,11,14,.14) 49%,
+        rgba(9,11,14,.78) 69%,
+        #090b0e 85%,
+        #090b0e 100%);
     }
-    .pham-editorial-stage__content { padding-top: 127px; }
-    .pham-editorial-stage__copy { max-width: 95%; padding: 0; }
-    .pham-editorial-stage__eyebrow { font-size: 9px; margin-bottom: 13px; }
-    .pham-editorial-stage__title { font-size: clamp(3.2rem, 11vw, 4.6rem); max-width: 92%; }
-    .pham-editorial-stage__description { max-width: 270px; margin: 14px 0 23px; font-size: .8rem; line-height: 1.6; }
-    .pham-editorial-stage__footer { bottom: 23px; font-size: 8px; }
-    .pham-editorial-stage__footer span:last-child { display: none; }
+    .pham-editorial-stage__meta { display: none; }
+    .pham-editorial-stage__content {
+      position: absolute;
+      inset: auto 0 80px;
+      padding-block: 0;
+      z-index: 2;
+    }
+    .pham-editorial-stage__copy {
+      max-width: 100%;
+      padding: 0;
+    }
+    .pham-editorial-stage__eyebrow { display: none; }
+    .pham-editorial-stage__title {
+      font-size: clamp(2.95rem, 10.8vw, 4.3rem);
+      line-height: .97;
+      letter-spacing: -.045em;
+      max-width: min(320px, 88%);
+    }
+    .pham-editorial-stage__description--desktop { display: none; }
+    .pham-editorial-stage__description--mobile { display: block; }
+    .pham-editorial-stage__description {
+      max-width: 310px;
+      margin: 14px 0 20px;
+      font-size: .78rem;
+      line-height: 1.55;
+      color: rgba(245,245,242,.82);
+    }
+    .pham-editorial-stage__cta {
+      font-size: 10px;
+      gap: 18px;
+      padding-bottom: 10px;
+    }
+    .pham-editorial-stage__footer { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
     .pham-editorial-stage__cta { transition: none; }
@@ -205,7 +243,8 @@
     { "type": "header", "content": "Copy" },
     { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "EDITION 01 / PHAM ATELIER" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "THE FIRST OBJECT" },
-    { "type": "textarea", "id": "body", "label": "Description", "default": "Designed to be felt. Built to be worn. The inaugural PHAM object is defined by controlled volume, a cropped form and uncompromising detail." }
+    { "type": "textarea", "id": "body", "label": "Description", "default": "Designed to be felt. Built to be worn. The inaugural PHAM object is defined by controlled volume, a cropped form and uncompromising detail." },
+    { "type": "textarea", "id": "mobile_body", "label": "Short mobile description", "default": "A study in volume, structure and restraint." }
   ],
   "presets": [{ "name": "PHAM Editorial stage", "category": "PHAM" }],
   "enabled_on": { "templates": ["product"] }
