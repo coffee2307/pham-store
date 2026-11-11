@@ -34,9 +34,9 @@
   document.documentElement.classList.add('pham-js');
 
   /* ---- Local constants ----------------------------------------------- */
-  const REVEAL_THRESHOLD   = 0.15;
-  const REVEAL_ROOT_MARGIN = '0px 0px -8% 0px';
-  const STAGGER_DELAY_MS   = 80;
+  const REVEAL_THRESHOLD   = 0.08;
+  const REVEAL_ROOT_MARGIN = '0px 0px -6% 0px';
+  const STAGGER_DELAY_MS   = 55;
   const TRANSITION_MS      = 300;
   const SAFE_NAVIGATE_TIMEOUT_MS = 1500;
 
@@ -106,7 +106,7 @@
       const children = Array.from(parent.children);
       const delay = Number(parent.dataset.staggerDelay) || STAGGER_DELAY_MS;
       children.forEach((child, idx) => {
-        child.style.transitionDelay = (idx * delay) + 'ms';
+        child.style.transitionDelay = (Math.min(idx,4) * delay) + 'ms';
       });
     }
 
@@ -117,6 +117,55 @@
     destroy() {
       if (this.observer) this.observer.disconnect();
       this.observer = null;
+    }
+  }
+
+  /* Athena-aligned editorial reveal; never the only way to read content. */
+  class PhamEditorialMotion {
+    constructor() {
+      this.seen = new WeakSet();
+      this.reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+      this.selectors = [
+        'main h2:not(.reveal-up):not([data-pham-motion-ignore])',
+        '.pham-founder__chapter','.pham-founder__obstacle',
+        '.pham-founder__facts','.pham-founder__present',
+        '.pham-founder__end-links','.pham-about__founder-facts',
+        '.pham-about__resources','.pham-lookbook-v2__cell:not(.reveal-up)',
+        '.pham-footer__col--menu','.pham-footer__col--story'
+      ];
+      this.io = !this.reduce.matches && 'IntersectionObserver' in window
+        ? new IntersectionObserver(entries => entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('is-visible');
+            this.io.unobserve(entry.target);
+          }), {threshold:.06,rootMargin:'0px 0px -6% 0px'}) : null;
+      this.refresh();
+      document.documentElement.classList.add('pham-motion-enabled');
+      this.reduce.addEventListener?.('change', () => {
+        if (this.reduce.matches) this.showAll();
+      });
+      document.addEventListener('focusin', event => {
+        const el = event.target instanceof Element
+          ? event.target.closest('[data-pham-motion]') : null;
+        if (el) el.classList.add('is-visible');
+      });
+    }
+    refresh() {
+      document.querySelectorAll(this.selectors.join(',')).forEach(el => {
+        if (this.seen.has(el) || el.closest('[hidden],[aria-hidden="true"],details:not([open]),form,dialog')) return;
+        if (el.classList.contains('reveal-up') || el.classList.contains('reveal-fade')) return;
+        this.seen.add(el);
+        el.dataset.phamMotion = el.classList.contains('pham-founder__chapter') ? 'chapter'
+          : el.classList.contains('pham-lookbook-v2__cell') ? 'image':'soft';
+        const box=el.getBoundingClientRect();
+        if (!this.io || this.reduce.matches || box.top < innerHeight*.94 || box.bottom<0)
+          el.classList.add('is-visible');
+        else this.io.observe(el);
+      });
+    }
+    showAll() {
+      this.io?.disconnect();
+      document.querySelectorAll('[data-pham-motion]').forEach(el=>el.classList.add('is-visible'));
     }
   }
 
@@ -327,6 +376,8 @@
       this.ticking = false;
       this.io = null;
       this.activeSet = new Set();
+      this.progressTargets = [];
+      this._visible = () => {if (!document.hidden) this._requestUpdate()};
       this._init();
     }
 
@@ -343,33 +394,52 @@
       this.targets.forEach((t) => this.io.observe(t));
       window.addEventListener('scroll', () => this._requestUpdate(), { passive: true });
       window.addEventListener('resize', () => this._requestUpdate(), { passive: true });
+      document.addEventListener('visibilitychange', this._visible);
       document.addEventListener('shopify:section:load', () => this.refresh());
     }
 
     collect() {
-      const nodes = document.querySelectorAll('[data-pham-parallax]');
+      const nodes = document.querySelectorAll('[data-pham-parallax], [data-pham-scroll-progress]');
       nodes.forEach((n) => {
         if (this.targets.indexOf(n) === -1) this.targets.push(n);
+        if (n.hasAttribute('data-pham-scroll-progress') && !this.progressTargets.includes(n)) {
+          this.progressTargets.push(n);
+        }
       });
+      this.progressTargets = this.progressTargets.filter(el => el.isConnected);
     }
 
     _requestUpdate() {
-      if (this.ticking) return;
+      if (prefersReducedMotion || document.hidden ||
+          (!this.activeSet.size && !this.progressTargets.length) || this.ticking) return;
       this.ticking = true;
       requestAnimationFrame(() => {
-        this._update();
         this.ticking = false;
+        if (!document.hidden) this._update();
       });
     }
 
     _update() {
       const vh = window.innerHeight || document.documentElement.clientHeight;
-      this.activeSet.forEach((el) => {
-        const speed = parseFloat(el.getAttribute('data-pham-parallax-speed') || '0.15');
-        if (speed === 0) return;
+      // Progress must be evaluated when offscreen too, otherwise it gets stuck
+      // at 100% after the visitor scrolls back toward the hero.
+      this.progressTargets.forEach((el) => {
         const rect = el.getBoundingClientRect();
+        const distance = Math.max(1, rect.height - vh * 0.28);
+        const progress = Math.max(0, Math.min(1, (vh * 0.62 - rect.top) / distance));
+        el.style.setProperty('--pham-story-progress', progress.toFixed(4));
+      });
+      this.activeSet.forEach((el) => {
+        if (el.hasAttribute('data-pham-scroll-progress')) return;
+        const rect = el.getBoundingClientRect();
+        if (window.matchMedia('(max-width: 700px)').matches) {
+          el.style.setProperty('--pham-parallax-y', '0px');
+          return;
+        }
+        const speed = Number(el.getAttribute('data-pham-parallax-speed') || 0.15);
+        if (!Number.isFinite(speed) || !speed) return;
         const progress = (rect.top + rect.height / 2 - vh / 2) / vh;
-        const y = -progress * 100 * speed;
+        const y = Math.max(-16, Math.min(16, -progress * 100 * speed));
         el.style.setProperty('--pham-parallax-y', y.toFixed(2) + 'px');
       });
     }
@@ -579,6 +649,7 @@
     _boot() {
       const startCore = () => {
         try { this.modules.scrollReveal = new PhamScrollReveal(); } catch (e) { console.error('[PHAM] ScrollReveal failed:', e); }
+        try { this.modules.editorialMotion = new PhamEditorialMotion(); } catch (e) { console.error('[PHAM] EditorialMotion failed:', e); }
         try { this.modules.pageTransition = new PhamPageTransition(); } catch (e) { console.error('[PHAM] PageTransition failed:', e); }
       };
 
@@ -587,7 +658,7 @@
         if (document.querySelector('.pham-product-card [data-pham-img-secondary]')) {
           try { this.modules.productCardHover = new PhamProductCardHover(); } catch (e) { console.error('[PHAM] ProductCardHover failed:', e); }
         }
-        if (document.querySelector('[data-pham-parallax]')) {
+        if (document.querySelector('[data-pham-parallax], [data-pham-scroll-progress]')) {
           try { this.modules.parallax = new PhamParallax(); } catch (e) { console.error('[PHAM] Parallax failed:', e); }
         }
         if (document.querySelector('[data-pham-counter]')) {
@@ -623,6 +694,7 @@
 
     refresh() {
       if (this.modules.scrollReveal)     this.modules.scrollReveal.refresh();
+      if (this.modules.editorialMotion)  this.modules.editorialMotion.refresh();
       if (this.modules.productCardHover) this.modules.productCardHover.refresh();
       if (this.modules.parallax)         this.modules.parallax.refresh();
       if (this.modules.counter)          this.modules.counter.refresh();
