@@ -458,20 +458,6 @@
     transform: translate3d(0, var(--pham-parallax-y, 0), 0);
     transition: filter var(--duration-base) var(--ease-tech);
   }
-  .pham-lookbook-v2__frame::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 3;
-    background-image:
-      linear-gradient(to right,  rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-    background-size: 24px 24px;
-    opacity: 0;
-    transition: opacity var(--duration-base) var(--ease-tech);
-  }
-  .pham-lookbook-v2__cell:hover .pham-lookbook-v2__frame::after { opacity: 1; }
   .pham-lookbook-v2__cell:hover .pham-lookbook-v2__img { filter: contrast(1.05) brightness(1.02); }
 
   /* Carousel frame */
