@@ -90,13 +90,20 @@
     object-fit: cover;
     object-position: center 54%;
   }
+  /* Feather the image itself into the ambient background; never leave a clipped vertical edge. */
+  @media (min-width: 700px) {
+    .pham-editorial-stage__visual {
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.12) 13%, rgba(0,0,0,.58) 32%, rgba(0,0,0,.9) 48%, #000 65%);
+      mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.12) 13%, rgba(0,0,0,.58) 32%, rgba(0,0,0,.9) 48%, #000 65%);
+    }
+  }
   .pham-editorial-stage__visual::after {
     content: "";
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(90deg, #090b0e 0%, rgba(9,11,14,.92) 10%, rgba(9,11,14,.67) 28%, rgba(9,11,14,.16) 56%, rgba(9,11,14,0) 79%),
-      linear-gradient(0deg, rgba(9,11,14,.85) 0%, transparent 19%, transparent 85%, rgba(9,11,14,.18) 100%);
+      linear-gradient(90deg, rgba(9,11,14,.55) 0%, rgba(9,11,14,.2) 39%, transparent 72%),
+      linear-gradient(0deg, rgba(9,11,14,.65) 0%, transparent 20%, transparent 86%, rgba(9,11,14,.14) 100%);
   }
   .pham-editorial-stage__meta,
   .pham-editorial-stage__footer {
