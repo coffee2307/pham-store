@@ -37,7 +37,7 @@
   <div class="pham-editorial-stage__content pham-container">
     <div class="pham-editorial-stage__copy">
       <p class="pham-editorial-stage__eyebrow">{{ section.settings.eyebrow }}</p>
-      <h1 class="pham-editorial-stage__title">{{ section.settings.heading }}</h1>
+      <h1 class="pham-editorial-stage__title{% if section.settings.heading == "THE FIRST OBJECT" %} pham-editorial-stage__title--phrase{% endif %}">{% if section.settings.heading == "THE FIRST OBJECT" %}<span class="pham-editorial-stage__phrase-unit">THE <strong>FIRST</strong> OBJECT</span>{% else %}{{ section.settings.heading | escape }}{% endif %}</h1>
       <p class="pham-editorial-stage__description pham-editorial-stage__description--desktop">{{ section.settings.body }}</p>
       <p class="pham-editorial-stage__description pham-editorial-stage__description--mobile">{{ section.settings.mobile_body | default: section.settings.body }}</p>
       <a class="pham-editorial-stage__cta" href="#MainProduct-{{ product.id }}">
@@ -235,6 +235,21 @@
   @media (prefers-reduced-motion: reduce) {
     .pham-editorial-stage__cta { transition: none; }
   }
+.pham-editorial-stage__title--phrase {
+  font-size:clamp(2.08rem,3.25vw,3.06rem);
+  line-height:1.08;
+  letter-spacing:-.035em;
+  max-width:none;
+}
+.pham-editorial-stage__phrase-unit {display:inline-block;white-space:nowrap}
+.pham-editorial-stage__phrase-unit strong {font:inherit;font-weight:640}
+@media(max-width:699px) {
+  .pham-editorial-stage__title--phrase {
+    font-size:clamp(1.55rem,7.6vw,2.7rem);
+    max-width:100%;
+  }
+}
+
 </style>
 
 {% schema %}

@@ -10,8 +10,7 @@
         <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
       {%- endif -%}
       <h1 id="pham-about-heading-{{ section.id }}" class="pham-about__title">
-        <span class="pham-about__title-line">{{ section.settings.title_line_1 | default: 'PHAM' }}</span>
-        <span class="pham-about__title-line">{{ section.settings.title_line_2 | default: 'MANIFESTO' }}</span>
+        <span class="pham-about__title-line">{{ section.settings.title_line_1 | default: 'PHAM' | escape }}</span> <span class="pham-about__title-line">{{ section.settings.title_line_2 | default: 'MANIFESTO' | escape }}</span>
       </h1>
       {%- if section.settings.subtitle != blank -%}
         <p class="pham-about__subtitle">{{ section.settings.subtitle }}</p>
@@ -520,6 +519,21 @@
     border-color: #fff;
   }
   .pham-about__founder-story-link span:last-child { font-size: 19px; }
+
+.pham-about__title {
+  display:block;
+  font-size:clamp(2.2rem,7.5vw,6.25rem);
+  line-height:1.03;
+  text-wrap:pretty;
+}
+.pham-about__title .pham-about__title-line {
+  display:inline;
+  white-space:nowrap;
+}
+.pham-about__record-title {text-wrap:pretty}
+@media(max-width:700px) {
+ .pham-about__title{font-size:clamp(2rem,9.4vw,3.2rem)}
+}
 
 </style>
 

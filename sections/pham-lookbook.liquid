@@ -18,7 +18,7 @@
         {%- endif -%}
         {%- if section.settings.title != blank -%}
           <h2 class="pham-lookbook-v2__title">
-            <span class="pham-split" data-pham-split>{{ section.settings.title }}</span>
+            {% assign editorial_look_title = section.settings.title | strip | downcase %}{% if editorial_look_title == 'the architecture of restraint' %}<span class="pham-lookbook-v2__phrase">The <strong>Architecture</strong></span><span class="pham-lookbook-v2__phrase"> of <em>Restraint</em></span>{% else %}<span class="pham-split" data-pham-split>{{ section.settings.title | escape }}</span>{% endif %}
           </h2>
         {%- endif -%}
         {%- if section.settings.intro != blank -%}
@@ -1009,6 +1009,23 @@
     }
     .pham-lookbook-v2__lightbox-img { transition: none !important; }
   }
+.pham-lookbook-v2__title { text-wrap:pretty }
+.pham-lookbook-v2__phrase {
+  display:block;
+  white-space:nowrap;
+  font-family:"Space Grotesk",var(--font-body),sans-serif;
+  letter-spacing:-.035em;
+  text-transform:none;
+  font-size:clamp(2rem,4.3vw,4rem);
+  font-weight:400;
+  line-height:1.12;
+}
+.pham-lookbook-v2__phrase strong{font:inherit;font-weight:625}
+.pham-lookbook-v2__phrase em{font-style:italic;font-weight:400}
+@media(max-width:599px){
+  .pham-lookbook-v2__phrase{font-size:clamp(1.38rem,6.1vw,2.35rem)}
+}
+
 </style>
 
 {% schema %}

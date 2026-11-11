@@ -1366,3 +1366,43 @@
     font-size: 8.5px;
   }
 }
+
+/* PHAM Editorial Typography v2 — keep compact title phrases intact. */
+@media (min-width: 900px) {
+  .pham-vault__chapter:not(.pham-vault__chapter--purchase) {
+    width: min(41vw, 540px);
+  }
+}
+.pham-vault__display--editorial {
+  max-width: none;
+  font-size: clamp(2rem, 3.05vw, 3rem);
+  line-height: 1.07;
+  text-wrap: pretty;
+}
+.pham-vault__phrase-unit {
+  display: inline-block;
+  white-space: nowrap;
+}
+.pham-vault__phrase-unit strong {
+  font: inherit;
+  font-weight: 630;
+}
+@media (min-width: 600px) and (max-width: 899px) {
+  .pham-vault__display--editorial { font-size: clamp(2rem, 4.5vw, 2.8rem); }
+}
+@media (max-width: 599px) {
+  .pham-vault__display--editorial {
+    font-size: clamp(1.42rem, 7.2vw, 2.6rem);
+    line-height: 1.12;
+  }
+}
+
+/* Longest phrase receives a distinct optical size rather than clipping. */
+.pham-vault__chapter--right .pham-vault__display--editorial {
+  font-size: clamp(1.75rem, 2.68vw, 2.6rem);
+}
+@media (max-width:599px){
+  .pham-vault__chapter--right .pham-vault__display--editorial {
+    font-size:clamp(1.15rem, 5.85vw, 2.1rem);
+  }
+}

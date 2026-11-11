@@ -12,7 +12,7 @@
     <header class="pham-founder__hero">
       <div class="pham-founder__hero-main">
         <p class="pham-founder__eyebrow">{{ section.settings.eyebrow | escape }}</p>
-        <h1 id="pham-founder-title">{{ section.settings.title | escape }}</h1>
+        <h1 id="pham-founder-title">{% if section.settings.title == 'Building PHAM, from the beginning.' %}<span class="pham-founder__title-phrase">Building <strong>PHAM,</strong></span><span class="pham-founder__title-phrase"> from the <em>beginning.</em></span>{% else %}{{ section.settings.title | escape }}{% endif %}</h1>
         <p class="pham-founder__lead">{{ section.settings.lead | escape }}</p>
         <a class="pham-founder__jump" href="#pham-founder-story">READ THE STORY <span aria-hidden="true">↓</span></a>
       </div>
@@ -31,7 +31,7 @@
     <section id="pham-founder-story" class="pham-founder__story" aria-labelledby="pham-founder-story-title">
       <div class="pham-founder__section-heading">
         <p class="pham-founder__eyebrow">01 / THE JOURNEY</p>
-        <h2 id="pham-founder-story-title">How it began.<br>What it took.</h2>
+        <h2 id="pham-founder-story-title"><span class="pham-founder__section-phrase">How it began.</span><span class="pham-founder__section-phrase"> What it took.</span></h2>
         <p>From the first sketch to the questions that still have to be answered.</p>
       </div>
 
@@ -57,7 +57,7 @@
     <section class="pham-founder__obstacles" aria-labelledby="pham-founder-obstacles-title">
       <div class="pham-founder__section-heading">
         <p class="pham-founder__eyebrow">02 / THE REAL CONSTRAINTS</p>
-        <h2 id="pham-founder-obstacles-title">The parts you<br>don't see in a lookbook.</h2>
+        <h2 id="pham-founder-obstacles-title">What a lookbook doesn't show.</h2>
         <p>Each of these constraints has shaped how the first edition is being built.</p>
       </div>
       <div class="pham-founder__obstacles-grid">
@@ -109,7 +109,7 @@
 .pham-founder__breadcrumb a:hover,.pham-founder__breadcrumb a:focus-visible{color:#fff;text-decoration:underline;text-underline-offset:4px}
 .pham-founder__hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.6fr);gap:clamp(38px,7vw,100px);align-items:end;padding-bottom:clamp(60px,8vw,108px)}
 .pham-founder__hero-main{min-width:0}
-.pham-founder__hero h1{margin:18px 0 24px;max-width:13ch;font:400 clamp(3.2rem,6.4vw,6.3rem)/1.03 var(--font-display,Arial,sans-serif);letter-spacing:-.05em;text-wrap:balance}
+.pham-founder__hero h1{margin:18px 0 24px;max-width:none;font:400 clamp(2.9rem,4.9vw,5.15rem)/1.08 var(--font-display,Arial,sans-serif);letter-spacing:-.04em;text-wrap:pretty}
 .pham-founder__lead{max-width:58ch;color:#c8c7c3;font:400 clamp(16px,1.3vw,19px)/1.7 var(--font-body,Arial,sans-serif);margin:0}
 .pham-founder__jump{display:inline-flex;align-items:center;justify-content:space-between;gap:32px;margin-top:30px;padding:14px 3px;min-height:48px;border-bottom:1px solid #aaa9a6;color:#e9e8e5;text-decoration:none;font:650 12px/1.4 var(--font-body,Arial,sans-serif);letter-spacing:.08em}
 .pham-founder__jump span{font-size:18px}
@@ -136,7 +136,7 @@
 .pham-founder__chapter-number{display:grid;place-items:center;flex:0 0 38px;height:38px;border:1px solid #53555a;background:#0a0b0d;font-size:12px;color:#dddcd8}
 .pham-founder__chapter-category{padding-top:8px;max-width:20ch}
 .pham-founder__chapter-copy{max-width:72ch}
-.pham-founder__chapter-copy h3{font:500 clamp(1.5rem,2.4vw,2.45rem)/1.22 var(--font-display,Arial,sans-serif);margin:0 0 20px;letter-spacing:-.025em}
+.pham-founder__chapter-copy h3{font:500 clamp(1.5rem,2.4vw,2.45rem)/1.22 var(--font-display,Arial,sans-serif);margin:0 0 20px;letter-spacing:-.025em;text-wrap:pretty}
 .pham-founder__chapter-copy p{color:#c6c5c1;font:400 clamp(15px,1.08vw,17px)/1.83 var(--font-body,Arial,sans-serif);margin:0 0 17px}
 .pham-founder__chapter-copy p:last-child{margin-bottom:0}
 .pham-founder__obstacles-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
@@ -170,7 +170,7 @@
 .pham-founder__shell{width:calc(100% - 32px)}
 .pham-founder__breadcrumb{gap:10px;margin-bottom:26px;font-size:10px}
 .pham-founder__hero{grid-template-columns:1fr;gap:32px;padding-bottom:58px}
-.pham-founder__hero h1{max-width:17ch;font-size:clamp(2.8rem,10.8vw,4.3rem);margin:12px 0 18px}
+.pham-founder__hero h1{max-width:none;font-size:clamp(1.64rem,7.5vw,2.9rem);margin:12px 0 18px}
 .pham-founder__lead{font-size:15px;line-height:1.72}
 .pham-founder__jump{margin-top:20px}
 .pham-founder__facts{max-width:none}
@@ -202,6 +202,24 @@
 .pham-founder__end-links a{scroll-behavior:auto}
 }
 @media(prefers-reduced-motion:reduce){.pham-founder__chapters::after{transform:scaleY(1);transition:none}}
+.pham-founder__title-phrase,.pham-founder__section-phrase { display:block; white-space:nowrap }
+.pham-founder__title-phrase strong { font-weight:650 }
+.pham-founder__title-phrase em { font-style:italic; font-weight:400 }
+.pham-founder__section-heading h2,.pham-founder__present h2 { text-wrap:pretty; }
+/* Keep each founder title phrase readable within the copy column. */
+.pham-founder__hero h1 {font-size:clamp(2.2rem,3.3vw,3.35rem)}
+@media (min-width:701px) and (max-width:920px){
+  .pham-founder__hero {grid-template-columns:1fr}
+  .pham-founder__hero h1 {font-size:clamp(2.35rem,5.3vw,3.35rem)}
+}
+@media (max-width:700px){
+  .pham-founder__hero h1 {font-size:clamp(1.18rem,6.2vw,1.85rem)}
+}
+
+@media(max-width:700px) {
+  .pham-founder__section-phrase { white-space:normal }
+}
+
 </style>
 {% schema %}
 {

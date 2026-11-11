@@ -4624,3 +4624,11 @@ html:not(.pham-js) :is(.reveal-mask,.reveal-mask--up,.reveal-mask--down){clip-pa
 }
 .pham-product-main__media-item.reveal-up::after,
 .pham-product-spotlight__media-item.reveal-up::after{display:none!important}
+
+/* PHAM editorial line-breaking — never split a token, avoid orphan endings. */
+main :is(h1,h2,h3) { word-break:normal; overflow-wrap:break-word; text-wrap:pretty; }
+
+/* Compact static utility headline phrases, without layout-breaking <br>. */
+@media(max-width:699px) {
+ .pham-campaign-title { text-wrap:pretty; }
+}
