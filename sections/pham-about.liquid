@@ -43,22 +43,63 @@
     {%- endif -%}
 
     <section class="pham-about__record reveal-up" aria-label="PHAM founder and edition record">
-      <div class="pham-about__record-block">
-        <p class="pham-eyebrow">{{ section.settings.founder_eyebrow }}</p>
-        <h2 class="pham-about__record-title">{{ section.settings.founder_title }}</h2>
-        <p class="pham-about__record-copy">{{ section.settings.founder_body }}</p>
+      <div class="pham-about__record-block pham-about__record-block--founder">
+        <dl class="pham-about__founder-facts" aria-label="Founder details">
+          <div><dt>FOUNDER</dt><dd>Coffee Pham</dd></div>
+          <div><dt>ESTABLISHED</dt><dd>2026 · Vietnam</dd></div>
+          <div><dt>AT THE BEGINNING</dt><dd>Age 16 · High school student</dd></div>
+          <div><dt>MODEL</dt><dd>Independent · Edition-based</dd></div>
+        </dl>
+        <div class="pham-about__founder-narrative">
+          <p class="pham-eyebrow">{{ section.settings.founder_eyebrow }}</p>
+          <h2 class="pham-about__record-title">{{ section.settings.founder_title }}</h2>
+          <p class="pham-about__record-copy">{{ section.settings.founder_body }}</p>
+          {%- if section.settings.founder_body_2 != blank -%}
+            <p class="pham-about__record-copy">{{ section.settings.founder_body_2 }}</p>
+          {%- endif -%}
+          {%- if section.settings.founder_body_3 != blank -%}
+            <p class="pham-about__record-copy">{{ section.settings.founder_body_3 }}</p>
+          {%- endif -%}
+        </div>
       </div>
 
-      <div class="pham-about__record-block">
-        <p class="pham-eyebrow">{{ section.settings.edition_eyebrow }}</p>
-        <h2 class="pham-about__record-title">{{ section.settings.edition_title }}</h2>
-        <p class="pham-about__record-copy">{{ section.settings.edition_body }}</p>
+      <div class="pham-about__record-block pham-about__record-block--edition">
+        <div class="pham-about__edition-heading">
+          <p class="pham-eyebrow">{{ section.settings.edition_eyebrow }}</p>
+          <h2 class="pham-about__record-title">{{ section.settings.edition_title }}</h2>
+        </div>
+        <div class="pham-about__edition-copy">
+          <p class="pham-about__record-copy">{{ section.settings.edition_body }}</p>
+          {%- if section.settings.edition_body_2 != blank -%}
+            <p class="pham-about__record-copy">{{ section.settings.edition_body_2 }}</p>
+          {%- endif -%}
+          {%- if section.settings.edition_body_3 != blank -%}
+            <p class="pham-about__record-copy">{{ section.settings.edition_body_3 }}</p>
+          {%- endif -%}
+        </div>
       </div>
 
       <div class="pham-about__edition-note">
         <span>{{ section.settings.edition_note_label }}</span>
         <strong>{{ section.settings.edition_note_value }}</strong>
       </div>
+      <nav class="pham-about__resources" aria-label="Learn more about PHAM-001">
+        <a href="/products/pham-001">
+          <strong>EXPLORE PHAM-001</strong>
+          <span>Design, specification and current availability</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href="/pages/pham-001-size-guide">
+          <strong>SIZE GUIDE</strong>
+          <span>Garment measurements and fit guidance</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href="/pages/edition-01">
+          <strong>EDITION DETAILS</strong>
+          <span>Release format and edition information</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </nav>
     </section>
 
     <aside class="pham-about__origin reveal-up">
@@ -289,6 +330,168 @@
     .pham-about__origin { grid-template-columns: 1fr; }
     .pham-about__origin > p { grid-column: auto; }
   }
+
+
+  /* About v3: readable editorial content, no oversized age display. */
+  .pham-about {
+    padding-block: clamp(104px, 10vw, 145px) clamp(68px, 8vw, 112px);
+  }
+  .pham-about__head {
+    max-width: 100%;
+    margin-bottom: clamp(40px, 5vw, 70px);
+  }
+  .pham-about__title {
+    font-size: clamp(3.65rem, 7vw, 7.5rem);
+    line-height: .94;
+    letter-spacing: -.045em;
+    max-width: 100%;
+  }
+  .pham-about__subtitle {
+    max-width: 68ch;
+    margin-top: 20px;
+    font-size: clamp(.75rem, 1vw, .92rem);
+    color: rgba(242,242,239,.74);
+    line-height: 1.65;
+  }
+  .pham-about__paragraph {
+    font-size: clamp(1rem, 1.2vw, 1.12rem);
+    line-height: 1.78;
+    color: rgba(242,242,239,.78);
+  }
+  .pham-about__closing {
+    font-size: clamp(1.4rem, 2.3vw, 2.15rem);
+    padding-top: 22px;
+    margin-top: 10px;
+  }
+  .pham-about__principle-index { font-size: 11px; color: rgba(242,242,239,.62); }
+  .pham-about__principle h2 { font-size: 1rem; line-height: 1.4; }
+  .pham-about__principle p {
+    font-size: .9rem; line-height: 1.68; color: rgba(242,242,239,.72);
+  }
+  .pham-about__record {
+    grid-template-columns: minmax(0,1fr);
+    gap: 0;
+    margin-top: clamp(50px, 7vw, 92px);
+  }
+  .pham-about__record-block--founder {
+    display: grid; grid-template-columns: minmax(210px,.38fr) minmax(0,1fr);
+    align-items: start; gap: clamp(28px, 5vw, 74px);
+    max-width: none; padding-bottom: clamp(48px, 6vw, 76px);
+    border-bottom: 1px solid rgba(255,255,255,.18);
+  }
+  .pham-about__founder-facts {
+    display: flex; flex-direction: column; gap: 0;
+    padding: 0; margin: 0;
+    border-top: 1px solid rgba(242,242,239,.22);
+  }
+  .pham-about__founder-facts > div {
+    display: grid; gap: 6px; padding: 15px 0 18px;
+    border-bottom: 1px solid rgba(242,242,239,.15);
+  }
+  .pham-about__founder-facts dt {
+    color: rgba(242,242,239,.6); font: 600 11px/1.4 var(--font-mono);
+    letter-spacing: .075em;
+  }
+  .pham-about__founder-facts dd {
+    margin: 0; color: rgba(242,242,239,.94);
+    font: 500 14px/1.5 var(--font-body);
+  }
+  .pham-about__founder-narrative {
+    display: flex; flex-direction: column;
+    gap: clamp(14px, 2vw, 21px); min-width: 0; max-width: 72ch;
+  }
+  .pham-about__founder-narrative .pham-about__record-title {
+    font-size: clamp(1.8rem, 2.65vw, 3rem);
+    max-width: 22ch; line-height: 1.18;
+    letter-spacing: -.015em;
+  }
+  .pham-about__founder-narrative .pham-about__record-copy {
+    font-size: clamp(.98rem, 1.1vw, 1.06rem);
+    line-height: 1.75;
+    color: rgba(242,242,239,.81);
+  }
+  .pham-about__record-block--edition {
+    display: grid; grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr);
+    gap: clamp(28px, 5vw, 72px); max-width: none;
+    padding-top: clamp(44px, 5vw, 68px); align-items: start;
+  }
+  .pham-about__edition-heading { display: flex; flex-direction: column; gap: 15px; }
+  .pham-about__edition-heading .pham-about__record-title {
+    font-size: clamp(1.7rem, 2.35vw, 2.6rem);
+    line-height: 1.2;
+  }
+  .pham-about__edition-copy {
+    display: flex; flex-direction: column; gap: 17px;
+    min-width: 0; max-width: 72ch;
+  }
+  .pham-about__edition-copy .pham-about__record-copy {
+    color: rgba(242,242,239,.78); font-size: clamp(.98rem, 1.1vw, 1.06rem); line-height: 1.75;
+  }
+  .pham-about__edition-note {
+    margin-top: 34px; font-size: 11px;
+  }
+  .pham-about__edition-note span { color: rgba(242,242,239,.65); }
+  .pham-about__resources {
+    grid-column: 1 / -1;
+    display: grid; grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 12px; margin-top: 24px;
+  }
+  .pham-about__resources a {
+    display: flex; flex-direction: column; align-items: flex-start;
+    gap: 8px; position: relative; min-width: 0; min-height: 112px;
+    padding: 20px 38px 18px 17px; text-decoration: none;
+    border: 1px solid rgba(242,242,239,.37); background: #161719;
+    color: #f2f1ee; border-radius: 2px;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .pham-about__resources a:hover,.pham-about__resources a:focus-visible {
+    border-color: #f2f1ee; background: #252629; outline-offset: 3px;
+  }
+  .pham-about__resources a strong {
+    font: 600 13px/1.4 var(--font-body);
+    letter-spacing: .03em;
+  }
+  .pham-about__resources a span:nth-child(2) {
+    font: 400 12px/1.55 var(--font-body);
+    color: rgba(242,242,239,.7);
+  }
+  .pham-about__resources a span:last-child {
+    position: absolute; top: 16px; right: 16px; font-size: 20px; line-height: 1;
+  }
+  .pham-about__origin { margin-top: clamp(55px,7vw,85px); }
+  .pham-about__origin p,.pham-about__origin span,.pham-about__origin strong { font-size: 11px; }
+  .pham-about__origin p,.pham-about__origin span { color:rgba(242,242,239,.68); }
+  @media(max-width: 899px) {
+    .pham-about__record-block--founder { grid-template-columns: 185px minmax(0,1fr); gap: 24px; }
+    .pham-about__record-block--edition { grid-template-columns: minmax(0,1fr); gap: 24px; }
+    .pham-about__resources { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  }
+  @media(max-width: 599px) {
+    .pham-about { padding-block: 96px 65px; }
+    .pham-about__head { margin-bottom: 38px; }
+    .pham-about__title { font-size: clamp(3.4rem, 15vw, 4.7rem); }
+    .pham-about__title-line:last-child { font-size: 1em; }
+    .pham-about__subtitle { margin-top: 16px; font-size: 12px; }
+    .pham-about__paragraph { font-size: .96rem; }
+    .pham-about__body { margin-bottom: 40px; gap: 17px; }
+    .pham-about__record-block--founder { grid-template-columns: minmax(0,1fr); gap: 24px; }
+    .pham-about__founder-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 18px; }
+    .pham-about__founder-facts > div { padding: 12px 0; }
+    .pham-about__founder-facts dd { font-size: 13px; }
+    .pham-about__founder-narrative .pham-about__record-title { font-size: clamp(1.8rem, 7vw, 2.4rem); }
+    .pham-about__founder-narrative .pham-about__record-copy { font-size: .97rem; }
+    .pham-about__record-block--edition { padding-top: 37px; }
+    .pham-about__edition-copy .pham-about__record-copy { font-size: .97rem; }
+    .pham-about__edition-note { font-size: 10px; margin-top: 26px; }
+    .pham-about__resources { grid-template-columns: 1fr; gap: 9px; margin-top: 18px; }
+    .pham-about__resources a { min-height: 80px; padding: 15px 35px 13px 15px; gap: 6px; }
+    .pham-about__resources a strong { font-size: 12px; }
+    .pham-about__resources a span:nth-child(2) { font-size: 12px; }
+  }
+  @media(prefers-reduced-motion:reduce) {
+    .pham-about__resources a { transition: none; }
+  }
+
 </style>
 
 {% schema %}
@@ -301,37 +504,37 @@
       "type": "text",
       "id": "eyebrow",
       "label": "Eyebrow",
-      "default": "PHAM · ATELIER"
+      "default": "PHAM / INDEPENDENT FASHION LABEL"
     },
     {
       "type": "text",
       "id": "title_line_1",
       "label": "Title line 1",
-      "default": "PHAM"
+      "default": "ABOUT"
     },
     {
       "type": "text",
       "id": "title_line_2",
       "label": "Title line 2",
-      "default": "MANIFESTO"
+      "default": "PHAM"
     },
     {
       "type": "text",
       "id": "subtitle",
       "label": "Subtitle",
-      "default": "THE PURE PURSUIT"
+      "default": "DESIGNED IN VIETNAM · RELEASED IN LIMITED EDITIONS"
     },
     {
       "type": "textarea",
       "id": "paragraph_1",
       "label": "Paragraph 1",
-      "default": "PHAM stands for Profound Human Authentic Mastery. Founded in Vietnam in 2026, PHAM is an independent fashion label operating as PHAM Atelier. The label develops edition-based garments and design objects around restraint, proportion, construction and controlled detail."
+      "default": "PHAM (Profound Human Authentic Mastery) is an independent fashion label founded in Vietnam in 2026. We focus on dark, understated garments with considered volume, deliberate proportions and purposeful details. Our starting point is the shape and construction of each object—not a seasonal trend or oversized branding."
     },
     {
       "type": "textarea",
       "id": "paragraph_2",
       "label": "Paragraph 2",
-      "default": "Each PHAM Atelier object is developed as a focused edition rather than a seasonal volume exercise. From silhouette and material selection to sampling and final production, decisions are kept deliberate and traceable so the finished garment remains coherent with the original intent."
+      "default": "Rather than following a traditional seasonal calendar, PHAM develops one release at a time. The process moves from design and material research to physical samples, fit reviews and refinements. Each edition has a defined scope, and product information is documented so customers can understand what they are choosing."
     },
     {
       "type": "textarea",
@@ -347,19 +550,31 @@
       "type": "text",
       "id": "founder_eyebrow",
       "label": "Founder eyebrow",
-      "default": "FOUNDER / COFFEE PHAM"
+      "default": "THE FOUNDER / COFFEE PHAM"
     },
     {
       "type": "text",
       "id": "founder_title",
       "label": "Founder title",
-      "default": "BUILT FROM INTENT, NOT VOLUME"
+      "default": "HOW PHAM BEGAN"
     },
     {
       "type": "textarea",
       "id": "founder_body",
       "label": "Founder story",
-      "default": "PHAM was founded in Vietnam in 2026 by Coffee Pham as an independent atelier built around a simple refusal: not to release an object before its form, proportion and details feel resolved. The studio does not work from a conventional seasonal calendar. Each release begins with one object, developed slowly enough for the construction, material and identity to remain coherent from first sketch to final production."
+      "default": "PHAM was started by Coffee Pham in 2026, when he was sixteen and still in high school. He began without external funding, a team or established contacts in fashion. There was no existing collection or ready-made business behind the name—only an idea and the decision to learn how to make it real."
+    },
+    {
+      "type": "textarea",
+      "id": "founder_body_2",
+      "label": "Founder - building the label",
+      "default": "The first months meant researching garment construction, developing the PHAM-001 bomber, speaking directly with manufacturing partners, comparing fabrics and hardware, reviewing a physical sample, and building the storefront and release system. These were practical steps, often taken without prior experience or someone to delegate them to."
+    },
+    {
+      "type": "textarea",
+      "id": "founder_body_3",
+      "label": "Founder - perspective",
+      "default": "The work remains in progress. Samples reveal details to improve, and production decisions require care. PHAM does not ask to be judged by the founder's age or by an origin story. It aims to earn trust through clear information, considered design and the quality of each finished object."
     },
     {
       "type": "header",
@@ -369,19 +584,31 @@
       "type": "text",
       "id": "edition_eyebrow",
       "label": "Edition eyebrow",
-      "default": "EDITION SYSTEM / NO RESTOCK"
+      "default": "THE FIRST OBJECT / EDITION 01"
     },
     {
       "type": "text",
       "id": "edition_title",
       "label": "Edition title",
-      "default": "RELEASED ONCE. RECORDED INDIVIDUALLY."
+      "default": "PHAM-001 / A CONSIDERED FIRST RELEASE"
     },
     {
       "type": "textarea",
       "id": "edition_body",
       "label": "Edition story",
-      "default": "PHAM editions open within a defined release window and are not reproduced once that edition closes. Every finished piece is treated as an individual object, accompanied by its own identity card and edition identifier. PHAM-001 begins this system with a planned run of 50 cropped bomber jackets. Each jacket is paired with an exclusive appreciation necklace: 49 feature a silver-finished stainless-steel pendant, while one pendant is finished in gold. The distinction is not announced in advance; it belongs to the object and the person who receives it."
+      "default": "PHAM-001 is a cropped bomber jacket with relaxed sleeves, contrasting panels, shoulder mesh, metal zippers and adjustable side straps. Its proportions and detailing are being refined through sampling; the lookbook reflects a development sample, not a guarantee that every production detail is final."
+    },
+    {
+      "type": "textarea",
+      "id": "edition_body_2",
+      "label": "Edition description / series information",
+      "default": "Edition 01 is planned for 50 individually identified jackets, with no restock of the same edition after it closes. The planned package includes an edition identity card and a commemorative pendant. The pendant finishes are allocated as 49 silver-finished and one gold-finished piece; these descriptions refer to surface finishes, not solid precious metal."
+    },
+    {
+      "type": "textarea",
+      "id": "edition_body_3",
+      "label": "Buying information / useful links",
+      "default": "Before ordering, use the product page to check the current specification and availability, the Size Guide to compare measurements, and Edition Details to understand the release structure. These pages should take precedence over earlier campaign visuals if a product detail changes during development."
     },
     {
       "type": "text",
@@ -393,7 +620,7 @@
       "type": "text",
       "id": "edition_note_value",
       "label": "Edition note value",
-      "default": "50 OBJECTS · 50 IDENTITIES · NO RESTOCK"
+      "default": "50 PLANNED OBJECTS · INDIVIDUALLY IDENTIFIED · NO RESTOCK"
     },
     {
       "type": "text",
@@ -438,8 +665,18 @@
       "name": "Principle",
       "limit": 4,
       "settings": [
-        { "type": "text", "id": "title", "label": "Title", "default": "FORM BEFORE NOISE" },
-        { "type": "textarea", "id": "body", "label": "Text", "default": "Every line must carry purpose before it carries attention." }
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "FORM BEFORE NOISE"
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Text",
+          "default": "Every line must carry purpose before it carries attention."
+        }
       ]
     }
   ],
@@ -448,15 +685,25 @@
       "name": "PHAM About",
       "category": "PHAM",
       "blocks": [
-        { "type": "principle" },
-        { "type": "principle" },
-        { "type": "principle" },
-        { "type": "principle" }
+        {
+          "type": "principle"
+        },
+        {
+          "type": "principle"
+        },
+        {
+          "type": "principle"
+        },
+        {
+          "type": "principle"
+        }
       ]
     }
   ],
   "enabled_on": {
-    "templates": ["page"]
+    "templates": [
+      "page"
+    ]
   }
 }
 {% endschema %}
