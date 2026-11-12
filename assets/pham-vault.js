@@ -127,16 +127,19 @@
         return;
       }
 
-      // The physical angle of each existing card, from the leftmost point
-      // through the front, right and back. Rotation is only sampled once.
-      const tau = Math.PI * 2;
-      const stepAngle = tau / cards.length;
-      const startAngle = -Math.PI / 2;
-      const ordered = cards.map(function (card, index) {
-        const angle = rotation + index * stepAngle;
-        const phase = ((angle - startAngle) % tau + tau) % tau;
-        return { card: card, index: index, phase: phase };
-      }).sort(function (a, b) { return a.phase - b.phase; });
+      // Lead with the card visually centred closest to the viewer, then
+      // continue around the existing ring in its natural card order.
+      // The active is-front class is set by the render loop before reveal.
+      const frontCardIndex = cards.findIndex(function (card) {
+        return card.classList.contains('is-front');
+      });
+      const startingIndex = frontCardIndex >= 0 ? frontCardIndex :
+        (frontIndex >= 0 ? frontIndex : 0);
+      const ordered = cards.map(function (_, offset) {
+        const index = (startingIndex + offset) % cards.length;
+        return { card: cards[index], index: index };
+      });
+      root.dataset.phamOrbitIntroStart = String(startingIndex);
 
       entranceState = 'revealing';
       root.dataset.phamOrbitIntro = 'revealing';
