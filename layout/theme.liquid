@@ -70,7 +70,7 @@
       <link rel="dns-prefetch" href="//ajax.googleapis.com">
     {%- endif -%}
     {%- assign pham_text_fonts_url = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400&display=swap' -%}
-    {%- assign pham_display_fonts_url = 'https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&display=optional' -%}
+    {%- assign pham_display_fonts_url = 'https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&display=swap' -%}
     {%- comment -%}Load brand font CSS before first paint to prevent typography swap after reveal.{%- endcomment -%}
     <script>
       document.documentElement.classList.add('pham-font-pending');
@@ -82,7 +82,7 @@
           document.documentElement.classList.remove('pham-font-pending');
           document.documentElement.classList.add('pham-fonts-settled');
         }
-        var safety = window.setTimeout(release, 2500);
+        var safety = window.setTimeout(release, 3300);
         function loadBrandType() {
           if (!document.fonts || !document.fonts.load) { release(); return; }
           Promise.allSettled([
@@ -90,7 +90,16 @@
             document.fonts.load('700 48px "Syncopate"', 'FIRST'),
             document.fonts.load('400 16px "Space Grotesk"', 'PHAM'),
             document.fonts.load('400 14px "Space Mono"', 'EDITION')
-          ]).then(function () { window.clearTimeout(safety); release(); }, release);
+          ]).then(function () {
+            document.fonts.ready.then(function () {
+              requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                  window.clearTimeout(safety);
+                  release();
+                });
+              });
+            }, release);
+          }, release);
         }
         if (document.readyState === 'loading')
           document.addEventListener('DOMContentLoaded', loadBrandType, { once: true });
