@@ -48,6 +48,7 @@
     {%- comment -%} Pre-paint critical styles — eliminates white flash before pham-theme loads {%- endcomment -%}
     <style>
       html { background-color: #0A0A0C !important; }
+      html, body { margin: 0 !important; } /* remove default 8px edge and viewport offset */
       html, body, #MainContent, .content-for-layout, main { background-color: #0A0A0C !important; color: #E8E8EA; }
       html.pham-js body,
       html.pham-js body.pham-page-ready,

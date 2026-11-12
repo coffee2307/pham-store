@@ -251,6 +251,36 @@
 }
 
 
+/* PHAM 001 LIVE HERO CORRECTION — viewport-safe, seamless and centered */
+.pham-editorial-stage {
+  min-height: 0;
+  height: calc(100svh - 80px);
+  border-bottom: 0;
+}
+/* Remove the perceptible edge at the desktop image/matte boundary. */
+@media (min-width: 700px) {
+  .pham-editorial-stage__visual {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.05) 12%, rgba(0,0,0,.28) 32%, rgba(0,0,0,.75) 51%, #000 76%);
+    mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.05) 12%, rgba(0,0,0,.28) 32%, rgba(0,0,0,.75) 51%, #000 76%);
+  }
+  .pham-editorial-stage__image { object-position: center 63%; }
+  .pham-editorial-stage__visual::after {
+    background:
+      linear-gradient(90deg, rgba(9,11,14,.38) 0%, rgba(9,11,14,.13) 40%, transparent 76%),
+      linear-gradient(0deg, rgba(9,11,14,.24) 0%, transparent 16%, transparent 88%, rgba(9,11,14,.08) 100%);
+  }
+}
+@media (min-width: 700px) and (max-width: 899px) {
+  .pham-editorial-stage { height: calc(100svh - 64px); }
+}
+@media (max-width: 699px) {
+  .pham-editorial-stage {
+    min-height: 0;
+    height: calc(100svh - 60px);
+  }
+  .pham-editorial-stage__image { object-position: 54% 50%; }
+}
+
 </style>
 
 {% schema %}
