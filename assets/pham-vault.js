@@ -93,6 +93,71 @@
     let orbitPrimeRadius = 0;
     let orbitRevealScheduled = false;
     const mobileOrbitPrime = window.matchMedia('(max-width: 749px)').matches;
+
+    // Sequential entrance changes ONLY 2D card faces. Never animate opacity on
+    // the 3D orbit ancestor; that flattens perspective and enlarges cards.
+    const entranceTimers = new Set();
+    let entranceState = 'pending';
+
+    function scheduleEntrance(callback, delay) {
+      const timer = window.setTimeout(function () {
+        entranceTimers.delete(timer);
+        callback();
+      }, delay);
+      entranceTimers.add(timer);
+    }
+
+    function finishOrbitEntrance() {
+      if (entranceState === 'complete') return;
+      entranceTimers.forEach(window.clearTimeout);
+      entranceTimers.clear();
+      entranceState = 'complete';
+      root.dataset.phamOrbitIntro = 'complete';
+      cards.forEach(function (card) {
+        card.classList.add('is-intro-visible');
+        card.classList.remove('is-intro-active');
+      });
+    }
+
+    function startOrbitEntrance() {
+      if (entranceState !== 'pending') return;
+      if (reducedMotion || document.hidden || progress > 0.035) {
+        finishOrbitEntrance();
+        return;
+      }
+
+      // The physical angle of each existing card, from the leftmost point
+      // through the front, right and back. Rotation is only sampled once.
+      const tau = Math.PI * 2;
+      const stepAngle = tau / cards.length;
+      const startAngle = -Math.PI / 2;
+      const ordered = cards.map(function (card, index) {
+        const angle = rotation + index * stepAngle;
+        const phase = ((angle - startAngle) % tau + tau) % tau;
+        return { card: card, index: index, phase: phase };
+      }).sort(function (a, b) { return a.phase - b.phase; });
+
+      entranceState = 'revealing';
+      root.dataset.phamOrbitIntro = 'revealing';
+      root.dataset.phamOrbitIntroOrder = ordered.map(function (item) {
+        return String(item.index);
+      }).join(',');
+
+      const stagger = mobileOrbitPrime ? 105 : 90;
+      const duration = mobileOrbitPrime ? 440 : 460;
+      ordered.forEach(function (item, sequence) {
+        scheduleEntrance(function () {
+          if (entranceState !== 'revealing') return;
+          item.card.classList.add('is-intro-visible', 'is-intro-active');
+          item.card.dataset.phamIntroStep = String(sequence + 1);
+          scheduleEntrance(function () {
+            item.card.classList.remove('is-intro-active');
+          }, duration);
+        }, sequence * stagger);
+      });
+      scheduleEntrance(finishOrbitEntrance,
+        (ordered.length - 1) * stagger + duration + 40);
+    }
     let progressiveImagesStarted = false;
     let orbitImagesReadyCount = 0;
     let orbitShownAt = 0;
@@ -806,6 +871,7 @@
               if (orbitCards) orbitCards.classList.add('is-positioned');
               orbit.classList.add('is-ready');
               root.dataset.phamOrbitReadyAt = String(Math.round(performance.now()));
+              startOrbitEntrance();
               revealRealOrbitImages();
             });
           });
@@ -825,8 +891,13 @@
     measureProgress();
     measureOrbit();
     setChapter(0);
-    window.addEventListener('scroll', measureProgress, { passive: true });
+    function onVaultScroll() {
+      measureProgress();
+      if (entranceState === 'revealing' && progress > 0.035) finishOrbitEntrance();
+    }
+    window.addEventListener('scroll', onVaultScroll, { passive: true });
     window.addEventListener('resize', function () {
+      if (entranceState === 'revealing') finishOrbitEntrance();
       measureLayout();
       measureProgress();
       measureOrbit();
@@ -862,6 +933,7 @@
     sticky.addEventListener('pointerleave', resetOrbitPointer, { passive: true });
 
     function beginOrbitDrag(event) {
+      if (entranceState !== 'complete') finishOrbitEntrance();
       if (cardDialogOpen) return;
       if (event.button !== undefined && event.button !== 0) return;
 
@@ -939,6 +1011,7 @@
     }
 
     function spinOrbitFromTrackpad(event) {
+      if (entranceState === 'revealing') finishOrbitEntrance();
       if (reducedMotion || cardDialogOpen || dragging) return;
 
       const horizontalIntent = Math.abs(event.deltaX) > Math.abs(event.deltaY) * 0.72;
@@ -954,9 +1027,14 @@
     orbit.addEventListener('pointercancel', finishOrbitDrag);
     orbit.addEventListener('lostpointercapture', finishOrbitDrag);
     orbit.addEventListener('wheel', spinOrbitFromTrackpad, { passive: false });
+    function onOrbitFocus() {
+      if (entranceState !== 'complete') finishOrbitEntrance();
+    }
+    orbit.addEventListener('focusin', onOrbitFocus);
 
     cards.forEach(function (card) {
       card.addEventListener('click', function (event) {
+        if (entranceState !== 'complete') finishOrbitEntrance();
         if (dragMoved) {
           event.preventDefault();
           event.stopPropagation();
@@ -974,6 +1052,7 @@
       card.addEventListener('keydown', function (event) {
         if (card.getAttribute('role') !== 'button') return;
         if (event.key !== 'Enter' && event.key !== ' ') return;
+        if (entranceState !== 'complete') finishOrbitEntrance();
         event.preventDefault();
         event.stopPropagation();
         openCardDialog(card);
@@ -1010,11 +1089,14 @@
     observer.observe(root);
 
     document.addEventListener('visibilitychange', function () {
+      if (document.hidden) finishOrbitEntrance();
       active = !document.hidden && root.getBoundingClientRect().bottom > 0 && root.getBoundingClientRect().top < window.innerHeight;
       if (active) start();
     });
 
     root.addEventListener('shopify:section:unload', function () {
+      finishOrbitEntrance();
+      window.removeEventListener('scroll', onVaultScroll);
       document.removeEventListener('keydown', onCardDialogKeydown);
       window.removeEventListener('wheel', onCardDialogWheel);
       window.removeEventListener('scroll', onCardDialogScroll);
@@ -1026,6 +1108,7 @@
       orbit.removeEventListener('pointercancel', finishOrbitDrag);
       orbit.removeEventListener('lostpointercapture', finishOrbitDrag);
       orbit.removeEventListener('wheel', spinOrbitFromTrackpad);
+      orbit.removeEventListener('focusin', onOrbitFocus);
       cancelDialogAnimations();
       if (cardDialog && cardDialog.parentNode) cardDialog.parentNode.removeChild(cardDialog);
     }, { once: true });

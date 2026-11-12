@@ -148,12 +148,19 @@
 .pham-vault__orbit-cards.is-positioned {
   visibility: visible;
 }
-/* Fade the 2D card surfaces, not the 3D group, to retain a gentle entrance. */
-.pham-vault__orbit-card-face {
-  opacity: 0;
-}
-.pham-vault__orbit-cards.is-positioned .pham-vault__orbit-card-face {
+/* Sequential 3D orbit entrance. Faces fade independently; the 3D ancestor
+   remains opaque, preserving the perspective and the cards' exact geometry. */
+.pham-vault__orbit-card-face { opacity: 0; }
+.pham-vault__orbit-cards.is-positioned
+.pham-vault__orbit-card.is-intro-visible .pham-vault__orbit-card-face {
   opacity: 1;
+}
+.pham-vault__orbit-cards.is-positioned .pham-vault__orbit-card.is-intro-active .pham-vault__orbit-card-face {
+  border-color: rgba(246,242,233,.55);
+  box-shadow:
+    0 20px 48px rgba(0,0,0,.46),
+    0 0 17px rgba(242,238,230,.11),
+    inset 0 0 24px rgba(255,255,255,.024);
 }
 .pham-vault__orbit-plane {
   will-change: transform;
@@ -195,7 +202,7 @@
     transform 320ms cubic-bezier(.2,.78,.2,1),
     border-color 260ms ease,
     box-shadow 320ms ease,
-    opacity 260ms ease-out;
+    opacity 460ms cubic-bezier(.22,1,.36,1);
   will-change: transform;
 }
 .pham-vault__orbit-card.is-front .pham-vault__orbit-card-face {
