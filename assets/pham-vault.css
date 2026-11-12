@@ -136,14 +136,24 @@
   height: 100%;
   transform-style: preserve-3d;
 }
+/* Keep 3D perspective intact while waiting for measured geometry.
+   Opacity < 1 on this 3D ancestor forces flattening, making cards jump in size
+   the instant the fade reaches 1. Use visibility instead of parent opacity. */
 .pham-vault__orbit-cards {
-  opacity: 0;
+  opacity: 1;
+  visibility: hidden;
   contain: layout;
   transform-style: preserve-3d;
 }
 .pham-vault__orbit-cards.is-positioned {
+  visibility: visible;
+}
+/* Fade the 2D card surfaces, not the 3D group, to retain a gentle entrance. */
+.pham-vault__orbit-card-face {
+  opacity: 0;
+}
+.pham-vault__orbit-cards.is-positioned .pham-vault__orbit-card-face {
   opacity: 1;
-  transition: opacity 180ms ease;
 }
 .pham-vault__orbit-plane {
   will-change: transform;
@@ -184,7 +194,8 @@
   transition:
     transform 320ms cubic-bezier(.2,.78,.2,1),
     border-color 260ms ease,
-    box-shadow 320ms ease;
+    box-shadow 320ms ease,
+    opacity 260ms ease-out;
   will-change: transform;
 }
 .pham-vault__orbit-card.is-front .pham-vault__orbit-card-face {
@@ -560,7 +571,8 @@
   .pham-vault__sticky { position: relative; min-height: 100svh; }
   .pham-vault__chapter:not(:first-child),.pham-vault__nav,.pham-vault__progress,.pham-vault__canvas { display: none; }
   .pham-vault__chapter { opacity: 1; visibility: visible; transform: none; }
-  .pham-vault__orbit-cards { opacity: 1; transition: none; }
+  .pham-vault__orbit-cards { opacity: 1; visibility: visible; transition: none; }
+  .pham-vault__orbit-card-face { opacity: 1; transition: none; }
   .pham-vault__cue::before { animation: none; }
   .pham-vault__orbit-stage { cursor: default; }
 }
