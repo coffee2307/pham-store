@@ -100,6 +100,13 @@
     </div>
 
     <div class="pham-vault__orbit-stage" data-pham-vault-orbit>
+      <div class="pham-vault__orbit-loader" role="status" aria-label="Loading PHAM archive">
+        <div class="pham-vault__orbit-loader-frames" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <span class="pham-vault__orbit-loader-caption">PREPARING THE ARCHIVE</span>
+        <span class="pham-vault__orbit-loader-track" aria-hidden="true"></span>
+      </div>
       <div class="pham-vault__orbit-plane" data-pham-vault-orbit-plane>
         <div class="pham-vault__orbit-cards">
           <div class="pham-vault__orbit-core" data-pham-vault-core aria-hidden="true">
@@ -146,7 +153,7 @@
                           fetchpriority: card_fetchpriority,
                           decoding: 'async',
                           widths: '320, 480, 720, 960, 1200, 1600, 1800',
-                          sizes: '(max-width: 749px) 70vw, 35vw',
+                          sizes: '(max-width: 749px) 30vw, 35vw',
                           alt: card_alt
                       }}
                     {%- else -%}

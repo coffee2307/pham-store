@@ -90,6 +90,8 @@
     let orbitPrimeWidth = 0;
     let orbitPrimeCardWidth = 0;
     let orbitPrimeRadius = 0;
+    let orbitRevealScheduled = false;
+    const mobileOrbitPrime = window.matchMedia('(max-width: 749px)').matches;
 
     function measureOrbit() {
       const width = orbit.clientWidth;
@@ -744,26 +746,31 @@
         orbitPrimeCardWidth = primeCardWidth;
         orbitPrimeRadius = radius;
 
-        const imagesReady = cards.every(function (card) {
+        // On mobile, reveal as soon as the ring is geometrically stable and
+        // the first three frames have loaded. Do not block on all document
+        // resources, web fonts or offscreen lazy images.
+        const requiredCards = mobileOrbitPrime ? cards.slice(0, 3) : cards;
+        const imagesReady = requiredCards.every(function (card) {
           const image = card.querySelector('img');
           return !image || image.complete;
         });
         const fontsReady = !document.fonts || document.fonts.status === 'loaded';
         const elapsed = performance.now() - orbitPrimeStartedAt;
-        const layoutReady =
-          primeWidth > 300 &&
-          primeCardWidth > 80 &&
-          orbitStableFrames >= 8 &&
-          document.readyState === 'complete' &&
-          fontsReady &&
-          (imagesReady || elapsed > 1400);
+        const layoutReady = mobileOrbitPrime
+          ? (primeWidth > 270 && primeCardWidth > 70 &&
+             orbitStableFrames >= 3 && (imagesReady || elapsed > 2200))
+          : (primeWidth > 300 && primeCardWidth > 80 &&
+             orbitStableFrames >= 8 &&
+             document.readyState === 'complete' && fontsReady &&
+             (imagesReady || elapsed > 1400));
 
-        if (layoutReady) {
-          // Wait one more paint so the transforms calculated with the final
-          // radius are already committed before opacity is released.
+        if (layoutReady && !orbitRevealScheduled) {
+          orbitRevealScheduled = true;
           requestAnimationFrame(function () {
             requestAnimationFrame(function () {
               if (orbitCards) orbitCards.classList.add('is-positioned');
+              orbit.classList.add('is-ready');
+              root.dataset.phamOrbitReadyAt = String(Math.round(performance.now()));
             });
           });
         }
