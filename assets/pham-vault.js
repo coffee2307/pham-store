@@ -107,8 +107,9 @@
       entranceTimers.add(timer);
     }
 
-    function finishOrbitEntrance() {
+    function finishOrbitEntrance(skipped) {
       if (entranceState === 'complete') return;
+      if (skipped) orbitCards.classList.add('is-intro-skipped');
       entranceTimers.forEach(window.clearTimeout);
       entranceTimers.clear();
       entranceState = 'complete';
@@ -122,7 +123,7 @@
     function startOrbitEntrance() {
       if (entranceState !== 'pending') return;
       if (reducedMotion || document.hidden || progress > 0.035) {
-        finishOrbitEntrance();
+        finishOrbitEntrance(true);
         return;
       }
 
@@ -143,8 +144,9 @@
         return String(item.index);
       }).join(',');
 
-      const stagger = mobileOrbitPrime ? 105 : 90;
-      const duration = mobileOrbitPrime ? 440 : 460;
+      // One rising wave around the ring, with gentle overlap between cards.
+      const stagger = mobileOrbitPrime ? 116 : 105;
+      const duration = mobileOrbitPrime ? 690 : 715;
       ordered.forEach(function (item, sequence) {
         scheduleEntrance(function () {
           if (entranceState !== 'revealing') return;
@@ -640,10 +642,10 @@
             const doneLoading = orbitImagesReadyCount >= cards.length ||
               (orbitShownAt && performance.now() - orbitShownAt > 2800);
             imageLoadSpeed = damp(imageLoadSpeed, doneLoading ? 1 : .38, 2.6, delta);
-            rotation += (autoSpeed * mobileOrbitResume * imageLoadSpeed + velocity) * delta;
+            rotation += (entranceState === 'revealing' ? 0 : (autoSpeed * mobileOrbitResume * imageLoadSpeed + velocity)) * delta;
           } else {
             mobileOrbitResume = 1;
-            rotation += (autoSpeed + velocity) * delta;
+            rotation += (entranceState === 'revealing' ? 0 : (autoSpeed + velocity)) * delta;
           }
           velocity *= Math.exp(-3.0 * delta);
         }
@@ -893,11 +895,11 @@
     setChapter(0);
     function onVaultScroll() {
       measureProgress();
-      if (entranceState === 'revealing' && progress > 0.035) finishOrbitEntrance();
+      if (entranceState === 'revealing' && progress > 0.035) finishOrbitEntrance(true);
     }
     window.addEventListener('scroll', onVaultScroll, { passive: true });
     window.addEventListener('resize', function () {
-      if (entranceState === 'revealing') finishOrbitEntrance();
+      if (entranceState === 'revealing') finishOrbitEntrance(true);
       measureLayout();
       measureProgress();
       measureOrbit();
@@ -933,7 +935,7 @@
     sticky.addEventListener('pointerleave', resetOrbitPointer, { passive: true });
 
     function beginOrbitDrag(event) {
-      if (entranceState !== 'complete') finishOrbitEntrance();
+      if (entranceState !== 'complete') finishOrbitEntrance(true);
       if (cardDialogOpen) return;
       if (event.button !== undefined && event.button !== 0) return;
 
@@ -1011,7 +1013,7 @@
     }
 
     function spinOrbitFromTrackpad(event) {
-      if (entranceState === 'revealing') finishOrbitEntrance();
+      if (entranceState === 'revealing') finishOrbitEntrance(true);
       if (reducedMotion || cardDialogOpen || dragging) return;
 
       const horizontalIntent = Math.abs(event.deltaX) > Math.abs(event.deltaY) * 0.72;
@@ -1028,13 +1030,13 @@
     orbit.addEventListener('lostpointercapture', finishOrbitDrag);
     orbit.addEventListener('wheel', spinOrbitFromTrackpad, { passive: false });
     function onOrbitFocus() {
-      if (entranceState !== 'complete') finishOrbitEntrance();
+      if (entranceState !== 'complete') finishOrbitEntrance(true);
     }
     orbit.addEventListener('focusin', onOrbitFocus);
 
     cards.forEach(function (card) {
       card.addEventListener('click', function (event) {
-        if (entranceState !== 'complete') finishOrbitEntrance();
+        if (entranceState !== 'complete') finishOrbitEntrance(true);
         if (dragMoved) {
           event.preventDefault();
           event.stopPropagation();
@@ -1052,7 +1054,7 @@
       card.addEventListener('keydown', function (event) {
         if (card.getAttribute('role') !== 'button') return;
         if (event.key !== 'Enter' && event.key !== ' ') return;
-        if (entranceState !== 'complete') finishOrbitEntrance();
+        if (entranceState !== 'complete') finishOrbitEntrance(true);
         event.preventDefault();
         event.stopPropagation();
         openCardDialog(card);
@@ -1089,7 +1091,7 @@
     observer.observe(root);
 
     document.addEventListener('visibilitychange', function () {
-      if (document.hidden) finishOrbitEntrance();
+      if (document.hidden) finishOrbitEntrance(true);
       active = !document.hidden && root.getBoundingClientRect().bottom > 0 && root.getBoundingClientRect().top < window.innerHeight;
       if (active) start();
     });
