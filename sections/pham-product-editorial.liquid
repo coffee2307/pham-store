@@ -281,24 +281,26 @@
   .pham-editorial-stage__image { object-position: calc(54% + 25px) 50%; }
 }
 
-/* 10% smaller image without a visible rectangular edge. Preserve original hero canvas. */
+/* Seamless full-frame photo — edge fades, never an oval or a visible image box.
+   Blend the four sides independently, without cutting the model at the center. */
 .pham-editorial-stage__image {
-  transform: scale(.9);
-  transform-origin: center center;
-  /* Fade to full transparency BEFORE reaching all four image edges.
-     The old 52%-100% gradient still exposed the photo's rectangle. */
-  -webkit-mask-image: radial-gradient(ellipse 76% 76% at 50% 46%, #000 37%, rgba(0,0,0,.95) 43%, rgba(0,0,0,.45) 54%, transparent 61%);
-  mask-image: radial-gradient(ellipse 76% 76% at 50% 46%, #000 37%, rgba(0,0,0,.95) 43%, rgba(0,0,0,.45) 54%, transparent 61%);
+  transform: none;
+  transform-origin: center;
+  -webkit-mask-image: linear-gradient(to bottom,
+    transparent 0%, #000 9%, #000 86%, transparent 100%);
+  mask-image: linear-gradient(to bottom,
+    transparent 0%, #000 9%, #000 86%, transparent 100%);
 }
 @media (min-width: 700px) {
   .pham-editorial-stage__visual {
-    top: 0;
-    bottom: 0;
+    inset-block: 0;
     right: 0;
     width: 69%;
     height: 100%;
-    -webkit-mask-image: none;
-    mask-image: none;
+    -webkit-mask-image: linear-gradient(to right,
+      transparent 0%, #000 17%, #000 94%, transparent 100%);
+    mask-image: linear-gradient(to right,
+      transparent 0%, #000 17%, #000 94%, transparent 100%);
   }
 }
 @media (max-width: 699px) {
@@ -306,8 +308,17 @@
     inset: 0;
     width: 100%;
     height: 100%;
-    -webkit-mask-image: none;
-    mask-image: none;
+    -webkit-mask-image: linear-gradient(to right,
+      transparent 0%, #000 5%, #000 95%, transparent 100%);
+    mask-image: linear-gradient(to right,
+      transparent 0%, #000 5%, #000 95%, transparent 100%);
+  }
+  .pham-editorial-stage__image {
+    object-position: calc(54% + 25px) 50%;
+    -webkit-mask-image: linear-gradient(to bottom,
+      transparent 0%, #000 8%, #000 73%, transparent 98%);
+    mask-image: linear-gradient(to bottom,
+      transparent 0%, #000 8%, #000 73%, transparent 98%);
   }
 }
 

@@ -15,9 +15,6 @@
         <p class="pham-fit__kicker">{{ product_code }} / {{ edition_label }}</p>
         <h1>Find your <em>fit.</em></h1>
         <p class="pham-fit__hero-copy">Choose a starting size, compare the actual jacket measurements, then check how PHAM-001 is designed to sit on the body.</p>
-        <div class="pham-fit__hero-facts">
-          <span>Cropped body</span><span>Dropped shoulder</span><span>Room through chest</span>
-        </div>
       </div>
       <nav class="pham-fit__jump-links" aria-label="Size guide sections">
         <a href="#pham-fit-choose"><span>01</span> Choose a size <span aria-hidden="true">↓</span></a>
@@ -77,7 +74,6 @@
           <div><span>B</span><div><strong>Chest width</strong><p>Pit to pit across a flat, zipped jacket.</p></div></div>
           <div><span>C</span><div><strong>Body length</strong><p>From the upper shoulder line to the lower hem.</p></div></div>
           <div><span>D</span><div><strong>Sleeve length</strong><p>From shoulder point to the sleeve cuff.</p></div></div>
-          <div><span>E</span><div><strong>Hem width</strong><p>Across the lower ribbed hem. Figures pending verification.</p></div></div>
         </div>
       </div>
 
@@ -88,45 +84,32 @@
         </div>
         <div class="pham-fit__table-wrap">
           <table class="pham-fit__table">
-            <caption>PHAM-001 garment measurements, laid flat, in centimeters. E hem width awaiting verification.</caption>
-            <thead><tr><th scope="col">Size</th><th scope="col">A · Shoulder</th><th scope="col">B · Chest</th><th scope="col">C · Body</th><th scope="col">D · Sleeve</th><th scope="col">E · Hem</th></tr></thead>
+            <caption>PHAM-001 garment measurements, laid flat, in centimeters.</caption>
+            <thead><tr><th scope="col">Size</th><th scope="col">A · Shoulder</th><th scope="col">B · Chest</th><th scope="col">C · Body</th><th scope="col">D · Sleeve</th></tr></thead>
             <tbody id="pham-fit-size-rows">
               <tr data-pham-fit-size="M" data-chest="{{ section.settings.m_chest }}" data-shoulder="{{ section.settings.m_shoulder }}" data-sleeve="{{ section.settings.m_sleeve }}" data-length="{{ section.settings.m_length }}">
-                <th scope="row">M</th><td data-label="A · Shoulder">{{ section.settings.m_shoulder }} cm</td><td data-label="B · Chest">{{ section.settings.m_chest }} cm</td><td data-label="C · Body">{{ section.settings.m_length }} cm</td><td data-label="D · Sleeve">{{ section.settings.m_sleeve }} cm</td><td data-label="E · Hem">—</td>
+                <th scope="row">M</th><td data-label="A · Shoulder">{{ section.settings.m_shoulder }} cm</td><td data-label="B · Chest">{{ section.settings.m_chest }} cm</td><td data-label="C · Body">{{ section.settings.m_length }} cm</td><td data-label="D · Sleeve">{{ section.settings.m_sleeve }} cm</td>
               </tr>
               <tr data-pham-fit-size="L" data-chest="{{ section.settings.l_chest }}" data-shoulder="{{ section.settings.l_shoulder }}" data-sleeve="{{ section.settings.l_sleeve }}" data-length="{{ section.settings.l_length }}">
-                <th scope="row">L</th><td data-label="A · Shoulder">{{ section.settings.l_shoulder }} cm</td><td data-label="B · Chest">{{ section.settings.l_chest }} cm</td><td data-label="C · Body">{{ section.settings.l_length }} cm</td><td data-label="D · Sleeve">{{ section.settings.l_sleeve }} cm</td><td data-label="E · Hem">—</td>
+                <th scope="row">L</th><td data-label="A · Shoulder">{{ section.settings.l_shoulder }} cm</td><td data-label="B · Chest">{{ section.settings.l_chest }} cm</td><td data-label="C · Body">{{ section.settings.l_length }} cm</td><td data-label="D · Sleeve">{{ section.settings.l_sleeve }} cm</td>
               </tr>
               <tr class="is-highlighted" data-pham-fit-size="XL" data-chest="{{ section.settings.xl_chest }}" data-shoulder="{{ section.settings.xl_shoulder }}" data-sleeve="{{ section.settings.xl_sleeve }}" data-length="{{ section.settings.xl_length }}">
-                <th scope="row">XL</th><td data-label="A · Shoulder">{{ section.settings.xl_shoulder }} cm</td><td data-label="B · Chest">{{ section.settings.xl_chest }} cm</td><td data-label="C · Body">{{ section.settings.xl_length }} cm</td><td data-label="D · Sleeve">{{ section.settings.xl_sleeve }} cm</td><td data-label="E · Hem">—</td>
+                <th scope="row">XL</th><td data-label="A · Shoulder">{{ section.settings.xl_shoulder }} cm</td><td data-label="B · Chest">{{ section.settings.xl_chest }} cm</td><td data-label="C · Body">{{ section.settings.xl_length }} cm</td><td data-label="D · Sleeve">{{ section.settings.xl_sleeve }} cm</td>
               </tr>
               <tr data-pham-fit-size="XXL" data-chest="{{ section.settings.xxl_chest }}" data-shoulder="{{ section.settings.xxl_shoulder }}" data-sleeve="{{ section.settings.xxl_sleeve }}" data-length="{{ section.settings.xxl_length }}">
-                <th scope="row">XXL</th><td data-label="A · Shoulder">{{ section.settings.xxl_shoulder }} cm</td><td data-label="B · Chest">{{ section.settings.xxl_chest }} cm</td><td data-label="C · Body">{{ section.settings.xxl_length }} cm</td><td data-label="D · Sleeve">{{ section.settings.xxl_sleeve }} cm</td><td data-label="E · Hem">—</td>
+                <th scope="row">XXL</th><td data-label="A · Shoulder">{{ section.settings.xxl_shoulder }} cm</td><td data-label="B · Chest">{{ section.settings.xxl_chest }} cm</td><td data-label="C · Body">{{ section.settings.xxl_length }} cm</td><td data-label="D · Sleeve">{{ section.settings.xxl_sleeve }} cm</td>
               </tr>
             </tbody>
           </table>
         </div>
         <button class="pham-fit__compare-toggle" type="button" data-pham-fit-compare aria-controls="pham-fit-size-rows" aria-expanded="false">SHOW ALL FOUR SIZES <span aria-hidden="true">+</span></button>
-        <p class="pham-fit__tech-note">XL is the current technical sample reference. M, L and XXL are proposed graded measurements. E (hem width) has not been confirmed; no value is provided. Final production tolerances may vary.</p>
+        <p class="pham-fit__tech-note">XL is the sample reference; M, L and XXL are proposed graded sizes. Hem width is not yet verified. Final production may vary.</p>
       </div>
-    </section>
-
-    <section class="pham-fit__how" id="pham-fit-how" aria-labelledby="pham-fit-how-heading">
-      <div class="pham-fit__section-title">
-        <p>03 / GET THE RIGHT FIT</p>
-        <h2 id="pham-fit-how-heading">Compare with what you own.</h2>
-        <span>The most reliable check is a jacket you already like wearing.</span>
-      </div>
-      <ol class="pham-fit__how-grid">
-        <li><span>01</span><strong>Lay it flat</strong><p>Zip up your own jacket and smooth out the fabric, without stretching it.</p></li>
-        <li><span>02</span><strong>Measure A–D</strong><p>Use the diagram above, then compare your numbers with the PHAM-001 chart.</p></li>
-        <li><span>03</span><strong>Allow for shape</strong><p>PHAM-001 has a cropped body and relaxed sleeves; compare garment dimensions, not size letters alone.</p></li>
-      </ol>
     </section>
 
     <section class="pham-fit__assistant" id="pham-fit-assistant" aria-labelledby="pham-fit-assistant-heading">
       <div class="pham-fit__section-title">
-        <p>04 / OPTIONAL ASSISTANT</p>
+        <p>03 / OPTIONAL ASSISTANT</p>
         <h2 id="pham-fit-assistant-heading">Need a starting point?</h2>
         <span>Enter your own body measurements for an approximate size suggestion.</span>
       </div>
@@ -337,6 +320,66 @@
  .pham-fit__modal{width:98vw}
 }
 @media(prefers-reduced-motion:reduce){.pham-fit__quick-grid button{transition:none}}
+/* PHAM SIZE TABLE REVEAL V3 — no instant display:none pop */
+@media (max-width: 759px) {
+  .pham-fit__table tbody { gap: 0; transition: gap 460ms ease; }
+  .pham-fit__measurements.is-comparing .pham-fit__table tbody { gap: 10px; }
+  .pham-fit__measurements .pham-fit__table tbody tr:not(.is-highlighted) {
+    display: grid;
+    box-sizing: border-box;
+    max-height: 0;
+    opacity: 0;
+    visibility: hidden;
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-width: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition:
+      max-height 460ms cubic-bezier(.22,.68,.2,1),
+      padding 460ms cubic-bezier(.22,.68,.2,1),
+      opacity 270ms ease,
+      transform 460ms cubic-bezier(.22,.68,.2,1),
+      visibility 0s linear 460ms;
+  }
+  .pham-fit__measurements.is-comparing .pham-fit__table tbody tr:not(.is-highlighted) {
+    max-height: 340px;
+    opacity: 1;
+    visibility: visible;
+    padding: 12px 15px;
+    border-width: 1px;
+    transform: none;
+    pointer-events: auto;
+    transition:
+      max-height 460ms cubic-bezier(.22,.68,.2,1),
+      padding 460ms cubic-bezier(.22,.68,.2,1),
+      opacity 280ms ease 70ms,
+      transform 460ms cubic-bezier(.22,.68,.2,1),
+      visibility 0s;
+  }
+  .pham-fit__compare-toggle {
+    transition: background-color 240ms ease, border-color 240ms ease;
+  }
+  .pham-fit__compare-toggle:hover,
+  .pham-fit__compare-toggle:focus-visible { background: #282a2d; border-color: #d2d0ca; }
+  .pham-fit__compare-toggle span {
+    display: inline-block;
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 1;
+    transition: transform 360ms cubic-bezier(.2,.7,.2,1);
+  }
+  .pham-fit__measurements.is-comparing .pham-fit__compare-toggle span {
+    transform: rotate(45deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pham-fit__table tbody tr,
+  .pham-fit__compare-toggle,
+  .pham-fit__compare-toggle span { transition: none !important; }
+}
+
 </style>
 
 <script>
@@ -393,7 +436,7 @@
   if(compareBtn&&measurements)compareBtn.addEventListener('click',function(){
     var expanded=measurements.classList.toggle('is-comparing');
     compareBtn.setAttribute('aria-expanded',expanded?'true':'false');
-    compareBtn.innerHTML=expanded?'SHOW SELECTED SIZE ONLY <span aria-hidden="true">−</span>':'SHOW ALL FOUR SIZES <span aria-hidden="true">+</span>';
+    compareBtn.innerHTML=(expanded?'SHOW SELECTED SIZE':'SHOW ALL FOUR SIZES')+' <span aria-hidden="true">+</span>';
   });
   function calibrated(){return enabled&&sizes.length===4&&sizes.every(function(x){return x.chestFlat>0&&x.shoulder>0&&x.sleeve>0&&x.length>0})}
   if(form)form.addEventListener('submit',function(e){
