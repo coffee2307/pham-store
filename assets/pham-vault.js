@@ -87,6 +87,7 @@
     let mobileOrbitResume = 1;
     let orbitPrimeStartedAt = performance.now();
     let orbitStableFrames = 0;
+    // Stabilize the actual orbit geometry before any card becomes visible.
     let orbitPrimeWidth = 0;
     let orbitPrimeCardWidth = 0;
     let orbitPrimeRadius = 0;
@@ -792,7 +793,7 @@
         const fontsReady = !document.fonts || document.fonts.status === 'loaded';
         const elapsed = performance.now() - orbitPrimeStartedAt;
         const layoutReady = mobileOrbitPrime
-          ? (primeWidth > 270 && primeCardWidth > 70 && orbitStableFrames >= 2)
+          ? (primeWidth > 270 && primeCardWidth > 70 && orbitStableFrames >= 5)
           : (primeWidth > 300 && primeCardWidth > 80 &&
              orbitStableFrames >= 8 &&
              document.readyState === 'complete' && fontsReady &&

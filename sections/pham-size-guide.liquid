@@ -52,6 +52,19 @@
         <button type="button" data-pham-quick-size="XL"><span>XL</span><strong>106–109 CM</strong><small>TECH-PACK ANCHOR</small></button>
         <button type="button" data-pham-quick-size="XXL"><span>XXL</span><strong>110–114 CM</strong><small>BODY CHEST</small></button>
       </div>
+      <div class="pham-fit__quick-preview" data-pham-fit-preview role="status" aria-live="polite" aria-atomic="true">
+        <div class="pham-fit__quick-preview-inner">
+          <div class="pham-fit__quick-preview-panel">
+            <div class="pham-fit__quick-preview-top"><span>FINISHED GARMENT / CM</span><strong data-pham-preview-size>—</strong></div>
+            <dl class="pham-fit__quick-preview-values">
+              <div><dt>A / CHEST</dt><dd data-pham-preview-chest>—</dd></div>
+              <div><dt>B / SHOULDER</dt><dd data-pham-preview-shoulder>—</dd></div>
+              <div><dt>C / SLEEVE</dt><dd data-pham-preview-sleeve>—</dd></div>
+              <div><dt>D / BODY</dt><dd data-pham-preview-length>—</dd></div>
+            </dl>
+          </div>
+        </div>
+      </div>
       <p class="pham-fit__quick-note">These are starting ranges, not hard limits. If you sit between sizes, compare the garment chart below with a jacket you already like.</p>
     </section>
 
@@ -205,7 +218,26 @@
     sizes.forEach(function(x){x.row.classList.toggle('is-highlighted',x.size===size)});
     root.querySelectorAll('[data-pham-quick-size]').forEach(function(btn){btn.classList.toggle('is-active',btn.dataset.phamQuickSize===size)});
   }
-  root.querySelectorAll('[data-pham-quick-size]').forEach(function(btn){btn.addEventListener('click',function(){highlight(btn.dataset.phamQuickSize);btn.scrollIntoView({behavior:'smooth',block:'center'});});});
+  var preview=root.querySelector('[data-pham-fit-preview]');
+  root.querySelectorAll('[data-pham-quick-size]').forEach(function(btn){
+    btn.setAttribute('aria-pressed','false');
+    btn.addEventListener('click',function(){
+      var size=btn.dataset.phamQuickSize;
+      var item=sizes.find(function(x){return x.size===size});
+      highlight(size);
+      root.querySelectorAll('[data-pham-quick-size]').forEach(function(b){b.setAttribute('aria-pressed',String(b===btn))});
+      if(item&&preview){
+        preview.querySelector('[data-pham-preview-size]').textContent=size;
+        ['chest','shoulder','sleeve','length'].forEach(function(key){
+          preview.querySelector('[data-pham-preview-'+key+']').textContent=item[key==='chest'?'chestFlat':key]+' CM';
+        });
+        preview.classList.add('is-open');
+        var box=preview.getBoundingClientRect();
+        if(box.bottom>window.innerHeight-22 || box.top<80)
+          preview.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
+      }
+    });
+  });
   form.addEventListener('submit',function(e){
     e.preventDefault();
     if(!calibrated()){sizeOut.textContent='—';titleOut.textContent='CALIBRATION PENDING';copyOut.textContent='Automatic recommendation is unavailable until the Edition 01 garment table is verified.';metaOut.textContent='';return}
