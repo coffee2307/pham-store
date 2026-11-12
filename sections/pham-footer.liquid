@@ -369,6 +369,48 @@
   .pham-footer .pham-footer__policy-link { font-size: 10px; }
 }
 
+
+/* Facebook / stronger social CTA */
+.pham-footer .pham-footer__social--facebook {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  min-width: 126px;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid #eceae5;
+  background: #eceae5;
+  color: #0a0b0d;
+  font: 650 11px/1.2 var(--font-body,Arial,sans-serif);
+  letter-spacing: .065em;
+  text-decoration: none;
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+.pham-footer .pham-footer__social--facebook .pham-footer__social-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  color: inherit;
+}
+.pham-footer .pham-footer__social--facebook:hover,
+.pham-footer .pham-footer__social--facebook:focus-visible {
+  border-color: #f8f7f4;
+  background: transparent;
+  color: #f8f7f4;
+}
+@media (max-width: 749px) {
+  .pham-footer .pham-footer__col--brand .pham-footer__socials {
+    justify-self: end;
+    align-self: center;
+    margin: 0;
+  }
+  .pham-footer .pham-footer__social--facebook {
+    min-width: 118px;
+    padding-inline: 11px;
+  }
+}
 </style>
 
 {% schema %}
