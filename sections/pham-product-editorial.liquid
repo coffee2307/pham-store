@@ -285,8 +285,10 @@
 .pham-editorial-stage__image {
   transform: scale(.9);
   transform-origin: center center;
-  -webkit-mask-image: radial-gradient(ellipse 52% 58% at 50% 48%, #000 52%, transparent 100%);
-  mask-image: radial-gradient(ellipse 52% 58% at 50% 48%, #000 52%, transparent 100%);
+  /* Fade to full transparency BEFORE reaching all four image edges.
+     The old 52%-100% gradient still exposed the photo's rectangle. */
+  -webkit-mask-image: radial-gradient(ellipse 76% 76% at 50% 46%, #000 37%, rgba(0,0,0,.95) 43%, rgba(0,0,0,.45) 54%, transparent 61%);
+  mask-image: radial-gradient(ellipse 76% 76% at 50% 46%, #000 37%, rgba(0,0,0,.95) 43%, rgba(0,0,0,.45) 54%, transparent 61%);
 }
 @media (min-width: 700px) {
   .pham-editorial-stage__visual {

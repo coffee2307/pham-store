@@ -2,6 +2,7 @@
   assign edition_label = section.settings.edition_label | default: 'EDITION 01'
   assign product_code = section.settings.product_code | default: 'PHAM-001'
   assign recommendation_enabled = section.settings.enable_recommendation
+  assign diagram_image = section.settings.diagram_image
 -%}
 
 <section class="pham-fit" data-pham-fit-guide
@@ -9,248 +10,431 @@
   data-intended-ease="{{ section.settings.intended_chest_ease | default: 30 }}"
   data-intended-shoulder-ease="{{ section.settings.intended_shoulder_ease | default: 9 }}">
   <div class="pham-fit__inner">
-
     <header class="pham-fit__hero">
-      <div>
-        <p class="pham-fit__kicker">PHAM FIT SYSTEM / 001</p>
-        <h1>{{ product_code }}<br><span>SIZE GUIDE</span></h1>
-        <p class="pham-fit__hero-copy">Cropped body. Dropped shoulder. Controlled oversized volume.</p>
+      <div class="pham-fit__hero-copy-wrap">
+        <p class="pham-fit__kicker">{{ product_code }} / {{ edition_label }}</p>
+        <h1>Find your <em>fit.</em></h1>
+        <p class="pham-fit__hero-copy">Choose a starting size, compare the actual jacket measurements, then check how PHAM-001 is designed to sit on the body.</p>
+        <div class="pham-fit__hero-facts">
+          <span>Cropped body</span><span>Dropped shoulder</span><span>Room through chest</span>
+        </div>
       </div>
-      <aside class="pham-fit__hero-card">
-        <span>{{ edition_label }}</span>
-        <strong>START WITH YOUR CHEST</strong>
-        <p>Then refine by shoulder and compare with a jacket you already like.</p>
-        <div><b>M</b><b>L</b><b>XL</b><b>XXL</b></div>
-      </aside>
+      <nav class="pham-fit__jump-links" aria-label="Size guide sections">
+        <a href="#pham-fit-choose"><span>01</span> Choose a size <span aria-hidden="true">↓</span></a>
+        <a href="#pham-fit-measure"><span>02</span> Garment measurements <span aria-hidden="true">↓</span></a>
+        <a href="#pham-fit-assistant"><span>03</span> Fit assistant <span aria-hidden="true">↓</span></a>
+      </nav>
     </header>
 
-    <section class="pham-fit__fit-overview">
-      <div class="pham-fit__fit-card">
-        <span>01</span>
-        <div><strong>CROPPED BODY</strong><p>Shorter hem by design.</p></div>
-      </div>
-      <div class="pham-fit__fit-card">
-        <span>02</span>
-        <div><strong>DROPPED SHOULDER</strong><p>Relaxed shoulder line.</p></div>
-      </div>
-      <div class="pham-fit__fit-card">
-        <span>03</span>
-        <div><strong>ROOM THROUGH BODY</strong><p>Controlled oversized ease.</p></div>
-      </div>
-    </section>
-
-    <section class="pham-fit__quick">
+    <section class="pham-fit__quick" id="pham-fit-choose" aria-labelledby="pham-fit-quick-heading">
       <div class="pham-fit__section-title">
-        <p>01 / QUICK SIZE</p>
-        <h2>Start here.</h2>
-        <span>Use body chest as the first reference.</span>
+        <p>01 / START HERE</p>
+        <h2 id="pham-fit-quick-heading">Your starting size.</h2>
+        <span>Approximate body chest circumference — not the flat jacket width.</span>
       </div>
-      <div class="pham-fit__quick-grid">
-        <button type="button" data-pham-quick-size="M"><span>M</span><strong>98–101 CM</strong><small>BODY CHEST</small></button>
-        <button type="button" data-pham-quick-size="L"><span>L</span><strong>102–105 CM</strong><small>BODY CHEST</small></button>
-        {%- comment -%} XL = TECH PACK ANCHOR {%- endcomment -%}
-        <button type="button" data-pham-quick-size="XL"><span>XL</span><strong>106–109 CM</strong><small>TECH-PACK ANCHOR</small></button>
-        <button type="button" data-pham-quick-size="XXL"><span>XXL</span><strong>110–114 CM</strong><small>BODY CHEST</small></button>
+      <div class="pham-fit__quick-grid" role="group" aria-label="Select a starting size">
+        <button type="button" data-pham-quick-size="M" aria-pressed="false"><strong>M</strong><span>98–101 cm</span><small>BODY CHEST</small></button>
+        <button type="button" data-pham-quick-size="L" aria-pressed="false"><strong>L</strong><span>102–105 cm</span><small>BODY CHEST</small></button>
+        <button type="button" data-pham-quick-size="XL" aria-pressed="true" class="is-active"><strong>XL</strong><span>106–109 cm</span><small>BODY CHEST</small></button>
+        <button type="button" data-pham-quick-size="XXL" aria-pressed="false"><strong>XXL</strong><span>110–114 cm</span><small>BODY CHEST</small></button>
       </div>
       <div class="pham-fit__quick-preview" data-pham-fit-preview role="status" aria-live="polite" aria-atomic="true">
         <div class="pham-fit__quick-preview-inner">
           <div class="pham-fit__quick-preview-panel">
-            <div class="pham-fit__quick-preview-top"><span>FINISHED GARMENT / CM</span><strong data-pham-preview-size>—</strong></div>
+            <div class="pham-fit__quick-preview-top"><span>GARMENT MEASUREMENTS / CM</span><strong data-pham-preview-size>XL</strong></div>
             <dl class="pham-fit__quick-preview-values">
-              <div><dt>A / CHEST</dt><dd data-pham-preview-chest>—</dd></div>
-              <div><dt>B / SHOULDER</dt><dd data-pham-preview-shoulder>—</dd></div>
-              <div><dt>C / SLEEVE</dt><dd data-pham-preview-sleeve>—</dd></div>
-              <div><dt>D / BODY</dt><dd data-pham-preview-length>—</dd></div>
+              <div><dt>A / SHOULDER</dt><dd data-pham-preview-shoulder>—</dd></div>
+              <div><dt>B / CHEST</dt><dd data-pham-preview-chest>—</dd></div>
+              <div><dt>C / BODY</dt><dd data-pham-preview-length>—</dd></div>
+              <div><dt>D / SLEEVE</dt><dd data-pham-preview-sleeve>—</dd></div>
             </dl>
           </div>
         </div>
       </div>
-      <p class="pham-fit__quick-note">These are starting ranges, not hard limits. If you sit between sizes, compare the garment chart below with a jacket you already like.</p>
+      <p class="pham-fit__help">These ranges are guidance, not guarantees. If you are between sizes, compare the dimensions of a jacket you already wear with the chart below.</p>
     </section>
 
-    <section class="pham-fit__diagram-section">
+    <section class="pham-fit__measurement-section" id="pham-fit-measure" aria-labelledby="pham-fit-measure-heading">
       <div class="pham-fit__section-title">
-        <p>02 / GARMENT MAP</p>
-        <h2>Know what A–D mean.</h2>
+        <p>02 / THE GARMENT</p>
+        <h2 id="pham-fit-measure-heading">Measure the jacket.</h2>
+        <span>All garment dimensions in centimeters. Jacket laid flat, fully zipped.</span>
       </div>
       <div class="pham-fit__diagram-grid">
-        <div class="pham-fit__figure" aria-label="PHAM-001 technical flat showing garment measurements">
-          <svg viewBox="0 0 520 420" role="img" aria-labelledby="PhamFitFigureTitle">
-            <title id="PhamFitFigureTitle">PHAM-001 technical flat and garment measurement points</title>
-            <defs>
-              <marker id="phamFitArrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto-start-reverse">
-                <path d="M0,0 L7,3.5 L0,7 Z" fill="currentColor"/>
-              </marker>
-            </defs>
-            <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-              <g stroke-width="1.5">
-                <path d="M247 58 Q260 48 273 58 L303 72 L350 86 L389 119 L448 226 L415 244 L347 152 L339 311 Q260 330 181 311 L173 152 L105 244 L72 226 L131 119 L170 86 L217 72 Z"/>
-                <path d="M217 72 Q231 98 260 100 Q289 98 303 72"/>
-                <path d="M247 58 L238 91 M273 58 L282 91"/>
-                <path d="M260 100 V318"/>
-                <path d="M181 311 Q260 324 339 311"/>
-                <path d="M78 224 L111 244 M409 244 L442 224"/>
-                <path d="M188 218 L229 204 L236 232 L194 244 Z"/>
-                <path d="M332 218 L291 204 L284 232 L326 244 Z"/>
-                <path d="M173 152 Q181 126 203 110 M347 152 Q339 126 317 110"/>
-              </g>
-              <g stroke-width="1.2" marker-start="url(#phamFitArrow)" marker-end="url(#phamFitArrow)">
-                <path d="M181 186 H339"/>
-                <path d="M203 109 H317"/>
-                <path d="M321 105 L420 237"/>
-                <path d="M367 101 V311"/>
-              </g>
-            </g>
-            <g fill="#050505" stroke="currentColor" stroke-width="1">
-              <circle cx="260" cy="186" r="13"/><circle cx="260" cy="109" r="13"/><circle cx="372" cy="171" r="13"/><circle cx="367" cy="206" r="13"/>
-            </g>
-            <g fill="currentColor" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" dominant-baseline="middle">
-              <text x="260" y="186">A</text><text x="260" y="109">B</text><text x="372" y="171">C</text><text x="367" y="206">D</text>
-            </g>
-          </svg>
-        </div>
-        <div class="pham-fit__legend">
-          <div><span>A</span><strong>CHEST WIDTH</strong><p>Pit-to-pit, jacket laid flat.</p></div>
-          <div><span>B</span><strong>SHOULDER</strong><p>Shoulder seam to shoulder seam.</p></div>
-          <div><span>C</span><strong>SLEEVE</strong><p>Shoulder seam to cuff.</p></div>
-          <div><span>D</span><strong>BODY LENGTH</strong><p>Back neck to hem.</p></div>
+        <figure class="pham-fit__figure">
+          {%- if diagram_image != blank -%}
+            {{ diagram_image | image_url: width: 1600 | image_tag: class: 'pham-fit__diagram-image', loading: 'eager', decoding: 'async', widths: '360, 640, 900, 1200, 1448, 1600', sizes: '(max-width: 759px) calc(100vw - 32px), 62vw', alt: 'PHAM-001 technical drawing with measurement arrows A shoulder, B chest, C body length, D sleeve length, E hem width' }}
+          {%- else -%}
+            <p class="pham-fit__image-fallback">Measurement diagram is being prepared.</p>
+          {%- endif -%}
+          <figcaption>
+            <span>PHAM-001 · MEASUREMENT MAP</span>
+            {%- if diagram_image != blank -%}<button type="button" data-pham-fit-expand>Enlarge diagram <span aria-hidden="true">+</span></button>{%- endif -%}
+          </figcaption>
+        </figure>
+        <div class="pham-fit__legend" aria-label="Diagram measurement key">
+          <div><span>A</span><div><strong>Shoulder width</strong><p>Straight across the shoulder points.</p></div></div>
+          <div><span>B</span><div><strong>Chest width</strong><p>Pit to pit across a flat, zipped jacket.</p></div></div>
+          <div><span>C</span><div><strong>Body length</strong><p>From the upper shoulder line to the lower hem.</p></div></div>
+          <div><span>D</span><div><strong>Sleeve length</strong><p>From shoulder point to the sleeve cuff.</p></div></div>
+          <div><span>E</span><div><strong>Hem width</strong><p>Across the lower ribbed hem. Figures pending verification.</p></div></div>
         </div>
       </div>
-    </section>
 
-    <section class="pham-fit__measurements">
-      <div class="pham-fit__section-title">
-        <p>03 / FINISHED GARMENT</p>
-        <h2>PHAM-001 measurements.</h2>
-        <span>Garment laid flat · centimeters</span>
-      </div>
-      <div class="pham-fit__table-wrap">
-        <table class="pham-fit__table">
-          <thead><tr><th>Size</th><th>A · Chest</th><th>B · Shoulder</th><th>C · Sleeve</th><th>D · Body</th></tr></thead>
-          <tbody>
-            <tr data-pham-fit-size="M" data-chest="{{ section.settings.m_chest }}" data-shoulder="{{ section.settings.m_shoulder }}" data-sleeve="{{ section.settings.m_sleeve }}" data-length="{{ section.settings.m_length }}">
-              <th>M</th><td>{{ section.settings.m_chest }} cm</td><td>{{ section.settings.m_shoulder }} cm</td><td>{{ section.settings.m_sleeve }} cm</td><td>{{ section.settings.m_length }} cm</td>
-            </tr>
-            <tr data-pham-fit-size="L" data-chest="{{ section.settings.l_chest }}" data-shoulder="{{ section.settings.l_shoulder }}" data-sleeve="{{ section.settings.l_sleeve }}" data-length="{{ section.settings.l_length }}">
-              <th>L</th><td>{{ section.settings.l_chest }} cm</td><td>{{ section.settings.l_shoulder }} cm</td><td>{{ section.settings.l_sleeve }} cm</td><td>{{ section.settings.l_length }} cm</td>
-            </tr>
-            <tr data-pham-fit-size="XL" data-chest="{{ section.settings.xl_chest }}" data-shoulder="{{ section.settings.xl_shoulder }}" data-sleeve="{{ section.settings.xl_sleeve }}" data-length="{{ section.settings.xl_length }}">
-              <th>XL</th><td>{{ section.settings.xl_chest }} cm</td><td>{{ section.settings.xl_shoulder }} cm</td><td>{{ section.settings.xl_sleeve }} cm</td><td>{{ section.settings.xl_length }} cm</td>
-            </tr>
-            <tr data-pham-fit-size="XXL" data-chest="{{ section.settings.xxl_chest }}" data-shoulder="{{ section.settings.xxl_shoulder }}" data-sleeve="{{ section.settings.xxl_sleeve }}" data-length="{{ section.settings.xxl_length }}">
-              <th>XXL</th><td>{{ section.settings.xxl_chest }} cm</td><td>{{ section.settings.xxl_shoulder }} cm</td><td>{{ section.settings.xxl_sleeve }} cm</td><td>{{ section.settings.xxl_length }} cm</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="pham-fit__tech-note">XL = current tech-pack anchor · M / L / XXL = Edition 01 grading proposal.</p>
-    </section>
-
-    <section class="pham-fit__how">
-      <div class="pham-fit__section-title">
-        <p>04 / HOW TO MEASURE</p>
-        <h2>Four measurements. One minute.</h2>
-      </div>
-      <div class="pham-fit__how-grid">
-        <article><span>01</span><strong>CHEST</strong><p>Around the fullest part of your chest, tape level and relaxed.</p></article>
-        <article><span>02</span><strong>SHOULDER</strong><p>Straight across the back from shoulder point to shoulder point.</p></article>
-        <article><span>03</span><strong>SLEEVE</strong><p>On a jacket you like, shoulder seam to cuff.</p></article>
-        <article><span>04</span><strong>BODY LENGTH</strong><p>On a jacket you like, back neck to hem.</p></article>
-      </div>
-      <div class="pham-fit__best-method">
-        <span>BEST METHOD</span>
-        <div><strong>COMPARE A JACKET YOU ALREADY LIKE.</strong><p>Lay it flat, measure A–D, then match those numbers to the PHAM-001 table above.</p></div>
+      <div class="pham-fit__measurements" aria-labelledby="pham-fit-table-heading">
+        <div class="pham-fit__measurements-heading">
+          <div><p>GARMENT SPECIFICATIONS</p><h3 id="pham-fit-table-heading">Compare all four sizes.</h3></div>
+          <span data-pham-selected-size aria-live="polite">Selected size: XL</span>
+        </div>
+        <div class="pham-fit__table-wrap">
+          <table class="pham-fit__table">
+            <caption>PHAM-001 garment measurements, laid flat, in centimeters. E hem width awaiting verification.</caption>
+            <thead><tr><th scope="col">Size</th><th scope="col">A · Shoulder</th><th scope="col">B · Chest</th><th scope="col">C · Body</th><th scope="col">D · Sleeve</th><th scope="col">E · Hem</th></tr></thead>
+            <tbody id="pham-fit-size-rows">
+              <tr data-pham-fit-size="M" data-chest="{{ section.settings.m_chest }}" data-shoulder="{{ section.settings.m_shoulder }}" data-sleeve="{{ section.settings.m_sleeve }}" data-length="{{ section.settings.m_length }}">
+                <th scope="row">M</th><td data-label="A · Shoulder">{{ section.settings.m_shoulder }} cm</td><td data-label="B · Chest">{{ section.settings.m_chest }} cm</td><td data-label="C · Body">{{ section.settings.m_length }} cm</td><td data-label="D · Sleeve">{{ section.settings.m_sleeve }} cm</td><td data-label="E · Hem">—</td>
+              </tr>
+              <tr data-pham-fit-size="L" data-chest="{{ section.settings.l_chest }}" data-shoulder="{{ section.settings.l_shoulder }}" data-sleeve="{{ section.settings.l_sleeve }}" data-length="{{ section.settings.l_length }}">
+                <th scope="row">L</th><td data-label="A · Shoulder">{{ section.settings.l_shoulder }} cm</td><td data-label="B · Chest">{{ section.settings.l_chest }} cm</td><td data-label="C · Body">{{ section.settings.l_length }} cm</td><td data-label="D · Sleeve">{{ section.settings.l_sleeve }} cm</td><td data-label="E · Hem">—</td>
+              </tr>
+              <tr class="is-highlighted" data-pham-fit-size="XL" data-chest="{{ section.settings.xl_chest }}" data-shoulder="{{ section.settings.xl_shoulder }}" data-sleeve="{{ section.settings.xl_sleeve }}" data-length="{{ section.settings.xl_length }}">
+                <th scope="row">XL</th><td data-label="A · Shoulder">{{ section.settings.xl_shoulder }} cm</td><td data-label="B · Chest">{{ section.settings.xl_chest }} cm</td><td data-label="C · Body">{{ section.settings.xl_length }} cm</td><td data-label="D · Sleeve">{{ section.settings.xl_sleeve }} cm</td><td data-label="E · Hem">—</td>
+              </tr>
+              <tr data-pham-fit-size="XXL" data-chest="{{ section.settings.xxl_chest }}" data-shoulder="{{ section.settings.xxl_shoulder }}" data-sleeve="{{ section.settings.xxl_sleeve }}" data-length="{{ section.settings.xxl_length }}">
+                <th scope="row">XXL</th><td data-label="A · Shoulder">{{ section.settings.xxl_shoulder }} cm</td><td data-label="B · Chest">{{ section.settings.xxl_chest }} cm</td><td data-label="C · Body">{{ section.settings.xxl_length }} cm</td><td data-label="D · Sleeve">{{ section.settings.xxl_sleeve }} cm</td><td data-label="E · Hem">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button class="pham-fit__compare-toggle" type="button" data-pham-fit-compare aria-controls="pham-fit-size-rows" aria-expanded="false">SHOW ALL FOUR SIZES <span aria-hidden="true">+</span></button>
+        <p class="pham-fit__tech-note">XL is the current technical sample reference. M, L and XXL are proposed graded measurements. E (hem width) has not been confirmed; no value is provided. Final production tolerances may vary.</p>
       </div>
     </section>
 
-    <section class="pham-fit__assistant">
+    <section class="pham-fit__how" id="pham-fit-how" aria-labelledby="pham-fit-how-heading">
       <div class="pham-fit__section-title">
-        <p>05 / FIT ASSISTANT</p>
-        <h2>Get a starting size.</h2>
-        <span>Chest drives the recommendation. Shoulder refines it.</span>
+        <p>03 / GET THE RIGHT FIT</p>
+        <h2 id="pham-fit-how-heading">Compare with what you own.</h2>
+        <span>The most reliable check is a jacket you already like wearing.</span>
+      </div>
+      <ol class="pham-fit__how-grid">
+        <li><span>01</span><strong>Lay it flat</strong><p>Zip up your own jacket and smooth out the fabric, without stretching it.</p></li>
+        <li><span>02</span><strong>Measure A–D</strong><p>Use the diagram above, then compare your numbers with the PHAM-001 chart.</p></li>
+        <li><span>03</span><strong>Allow for shape</strong><p>PHAM-001 has a cropped body and relaxed sleeves; compare garment dimensions, not size letters alone.</p></li>
+      </ol>
+    </section>
+
+    <section class="pham-fit__assistant" id="pham-fit-assistant" aria-labelledby="pham-fit-assistant-heading">
+      <div class="pham-fit__section-title">
+        <p>04 / OPTIONAL ASSISTANT</p>
+        <h2 id="pham-fit-assistant-heading">Need a starting point?</h2>
+        <span>Enter your own body measurements for an approximate size suggestion.</span>
       </div>
       <div class="pham-fit__assistant-grid">
         <form class="pham-fit__form" data-pham-fit-form>
-          <label class="is-primary"><span>Chest</span><div><input type="number" name="chest" min="70" max="160" inputmode="decimal" placeholder="106" required><em>CM</em></div></label>
-          <label class="is-primary"><span>Shoulder</span><div><input type="number" name="shoulder" min="32" max="65" inputmode="decimal" placeholder="47"><em>CM</em></div></label>
-          <label><span>Height <small>optional</small></span><div><input type="number" name="height" min="140" max="215" inputmode="decimal" placeholder="175"><em>CM</em></div></label>
-          <label><span>Weight <small>optional</small></span><div><input type="number" name="weight" min="35" max="180" inputmode="decimal" placeholder="65"><em>KG</em></div></label>
+          <label><span>Body chest circumference <strong>Required</strong></span><div><input type="number" name="chest" min="70" max="160" inputmode="decimal" placeholder="106" aria-label="Body chest circumference in centimeters" required><em>cm</em></div></label>
+          <label><span>Shoulder width <small>Optional</small></span><div><input type="number" name="shoulder" min="32" max="65" inputmode="decimal" placeholder="47" aria-label="Body shoulder width in centimeters"><em>cm</em></div></label>
           <fieldset>
-            <legend>Fit preference</legend>
-            <label class="pham-fit__radio"><input type="radio" name="preference" value="close"><span>CLEANER</span></label>
+            <legend>Preferred fit</legend>
+            <label class="pham-fit__radio"><input type="radio" name="preference" value="close"><span>NEATER</span></label>
             <label class="pham-fit__radio"><input type="radio" name="preference" value="intended" checked><span>PHAM FIT</span></label>
-            <label class="pham-fit__radio"><input type="radio" name="preference" value="relaxed"><span>MORE OVERSIZED</span></label>
+            <label class="pham-fit__radio"><input type="radio" name="preference" value="relaxed"><span>RELAXED</span></label>
           </fieldset>
-          <button type="submit">FIND MY SIZE </button>
+          <button type="submit">RECOMMEND A SIZE <span aria-hidden="true">→</span></button>
         </form>
-        <div class="pham-fit__result" data-pham-fit-result aria-live="polite">
-          <span class="pham-fit__result-label">PHAM FIT / {{ product_code }}</span>
+        <div class="pham-fit__result" data-pham-fit-result aria-live="polite" aria-atomic="true">
+          <span class="pham-fit__result-label">{{ product_code }} / FIT REFERENCE</span>
           <div class="pham-fit__result-size" data-pham-fit-result-size>—</div>
-          <h3 data-pham-fit-result-title>{% if recommendation_enabled %}ENTER CHEST + SHOULDER{% else %}CALIBRATION PENDING{% endif %}</h3>
-          <p data-pham-fit-result-copy>{% if recommendation_enabled %}We compare your measurements with the Edition 01 garment table and your preferred silhouette.{% else %}Automatic recommendation is currently disabled.{% endif %}</p>
+          <h3 data-pham-fit-result-title>{% if recommendation_enabled %}Enter your measurements{% else %}Recommendation unavailable{% endif %}</h3>
+          <p data-pham-fit-result-copy>{% if recommendation_enabled %}This tool suggests a starting size. Always verify it against the garment chart above.{% else %}Please use the verified garment chart while fit recommendations are disabled.{% endif %}</p>
           <div class="pham-fit__result-meta" data-pham-fit-result-meta></div>
         </div>
       </div>
     </section>
 
-    <footer class="pham-fit__footer">
-      <p>Fit recommendations are guidance. Layering, body shape and personal preference can change how a cropped bomber feels.</p>
-      <a href="{{ section.settings.product_url | default: '/products/pham-001' }}">RETURN TO {{ product_code }}</a>
-    </footer>
+    <div class="pham-fit__footer">
+      <div><strong>Ready to explore PHAM-001?</strong><p>Review the jacket, edition release and product details before deciding.</p></div>
+      <a href="{{ section.settings.product_url | default: '/products/pham-001' }}">BACK TO PHAM-001 <span aria-hidden="true">→</span></a>
+    </div>
   </div>
+
+  {%- if diagram_image != blank -%}
+    <dialog class="pham-fit__modal" data-pham-fit-modal aria-label="Full size PHAM-001 measurement diagram">
+      <div class="pham-fit__modal-head"><strong>PHAM-001 / MEASUREMENT MAP</strong><button type="button" data-pham-fit-close aria-label="Close enlarged diagram">CLOSE ×</button></div>
+      <div class="pham-fit__modal-scroll">
+        {{ diagram_image | image_url: width: 1600 | image_tag: class: 'pham-fit__modal-img', loading: 'lazy', decoding: 'async', widths: '900, 1200, 1448, 1600', sizes: 'max(900px, 96vw)', alt: 'Enlarged PHAM-001 size guide: A shoulder, B chest, C body, D sleeve, E hem' }}
+      </div>
+      <p>Scroll to inspect details. A shoulder · B chest · C body · D sleeve · E hem.</p>
+    </dialog>
+  {%- endif -%}
 </section>
 
 <style>
-.pham-fit{background:#050505;color:#f2f2ef;min-height:100vh;padding:clamp(92px,9vw,136px) 0 76px}.pham-fit *{box-sizing:border-box}.pham-fit__inner{width:min(1280px,calc(100% - 56px));margin:0 auto}.pham-fit__kicker,.pham-fit__section-title>p,.pham-fit__result-label{font:600 10px/1.3 var(--font-mono,monospace);letter-spacing:.14em;text-transform:uppercase;color:#7f7f7a}.pham-fit__hero{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:48px;align-items:end;padding-bottom:40px;border-bottom:1px solid #292929}.pham-fit__hero h1{margin:17px 0 0;font:400 clamp(3.8rem,8vw,7.5rem)/.82 var(--font-display,Arial,sans-serif);letter-spacing:-.055em}.pham-fit__hero h1 span{color:#8f8f8a}.pham-fit__hero-copy{max-width:47ch;margin:26px 0 0;color:#b7b7b1;font:400 1rem/1.55 var(--font-body,Arial,sans-serif)}.pham-fit__hero-card{border:1px solid #303030;padding:20px;background:#090909}.pham-fit__hero-card>span{display:block;color:#777;font:600 9px/1 var(--font-mono,monospace);letter-spacing:.13em}.pham-fit__hero-card>strong{display:block;margin-top:28px;font:600 12px/1.3 var(--font-mono,monospace);letter-spacing:.08em}.pham-fit__hero-card>p{margin:9px 0 20px;color:#999994;font:400 .84rem/1.5 var(--font-body,Arial,sans-serif)}.pham-fit__hero-card>div{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #2d2d2d}.pham-fit__hero-card b{padding:10px 0;text-align:center;border-right:1px solid #2d2d2d;font:600 10px/1 var(--font-mono,monospace)}.pham-fit__hero-card b:last-child{border-right:0}.pham-fit__fit-overview{display:grid;grid-template-columns:repeat(3,1fr);border-left:1px solid #292929;border-bottom:1px solid #292929}.pham-fit__fit-card{display:grid;grid-template-columns:34px 1fr;gap:16px;padding:20px;border-top:1px solid #292929;border-right:1px solid #292929}.pham-fit__fit-card>span{color:#666;font:600 9px/1 var(--font-mono,monospace)}.pham-fit__fit-card strong{font:600 10px/1.3 var(--font-mono,monospace);letter-spacing:.08em}.pham-fit__fit-card p{margin:6px 0 0;color:#8d8d88;font:400 .8rem/1.45 var(--font-body,Arial,sans-serif)}.pham-fit__quick,.pham-fit__diagram-section,.pham-fit__measurements,.pham-fit__how,.pham-fit__assistant{padding:68px 0;border-bottom:1px solid #292929}.pham-fit__section-title{display:grid;grid-template-columns:170px 1fr;column-gap:30px;align-items:end}.pham-fit__section-title h2{grid-column:2;margin:0;font:400 clamp(2.2rem,4.5vw,4.3rem)/.92 var(--font-display,Arial,sans-serif);letter-spacing:-.04em}.pham-fit__section-title>span{grid-column:2;margin-top:12px;color:#8f8f8a;font:400 .9rem/1.5 var(--font-body,Arial,sans-serif)}.pham-fit__quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:34px}.pham-fit__quick-grid button{display:grid;gap:9px;min-height:146px;padding:18px;text-align:left;border:1px solid #303030;background:#080808;color:#f2f2ef;cursor:pointer;transition:background 160ms ease,color 160ms ease,border-color 160ms ease}.pham-fit__quick-grid button:hover,.pham-fit__quick-grid button.is-active{background:#f2f2ef;color:#050505;border-color:#f2f2ef}.pham-fit__quick-grid span{font:400 2rem/1 var(--font-display,Arial,sans-serif)}.pham-fit__quick-grid strong{margin-top:auto;font:700 12px/1.2 var(--font-mono,monospace);letter-spacing:.06em}.pham-fit__quick-grid small{opacity:.58;font:600 8px/1 var(--font-mono,monospace);letter-spacing:.1em}.pham-fit__quick-note{max-width:72ch;margin:14px 0 0;color:#858580;font:400 .8rem/1.55 var(--font-body,Arial,sans-serif)}.pham-fit__diagram-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:12px;margin-top:34px}.pham-fit__figure{display:flex;align-items:center;justify-content:center;min-height:480px;border:1px solid #303030;background:linear-gradient(180deg,#0b0b0b,#070707);padding:28px}.pham-fit__figure svg{display:block;width:100%;max-height:430px;color:#e1e1dc}.pham-fit__legend{display:grid;grid-template-rows:repeat(4,1fr);border:1px solid #303030}.pham-fit__legend>div{display:grid;grid-template-columns:42px 1fr;align-content:center;column-gap:14px;padding:18px;border-bottom:1px solid #303030}.pham-fit__legend>div:last-child{border-bottom:0}.pham-fit__legend span{grid-row:1/3;display:flex;width:30px;height:30px;align-items:center;justify-content:center;border:1px solid #555;font:700 10px/1 var(--font-mono,monospace)}.pham-fit__legend strong{font:600 10px/1.3 var(--font-mono,monospace);letter-spacing:.08em}.pham-fit__legend p{margin:6px 0 0;color:#868681;font:400 .78rem/1.4 var(--font-body,Arial,sans-serif)}.pham-fit__table-wrap{overflow:auto;margin-top:34px;border-top:1px solid #303030}.pham-fit__table{width:100%;border-collapse:collapse;min-width:720px}.pham-fit__table th,.pham-fit__table td{padding:20px 16px;border-bottom:1px solid #292929;text-align:left}.pham-fit__table thead th{color:#777;font:600 9px/1.3 var(--font-mono,monospace);letter-spacing:.1em;text-transform:uppercase}.pham-fit__table tbody th{font:500 1.4rem/1 var(--font-display,Arial,sans-serif)}.pham-fit__table tbody td{color:#c2c2bd;font:500 .9rem/1.2 var(--font-mono,monospace)}.pham-fit__table tr.is-highlighted{background:rgba(255,255,255,.055)}.pham-fit__tech-note{margin:13px 0 0;color:#777;font:500 9px/1.45 var(--font-mono,monospace);letter-spacing:.08em;text-transform:uppercase}.pham-fit__how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:34px}.pham-fit__how-grid article{min-height:180px;padding:20px;border:1px solid #303030;background:#080808}.pham-fit__how-grid span{color:#666;font:600 9px/1 var(--font-mono,monospace)}.pham-fit__how-grid strong{display:block;margin-top:32px;font:600 11px/1.2 var(--font-mono,monospace);letter-spacing:.08em}.pham-fit__how-grid p{margin:9px 0 0;color:#93938e;font:400 .82rem/1.5 var(--font-body,Arial,sans-serif)}.pham-fit__best-method{display:grid;grid-template-columns:170px 1fr;gap:30px;margin-top:12px;padding:22px;border:1px solid #303030}.pham-fit__best-method>span{color:#777;font:600 9px/1.3 var(--font-mono,monospace);letter-spacing:.1em}.pham-fit__best-method strong{font:600 11px/1.3 var(--font-mono,monospace);letter-spacing:.08em}.pham-fit__best-method p{margin:7px 0 0;color:#93938e;font:400 .84rem/1.5 var(--font-body,Arial,sans-serif)}.pham-fit__assistant-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:34px;border:1px solid #303030;background:#303030}.pham-fit__form,.pham-fit__result{background:#070707;padding:clamp(24px,4vw,44px)}.pham-fit__form{display:grid;grid-template-columns:1fr 1fr;gap:20px}.pham-fit__form>label>span,.pham-fit__form legend{display:block;margin-bottom:8px;color:#888883;font:600 9px/1 var(--font-mono,monospace);letter-spacing:.1em;text-transform:uppercase}.pham-fit__form>label>span small{opacity:.55;font-size:8px}.pham-fit__form>label>div{display:flex;align-items:center;border-bottom:1px solid #444}.pham-fit__form input[type=number]{width:100%;padding:11px 0;border:0;outline:0;background:transparent;color:#fff;font-size:20px}.pham-fit__form em{color:#777;font:600 9px/1 var(--font-mono,monospace);font-style:normal}.pham-fit__form fieldset{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 0;padding:14px 0 0;border:0}.pham-fit__radio input{position:absolute;opacity:0;pointer-events:none}.pham-fit__radio span{display:block;padding:11px 14px;border:1px solid #343434;font:600 9px/1 var(--font-mono,monospace);letter-spacing:.07em;cursor:pointer}.pham-fit__radio input:checked+span{background:#f0f0eb;color:#050505;border-color:#f0f0eb}.pham-fit__form button{grid-column:1/-1;margin-top:6px;padding:16px 20px;border:0;background:#f0f0eb;color:#050505;font:700 10px/1 var(--font-mono,monospace);letter-spacing:.1em;cursor:pointer}.pham-fit__result{display:flex;min-height:390px;flex-direction:column;justify-content:center}.pham-fit__result-label{color:#777}.pham-fit__result-size{margin:28px 0 20px;font:400 clamp(5rem,11vw,9rem)/.75 var(--font-display,Arial,sans-serif);letter-spacing:-.06em}.pham-fit__result h3{margin:0 0 10px;font:500 1.25rem/1.2 var(--font-display,Arial,sans-serif)}.pham-fit__result p{max-width:48ch;margin:0;color:#92928d;font:400 .84rem/1.55 var(--font-body,Arial,sans-serif)}.pham-fit__result-meta{margin-top:20px;color:#777;font:500 9px/1.65 var(--font-mono,monospace);letter-spacing:.06em;text-transform:uppercase;white-space:pre-line}.pham-fit__footer{display:flex;justify-content:space-between;gap:40px;padding-top:30px}.pham-fit__footer p{max-width:650px;margin:0;color:#858580;font:400 .78rem/1.55 var(--font-body,Arial,sans-serif)}.pham-fit__footer a{color:#fff;text-decoration:none;font:600 9px/1.4 var(--font-mono,monospace);letter-spacing:.08em;white-space:nowrap}
-@media(max-width:900px){.pham-fit__inner{width:min(100% - 32px,1280px)}.pham-fit__hero{grid-template-columns:1fr}.pham-fit__hero-card{max-width:480px}.pham-fit__diagram-grid{grid-template-columns:1fr}.pham-fit__legend{grid-template-columns:1fr 1fr;grid-template-rows:none}.pham-fit__legend>div:nth-child(2){border-bottom:1px solid #303030}.pham-fit__legend>div:nth-child(odd){border-right:1px solid #303030}.pham-fit__quick-grid,.pham-fit__how-grid{grid-template-columns:1fr 1fr}.pham-fit__assistant-grid{grid-template-columns:1fr}}
-@media(max-width:600px){.pham-fit{padding:78px 0 60px}.pham-fit__inner{width:min(100% - 24px,1280px)}.pham-fit__fit-overview,.pham-fit__quick-grid,.pham-fit__how-grid{grid-template-columns:1fr}.pham-fit__section-title{grid-template-columns:1fr}.pham-fit__section-title h2,.pham-fit__section-title>span{grid-column:1}.pham-fit__section-title h2{margin-top:10px}.pham-fit__diagram-grid{margin-top:24px}.pham-fit__figure{min-height:340px;padding:14px}.pham-fit__legend{grid-template-columns:1fr}.pham-fit__legend>div:nth-child(odd){border-right:0}.pham-fit__form{grid-template-columns:1fr}.pham-fit__form fieldset,.pham-fit__form button{grid-column:1}.pham-fit__best-method{grid-template-columns:1fr;gap:10px}.pham-fit__footer{flex-direction:column}.pham-fit__quick,.pham-fit__diagram-section,.pham-fit__measurements,.pham-fit__how,.pham-fit__assistant{padding:52px 0}}
+.pham-fit{background:#090a0c;color:#f3f2ef;padding:clamp(92px,9vw,132px) 0 84px;min-height:100vh}
+.pham-fit *{box-sizing:border-box}
+.pham-fit__inner{width:min(1160px,calc(100% - 48px));margin-inline:auto}
+.pham-fit__kicker,.pham-fit__section-title>p,.pham-fit__measurements-heading>div>p,.pham-fit__result-label{font:600 11px/1.45 var(--font-mono,monospace);letter-spacing:.12em;color:#aaa9a5}
+.pham-fit__hero{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:clamp(24px,5vw,72px);align-items:end;border-bottom:1px solid #303135;padding-bottom:42px}
+.pham-fit__hero h1{font:400 clamp(3.9rem,7.1vw,7.7rem)/.98 var(--font-display,Arial,sans-serif);letter-spacing:-.055em;margin:16px 0 20px}
+.pham-fit__hero h1 em{font-style:normal;color:#b6b5b0}
+.pham-fit__hero-copy{max-width:52ch;margin:0;color:#c4c3be;font:400 clamp(15px,1.2vw,17px)/1.65 var(--font-body,Arial,sans-serif)}
+.pham-fit__hero-facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.pham-fit__hero-facts span{border:1px solid #34363a;border-radius:2px;padding:8px 11px;font:500 11px/1.25 var(--font-body,Arial,sans-serif);color:#c6c5c0}
+.pham-fit__jump-links{display:flex;flex-direction:column;gap:0}
+.pham-fit__jump-links a{display:flex;align-items:center;gap:14px;min-height:54px;border-bottom:1px solid #303135;color:#f2f1ee;text-decoration:none;font:500 13px/1.45 var(--font-body,Arial,sans-serif)}
+.pham-fit__jump-links a:first-child{border-top:1px solid #303135}
+.pham-fit__jump-links a span:first-child{font:600 11px/1 var(--font-mono,monospace);color:#999}
+.pham-fit__jump-links a span:last-child{margin-left:auto;font-size:17px}
+.pham-fit a:focus-visible,.pham-fit button:focus-visible,.pham-fit input:focus-visible{outline:2px solid #f6f5f1;outline-offset:4px}
+.pham-fit__jump-links a:hover{color:#fff;background:rgba(255,255,255,.04)}
+.pham-fit__quick,.pham-fit__measurement-section,.pham-fit__how,.pham-fit__assistant{padding-block:clamp(46px,6vw,76px);border-bottom:1px solid #2d2f31;scroll-margin-top:90px}
+.pham-fit__section-title{max-width:760px}
+.pham-fit__section-title>p{margin:0 0 12px}
+.pham-fit__section-title h2{margin:0;font:400 clamp(2.05rem,3.8vw,3.75rem)/1.08 var(--font-display,Arial,sans-serif);letter-spacing:-.035em}
+.pham-fit__section-title>span{display:block;margin-top:10px;color:#bcbab5;font:400 14px/1.6 var(--font-body,Arial,sans-serif)}
+.pham-fit__quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:28px}
+.pham-fit__quick-grid button{display:flex;flex-direction:column;align-items:flex-start;gap:9px;min-height:124px;text-align:left;padding:18px;border:1px solid #383a3e;border-radius:3px;background:#101114;color:#f4f3ef;cursor:pointer;transition:background .16s ease,border-color .16s ease}
+.pham-fit__quick-grid button strong{font:400 32px/1 var(--font-display,Arial,sans-serif)}
+.pham-fit__quick-grid button span{font:600 14px/1.2 var(--font-mono,monospace)}
+.pham-fit__quick-grid button small{font:500 11px/1.2 var(--font-body,Arial,sans-serif);color:#adaba6}
+.pham-fit__quick-grid button:hover{border-color:#aaa9a5}
+.pham-fit__quick-grid button.is-active{background:#eae9e5;border-color:#f4f3ef;color:#0b0c0f}
+.pham-fit__quick-grid button.is-active small{color:#515258}
+.pham-fit__help,.pham-fit__tech-note{color:#aaa9a4;font:400 13px/1.65 var(--font-body,Arial,sans-serif);max-width:80ch;margin:15px 0 0}
+.pham-fit__diagram-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,.55fr);gap:20px;margin-top:30px;align-items:start}
+.pham-fit__figure{margin:0;overflow:hidden;border:1px solid #333539;border-radius:3px;background:#000}
+.pham-fit__diagram-image{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:contain}
+.pham-fit__image-fallback{padding:60px 22px;text-align:center;color:#c0beba}
+.pham-fit__figure figcaption{display:flex;gap:12px;justify-content:space-between;align-items:center;padding:9px 14px 10px;border-top:1px solid #27292d}
+.pham-fit__figure figcaption span{font:600 10px/1.45 var(--font-mono,monospace);color:#aaa9a5;letter-spacing:.05em}
+.pham-fit__figure figcaption button{display:flex;gap:10px;align-items:center;justify-content:center;min-height:44px;border:1px solid #56585a;padding:8px 13px;color:#f1f0ec;background:transparent;cursor:pointer;font:600 11px/1.3 var(--font-body,Arial,sans-serif)}
+.pham-fit__figure figcaption button:hover{background:#ededeb;color:#08090b}
+.pham-fit__legend{display:flex;flex-direction:column;border:1px solid #313337;border-radius:3px;background:#101114}
+.pham-fit__legend>div{display:flex;gap:14px;align-items:flex-start;padding:17px;border-bottom:1px solid #303135}
+.pham-fit__legend>div:last-child{border-bottom:0}
+.pham-fit__legend>div>span{display:grid;place-items:center;flex:0 0 34px;height:34px;border:1px solid #575a5c;border-radius:2px;font:600 15px/1 var(--font-mono,monospace)}
+.pham-fit__legend strong{display:block;margin-bottom:5px;font:600 14px/1.35 var(--font-body,Arial,sans-serif)}
+.pham-fit__legend p{margin:0;color:#b1afaa;font:400 12px/1.55 var(--font-body,Arial,sans-serif)}
+.pham-fit__measurements{margin-top:32px}
+.pham-fit__measurements-heading{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:18px}
+.pham-fit__measurements-heading>div>p{margin:0 0 8px}
+.pham-fit__measurements-heading h3{margin:0;font:400 clamp(24px,2.5vw,34px)/1.16 var(--font-display,Arial,sans-serif)}
+.pham-fit__measurements-heading>span{color:#dcdad4;font:600 12px/1.45 var(--font-mono,monospace);white-space:nowrap}
+.pham-fit__table-wrap{width:100%;overflow-x:auto}
+.pham-fit__table{width:100%;border-collapse:collapse;min-width:740px}
+.pham-fit__table caption{position:absolute;clip:rect(0 0 0 0);width:1px;height:1px;overflow:hidden}
+.pham-fit__table thead th{text-align:left;padding:15px 13px;border-block:1px solid #3a3c40;color:#b5b4ae;background:#131417;font:600 11px/1.35 var(--font-body,Arial,sans-serif);letter-spacing:.025em}
+.pham-fit__table tbody tr{border-bottom:1px solid #34363a}
+.pham-fit__table tbody tr.is-highlighted{background:#232529;outline:1px solid #989a9c;outline-offset:-1px}
+.pham-fit__table tbody th{text-align:left;padding:16px 13px;font:500 23px/1.1 var(--font-display,Arial,sans-serif)}
+.pham-fit__table tbody td{padding:16px 13px;color:#efede7;font:500 14px/1.3 var(--font-mono,monospace);white-space:nowrap}
+.pham-fit__compare-toggle{display:none}
+.pham-fit__how-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0;margin:28px 0 0;list-style:none}
+.pham-fit__how-grid li{border:1px solid #33353a;border-radius:3px;padding:20px;background:#101114}
+.pham-fit__how-grid li>span{font:600 12px/1.2 var(--font-mono,monospace);color:#aaa9a5}
+.pham-fit__how-grid li strong{display:block;margin-top:20px;font:600 16px/1.4 var(--font-body,Arial,sans-serif)}
+.pham-fit__how-grid li p{margin:7px 0 0;color:#bcbab5;font:400 13px/1.6 var(--font-body,Arial,sans-serif)}
+.pham-fit__assistant-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:27px}
+.pham-fit__form,.pham-fit__result{padding:clamp(20px,3vw,30px);border:1px solid #35373a;border-radius:3px;background:#101114}
+.pham-fit__form{display:grid;grid-template-columns:1fr 1fr;gap:19px}
+.pham-fit__form>label span{display:block;color:#dedbd5;font:600 13px/1.45 var(--font-body,Arial,sans-serif)}
+.pham-fit__form>label span strong,.pham-fit__form>label span small{display:inline-block;font-weight:400;color:#aaa9a5;font-size:11px;margin-left:4px}
+.pham-fit__form>label>div{display:flex;align-items:center;gap:10px;border:1px solid #585a5d;border-radius:2px;padding:0 13px;margin-top:9px}
+.pham-fit__form input[type=number]{width:100%;min-width:0;min-height:50px;background:transparent;border:0;outline:0;font:500 18px/1 var(--font-mono,monospace);color:#fff}
+.pham-fit__form em{font:500 12px/1 var(--font-mono,monospace);color:#aaa9a5;font-style:normal}
+.pham-fit__form fieldset{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;border:0;margin:0;padding:0}
+.pham-fit__form legend{width:100%;margin-bottom:9px;color:#dedbd5;font:600 13px/1.4 var(--font-body,Arial,sans-serif)}
+.pham-fit__radio{position:relative}
+.pham-fit__radio input{position:absolute;opacity:0;inset:0}
+.pham-fit__radio span{display:grid;place-items:center;padding:12px 16px;min-height:44px;border:1px solid #55585c;border-radius:2px;cursor:pointer;font:600 12px/1.2 var(--font-body,Arial,sans-serif);color:#d2d1cd}
+.pham-fit__radio input:checked+span{color:#101114;border-color:#f2f0ec;background:#f2f0ec}
+.pham-fit__radio input:focus-visible+span{outline:2px solid #fff;outline-offset:4px}
+.pham-fit__form>button{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;min-height:52px;border:1px solid #f2f0ec;border-radius:2px;padding:12px 18px;color:#090a0d;background:#f2f0ec;cursor:pointer;font:700 12px/1.2 var(--font-body,Arial,sans-serif);letter-spacing:.06em}
+.pham-fit__form>button:hover{background:#d9d8d3}
+.pham-fit__result{display:flex;flex-direction:column;justify-content:center}
+.pham-fit__result-label{margin:0}
+.pham-fit__result-size{font:400 clamp(70px,9vw,122px)/.95 var(--font-display,Arial,sans-serif);margin:18px 0}
+.pham-fit__result h3{margin:0 0 10px;font:500 21px/1.3 var(--font-body,Arial,sans-serif)}
+.pham-fit__result p{margin:0;color:#bcbab5;font:400 14px/1.6 var(--font-body,Arial,sans-serif)}
+.pham-fit__result-meta{white-space:pre-line;margin-top:16px;color:#aaa9a5;font:500 11px/1.8 var(--font-mono,monospace)}
+.pham-fit__footer{display:flex;justify-content:space-between;align-items:center;gap:22px;padding:36px 0 0}
+.pham-fit__footer strong{font:600 19px/1.4 var(--font-body,Arial,sans-serif)}
+.pham-fit__footer p{margin:6px 0 0;color:#aaa9a5;font:400 13px/1.55 var(--font-body,Arial,sans-serif)}
+.pham-fit__footer a{display:flex;justify-content:space-between;align-items:center;gap:26px;min-height:52px;flex:0 0 auto;color:#08090c;background:#eeeae4;padding:14px 18px;text-decoration:none;font:700 12px/1.35 var(--font-body,Arial,sans-serif);letter-spacing:.05em}
+.pham-fit__modal{width:min(98vw,1360px);max-width:none;max-height:95vh;padding:0;border:1px solid #56585b;background:#07080a;color:#faf9f6}
+.pham-fit__modal::backdrop{background:rgba(0,0,0,.88)}
+.pham-fit__modal-head{display:flex;justify-content:space-between;align-items:center;gap:14px;position:sticky;top:0;background:#0b0c0d;padding:12px 16px;z-index:2;border-bottom:1px solid #2b2d2e;font:600 11px/1.45 var(--font-mono,monospace)}
+.pham-fit__modal-head button{min-width:78px;min-height:44px;color:#fff;background:#222427;border:1px solid #676a6d;cursor:pointer;font:600 12px/1.35 var(--font-body,Arial,sans-serif)}
+.pham-fit__modal-scroll{overflow:auto;max-height:75vh}
+.pham-fit__modal-img{display:block;max-width:none;width:max(900px,100%);height:auto}
+.pham-fit__modal>p{padding:12px 16px;margin:0;color:#bcbab5;font:400 12px/1.5 var(--font-body,Arial,sans-serif)}
+@media(max-width:900px){
+ .pham-fit__inner{width:calc(100% - 32px)}
+ .pham-fit__hero{grid-template-columns:1fr}
+ .pham-fit__jump-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+ .pham-fit__jump-links a{padding:10px;border:1px solid #404246;font-size:12px;min-height:60px}
+ .pham-fit__jump-links a:first-child{border:1px solid #404246}
+ .pham-fit__jump-links a span:last-child{display:none}
+ .pham-fit__diagram-grid{grid-template-columns:1fr}
+ .pham-fit__legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pham-fit__legend>div{border-right:1px solid #303135}
+ .pham-fit__legend>div:last-child{grid-column:1/-1}
+ .pham-fit__assistant-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:759px){
+ .pham-fit{padding:88px 0 56px}
+ .pham-fit__inner{width:calc(100% - 28px)}
+ .pham-fit__hero{gap:22px;padding-bottom:30px}
+ .pham-fit__hero h1{font-size:clamp(47px,12vw,65px);margin:13px 0}
+ .pham-fit__hero-copy{font-size:14px;line-height:1.6}
+ .pham-fit__hero-facts{gap:7px;margin-top:16px}
+ .pham-fit__hero-facts span{font-size:10px;padding:7px 9px}
+ .pham-fit__jump-links{grid-template-columns:1fr;gap:0}
+ .pham-fit__jump-links a{min-height:46px;border:none;border-bottom:1px solid #34363a;padding:5px 0;font-size:13px}
+ .pham-fit__jump-links a:first-child{border:0;border-top:1px solid #34363a;border-bottom:1px solid #34363a}
+ .pham-fit__jump-links a span:last-child{display:block}
+ .pham-fit__quick,.pham-fit__measurement-section,.pham-fit__how,.pham-fit__assistant{padding-block:38px}
+ .pham-fit__section-title>p{font-size:10px}
+ .pham-fit__section-title h2{font-size:clamp(27px,7vw,36px)}
+ .pham-fit__section-title>span{font-size:13px}
+ .pham-fit__quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:21px}
+ .pham-fit__quick-grid button{min-height:114px;padding:14px}
+ .pham-fit__quick-grid button strong{font-size:29px}
+ .pham-fit__quick-grid button span{font-size:13px}
+ .pham-fit__diagram-grid{margin-top:20px;gap:12px}
+ .pham-fit__figure figcaption{padding:6px 10px}
+ .pham-fit__figure figcaption span{font-size:9px}
+ .pham-fit__legend{grid-template-columns:1fr}
+ .pham-fit__legend>div{padding:12px 14px;border-right:0;gap:12px}
+ .pham-fit__legend>div:last-child{grid-column:auto}
+ .pham-fit__legend strong{font-size:13px}
+ .pham-fit__legend p{font-size:12px}
+ .pham-fit__measurements-heading{align-items:flex-start;flex-direction:column;gap:8px}
+ .pham-fit__measurements-heading>span{font-size:12px}
+ .pham-fit__table-wrap{overflow:visible}
+ .pham-fit__table{min-width:0;display:block}
+ .pham-fit__table thead{display:none}
+ .pham-fit__table tbody{display:grid;grid-template-columns:1fr;gap:10px}
+ .pham-fit__table tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border:1px solid #35373a;border-radius:2px;padding:12px 15px;background:#111215}
+ .pham-fit__table tbody tr.is-highlighted{border-color:#b8b8b6;background:#202226;outline:1px solid #777}
+ .pham-fit__table tbody tr:not(.is-highlighted){display:none}
+ .pham-fit__measurements.is-comparing .pham-fit__table tbody tr{display:grid}
+ .pham-fit__compare-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-top:12px;padding:12px 16px;border:1px solid #696a6c;border-radius:2px;background:#18191c;color:#f2f1ee;cursor:pointer;font:700 12px/1.35 var(--font-body,Arial,sans-serif);letter-spacing:.04em}
+ .pham-fit__table tbody th{grid-column:1/-1;padding:5px 0 10px;border-bottom:1px solid #34363a;font-size:24px}
+ .pham-fit__table tbody td{display:flex;flex-direction:column;gap:5px;white-space:normal;padding:11px 8px 6px 0;font-size:15px}
+ .pham-fit__table tbody td::before{content:attr(data-label);font:600 11px/1.35 var(--font-body,Arial,sans-serif);color:#bab9b3}
+ .pham-fit__tech-note{font-size:12px}
+ .pham-fit__how-grid{grid-template-columns:1fr;gap:9px}
+ .pham-fit__how-grid li{padding:16px}
+ .pham-fit__how-grid li strong{margin-top:10px;font-size:15px}
+ .pham-fit__assistant-grid{grid-template-columns:1fr}
+ .pham-fit__form{grid-template-columns:1fr;gap:15px}
+ .pham-fit__form fieldset,.pham-fit__form>button{grid-column:1}
+ .pham-fit__form,.pham-fit__result{padding:19px}
+ .pham-fit__result-size{font-size:80px}
+ .pham-fit__footer{flex-direction:column;align-items:stretch}
+ .pham-fit__footer a{width:100%}
+ .pham-fit__modal{width:98vw}
+}
+@media(prefers-reduced-motion:reduce){.pham-fit__quick-grid button{transition:none}}
 </style>
 
 <script>
 (function(){
-  var root=document.querySelector('[data-pham-fit-guide]');if(!root)return;
-  var form=root.querySelector('[data-pham-fit-form]'),sizeOut=root.querySelector('[data-pham-fit-result-size]'),titleOut=root.querySelector('[data-pham-fit-result-title]'),copyOut=root.querySelector('[data-pham-fit-result-copy]'),metaOut=root.querySelector('[data-pham-fit-result-meta]');
-  var enabled=root.dataset.recommendationEnabled==='true',intendedEase=Number(root.dataset.intendedEase||30),intendedShoulderEase=Number(root.dataset.intendedShoulderEase||9);
-  function num(v){var n=Number(v);return Number.isFinite(n)?n:0}
-  var sizes=Array.prototype.map.call(root.querySelectorAll('[data-pham-fit-size]'),function(row){return{size:row.dataset.phamFitSize,chestFlat:num(row.dataset.chest),shoulder:num(row.dataset.shoulder),sleeve:num(row.dataset.sleeve),length:num(row.dataset.length),row:row}});
-  function calibrated(){return enabled&&sizes.length===4&&sizes.every(function(x){return x.chestFlat>0&&x.shoulder>0&&x.sleeve>0&&x.length>0})}
-  function highlight(size){
+  var root=document.querySelector('[data-pham-fit-guide]');
+  if(!root)return;
+  var form=root.querySelector('[data-pham-fit-form]');
+  var sizeOut=root.querySelector('[data-pham-fit-result-size]');
+  var titleOut=root.querySelector('[data-pham-fit-result-title]');
+  var copyOut=root.querySelector('[data-pham-fit-result-copy]');
+  var metaOut=root.querySelector('[data-pham-fit-result-meta]');
+  var selectedOut=root.querySelector('[data-pham-selected-size]');
+  var enabled=root.dataset.recommendationEnabled==='true';
+  var intendedEase=Number(root.dataset.intendedEase||30);
+  var intendedShoulderEase=Number(root.dataset.intendedShoulderEase||9);
+  var num=function(v){var n=Number(v);return Number.isFinite(n)?n:0};
+  var sizes=Array.from(root.querySelectorAll('[data-pham-fit-size]')).map(function(row){
+    return {size:row.dataset.phamFitSize,chestFlat:num(row.dataset.chest),shoulder:num(row.dataset.shoulder),sleeve:num(row.dataset.sleeve),length:num(row.dataset.length),row:row};
+  });
+  var buttons=Array.from(root.querySelectorAll('[data-pham-quick-size]'));
+  function highlight(size,scroll){
     sizes.forEach(function(x){x.row.classList.toggle('is-highlighted',x.size===size)});
-    root.querySelectorAll('[data-pham-quick-size]').forEach(function(btn){btn.classList.toggle('is-active',btn.dataset.phamQuickSize===size)});
+    buttons.forEach(function(btn){
+      var active=btn.dataset.phamQuickSize===size;
+      btn.classList.toggle('is-active',active);
+      btn.setAttribute('aria-pressed',active?'true':'false');
+    });
+    if(selectedOut)selectedOut.textContent='Selected size: '+size;
+    if(scroll){
+      var target=root.querySelector('.pham-fit__measurements');
+      if(target)target.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+    }
   }
   var preview=root.querySelector('[data-pham-fit-preview]');
-  root.querySelectorAll('[data-pham-quick-size]').forEach(function(btn){
-    btn.setAttribute('aria-pressed','false');
+  buttons.forEach(function(btn){
     btn.addEventListener('click',function(){
       var size=btn.dataset.phamQuickSize;
-      var item=sizes.find(function(x){return x.size===size});
-      highlight(size);
-      root.querySelectorAll('[data-pham-quick-size]').forEach(function(b){b.setAttribute('aria-pressed',String(b===btn))});
-      if(item&&preview){
-        preview.querySelector('[data-pham-preview-size]').textContent=size;
-        ['chest','shoulder','sleeve','length'].forEach(function(key){
-          preview.querySelector('[data-pham-preview-'+key+']').textContent=item[key==='chest'?'chestFlat':key]+' CM';
-        });
-        preview.classList.add('is-open');
-        var box=preview.getBoundingClientRect();
-        if(box.bottom>window.innerHeight-22 || box.top<80)
-          preview.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
+      var row=sizes.find(function(x){return x.size===size});
+      highlight(size,false);
+      if(!row||!preview)return;
+      preview.querySelector('[data-pham-preview-size]').textContent=size;
+      [['shoulder',row.shoulder],['chest',row.chestFlat],['length',row.length],['sleeve',row.sleeve]].forEach(function(item){
+        preview.querySelector('[data-pham-preview-'+item[0]+']').textContent=item[1]+' CM';
+      });
+      preview.classList.add('is-open');
+      var box=preview.getBoundingClientRect();
+      if(box.bottom>innerHeight-16 || box.top<75){
+        preview.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
       }
     });
   });
-  form.addEventListener('submit',function(e){
-    e.preventDefault();
-    if(!calibrated()){sizeOut.textContent='—';titleOut.textContent='CALIBRATION PENDING';copyOut.textContent='Automatic recommendation is unavailable until the Edition 01 garment table is verified.';metaOut.textContent='';return}
-    var data=new FormData(form),chest=num(data.get('chest')),shoulder=num(data.get('shoulder')),height=num(data.get('height')),weight=num(data.get('weight')),preference=String(data.get('preference')||'intended');
-    if(chest<=0){sizeOut.textContent='—';titleOut.textContent='CHEST REQUIRED';copyOut.textContent='Enter your body chest in centimeters, then run the fit assistant again.';metaOut.textContent='';return}
-    var chestAdjust=preference==='close'?-6:(preference==='relaxed'?6:0),shoulderAdjust=preference==='close'?-2:(preference==='relaxed'?2:0),targetEase=Math.max(18,intendedEase+chestAdjust),targetShoulderEase=intendedShoulderEase+shoulderAdjust,targetChest=chest+targetEase;
-    var ranked=sizes.map(function(x){var garmentChest=x.chestFlat*2,chestDelta=Math.abs(garmentChest-targetChest),shoulderDelta=shoulder>0?Math.abs(x.shoulder-(shoulder+targetShoulderEase)):0;return Object.assign({},x,{garmentChest:garmentChest,score:chestDelta+(shoulder>0?shoulderDelta*1.25:0)})}).sort(function(a,b){return a.score-b.score});
-    var best=ranked[0],second=ranked[1],actualEase=best.garmentChest-chest;
-    sizeOut.textContent=best.size;highlight(best.size);
-    titleOut.textContent=preference==='close'?'CLEANER SILHOUETTE':(preference==='relaxed'?'MORE OVERSIZED':'PHAM INTENDED FIT');
-    copyOut.textContent='Start with '+best.size+'. Compare its garment chest, shoulder and body length with a jacket you already like before confirming.';
-    metaOut.textContent='BODY CHEST · '+chest.toFixed(0)+' CM\nGARMENT CHEST · '+best.garmentChest.toFixed(0)+' CM\nCHEST EASE · '+actualEase.toFixed(0)+' CM\n'+(height?'HEIGHT · '+height.toFixed(0)+' CM\n':'')+(weight?'WEIGHT · '+weight.toFixed(0)+' KG · CONTEXT ONLY\n':'')+(second?'ALTERNATIVE · '+second.size:'');
+  var compareBtn=root.querySelector('[data-pham-fit-compare]');
+  var measurements=root.querySelector('.pham-fit__measurements');
+  if(compareBtn&&measurements)compareBtn.addEventListener('click',function(){
+    var expanded=measurements.classList.toggle('is-comparing');
+    compareBtn.setAttribute('aria-expanded',expanded?'true':'false');
+    compareBtn.innerHTML=expanded?'SHOW SELECTED SIZE ONLY <span aria-hidden="true">−</span>':'SHOW ALL FOUR SIZES <span aria-hidden="true">+</span>';
   });
+  function calibrated(){return enabled&&sizes.length===4&&sizes.every(function(x){return x.chestFlat>0&&x.shoulder>0&&x.sleeve>0&&x.length>0})}
+  if(form)form.addEventListener('submit',function(e){
+    e.preventDefault();
+    if(!calibrated()){
+      sizeOut.textContent='—';
+      titleOut.textContent='Recommendation unavailable';
+      copyOut.textContent='Please compare the garment chart above; size recommendations are not currently calibrated.';
+      metaOut.textContent='';
+      return;
+    }
+    var data=new FormData(form);
+    var chest=num(data.get('chest'));
+    var shoulder=num(data.get('shoulder'));
+    var preference=String(data.get('preference')||'intended');
+    if(chest<70||chest>160)return;
+    var chestAdjust=preference==='close'?-6:(preference==='relaxed'?6:0);
+    var shoulderAdjust=preference==='close'?-2:(preference==='relaxed'?2:0);
+    var targetEase=Math.max(18,intendedEase+chestAdjust);
+    var targetShoulderEase=intendedShoulderEase+shoulderAdjust;
+    var ranked=sizes.map(function(x){
+      var garmentChest=x.chestFlat*2;
+      var chestDelta=Math.abs(garmentChest-(chest+targetEase));
+      var shoulderDelta=shoulder>0?Math.abs(x.shoulder-(shoulder+targetShoulderEase)):0;
+      return Object.assign({},x,{garmentChest:garmentChest,score:chestDelta+(shoulder>0?shoulderDelta*1.25:0)});
+    }).sort(function(a,b){return a.score-b.score});
+    var best=ranked[0],second=ranked[1];
+    sizeOut.textContent=best.size;
+    highlight(best.size,false);
+    titleOut.textContent='Suggested starting size';
+    copyOut.textContent='Start by comparing '+best.size+' with a jacket you own. This is an approximate fit suggestion, not a guaranteed match.';
+    metaOut.textContent='BODY CHEST · '+chest.toFixed(0)+' CM\nGARMENT CHEST CIRCUMFERENCE · '+best.garmentChest.toFixed(0)+' CM\n'+(second?'ALTERNATIVE TO COMPARE · '+second.size:'');
+  });
+  var modal=root.querySelector('[data-pham-fit-modal]');
+  var openBtn=root.querySelector('[data-pham-fit-expand]');
+  var closeBtn=root.querySelector('[data-pham-fit-close]');
+  if(modal&&openBtn&&closeBtn){
+    openBtn.addEventListener('click',function(){modal.showModal()});
+    closeBtn.addEventListener('click',function(){modal.close();openBtn.focus()});
+    modal.addEventListener('click',function(e){if(e.target===modal)modal.close()});
+  }
 })();
 </script>
 
@@ -260,6 +444,7 @@
   "settings": [
     {"type":"text","id":"edition_label","label":"Edition label","default":"EDITION 01"},
     {"type":"text","id":"product_code","label":"Product code","default":"PHAM-001"},
+    {"type":"image_picker","id":"diagram_image","label":"Technical measurement diagram"},
     {"type":"url","id":"product_url","label":"Product URL"},
     {"type":"checkbox","id":"enable_recommendation","label":"Enable automatic fit recommendation","default":true},
     {"type":"number","id":"intended_chest_ease","label":"Intended chest ease (cm)","default":30},
