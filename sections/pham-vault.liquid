@@ -100,13 +100,6 @@
     </div>
 
     <div class="pham-vault__orbit-stage" data-pham-vault-orbit>
-      <div class="pham-vault__orbit-loader" role="status" aria-label="Loading PHAM archive">
-        <div class="pham-vault__orbit-loader-frames" aria-hidden="true">
-          <span></span><span></span><span></span>
-        </div>
-        <span class="pham-vault__orbit-loader-caption">PREPARING THE ARCHIVE</span>
-        <span class="pham-vault__orbit-loader-track" aria-hidden="true"></span>
-      </div>
       <div class="pham-vault__orbit-plane" data-pham-vault-orbit-plane>
         <div class="pham-vault__orbit-cards">
           <div class="pham-vault__orbit-core" data-pham-vault-core aria-hidden="true">
@@ -142,7 +135,7 @@
                       {% if card_image != blank %}data-pham-expanded-src="{{ card_image | image_url: width: 1800 }}"{% endif %}
                       {% if block.settings.link == blank %}tabindex="0" role="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Open {{ card_alt | escape }}"{% endif %}
                       {{ block.shopify_attributes }}>
-                <div class="pham-vault__orbit-card-face">
+                <div class="pham-vault__orbit-card-face"{% if card_image != blank %} style="--vault-orbit-preview: url('{{ card_image | image_url: width: 96 }}')"{% endif %}>
                   {%- if block.settings.link != blank -%}<a href="{{ block.settings.link }}" aria-label="{{ card_alt | escape }}">{%- endif -%}
                     {%- if card_image != blank -%}
                       {{

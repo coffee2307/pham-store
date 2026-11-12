@@ -1408,75 +1408,47 @@
 }
 
 
-/* PHAM mobile orbit loading-state: immediate, lightweight visual feedback. */
-.pham-vault__orbit-loader { display: none; }
+
+/* Progressive orbit: actual 3D cards remain on screen during image loading.
+   A low-resolution image of the SAME card supplies the temporary soft image. */
 @media (max-width: 749px) {
-  .pham-vault__orbit-loader {
+  .pham-vault__orbit-card-face::before {
+    content: "";
     position: absolute;
-    inset: 0;
-    z-index: 80;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
+    inset: -9px;
+    z-index: 0;
     pointer-events: none;
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 180ms ease, visibility 180ms ease;
+    background-image: var(--vault-orbit-preview, linear-gradient(140deg, #242529, #090a0d));
+    background-position: center;
+    background-size: cover;
+    filter: blur(5px) brightness(.76);
+    opacity: .94;
+    transition: opacity 750ms cubic-bezier(.2,.65,.25,1);
   }
-  .pham-vault__orbit-stage.is-ready .pham-vault__orbit-loader {
-    opacity: 0;
-    visibility: hidden;
-  }
-  .pham-vault__orbit-loader-frames {
+  .pham-vault__orbit-card-face img {
     position: relative;
-    width: 155px;
-    height: 130px;
+    z-index: 1;
+    opacity: 0;
+    filter: blur(6px);
+    transition:
+      opacity 680ms cubic-bezier(.2,.65,.25,1),
+      filter 850ms cubic-bezier(.2,.65,.25,1);
   }
-  .pham-vault__orbit-loader-frames span {
-    position: absolute;
-    top: 11px;
-    left: 50%;
-    width: 83px;
-    height: 108px;
-    border: 1px solid rgba(235,232,226,.28);
-    background: linear-gradient(135deg, rgba(235,232,226,.075), rgba(235,232,226,.015));
-    box-shadow: 0 10px 24px rgba(0,0,0,.18);
-    transform-origin: 50% 85%;
-    animation: pham-orbit-loading-breathe 1.7s ease-in-out infinite;
+  .pham-vault__orbit-card.is-image-ready .pham-vault__orbit-card-face img,
+  .pham-vault__orbit-card.is-tarot-expanded .pham-vault__orbit-card-face img {
+    opacity: 1;
+    filter: none;
   }
-  .pham-vault__orbit-loader-frames span:nth-child(1) {
-    transform: translateX(-50%) rotate(-20deg) translateX(-19px);
-    animation-delay: -0.35s;
-  }
-  .pham-vault__orbit-loader-frames span:nth-child(2) {
-    transform: translateX(-50%) rotate(20deg) translateX(19px);
-    animation-delay: -0.7s;
-  }
-  .pham-vault__orbit-loader-frames span:nth-child(3) {
-    border-color: rgba(235,232,226,.5);
-    background: linear-gradient(150deg, rgba(235,232,226,.13), rgba(235,232,226,.03));
-    transform: translateX(-50%);
-  }
-  .pham-vault__orbit-loader-caption {
-    color: rgba(242,239,234,.72);
-    font: 500 10px/1.3 var(--font-mono, monospace);
-    letter-spacing: .19em;
-    text-align: center;
-  }
-  .pham-vault__orbit-loader-track {
-    width: 96px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(235,232,226,.8), transparent);
-    transform-origin: center;
-    animation: pham-orbit-loading-track 1.7s ease-in-out infinite;
+  .pham-vault__orbit-card.is-image-ready .pham-vault__orbit-card-face::before,
+  .pham-vault__orbit-card.is-tarot-expanded .pham-vault__orbit-card-face::before {
+    opacity: 0;
   }
 }
-@keyframes pham-orbit-loading-breathe { 0%,100% { opacity: .53; } 50% { opacity: 1; } }
-@keyframes pham-orbit-loading-track { 0%,100% { transform: scaleX(.42); opacity: .35; } 50% { transform: scaleX(1); opacity: .95; } }
 @media (prefers-reduced-motion: reduce) {
-  .pham-vault__orbit-loader { display: none !important; }
-  .pham-vault__orbit-loader-frames span,
-  .pham-vault__orbit-loader-track { animation: none; }
+  .pham-vault__orbit-card-face img {
+    opacity: 1 !important;
+    filter: none !important;
+    transition: none !important;
+  }
+  .pham-vault__orbit-card-face::before { display: none !important; }
 }

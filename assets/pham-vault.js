@@ -92,6 +92,40 @@
     let orbitPrimeRadius = 0;
     let orbitRevealScheduled = false;
     const mobileOrbitPrime = window.matchMedia('(max-width: 749px)').matches;
+    let progressiveImagesStarted = false;
+    let orbitImagesReadyCount = 0;
+    let orbitShownAt = 0;
+    let imageLoadSpeed = mobileOrbitPrime ? .38 : 1;
+
+    function revealRealOrbitImages() {
+      if (!mobileOrbitPrime || progressiveImagesStarted) return;
+      progressiveImagesStarted = true;
+      orbitShownAt = performance.now();
+      cards.forEach(function (card, i) {
+        const img = card.querySelector('img');
+        const finish = function () {
+          if (card.classList.contains('is-image-ready')) return;
+          card.classList.add('is-image-ready');
+          orbitImagesReadyCount += 1;
+        };
+        if (!img) { finish(); return; }
+        const onImageAvailable = function () {
+          const reveal = function () {
+            // Allow the real 3D ring one paint with its low-res image, then
+            // crossfade this card when the full image is decoded.
+            window.setTimeout(finish, 160 + Math.min(i, 5) * 35);
+          };
+          if (img.decode && img.naturalWidth) {
+            img.decode().then(reveal).catch(reveal);
+          } else reveal();
+        };
+        if (img.complete) onImageAvailable();
+        else {
+          img.addEventListener('load', onImageAvailable, { once: true });
+          img.addEventListener('error', onImageAvailable, { once: true });
+        }
+      });
+    }
 
     function measureOrbit() {
       const width = orbit.clientWidth;
@@ -537,7 +571,10 @@
         } else if (!cardDialogOpen) {
           if (window.innerWidth < 600) {
             mobileOrbitResume = damp(mobileOrbitResume, 1, 4.8, delta);
-            rotation += (autoSpeed * mobileOrbitResume + velocity) * delta;
+            const doneLoading = orbitImagesReadyCount >= cards.length ||
+              (orbitShownAt && performance.now() - orbitShownAt > 2800);
+            imageLoadSpeed = damp(imageLoadSpeed, doneLoading ? 1 : .38, 2.6, delta);
+            rotation += (autoSpeed * mobileOrbitResume * imageLoadSpeed + velocity) * delta;
           } else {
             mobileOrbitResume = 1;
             rotation += (autoSpeed + velocity) * delta;
@@ -746,19 +783,16 @@
         orbitPrimeCardWidth = primeCardWidth;
         orbitPrimeRadius = radius;
 
-        // On mobile, reveal as soon as the ring is geometrically stable and
-        // the first three frames have loaded. Do not block on all document
-        // resources, web fonts or offscreen lazy images.
-        const requiredCards = mobileOrbitPrime ? cards.slice(0, 3) : cards;
-        const imagesReady = requiredCards.every(function (card) {
+        // The ACTUAL 3D orbit is revealed after just two stable layout
+        // measurements. Full images are never a prerequisite for the ring.
+        const imagesReady = cards.every(function (card) {
           const image = card.querySelector('img');
           return !image || image.complete;
         });
         const fontsReady = !document.fonts || document.fonts.status === 'loaded';
         const elapsed = performance.now() - orbitPrimeStartedAt;
         const layoutReady = mobileOrbitPrime
-          ? (primeWidth > 270 && primeCardWidth > 70 &&
-             orbitStableFrames >= 3 && (imagesReady || elapsed > 2200))
+          ? (primeWidth > 270 && primeCardWidth > 70 && orbitStableFrames >= 2)
           : (primeWidth > 300 && primeCardWidth > 80 &&
              orbitStableFrames >= 8 &&
              document.readyState === 'complete' && fontsReady &&
@@ -771,6 +805,7 @@
               if (orbitCards) orbitCards.classList.add('is-positioned');
               orbit.classList.add('is-ready');
               root.dataset.phamOrbitReadyAt = String(Math.round(performance.now()));
+              revealRealOrbitImages();
             });
           });
         }
