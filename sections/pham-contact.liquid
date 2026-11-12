@@ -7,7 +7,7 @@
   <div class="pham-container pham-contact__inner">
     <header class="pham-contact__head reveal-up">
       <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
-      <h1 class="pham-contact__title">{{ section.settings.heading }}</h1>
+      <h1 class="pham-contact__title">{% render "pham-editorial-title", text: section.settings.heading %}</h1>
       {%- if section.settings.intro != blank -%}
         <p class="pham-contact__intro">{{ section.settings.intro }}</p>
       {%- endif -%}

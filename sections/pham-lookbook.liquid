@@ -221,7 +221,7 @@
                   <p class="pham-eyebrow">{{ block.settings.eyebrow }}</p>
                 {%- endif -%}
                 {%- if block.settings.heading != blank -%}
-                  <h3 class="pham-lookbook-v2__editorial-heading">{{ block.settings.heading }}</h3>
+                  <h3 class="pham-lookbook-v2__editorial-heading">{% render "pham-editorial-title", text: block.settings.heading %}</h3>
                 {%- endif -%}
                 {%- if block.settings.body != blank -%}
                   <div class="pham-lookbook-v2__editorial-body rte">{{ block.settings.body }}</div>

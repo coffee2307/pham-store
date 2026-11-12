@@ -203,7 +203,7 @@
         <p class="pham-vault__kicker">04 / ACQUISITION</p>
         <h2 class="pham-vault__display pham-vault__display--purchase">
           <span data-pham-acquisition-title>{{ acquisition_title }}</span>
-          <span data-pham-acquisition-subtitle>{{ acquisition_subtitle }}</span>
+          <span data-pham-acquisition-subtitle>{% if acquisition_subtitle == 'EDITION 01' %}<strong class="pham-editorial-emphasis">EDITION 01</strong>{% else %}{{ acquisition_subtitle | escape }}{% endif %}</span>
         </h2>
         {%- if featured_product != blank -%}
           <div class="pham-vault__purchase-meta">

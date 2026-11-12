@@ -51,7 +51,7 @@
         </dl>
         <div class="pham-about__founder-narrative">
           <p class="pham-eyebrow">{{ section.settings.founder_eyebrow }}</p>
-          <h2 class="pham-about__record-title">{{ section.settings.founder_title }}</h2>
+          <h2 class="pham-about__record-title">{% render "pham-editorial-title", text: section.settings.founder_title %}</h2>
           <p class="pham-about__record-copy">{{ section.settings.founder_body }}</p>
           {%- if section.settings.founder_body_2 != blank -%}
             <p class="pham-about__record-copy">{{ section.settings.founder_body_2 }}</p>
@@ -69,7 +69,7 @@
       <div class="pham-about__record-block pham-about__record-block--edition">
         <div class="pham-about__edition-heading">
           <p class="pham-eyebrow">{{ section.settings.edition_eyebrow }}</p>
-          <h2 class="pham-about__record-title">{{ section.settings.edition_title }}</h2>
+          <h2 class="pham-about__record-title">{% render "pham-editorial-title", text: section.settings.edition_title %}</h2>
         </div>
         <div class="pham-about__edition-copy">
           <p class="pham-about__record-copy">{{ section.settings.edition_body }}</p>

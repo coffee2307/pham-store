@@ -13,27 +13,27 @@
     <header class="pham-fit__hero">
       <div class="pham-fit__hero-copy-wrap">
         <p class="pham-fit__kicker">{{ product_code }} / {{ edition_label }}</p>
-        <h1>Find your <em>fit.</em></h1>
-        <p class="pham-fit__hero-copy">Choose a starting size, compare the actual jacket measurements, then check how PHAM-001 is designed to sit on the body.</p>
+        <h1>Find your <strong class="pham-editorial-emphasis">fit.</strong></h1>
+        <p class="pham-fit__hero-copy">Choose a starting size, then compare it with the finished jacket measurements.</p>
       </div>
       <nav class="pham-fit__jump-links" aria-label="Size guide sections">
-        <a href="#pham-fit-choose"><span>01</span> Choose a size <span aria-hidden="true">↓</span></a>
-        <a href="#pham-fit-measure"><span>02</span> Garment measurements <span aria-hidden="true">↓</span></a>
-        <a href="#pham-fit-assistant"><span>03</span> Fit assistant <span aria-hidden="true">↓</span></a>
+        <a href="#pham-fit-choose" aria-label="Jump to sizes"><span>01</span> SIZES <span aria-hidden="true">↓</span></a>
+        <a href="#pham-fit-measure" aria-label="Jump to measurements"><span>02</span> MEASURE <span aria-hidden="true">↓</span></a>
+        <a href="#pham-fit-assistant" aria-label="Jump to fit assistant"><span>03</span> FIT HELP <span aria-hidden="true">↓</span></a>
       </nav>
     </header>
 
     <section class="pham-fit__quick" id="pham-fit-choose" aria-labelledby="pham-fit-quick-heading">
       <div class="pham-fit__section-title">
         <p>01 / START HERE</p>
-        <h2 id="pham-fit-quick-heading">Your starting size.</h2>
+        <h2 id="pham-fit-quick-heading">Your starting <strong class="pham-editorial-emphasis">size.</strong></h2>
         <span>Approximate body chest circumference — not the flat jacket width.</span>
       </div>
       <div class="pham-fit__quick-grid" role="group" aria-label="Select a starting size">
-        <button type="button" data-pham-quick-size="M" aria-pressed="false"><strong>M</strong><span>98–101 cm</span><small>BODY CHEST</small></button>
-        <button type="button" data-pham-quick-size="L" aria-pressed="false"><strong>L</strong><span>102–105 cm</span><small>BODY CHEST</small></button>
-        <button type="button" data-pham-quick-size="XL" aria-pressed="true" class="is-active"><strong>XL</strong><span>106–109 cm</span><small>BODY CHEST</small></button>
-        <button type="button" data-pham-quick-size="XXL" aria-pressed="false"><strong>XXL</strong><span>110–114 cm</span><small>BODY CHEST</small></button>
+        <button type="button" data-pham-quick-size="M" aria-pressed="false" aria-label="Size M for body chest 98 to 101 centimeters"><strong>M</strong><span>98–101 cm</span></button>
+        <button type="button" data-pham-quick-size="L" aria-pressed="false" aria-label="Size L for body chest 102 to 105 centimeters"><strong>L</strong><span>102–105 cm</span></button>
+        <button type="button" data-pham-quick-size="XL" aria-pressed="true" class="is-active" aria-label="Size XL for body chest 106 to 109 centimeters"><strong>XL</strong><span>106–109 cm</span></button>
+        <button type="button" data-pham-quick-size="XXL" aria-pressed="false" aria-label="Size XXL for body chest 110 to 114 centimeters"><strong>XXL</strong><span>110–114 cm</span></button>
       </div>
       <div class="pham-fit__quick-preview" data-pham-fit-preview role="status" aria-live="polite" aria-atomic="true">
         <div class="pham-fit__quick-preview-inner">
@@ -54,7 +54,7 @@
     <section class="pham-fit__measurement-section" id="pham-fit-measure" aria-labelledby="pham-fit-measure-heading">
       <div class="pham-fit__section-title">
         <p>02 / THE GARMENT</p>
-        <h2 id="pham-fit-measure-heading">Measure the jacket.</h2>
+        <h2 id="pham-fit-measure-heading">Measure the <strong class="pham-editorial-emphasis">jacket.</strong></h2>
         <span>All garment dimensions in centimeters. Jacket laid flat, fully zipped.</span>
       </div>
       <div class="pham-fit__diagram-grid">
@@ -79,7 +79,7 @@
 
       <div class="pham-fit__measurements" aria-labelledby="pham-fit-table-heading">
         <div class="pham-fit__measurements-heading">
-          <div><p>GARMENT SPECIFICATIONS</p><h3 id="pham-fit-table-heading">Compare all four sizes.</h3></div>
+          <div><p>GARMENT SPECIFICATIONS</p><h3 id="pham-fit-table-heading">Compare all <strong class="pham-editorial-emphasis">four sizes.</strong></h3></div>
           <span data-pham-selected-size aria-live="polite">Selected size: XL</span>
         </div>
         <div class="pham-fit__table-wrap">
@@ -110,7 +110,7 @@
     <section class="pham-fit__assistant" id="pham-fit-assistant" aria-labelledby="pham-fit-assistant-heading">
       <div class="pham-fit__section-title">
         <p>03 / OPTIONAL ASSISTANT</p>
-        <h2 id="pham-fit-assistant-heading">Need a starting point?</h2>
+        <h2 id="pham-fit-assistant-heading">Need a <strong class="pham-editorial-emphasis">starting point?</strong></h2>
         <span>Enter your own body measurements for an approximate size suggestion.</span>
       </div>
       <div class="pham-fit__assistant-grid">
@@ -380,6 +380,93 @@
   .pham-fit__compare-toggle span { transition: none !important; }
 }
 
+/* PHAM SIZE GUIDE / COMPACT EDITORIAL V4 */
+.pham-fit__hero h1 .pham-editorial-emphasis,
+.pham-fit__section-title .pham-editorial-emphasis,
+.pham-fit__measurements-heading .pham-editorial-emphasis {
+  font: inherit; font-weight: 700; font-style: normal;
+  letter-spacing: inherit; color: #f2f1ed;
+}
+.pham-fit__hero { padding-bottom: clamp(24px, 3.4vw, 36px); }
+.pham-fit__quick,.pham-fit__measurement-section,.pham-fit__assistant { padding-block: clamp(34px, 4.6vw, 58px); }
+.pham-fit__quick-grid button { min-height: 104px; gap: 6px; }
+.pham-fit__section-title>span { margin-top: 8px; }
+.pham-fit__measurements { margin-top: 25px; }
+.pham-fit__legend>div { padding: 13px; }
+@media (max-width: 759px) {
+  .pham-fit { padding: 54px 0 42px; }
+  .pham-fit__inner { width: calc(100% - 28px); }
+  .pham-fit__hero { gap: 18px; padding-bottom: 19px; }
+  .pham-fit__hero h1 {
+    font-size: clamp(38px, 10.7vw, 53px);
+    line-height: 1.04; letter-spacing: -.045em; margin: 8px 0 11px;
+  }
+  .pham-fit__hero-copy { font-size: 13px; line-height: 1.55; max-width: 38ch; }
+  .pham-fit__jump-links {
+    display: grid; grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 0; border-top: 1px solid #353639;
+  }
+  .pham-fit__jump-links a,
+  .pham-fit__jump-links a:first-child {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    border: none; border-bottom: 1px solid #353639;
+    min-height: 43px; padding: 8px 4px; font-size: 10px;
+    white-space: nowrap; letter-spacing: .035em;
+  }
+  .pham-fit__jump-links a span:first-child { color: #969694; font-size: 9px; }
+  .pham-fit__jump-links a span:last-child { display: none; }
+  .pham-fit__quick,.pham-fit__measurement-section,.pham-fit__assistant { padding-block: 26px; }
+  .pham-fit__section-title > p { font-size: 9px; margin-bottom: 7px; }
+  .pham-fit__section-title h2 { font-size: clamp(24px, 6.6vw, 32px); line-height: 1.13; }
+  .pham-fit__section-title > span { font-size: 12px; line-height: 1.5; margin-top: 7px; }
+  .pham-fit__quick-grid { gap: 7px; margin-top: 15px; }
+  .pham-fit__quick-grid button { min-height: 86px; gap: 8px; padding: 11px; }
+  .pham-fit__quick-grid button strong { font-size: 24px; }
+  .pham-fit__quick-grid button span { font-size: 11px; line-height: 1.24; }
+  .pham-fit__help,.pham-fit__tech-note { font-size: 11.5px; line-height: 1.53; margin-top: 12px; }
+  .pham-fit__diagram-grid { margin-top: 15px; gap: 9px; }
+  .pham-fit__figure figcaption { padding: 5px 9px; }
+  .pham-fit__legend { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0; }
+  .pham-fit__legend > div, .pham-fit__legend > div:last-child {
+    grid-column: auto; border-right: 1px solid #303135;
+    padding: 11px 9px; gap: 8px;
+  }
+  .pham-fit__legend > div:nth-child(2n) { border-right: 0; }
+  .pham-fit__legend > div > span {
+    flex-basis: 25px; height: 25px; font-size: 12px;
+  }
+  .pham-fit__legend strong { font-size: 11.5px; line-height: 1.34; margin-bottom: 3px; }
+  .pham-fit__legend p { font-size: 10.5px; line-height: 1.42; }
+  .pham-fit__measurements { margin-top: 24px; }
+  .pham-fit__measurements-heading { margin-bottom: 12px; gap: 6px; }
+  .pham-fit__measurements-heading h3 { font-size: clamp(23px,6.1vw,29px); }
+  .pham-fit__measurements-heading > span { font-size: 10px; }
+  .pham-fit__table tbody tr { padding: 10px 12px; }
+  .pham-fit__table tbody th { font-size: 22px; padding-bottom: 8px; }
+  .pham-fit__table tbody td { font-size: 13px; padding: 9px 6px 5px 0; }
+  .pham-fit__table tbody td::before { font-size: 10px; }
+  .pham-fit__compare-toggle { min-height: 45px; margin-top: 9px; padding: 9px 12px; font-size: 11px; }
+  .pham-fit__assistant-grid { margin-top: 17px; }
+  .pham-fit__form,.pham-fit__result { padding: 15px; }
+  .pham-fit__footer { padding-top: 22px; }
+  .pham-fit__footer p { font-size: 12px; }
+  .pham-fit__quick-preview-panel { padding: 13px; }
+  .pham-fit__quick-preview-top { padding-bottom: 10px; }
+  .pham-fit__quick-preview-values { padding-top: 11px; gap: 8px; }
+}
+@media (min-width: 360px) and (max-width: 759px) {
+  .pham-fit__quick-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .pham-fit__quick-grid button { padding: 9px 7px; min-width: 0; }
+  .pham-fit__quick-grid button strong { font-size: 22px; }
+  .pham-fit__quick-grid button span { font-size: 10px; white-space: nowrap; letter-spacing: -.035em; }
+  .pham-fit__quick-preview-values { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .pham-fit__quick-preview-values dd { font-size: 12px; }
+}
+@media (max-width: 359px) {
+  .pham-fit__quick-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .pham-fit__quick-preview-values { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .pham-fit__jump-links a { font-size: 9px; gap: 4px; }
+}
 </style>
 
 <script>

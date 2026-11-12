@@ -29,7 +29,8 @@
     <header class="pham-product-focus__head reveal-up">
       <p class="pham-eyebrow">{{ section.settings.eyebrow | default: 'PHAM · EDITION 01' }}</p>
       <h1 class="pham-product-focus__title">
-        <span class="pham-split" data-pham-split>{{ section.settings.heading | default: 'Simply Being, Fully Living.' }}</span>
+        {% assign pham_focus_headline = section.settings.heading | default: 'Simply Being, Fully Living.' | strip %}
+        {% if pham_focus_headline == 'Simply Being, Fully Living.' %}<span>Simply Being,</span> <span>Fully <strong class="pham-editorial-emphasis">Living.</strong></span>{% else %}<span class="pham-split" data-pham-split>{{ pham_focus_headline | escape }}</span>{% endif %}
       </h1>
       {%- if section.settings.intro != blank -%}
         <p class="pham-product-focus__intro">{{ section.settings.intro }}</p>

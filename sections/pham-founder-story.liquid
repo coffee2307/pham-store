@@ -31,7 +31,7 @@
     <section id="pham-founder-story" class="pham-founder__story" aria-labelledby="pham-founder-story-title">
       <div class="pham-founder__section-heading">
         <p class="pham-founder__eyebrow">01 / THE JOURNEY</p>
-        <h2 id="pham-founder-story-title"><span class="pham-founder__section-phrase">How it began.</span><span class="pham-founder__section-phrase"> What it took.</span></h2>
+        <h2 id="pham-founder-story-title"><span class="pham-founder__section-phrase">How it began.</span><span class="pham-founder__section-phrase"> What it <strong class="pham-editorial-emphasis">took.</strong></span></h2>
         <p>From the first sketch to the questions that still have to be answered.</p>
       </div>
 
@@ -44,7 +44,7 @@
                 <span class="pham-founder__chapter-category">{{ block.settings.category | escape }}</span>
               </div>
               <div class="pham-founder__chapter-copy">
-                <h3>{{ block.settings.title | escape }}</h3>
+                <h3>{% render "pham-editorial-title", text: block.settings.title %}</h3>
                 <p>{{ block.settings.body_1 | escape }}</p>
                 {%- if block.settings.body_2 != blank -%}<p>{{ block.settings.body_2 | escape }}</p>{%- endif -%}
               </div>
@@ -57,7 +57,7 @@
     <section class="pham-founder__obstacles" aria-labelledby="pham-founder-obstacles-title">
       <div class="pham-founder__section-heading">
         <p class="pham-founder__eyebrow">02 / THE REAL CONSTRAINTS</p>
-        <h2 id="pham-founder-obstacles-title">What a lookbook doesn't show.</h2>
+        <h2 id="pham-founder-obstacles-title">{% render "pham-editorial-title", text: "What a lookbook doesn't show." %}</h2>
         <p>Each of these constraints has shaped how the first edition is being built.</p>
       </div>
       <div class="pham-founder__obstacles-grid">
@@ -65,7 +65,7 @@
           {%- if block.type == 'obstacle' -%}
             <article class="pham-founder__obstacle" {{ block.shopify_attributes }}>
               <span class="pham-founder__obstacle-index">{{ block.settings.number | escape }}</span>
-              <h3>{{ block.settings.title | escape }}</h3>
+              <h3>{% render "pham-editorial-title", text: block.settings.title %}</h3>
               <p>{{ block.settings.body | escape }}</p>
             </article>
           {%- endif -%}
@@ -79,7 +79,7 @@
         <span>AN UNFINISHED BEGINNING</span>
       </div>
       <div>
-        <h2 id="pham-founder-present-title">{{ section.settings.present_heading | escape }}</h2>
+        <h2 id="pham-founder-present-title">{% render "pham-editorial-title", text: section.settings.present_heading %}</h2>
         <p>{{ section.settings.present_body_1 | escape }}</p>
         <p>{{ section.settings.present_body_2 | escape }}</p>
         <p class="pham-founder__signature">Coffee Pham <span>FOUNDER / PHAM</span></p>

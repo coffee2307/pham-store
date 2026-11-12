@@ -92,7 +92,7 @@
       <div class="pham-edition-index__protocol reveal-up" aria-labelledby="pham-release-protocol-{{ section.id }}">
         <div class="pham-edition-index__protocol-head">
           <p class="pham-eyebrow">RELEASE PROTOCOL</p>
-          <h3 id="pham-release-protocol-{{ section.id }}">{{ section.settings.protocol_heading }}</h3>
+          <h3 id="pham-release-protocol-{{ section.id }}">{% render "pham-editorial-title", text: section.settings.protocol_heading %}</h3>
         </div>
 
         <ol class="pham-edition-index__steps" role="list">
@@ -128,7 +128,7 @@
       <div class="pham-edition-index__principle-copy">
         <h3 id="pham-edition-principle-{{ section.id }}" class="pham-edition-index__principle-title">
           <span>{{ section.settings.principle_line_1 }}</span>
-          <span>{{ section.settings.principle_line_2 }}</span>
+          <span>{% render "pham-editorial-title", text: section.settings.principle_line_2 %}</span>
         </h3>
         <p class="pham-edition-index__principle-sub">{{ section.settings.principle_subtext }}</p>
       </div>
