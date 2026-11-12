@@ -281,24 +281,31 @@
   .pham-editorial-stage__image { object-position: calc(54% + 25px) 50%; }
 }
 
-/* 10% smaller editorial image frame, with feathered edges into existing ambient matte. */
+/* 10% smaller image without a visible rectangular edge. Preserve original hero canvas. */
+.pham-editorial-stage__image {
+  transform: scale(.9);
+  transform-origin: center center;
+  -webkit-mask-image: radial-gradient(ellipse 52% 58% at 50% 48%, #000 52%, transparent 100%);
+  mask-image: radial-gradient(ellipse 52% 58% at 50% 48%, #000 52%, transparent 100%);
+}
 @media (min-width: 700px) {
   .pham-editorial-stage__visual {
-    top: 5%;
-    bottom: 5%;
-    width: 62.1%;
-    right: 3.45%;
-    -webkit-mask-image: radial-gradient(ellipse 81% 81% at 55% 48%, #000 58%, transparent 100%);
-    mask-image: radial-gradient(ellipse 81% 81% at 55% 48%, #000 58%, transparent 100%);
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 69%;
+    height: 100%;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 }
 @media (max-width: 699px) {
   .pham-editorial-stage__visual {
-    inset: 5%;
-    width: 90%;
-    height: 90%;
-    -webkit-mask-image: radial-gradient(ellipse 85% 85% at 50% 47%, #000 62%, transparent 100%);
-    mask-image: radial-gradient(ellipse 85% 85% at 50% 47%, #000 62%, transparent 100%);
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 }
 
