@@ -180,11 +180,14 @@
 .pham-founder__section-heading{margin-bottom:27px}
 .pham-founder__section-heading h2{font-size:clamp(2rem,7.5vw,3.1rem)}
 .pham-founder__section-heading>p:last-child{font-size:13px;margin-top:12px}
-.pham-founder__chapter{grid-template-columns:1fr;gap:14px;padding:29px 0}
-.pham-founder__chapter-aside{gap:12px}
-.pham-founder__chapter-number{flex-basis:34px;height:34px}
-.pham-founder__chapters::before,.pham-founder__chapters::after{left:16px}
-.pham-founder__chapter-copy h3{font-size:clamp(1.45rem,6vw,2rem);margin-bottom:15px}
+.pham-founder__chapter{grid-template-columns:minmax(0,1fr);gap:16px;padding:29px 0 30px 54px}
+/* Reserve a mobile timeline gutter so the rail never crosses chapter copy. */
+.pham-founder__chapter-aside{gap:12px;margin-left:-54px;min-width:0}
+.pham-founder__chapter-number{flex:0 0 36px;height:36px}
+.pham-founder__chapters::before,.pham-founder__chapters::after{left:17px}
+.pham-founder__chapter-copy{min-width:0;max-width:100%}
+.pham-founder__chapter-copy h3{font-size:clamp(1.35rem,5.4vw,2rem);margin-bottom:15px;overflow-wrap:break-word}
+.pham-founder__chapter-copy p{overflow-wrap:break-word}
 .pham-founder__chapter-copy p{font-size:15px;line-height:1.76;margin-bottom:14px}
 .pham-founder__obstacles-grid{grid-template-columns:1fr;gap:9px}
 .pham-founder__obstacle{min-height:0;padding:19px 20px 23px}
