@@ -70,9 +70,7 @@
     {%- endif -%}
     {%- assign pham_text_fonts_url = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400&display=swap' -%}
     {%- assign pham_display_fonts_url = 'https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&display=optional' -%}
-    <link rel="preload" as="style" href="{{ pham_text_fonts_url }}">
     <link href="{{ pham_text_fonts_url }}" rel="stylesheet" media="print" onload="this.media='all'">
-    <link rel="preload" as="style" href="{{ pham_display_fonts_url }}">
     <link href="{{ pham_display_fonts_url }}" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript>
       <link href="{{ pham_text_fonts_url }}" rel="stylesheet">

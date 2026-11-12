@@ -502,11 +502,19 @@
       };
     }
 
+    let previousMobilePaint = 0;
+    const mobileFrameBudget = window.matchMedia('(max-width: 749px), (pointer: coarse)').matches;
     function render(time) {
       if (!active) {
         frame = 0;
         return;
       }
+      // The 3D orbit is expensive on mobile: update its transforms at <=30fps.
+      if (mobileFrameBudget && time - previousMobilePaint < 32) {
+        frame = requestAnimationFrame(render);
+        return;
+      }
+      previousMobilePaint = time;
       const delta = Math.min((time - previousTime) / 1000, 0.1);
       previousTime = time;
       smoothProgress = damp(smoothProgress, progress, 5.5, delta);
@@ -1008,6 +1016,7 @@
     function fromScroll() {
       if (dragging) return;
       target = clamp((window.scrollY - sectionTop) / scrollDistance, 0, 1);
+      if (active) start();
     }
 
     function draw(time) {
@@ -1020,6 +1029,10 @@
       current = damp(current, target, 6, delta);
       track.style.transform = 'translate3d(' + (-translateDistance * current).toFixed(2) + 'px,0,0)';
       root.style.setProperty('--archive-progress', current.toFixed(4));
+      if (!dragging && Math.abs(current - target) < 0.00015) {
+        frame = 0;
+        return;
+      }
       frame = requestAnimationFrame(draw);
     }
 
