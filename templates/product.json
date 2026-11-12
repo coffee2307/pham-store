@@ -23,51 +23,51 @@
         "size_guide_handle": "pham-001-size-guide",
         "size_guide_heading": "PHAM-001 fit & size guide",
         "preorder_label": "PRIORITY ACCESS",
-        "preorder_note": "PHAM-001 is acquired through the Edition 01 Release Protocol. Direct garment checkout remains closed while controlled access is active.",
+        "preorder_note": "PHAM-001 is released through Edition 01. Direct jacket checkout is not yet open.",
         "show_phases_default": true,
         "phases_eyebrow": "PRODUCTION SCHEDULE",
-        "shipping_terms": "Production and fulfillment progress is recorded in Collector Access after acquisition. Carrier estimates begin after dispatch.",
+        "shipping_terms": "Follow production in Collector Access. Delivery estimates begin after dispatch.",
         "show_object_record": true,
         "object_id": "PHAM-001 / 01–50",
         "object_edition": "01",
         "object_origin": "VIETNAM",
         "object_status": "PRELAUNCH",
-        "object_record_note": "Each released object is paired with its own identity card and individual edition identifier."
+        "object_record_note": "Each object carries an edition identifier."
       },
       "blocks": {
         "gallery_orbit_08": {
           "type": "gallery_image",
           "settings": {
             "image": "shopify://shop_images/pham-001-orbit-08.png",
-            "alt": "PHAM-001 lookbook — three-quarter front view"
+            "alt": "PHAM-001 lookbook, three-quarter front view"
           }
         },
         "gallery_orbit_06": {
           "type": "gallery_image",
           "settings": {
             "image": "shopify://shop_images/pham-001-orbit-06.png",
-            "alt": "PHAM-001 lookbook — jacket front with hands in pockets"
+            "alt": "PHAM-001 lookbook, jacket front with hands in pockets"
           }
         },
         "gallery_orbit_03": {
           "type": "gallery_image",
           "settings": {
             "image": "shopify://shop_images/pham-001-orbit-03.png",
-            "alt": "PHAM-001 lookbook — three-quarter back view"
+            "alt": "PHAM-001 lookbook, three-quarter back view"
           }
         },
         "gallery_orbit_07": {
           "type": "gallery_image",
           "settings": {
             "image": "shopify://shop_images/pham-001-orbit-07.png",
-            "alt": "PHAM-001 lookbook — open jacket and inner construction"
+            "alt": "PHAM-001 lookbook, open jacket and inner construction"
           }
         },
         "gallery_orbit_04": {
           "type": "gallery_image",
           "settings": {
             "image": "shopify://shop_images/pham-001-orbit-04-v2.png",
-            "alt": "PHAM-001 lookbook — front panel and zipper details"
+            "alt": "PHAM-001 lookbook, front panel and zipper details"
           }
         }
       },

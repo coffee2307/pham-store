@@ -90,7 +90,7 @@
             <strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong>
             <span>DEPOSIT DUE TODAY</span>
           </div>
-          <p class="pham-reservation-commerce__credit">{{ settings.pham_campaign_reservation_price | default: '$24.99' }} is your first payment toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} PHAM-001 jacket, not an additional access fee.</p>
+          <p class="pham-reservation-commerce__credit">The {{ settings.pham_campaign_reservation_price | default: '$24.99' }} deposit counts toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} jacket. It is not an access fee.</p>
           <p class="pham-reservation-commerce__balance">Remaining later: <strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong> · final payment window {{ settings.pham_campaign_payment_window_hours | default: 72 }} hours</p>
           {%- unless can_checkout -%}
             <span class="pham-reservation-commerce__launch-note">
@@ -130,7 +130,7 @@
           </div>
 
           <div class="pham-reservation-size__help">
-            <span>Cropped body · dropped shoulder · roomy fit</span>
+            <span>Cropped body · relaxed shoulders</span>
             <a href="{{ settings.pham_campaign_size_guide_page_url | default: '/pages/pham-001-size-guide' }}">NOT SURE? VIEW SIZE GUIDE</a>
           </div>
         </div>
@@ -139,14 +139,14 @@
           <div style="border:1px solid rgba(255,255,255,.35);padding:18px;">
             <span style="font-size:11px;letter-spacing:.12em;">AVAILABLE WHEN RESERVATIONS OPEN</span>
             <h3 style="margin:8px 0;">DEPOSIT PRE-ORDER · {{ settings.pham_campaign_reservation_price | default: '$24.99' }} TODAY</h3>
-            <p>Pay toward your {{ settings.pham_campaign_final_price | default: '$199.00' }} PHAM-001 jacket. The remaining {{ settings.pham_campaign_balance_due | default: '$174.01' }} is payable within the announced final-payment window. Shipping, duties and taxes are additional where applicable.</p>
+            <p>Deposit credited toward {{ settings.pham_campaign_final_price | default: '$199.00' }}. Balance: {{ settings.pham_campaign_balance_due | default: '$174.01' }} within the final-payment window. Shipping and taxes may apply.</p>
           </div>
           <div style="border:1px solid rgba(255,255,255,.18);padding:18px;">
             <span style="font-size:11px;letter-spacing:.12em;">PENDING PAYMENT INTEGRATION</span>
             <h3 style="margin:8px 0;">FULL PRE-ORDER · {{ settings.pham_campaign_final_price | default: '$199.00' }}</h3>
-            <p>One payment, no remaining jacket balance. This option will be enabled only after checkout and inventory allocation are verified. It is not available for payment yet.</p>
+            <p>Full {{ settings.pham_campaign_final_price | default: '$199.00' }} payment. Not available until checkout and allocation are verified.</p>
           </div>
-          <p style="font-size:12px;line-height:1.7;">Both options refer to the same limited-edition jacket. A deposit is not an extra priority-access charge. Review the edition terms for production conditions, timing, cancellations and refunds before checkout.</p>
+          <p style="font-size:12px;line-height:1.7;">The deposit is part of the jacket price, not a separate fee. Review Edition Terms before checkout.</p>
         </div>
 
         <div class="pham-reservation-commerce__addon">
