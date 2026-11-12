@@ -93,76 +93,6 @@
     let orbitPrimeRadius = 0;
     let orbitRevealScheduled = false;
     const mobileOrbitPrime = window.matchMedia('(max-width: 749px)').matches;
-
-    // Sequential entrance changes ONLY 2D card faces. Never animate opacity on
-    // the 3D orbit ancestor; that flattens perspective and enlarges cards.
-    const entranceTimers = new Set();
-    let entranceState = 'pending';
-
-    function scheduleEntrance(callback, delay) {
-      const timer = window.setTimeout(function () {
-        entranceTimers.delete(timer);
-        callback();
-      }, delay);
-      entranceTimers.add(timer);
-    }
-
-    function finishOrbitEntrance(skipped) {
-      if (entranceState === 'complete') return;
-      if (skipped) orbitCards.classList.add('is-intro-skipped');
-      entranceTimers.forEach(window.clearTimeout);
-      entranceTimers.clear();
-      entranceState = 'complete';
-      root.dataset.phamOrbitIntro = 'complete';
-      cards.forEach(function (card) {
-        card.classList.add('is-intro-visible');
-        card.classList.remove('is-intro-active');
-      });
-    }
-
-    function startOrbitEntrance() {
-      if (entranceState !== 'pending') return;
-      if (reducedMotion || document.hidden || progress > 0.035) {
-        finishOrbitEntrance(true);
-        return;
-      }
-
-      // Lead with the card visually centred closest to the viewer, then
-      // continue around the existing ring in its natural card order.
-      // The active is-front class is set by the render loop before reveal.
-      const frontCardIndex = cards.findIndex(function (card) {
-        return card.classList.contains('is-front');
-      });
-      const startingIndex = frontCardIndex >= 0 ? frontCardIndex :
-        (frontIndex >= 0 ? frontIndex : 0);
-      const ordered = cards.map(function (_, offset) {
-        const index = (startingIndex + offset) % cards.length;
-        return { card: cards[index], index: index };
-      });
-      root.dataset.phamOrbitIntroStart = String(startingIndex);
-
-      entranceState = 'revealing';
-      root.dataset.phamOrbitIntro = 'revealing';
-      root.dataset.phamOrbitIntroOrder = ordered.map(function (item) {
-        return String(item.index);
-      }).join(',');
-
-      // One rising wave around the ring, with gentle overlap between cards.
-      const stagger = mobileOrbitPrime ? 116 : 105;
-      const duration = mobileOrbitPrime ? 690 : 715;
-      ordered.forEach(function (item, sequence) {
-        scheduleEntrance(function () {
-          if (entranceState !== 'revealing') return;
-          item.card.classList.add('is-intro-visible', 'is-intro-active');
-          item.card.dataset.phamIntroStep = String(sequence + 1);
-          scheduleEntrance(function () {
-            item.card.classList.remove('is-intro-active');
-          }, duration);
-        }, sequence * stagger);
-      });
-      scheduleEntrance(finishOrbitEntrance,
-        (ordered.length - 1) * stagger + duration + 40);
-    }
     let progressiveImagesStarted = false;
     let orbitImagesReadyCount = 0;
     let orbitShownAt = 0;
@@ -645,10 +575,10 @@
             const doneLoading = orbitImagesReadyCount >= cards.length ||
               (orbitShownAt && performance.now() - orbitShownAt > 2800);
             imageLoadSpeed = damp(imageLoadSpeed, doneLoading ? 1 : .38, 2.6, delta);
-            rotation += (entranceState === 'revealing' ? 0 : (autoSpeed * mobileOrbitResume * imageLoadSpeed + velocity)) * delta;
+            rotation += (autoSpeed * mobileOrbitResume * imageLoadSpeed + velocity) * delta;
           } else {
             mobileOrbitResume = 1;
-            rotation += (entranceState === 'revealing' ? 0 : (autoSpeed + velocity)) * delta;
+            rotation += (autoSpeed + velocity) * delta;
           }
           velocity *= Math.exp(-3.0 * delta);
         }
@@ -876,7 +806,6 @@
               if (orbitCards) orbitCards.classList.add('is-positioned');
               orbit.classList.add('is-ready');
               root.dataset.phamOrbitReadyAt = String(Math.round(performance.now()));
-              startOrbitEntrance();
               revealRealOrbitImages();
             });
           });
@@ -896,13 +825,8 @@
     measureProgress();
     measureOrbit();
     setChapter(0);
-    function onVaultScroll() {
-      measureProgress();
-      if (entranceState === 'revealing' && progress > 0.035) finishOrbitEntrance(true);
-    }
-    window.addEventListener('scroll', onVaultScroll, { passive: true });
+    window.addEventListener('scroll', measureProgress, { passive: true });
     window.addEventListener('resize', function () {
-      if (entranceState === 'revealing') finishOrbitEntrance(true);
       measureLayout();
       measureProgress();
       measureOrbit();
@@ -938,7 +862,6 @@
     sticky.addEventListener('pointerleave', resetOrbitPointer, { passive: true });
 
     function beginOrbitDrag(event) {
-      if (entranceState !== 'complete') finishOrbitEntrance(true);
       if (cardDialogOpen) return;
       if (event.button !== undefined && event.button !== 0) return;
 
@@ -1016,7 +939,6 @@
     }
 
     function spinOrbitFromTrackpad(event) {
-      if (entranceState === 'revealing') finishOrbitEntrance(true);
       if (reducedMotion || cardDialogOpen || dragging) return;
 
       const horizontalIntent = Math.abs(event.deltaX) > Math.abs(event.deltaY) * 0.72;
@@ -1032,14 +954,9 @@
     orbit.addEventListener('pointercancel', finishOrbitDrag);
     orbit.addEventListener('lostpointercapture', finishOrbitDrag);
     orbit.addEventListener('wheel', spinOrbitFromTrackpad, { passive: false });
-    function onOrbitFocus() {
-      if (entranceState !== 'complete') finishOrbitEntrance(true);
-    }
-    orbit.addEventListener('focusin', onOrbitFocus);
 
     cards.forEach(function (card) {
       card.addEventListener('click', function (event) {
-        if (entranceState !== 'complete') finishOrbitEntrance(true);
         if (dragMoved) {
           event.preventDefault();
           event.stopPropagation();
@@ -1057,7 +974,6 @@
       card.addEventListener('keydown', function (event) {
         if (card.getAttribute('role') !== 'button') return;
         if (event.key !== 'Enter' && event.key !== ' ') return;
-        if (entranceState !== 'complete') finishOrbitEntrance(true);
         event.preventDefault();
         event.stopPropagation();
         openCardDialog(card);
@@ -1094,14 +1010,11 @@
     observer.observe(root);
 
     document.addEventListener('visibilitychange', function () {
-      if (document.hidden) finishOrbitEntrance(true);
       active = !document.hidden && root.getBoundingClientRect().bottom > 0 && root.getBoundingClientRect().top < window.innerHeight;
       if (active) start();
     });
 
     root.addEventListener('shopify:section:unload', function () {
-      finishOrbitEntrance();
-      window.removeEventListener('scroll', onVaultScroll);
       document.removeEventListener('keydown', onCardDialogKeydown);
       window.removeEventListener('wheel', onCardDialogWheel);
       window.removeEventListener('scroll', onCardDialogScroll);
@@ -1113,7 +1026,6 @@
       orbit.removeEventListener('pointercancel', finishOrbitDrag);
       orbit.removeEventListener('lostpointercapture', finishOrbitDrag);
       orbit.removeEventListener('wheel', spinOrbitFromTrackpad);
-      orbit.removeEventListener('focusin', onOrbitFocus);
       cancelDialogAnimations();
       if (cardDialog && cardDialog.parentNode) cardDialog.parentNode.removeChild(cardDialog);
     }, { once: true });
