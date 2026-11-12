@@ -150,32 +150,20 @@
 }
 /* Sequential 3D orbit entrance. Faces fade independently; the 3D ancestor
    remains opaque, preserving the perspective and the cards' exact geometry. */
-/* Reveal from BELOW the orbit, following its existing 3D positions.
-   Do not transform the card or orbit ancestors: use the individual translate
-   property of the already-flat card face to preserve perspective and sizing. */
-.pham-vault__orbit-card-face {
-  opacity: 0;
-  translate: 0 78px;
-  clip-path: inset(46% 0 0 0);
-}
+/* Minimal sequential reveal: individual card faces fade in place.
+   Do not animate 3D ancestors, scale, translate, or clip-path. */
+.pham-vault__orbit-card-face { opacity: 0; }
 .pham-vault__orbit-cards.is-positioned
 .pham-vault__orbit-card.is-intro-visible .pham-vault__orbit-card-face {
   opacity: 1;
-  translate: 0 0;
-  clip-path: inset(0 0 0 0);
 }
 /* User interaction immediately reveals every card without a delayed rise. */
 .pham-vault__orbit-cards.is-intro-skipped .pham-vault__orbit-card-face {
   transition-duration: 0ms !important;
 }
-@media (max-width: 749px) {
-  .pham-vault__orbit-card-face { translate: 0 54px; clip-path: inset(38% 0 0 0); }
-}
 @media (prefers-reduced-motion: reduce) {
   .pham-vault__orbit-card-face {
     opacity: 1 !important;
-    translate: none !important;
-    clip-path: none !important;
     transition: none !important;
   }
 }
@@ -226,9 +214,7 @@
     transform 320ms cubic-bezier(.2,.78,.2,1),
     border-color 260ms ease,
     box-shadow 320ms ease,
-    opacity 660ms cubic-bezier(.17,.78,.22,1),
-    translate 700ms cubic-bezier(.17,.84,.24,1),
-    clip-path 670ms cubic-bezier(.17,.84,.24,1);
+    opacity 380ms cubic-bezier(.22,.75,.25,1);
   will-change: transform;
 }
 .pham-vault__orbit-card.is-front .pham-vault__orbit-card-face {
