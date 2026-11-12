@@ -24,8 +24,8 @@
   data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
-    <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · <span data-pham-live-state>{{ state_label }}</span></p>
-    <h1 class="pham-campaign-title">{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</h1>
+    <p class="pham-campaign-kicker"><span class="pham-campaign-kicker__edition">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' | escape }}</span><span class="pham-campaign-kicker__status" data-pham-live-state>{{ state_label }}</span></p>
+    <h1 class="pham-campaign-title"><span class="pham-campaign-title__unit">{{ settings.pham_campaign_product_code | default: 'PHAM-001' | escape }}</span></h1>
     <p class="pham-campaign-lede">{{ section.settings.intro }}</p>
 
     <div class="pham-campaign-grid">
@@ -41,7 +41,7 @@
           {%- elsif state == 'final_payment' and settings.pham_campaign_collector_page_url != blank -%}
             <a class="pham-campaign-btn" href="{{ settings.pham_campaign_collector_page_url }}">Collector access</a>
           {%- else -%}
-            <span class="pham-campaign-btn" aria-disabled="true">Not yet open</span>
+            <span class="pham-campaign-btn pham-campaign-btn--pending" role="status" aria-disabled="true">Reservations not yet open</span>
           {%- endif -%}
         </div>
       </article>
