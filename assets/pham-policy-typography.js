@@ -6,6 +6,7 @@
   const container = document.querySelector('.shopify-policy__body .rte');
   if (!container) return;
 
+  function normalizeHeadings() {
   Array.from(container.querySelectorAll('p')).forEach(function (p) {
     const section = p.classList.contains('pham-policy-section');
     const subsection = p.classList.contains('pham-policy-subsection');
@@ -34,4 +35,20 @@
     }
     p.replaceWith(heading);
   });
+  }
+
+  // Shopify's policy decoration code may assign pham-policy-section after
+  // this deferred asset runs. Observe heading-class changes for the brief
+  // initialization window and normalize only the newly marked paragraphs.
+  normalizeHeadings();
+  const observer = new MutationObserver(function (mutations) {
+    if (mutations.some(function (m) { return m.target.tagName === 'P'; }))
+      normalizeHeadings();
+  });
+  observer.observe(container, { subtree: true, attributes: true, attributeFilter: ['class'] });
+  window.addEventListener('load', normalizeHeadings, { once: true });
+  window.setTimeout(function () {
+    normalizeHeadings();
+    observer.disconnect();
+  }, 1500);
 })();
