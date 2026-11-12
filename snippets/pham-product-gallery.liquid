@@ -107,13 +107,6 @@
 
     {%- if media_count > 1 -%}
       <div class="pham-pdp-gallery__thumbs-wrap">
-        <button type="button"
-                class="pham-pdp-gallery__thumb-nav pham-pdp-gallery__thumb-nav--prev"
-                data-pham-thumb-prev
-                aria-label="Scroll thumbnails left"
-                hidden>
-          <span class="pham-control-word" aria-hidden="true">PREV</span>
-        </button>
         <div class="pham-pdp-gallery__thumbs" data-pham-gallery-thumbs role="tablist" aria-label="Product thumbnails">
           {%- assign thumb_index = 0 -%}
           {%- for gallery_item in gallery_items -%}
@@ -148,13 +141,6 @@
             {%- assign thumb_index = thumb_index | plus: 1 -%}
           {%- endfor -%}
         </div>
-        <button type="button"
-                class="pham-pdp-gallery__thumb-nav pham-pdp-gallery__thumb-nav--next"
-                data-pham-thumb-next
-                aria-label="Scroll thumbnails right"
-                hidden>
-          <span class="pham-control-word" aria-hidden="true">NEXT</span>
-        </button>
       </div>
     {%- endif -%}
   {%- else -%}
@@ -163,3 +149,61 @@
     </div>
   {%- endif -%}
 </div>
+
+
+<style>
+/* Product image filmstrip: swipe/click without redundant PREV/NEXT boxes. */
+.pham-product-main .pham-pdp-gallery__thumbs-wrap {
+  display:block;
+  min-width:0;
+  width:100%;
+}
+.pham-product-main .pham-pdp-gallery__thumbs {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  width:100%;
+  padding:7px 2px 10px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+  scroll-snap-type:x proximity;
+}
+.pham-product-main .pham-pdp-gallery__thumbs::-webkit-scrollbar { display:none; }
+.pham-product-main .pham-pdp-gallery__thumb {
+  flex:0 0 clamp(66px,17vw,84px);
+  width:clamp(66px,17vw,84px);
+  height:clamp(66px,17vw,84px);
+  border:1px solid rgba(241,239,235,.27);
+  background:#101114;
+  opacity:.73;
+  scroll-snap-align:start;
+  transition:border-color .2s ease,opacity .2s ease;
+}
+.pham-product-main .pham-pdp-gallery__thumb:hover,
+.pham-product-main .pham-pdp-gallery__thumb.is-active,
+.pham-product-main .pham-pdp-gallery__thumb:focus-visible {
+  border-color:#f4f2ee;
+  opacity:1;
+}
+.pham-product-main .pham-pdp-gallery__thumb:focus-visible {
+  outline:2px solid #f4f2ee;
+  outline-offset:2px;
+}
+@media(max-width:749px) {
+  .pham-product-main .pham-pdp-gallery { gap:12px; }
+  .pham-product-main .pham-pdp-gallery__thumbs { gap:9px; padding:8px 2px 12px; }
+  .pham-product-main .pham-pdp-gallery__thumb {
+    flex:0 0 clamp(62px,18vw,76px);
+    width:clamp(62px,18vw,76px);
+    height:clamp(62px,18vw,76px);
+  }
+}
+.pham-product-main .pham-product-main__media,
+.pham-product-main .pham-pdp-gallery { min-width:0; max-width:100%; }
+.pham-product-main .pham-pdp-gallery__thumbs-wrap { max-width:100%; overflow:hidden; }
+.pham-product-main .pham-pdp-gallery__thumbs { box-sizing:border-box; max-width:100%; min-width:0; }
+</style>
