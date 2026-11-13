@@ -13,6 +13,7 @@ import {
   REQUIRED_RUNTIME_SCOPES,
   selectFinalVariantBySize,
   validateFinalAcquisitionOrder,
+  validateIdentityPersonalization,
   validatePriorityReservationOrder,
   validateStandbyAcquisitionOrder,
   validateLifecycleTransition,
@@ -828,4 +829,29 @@ test('keeps legacy Shopify Admin token as an explicit fallback', async () => {
   });
 
   assert.equal(token, 'legacy-token');
+});
+
+test('Object Identity validates number, print name, optional private instructions and review', () => {
+  const data = {
+    alias: 'Coffee',
+    inscription: 'CREATE / 2026',
+    productionNotes: 'Please check centred spacing.',
+    preferredNumber: 13,
+    acknowledgeReview: true,
+    publicIdentity: false,
+  };
+  assert.deepEqual(validateIdentityPersonalization(data, 50), {
+    preferredNumber: 13,
+    alias: 'Coffee',
+    inscription: 'CREATE / 2026',
+    productionNotes: 'Please check centred spacing.',
+    publicIdentity: 0
+  });
+  assert.throws(() => validateIdentityPersonalization({...data, preferredNumber: 51}, 50), /object_number_out_of_range/);
+  assert.throws(() => validateIdentityPersonalization({...data, alias: ''}, 50), /identity_alias_invalid/);
+  assert.throws(() => validateIdentityPersonalization({...data, alias: '<script>'}, 50), /identity_alias_invalid/);
+  assert.throws(() => validateIdentityPersonalization({...data, inscription: 'X'.repeat(41)}, 50), /identity_inscription_invalid/);
+  assert.throws(() => validateIdentityPersonalization({...data, productionNotes: 'X'.repeat(241)}, 50), /identity_production_notes_invalid/);
+  assert.throws(() => validateIdentityPersonalization({...data, productionNotes: '<b>sample</b>'}, 50), /identity_production_notes_invalid/);
+  assert.throws(() => validateIdentityPersonalization({...data, acknowledgeReview: false}, 50), /identity_review_required/);
 });
