@@ -898,6 +898,27 @@ async function setLookbookStatus(request, env) {
   });
 }
 
+async function getProductionPersonalizations(env, url) {
+  const editionId = url.searchParams.get('edition') || 'edition-01';
+  const rows = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT r.id AS reservation_id, r.size_preference, r.status AS reservation_status,
+            r.object_number, c.preferred_number, c.engraving_name,
+            c.engraving_text, c.production_notes, c.configured_at
+       FROM identity_claims c
+       JOIN reservations r ON r.id = c.reservation_id
+      WHERE c.edition_id = ? AND c.status = 'configured'
+      ORDER BY c.configured_at DESC
+      LIMIT 50`
+  ).bind(editionId).all();
+  return json({
+    ok: true,
+    editionId,
+    privateOperatorData: true,
+    count: (rows.results || []).length,
+    items: rows.results || []
+  }, 200, { 'Cache-Control': 'no-store' });
+}
+
 async function getWebhookReviews(env, url) {
   const requestedLimit = Number(url.searchParams.get('limit') || 50);
   const limit = Number.isInteger(requestedLimit)
