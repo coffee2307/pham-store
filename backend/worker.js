@@ -3645,7 +3645,7 @@ async function confirmRefundSettled(request,env){
   const reservationId=String(body.reservationId||'').trim();
   const reference=String(body.shopifyRefundReference||'').trim();
   if(!reservationId||reference.length<12||reference.length>160 ||
-    /[<>\\u0000-\\u001f]/.test(reference))
+    /[<>\u0000-\u001f]/u.test(reference))
     return json({ok:false,error:'valid_refund_reference_required'},422);
   const existing=await env.PHAM_CAMPAIGN_DB.prepare(
     "SELECT * FROM refund_review_cases WHERE reservation_id=? AND status='pending_review'"
