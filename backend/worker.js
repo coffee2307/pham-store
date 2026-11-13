@@ -179,6 +179,10 @@ export default {
         requireInternalKey(request, env);
         return getRefundReviewCases(env, url.searchParams.get('edition') || 'edition-01');
       }
+      if (request.method === 'POST' && url.pathname === '/internal/refund-reviews/settle') {
+        requireInternalKey(request, env);
+        return confirmRefundSettled(request, env);
+      }
 
       if (request.method === 'POST' && url.pathname === '/internal/lookbook/status') {
         requireInternalKey(request, env);
@@ -3421,6 +3425,144 @@ async function sendFinalAcquisitionInvoice(env, { draftOrderId, email, edition, 
 
 function centsToMoney(cents) {
   return (Number(cents || 0) / 100).toFixed(2);
+}
+
+/** Close intake after <=14 days even when the merchant has not filled 50 slots.
+ * No new payments or final invoices are initiated; merchant decisions are separate.
+ */
+async function closeExpiredReservationWindows(env, now=new Date()) {
+  const nowIso=new Date(now).toISOString();
+  const rows=await env.PHAM_CAMPAIGN_DB.prepare(
+    "SELECT id, edition_size, reservation_closes_at FROM editions WHERE state='reservation_open' AND reservation_closes_at IS NOT NULL AND reservation_closes_at <= ?"
+  ).bind(nowIso).all();
+  for(const edition of rows.results||[]){
+    const reserved=await scalar(env,
+      "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status NOT IN ('cancelled','expired')",
+      edition.id);
+    const fullyAllocated=reserved>=Number(edition.edition_size);
+    const nextState=fullyAllocated?'reservation_full':'reservation_closed';
+    const update=await env.PHAM_CAMPAIGN_DB.prepare(
+      `UPDATE editions
+       SET state=?, commerce_acceptance_enabled=0,
+           reservation_closed_at=?, reservation_close_reason=?,
+           updated_at=CURRENT_TIMESTAMP
+       WHERE id=? AND state='reservation_open' AND reservation_closes_at <= ?`
+    ).bind(nextState,nowIso,fullyAllocated?'capacity_reached':'window_expired',edition.id,nowIso).run();
+    if(update?.meta?.changes){
+      const detail=JSON.stringify({editionId:edition.id,reserved,
+        maxEditionSize:edition.edition_size,
+        action:fullyAllocated?'prepare_final_payment':'merchant_decision_required',
+        choices:fullyAllocated?[]:['proceed_partial','refund_review']});
+      await env.PHAM_CAMPAIGN_DB.prepare(
+        "INSERT OR IGNORE INTO webhook_events(id,topic,status,detail) VALUES(?,?,?,?)"
+      ).bind('pham-window-'+edition.id+'-'+edition.reservation_closes_at,
+        'internal/reservation-window',
+        fullyAllocated?'processed':'review_required',detail).run();
+    }
+  }
+}
+async function resolveUnderfilledReservationWindow(request,env){
+  const body=await request.json().catch(()=>null);
+  if(!body||body.confirm!=='RESOLVE_UNDERFILLED_EDITION')
+    return json({ok:false,error:'explicit_confirmation_required'},422);
+  const editionId=String(body.editionId||'edition-01');
+  const edition=await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM editions WHERE id=?'
+  ).bind(editionId).first();
+  if(!edition)return json({ok:false,error:'edition_not_found'},404);
+  const count=await scalar(env,
+    "SELECT COUNT(*) AS count FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')",
+    editionId);
+  let decision;
+  try {
+    decision=validateUnderfilledDecision({
+      edition,activeCount:count,decision:body.decision,
+      reference:body.approvalReference,
+      productionApproved:body.productionApproved,
+      legalApproved:body.legalApproved,
+      customerNoticeApproved:body.customerNoticeApproved
+    });
+  }catch(error){return json({ok:false,error:error.message},409);}
+  if(decision.decision==='proceed_partial'){
+    const updated=await env.PHAM_CAMPAIGN_DB.prepare(
+      `UPDATE editions SET release_quantity=?,
+           partial_run_approved_at=CURRENT_TIMESTAMP,
+           partial_run_reference=?,reservation_close_reason='partial_run_approved',
+           updated_at=CURRENT_TIMESTAMP
+       WHERE id=? AND state='reservation_closed'
+         AND partial_run_approved_at IS NULL`
+    ).bind(decision.runQuantity,decision.reference,editionId).run();
+    if(!updated?.meta?.changes)return json({ok:false,error:'underfill_decision_already_recorded'},409);
+    return json({ok:true,editionId,decision:'proceed_partial',
+      plannedRunQuantity:decision.runQuantity,merchantNoticeRequired:true,
+      nextAction:'map_size_variants_then_open_final_payment_manually'},200,{'Cache-Control':'no-store'});
+  }
+
+  // Do not refund a financial transaction from this endpoint. Only create
+  // a traceable, authenticated queue for the merchant to refund in Shopify.
+  await env.PHAM_CAMPAIGN_DB.batch([
+    env.PHAM_CAMPAIGN_DB.prepare(
+      `INSERT OR IGNORE INTO refund_review_cases
+       (id,edition_id,reservation_id,shopify_order_id,reason)
+       SELECT 'refund-'+id,edition_id,id,shopify_order_id,'underfilled_edition'
+       FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')`
+    ).bind(editionId),
+    env.PHAM_CAMPAIGN_DB.prepare(
+      `UPDATE editions SET state='refund_review',
+        commerce_acceptance_enabled=0,reservation_close_reason='refund_review',
+        updated_at=CURRENT_TIMESTAMP
+        WHERE id=? AND state='reservation_closed' AND partial_run_approved_at IS NULL`
+    ).bind(editionId)
+  ]);
+  return json({ok:true,editionId,decision:'refund_review',
+    pendingReviewCount:count,automaticRefundsIssued:false,
+    nextAction:'review_order_and_complete_shopify_refunds_individually'},200,{'Cache-Control':'no-store'});
+}
+async function getRefundReviewCases(env,editionId){
+  const rows=await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT reservation_id,shopify_order_id,status,reason,created_at,
+            settled_at,settlement_reference
+       FROM refund_review_cases WHERE edition_id=?
+      ORDER BY created_at ASC LIMIT 100`
+  ).bind(editionId).all();
+  return json({ok:true,editionId,privateOperatorData:true,
+    cases:rows.results||[]},200,{'Cache-Control':'no-store'});
+}
+async function confirmRefundSettled(request,env){
+  const body=await request.json().catch(()=>null);
+  if(!body||body.confirm!=='ATTEST_SHOPIFY_REFUND_COMPLETED' ||
+    body.refundedInShopify!==true)
+    return json({ok:false,error:'shopify_refund_evidence_required'},422);
+  const reservationId=String(body.reservationId||'').trim();
+  const reference=String(body.shopifyRefundReference||'').trim();
+  if(!reservationId||reference.length<12||reference.length>160 ||
+    /[<>\\u0000-\\u001f]/.test(reference))
+    return json({ok:false,error:'valid_refund_reference_required'},422);
+  const existing=await env.PHAM_CAMPAIGN_DB.prepare(
+    "SELECT * FROM refund_review_cases WHERE reservation_id=? AND status='pending_review'"
+  ).bind(reservationId).first();
+  if(!existing)return json({ok:false,error:'pending_refund_case_not_found'},404);
+  // Staff must verify this reference against an actual paid Shopify refund.
+  // The endpoint records an attestation, it never claims to have initiated a refund.
+  const result=await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE refund_review_cases SET status='settled',
+      settlement_reference=?,settled_at=CURRENT_TIMESTAMP
+     WHERE reservation_id=? AND status='pending_review'`
+  ).bind(reference,reservationId).run();
+  if(!result?.meta?.changes)return json({ok:false,error:'refund_case_changed'},409);
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    "UPDATE reservations SET status='cancelled',final_payment_status='refunded',updated_at=CURRENT_TIMESTAMP WHERE id=?"
+  ).bind(reservationId).run();
+  const pending=await scalar(env,
+    "SELECT COUNT(*) AS count FROM refund_review_cases WHERE edition_id=? AND status='pending_review'",
+    existing.edition_id);
+  if(!pending){
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      "UPDATE editions SET state='edition_cancelled',updated_at=CURRENT_TIMESTAMP WHERE id=? AND state='refund_review'"
+    ).bind(existing.edition_id).run();
+  }
+  return json({ok:true,reservationId,refundRecorded:true,refundInitiatedBySystem:false,
+    outstandingRefundCases:pending},200,{'Cache-Control':'no-store'});
 }
 
 async function expireReservationsAndPromote(env) {
