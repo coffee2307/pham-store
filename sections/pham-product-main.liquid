@@ -36,6 +36,10 @@
   assign display_product_title = product.title
   assign display_product_price = current_variant.price | money
   assign pham_object_product = all_products['pham-001']
+  assign pham_show_jacket_reference = false
+  if product.handle == 'pham-001-priority-reservation' or product.handle == 'pham-edition-01-collector-lookbook'
+    assign pham_show_jacket_reference = true
+  endif
   if product.handle == 'pham-edition-01-collector-lookbook'
     assign is_lookbook_benefit = true
     assign display_product_title = 'PHAM-001 PRIORITY RESERVATION'
@@ -72,10 +76,18 @@
     {%- comment -%} ============= LEFT: GALLERY (e-commerce layout) ============= {%- endcomment -%}
     <div class="pham-product-main__media reveal-up">
       {%- assign gallery_image_blocks = section.blocks | where: 'type', 'gallery_image' -%}
-      {%- if is_lookbook_benefit and pham_object_product != blank -%}
+      {%- if pham_show_jacket_reference and pham_object_product != blank -%}
         {% render 'pham-product-gallery', product: pham_object_product, section_id: section.id, gallery_blocks: blank %}
-      {%- else -%}
+      {%- elsif product.handle == 'pham-001' -%}
         {% render 'pham-product-gallery', product: product, section_id: section.id, gallery_blocks: gallery_image_blocks %}
+      {%- elsif product.images.size > 0 -%}
+        {% render 'pham-product-gallery', product: product, section_id: section.id, gallery_blocks: blank %}
+      {%- else -%}
+        <div class="pham-pdp-service-visual" role="img" aria-label="{{ product.title | escape }}">
+          <span class="pham-pdp-service-visual__brand">PHAM</span>
+          <strong class="pham-pdp-service-visual__title">{{ product.title | escape }}</strong>
+          <span class="pham-pdp-service-visual__edition">EDITION 01</span>
+        </div>
       {%- endif -%}
     </div>
 
@@ -124,7 +136,7 @@
           {%- endif -%}
         </header>
 
-        {%- if section.settings.show_object_record and is_lookbook_benefit == false -%}
+        {%- if section.settings.show_object_record and product.handle == 'pham-001' -%}
           <section class="pham-object-record reveal-up" data-pham-delay="100" aria-label="PHAM object identity">
             <dl class="pham-object-record__grid">
               <div><dt>OBJECT ID</dt><dd>{{ section.settings.object_id }}</dd></div>
@@ -213,7 +225,7 @@
 
         <div class="pham-product-main__accordions reveal-up" data-pham-delay="180">
           {%- assign phase_blocks = section.blocks | where: 'type', 'phase' -%}
-          {%- if phase_blocks.size > 0 or section.settings.show_phases_default -%}
+          {%- if product.handle == 'pham-001' and phase_blocks.size > 0 or product.handle == 'pham-001' and section.settings.show_phases_default -%}
             {%- capture phases_content -%}{%- render 'pham-product-phases-content', section: section -%}{%- endcapture -%}
             {%- assign phases_id = section.id | append: '-phases' -%}
             {%- assign phases_heading = section.settings.phases_eyebrow | default: 'PRODUCTION SCHEDULE' -%}
@@ -238,7 +250,7 @@
             {% render 'pham-accordion', heading: care_heading, content: care_content, id: care_id %}
           {%- endif -%}
 
-          {%- if section.settings.show_size_guide_link and size_guide_page != blank -%}
+          {%- if section.settings.show_size_guide_link and size_guide_page != blank and product.handle == 'pham-001' -%}
             {%- capture size_guide_content -%}
               <p><a href="{{ size_guide_page.url }}" class="pham-product-main__guide-link">View full size guide</a></p>
             {%- endcapture -%}
@@ -1112,6 +1124,36 @@
     .pham-object-record__grid dt, .pham-object-record__grid dd { overflow-wrap: anywhere; }
   }
 
+/* Minimal service-product presentation when Shopify has no actual imagery. */
+.pham-pdp-service-visual {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 25px;
+  width: 100%;
+  aspect-ratio: 4/5;
+  padding: clamp(22px,4vw,48px);
+  background: linear-gradient(155deg,#131519,#090a0c 65%);
+  border: 1px solid rgba(243,241,238,.23);
+  color: #f3f1ed;
+}
+.pham-pdp-service-visual__brand,
+.pham-pdp-service-visual__edition {
+  font: 600 11px/1.3 var(--font-mono,monospace);
+  letter-spacing: .15em;
+}
+.pham-pdp-service-visual__edition { color: rgba(243,241,238,.62); }
+.pham-pdp-service-visual__title {
+  font: 400 clamp(1.4rem,4vw,3rem)/1.15 var(--font-display,"Syncopate",sans-serif);
+  letter-spacing: -.035em;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+@media(max-width:700px) {
+  .pham-pdp-service-visual { aspect-ratio: 5/4; padding: 24px; }
+  .pham-pdp-service-visual__title { font-size: clamp(1.35rem,6.2vw,2.05rem); }
+}
 </style>
 
 <script>

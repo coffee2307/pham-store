@@ -319,6 +319,34 @@
     .pham-product-focus__grid { grid-template-columns: 1fr; gap: var(--space-xl); }
     .pham-product-focus__panel { position: static; }
   }
+/* PHAM catalog headline refinement. Two natural phrases, one per line. */
+.pham-product-focus__head { max-width: none; gap: 12px; margin-bottom: clamp(26px,4.5vw,48px); }
+.pham-product-focus__title {
+  max-width: 100%;
+  font-size: clamp(1.35rem, 5.2vw, 3.5rem);
+  font-weight: 400;
+  letter-spacing: -.04em;
+  line-height: 1.13;
+  overflow: visible;
+  text-wrap: initial;
+}
+.pham-product-focus__title > span {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  white-space: nowrap;
+}
+.pham-product-focus__title .pham-editorial-emphasis { font-weight: 700; }
+.pham-product-focus__intro {
+  font-size: clamp(.88rem,1.2vw,1.02rem);
+  line-height: 1.57;
+  max-width: 44ch;
+}
+@media(max-width:700px) {
+  .pham-product-focus { padding-block: 42px 64px; }
+  .pham-product-focus__title { font-size: clamp(1.3rem,6.45vw,2rem); letter-spacing: -.055em; }
+  .pham-product-focus__title > span { white-space: nowrap; }
+}
 </style>
 
 {% schema %}

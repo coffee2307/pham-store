@@ -20,9 +20,8 @@
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
     {%- unless commerce_ready -%}<span class="pham-campaign-draft">PRELAUNCH CONFIGURATOR · SUBMISSION DISABLED</span>{%- endunless -%}
-    <p class="pham-campaign-kicker">OBJECT IDENTITY</p>
-    <h1 class="pham-campaign-title">Make it yours.</h1>
-    <p class="pham-campaign-lede">The Identity privilege is shared across paid upgrades and referral unlocks. Only {{ settings.pham_campaign_identity_limit | default: 15 }} privileges exist for the active edition.</p>
+    <h1 class="pham-campaign-title">Object identity.</h1>
+    <p class="pham-campaign-lede">Configure your collector identity when eligible. {{ settings.pham_campaign_identity_limit | default: 15 }} privileges are shared between paid upgrades and referral unlocks.</p>
 
     <div class="pham-campaign-grid">
       <div class="pham-campaign-card pham-campaign-card--full">

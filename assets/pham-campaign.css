@@ -384,3 +384,167 @@
     transition:none;
   }
 }
+
+/* PHAM / Consistent campaign pages, V2.
+   Excludes the separately designed Edition 01 campaign and reservation commerce.
+   All headlines keep whole words; no mobile splitting INTRODUC / TION. */
+.pham-campaign-shell:not([data-pham-edition-campaign]) {
+  --pc-line: rgba(238,238,238,.16);
+  --pc-dim: rgba(238,238,238,.58);
+  --pc-soft: rgba(238,238,238,.76);
+  background: #0a0b0d;
+  padding-block: clamp(54px,7vw,94px) clamp(54px,7vw,96px);
+}
+.pham-campaign-shell:not([data-pham-edition-campaign])::before {
+  background: radial-gradient(ellipse 60% 45% at 84% 6%, rgba(245,245,245,.035), transparent 90%);
+  background-size: auto;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-inner {
+  max-width: 1060px;
+  min-width: 0;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-title {
+  max-width: 100%;
+  font-family: var(--font-display, "Syncopate", sans-serif);
+  font-size: clamp(2.3rem,5.6vw,4.85rem);
+  font-weight: 400;
+  line-height: 1.13;
+  letter-spacing: -.048em;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-kicker {
+  font-size: 10px;
+  letter-spacing: .095em;
+  margin-bottom: 16px;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-lede {
+  max-width: 55ch;
+  margin-top: 17px;
+  font: 400 clamp(.9rem,1.15vw,1.03rem)/1.62 var(--font-body,Arial,sans-serif);
+  letter-spacing: 0;
+  text-wrap: pretty;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-grid {
+  gap: 12px;
+  margin-top: clamp(30px,4.5vw,50px);
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-card {
+  min-height: 0;
+  padding: clamp(18px,2.4vw,28px);
+  border-color: rgba(245,245,241,.19);
+  background: rgba(15,16,19,.82);
+  backdrop-filter: none;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-card :is(h2,h3) {
+  font-family: var(--font-body,"Space Grotesk",sans-serif);
+  font-size: clamp(1.12rem,1.9vw,1.42rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -.025em;
+  margin-bottom: 13px;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-card p {
+  font-size: clamp(.875rem,1vw,.98rem);
+  line-height: 1.59;
+  letter-spacing: 0;
+  text-wrap: pretty;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-btn {
+  font-size: 11px;
+  letter-spacing: .065em;
+  min-height: 45px;
+  padding: 11px 16px;
+  line-height: 1.35;
+  text-align: center;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-stat strong {
+  font-family: var(--font-body,"Space Grotesk",sans-serif);
+  font-weight: 600;
+  letter-spacing: -.025em;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-provenance-timeline {
+  margin-top: 0;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-provenance-timeline div {
+  grid-template-columns: minmax(92px,120px) minmax(0,1fr);
+  gap: 15px;
+  padding: 14px 0;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-provenance-timeline dd {
+  overflow-wrap: anywhere; /* Only dynamic record values can be unbroken IDs. */
+  font-size: .92rem;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-status-row {
+  gap: 14px;
+  padding-block: 13px;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-status-row strong {
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  white-space: normal;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-referral-code {
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: .8rem;
+  letter-spacing: 0;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-referral-code [data-pham-referral-value] {
+  min-width: 0;
+  flex: 1 1 200px;
+  overflow-wrap: anywhere;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) :is(input,select,textarea) {
+  max-width: 100%;
+}
+@media(max-width:700px) {
+  .pham-campaign-shell:not([data-pham-edition-campaign]) {
+    padding: 40px clamp(16px,5vw,28px) 62px;
+  }
+  .pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-title {
+    font-size: clamp(1.9rem,8.25vw,2.7rem);
+    line-height: 1.17;
+    letter-spacing: -.05em;
+  }
+  .pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-lede {
+    font-size: 14px;
+    line-height: 1.59;
+    margin-top: 14px;
+  }
+  .pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-grid {
+    margin-top: 26px;
+  }
+  .pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-card {
+    padding: 17px 18px;
+  }
+  .pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-card :is(h2,h3) {
+    font-size: 1.09rem;
+  }
+  .pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-stat {
+    align-items: center;
+  }
+  .pham-campaign-shell:not([data-pham-edition-campaign]) .pham-status-row {
+    grid-template-columns: minmax(0,1fr) minmax(0,1.2fr);
+  }
+}
+@media(max-width:355px) {
+  .pham-campaign-shell:not([data-pham-edition-campaign]) .pham-provenance-timeline div {
+    grid-template-columns: minmax(0,1fr);
+    gap: 5px;
+  }
+  .pham-campaign-shell:not([data-pham-edition-campaign]) .pham-status-row {
+    grid-template-columns: minmax(0,1fr);
+    gap: 6px;
+  }
+  .pham-campaign-shell:not([data-pham-edition-campaign]) .pham-status-row strong { text-align:left; }
+}

@@ -12,9 +12,8 @@
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}"
   data-edition-id="{{ settings.pham_campaign_edition_id | default: 'edition-01' | escape }}">
   <div class="pham-campaign-inner">
-    <p class="pham-campaign-kicker">STANDBY</p>
-    <h1 class="pham-campaign-title">Next in line.</h1>
-    <p class="pham-campaign-lede">Standby opens only after all paid Priority Reservations are allocated. Joining is free. If a reserved slot expires, standby offers are issued in queue order at the full {{ settings.pham_campaign_final_price | default: '$199.00' }} price.</p>
+    <h1 class="pham-campaign-title">Standby.</h1>
+    <p class="pham-campaign-lede">Standby is free and opens only when all paid reservations are allocated. Released slots are offered in queue order at {{ settings.pham_campaign_final_price | default: '$199.00' }}.</p>
 
     <div class="pham-campaign-grid">
       <article class="pham-campaign-card pham-campaign-card--wide">
