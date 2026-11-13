@@ -15,11 +15,15 @@ Reservation, Identity, referral and provenance are mechanisms inside that protoc
 D1 is the authority for campaign state:
 
 1. `prelaunch`
-2. `reservation_open`
-3. `reservation_full`
-4. `final_payment`
-5. `sold_out`
-6. `archived`
+2. `reservation_open` — up to 14 days from verified UTC opening
+3. `reservation_full` — 50 active valid reservations allocated
+4. `reservation_closed` — deadline ended with fewer than 50, merchant decision required
+5. `refund_review` → `edition_cancelled` — only after Shopify refund cases are reviewed and settled
+6. `final_payment` — full 50, or a smaller run separately approved by factory, legal and customer-communications owners
+7. `sold_out` — final issued object set sealed
+8. `archived` — all issued objects delivered and token allocations complete
+
+The edition maximum stays **50**. An approved partial run records its **actual issued quantity** separately and never silently mints unused object numbers. The 49-silver / 1-gold token mix describes the full 50-object run; partial runs require revised lawful disclosures. Buyer notifications are queued but only sent after email transport is explicitly configured and delivery tested.
 
 Theme Settings remain a presentation fallback. When the Edition Engine is enabled, the Worker/D1 state is authoritative and checkout fails closed if live state cannot be verified.
 
