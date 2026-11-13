@@ -14,6 +14,7 @@ import {
   selectFinalVariantBySize,
   validateFinalAcquisitionOrder,
   validateIdentityPersonalization,
+  canAcceptPaidReservation,
   validateManualContactEvidence,
   validatePriorityReservationOrder,
   validateStandbyAcquisitionOrder,
@@ -874,4 +875,14 @@ test('Object Identity requires verifiable email or WhatsApp correspondence for o
   assert.throws(() => validateManualContactEvidence({...verified, channel:'webform'}), /identity_contact_verification_required/);
   assert.throws(() => validateManualContactEvidence({...verified, contactReference:''}), /identity_contact_verification_required/);
   assert.throws(() => validateManualContactEvidence({...verified, contactReference:'<script>'}), /identity_contact_verification_required/);
+});
+
+test('paid reservation intake fails closed independently of theme and legacy campaign state',()=>{
+  assert.equal(canAcceptPaidReservation(null),false);
+  assert.equal(canAcceptPaidReservation({state:'prelaunch',commerce_acceptance_enabled:1}),false);
+  assert.equal(canAcceptPaidReservation({state:'reservation_open'}),false);
+  assert.equal(canAcceptPaidReservation({state:'reservation_open',commerce_acceptance_enabled:0}),false);
+  assert.equal(canAcceptPaidReservation({state:'reservation_open',commerce_acceptance_enabled:1}),true);
+  assert.equal(canAcceptPaidReservation({state:'reservation_full',commerce_acceptance_enabled:1}),false);
+  assert.equal(canAcceptPaidReservation({state:'archived',commerce_acceptance_enabled:0}),false);
 });
