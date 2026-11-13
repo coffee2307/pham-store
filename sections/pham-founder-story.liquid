@@ -213,6 +213,19 @@
   .pham-founder__section-phrase { white-space:normal }
 }
 
+/* Founder Story rail stacking: the chapters are always solid, above the
+   independently animated vertical progress line. An opacity or transform
+   entrance on the whole chapter would expose the line through its label. */
+.pham-founder__chapters { isolation: isolate; }
+.pham-founder__chapters::before,
+.pham-founder__chapters::after { z-index: 0; }
+.pham-founder__chapters > .pham-founder__chapter {
+  position: relative;
+  z-index: 1;
+  opacity: 1;
+  transform: none;
+}
+.pham-founder__chapter-aside { isolation: isolate; }
 /* A solid square label interrupts the timeline rail behind it. */
 .pham-founder__chapter-aside {
   position: relative;

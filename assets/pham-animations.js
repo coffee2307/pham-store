@@ -127,7 +127,8 @@
       this.reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
       this.selectors = [
         'main h2:not(.reveal-up):not([data-pham-motion-ignore])',
-        '.pham-founder__chapter','.pham-founder__obstacle',
+        // Timeline chapters must stay opaque while the independent progress rail animates.
+        '.pham-founder__obstacle',
         '.pham-founder__facts','.pham-founder__present',
         '.pham-founder__end-links','.pham-about__founder-facts',
         '.pham-about__resources','.pham-lookbook-v2__cell:not(.reveal-up)',
