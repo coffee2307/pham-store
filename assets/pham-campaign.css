@@ -1183,7 +1183,7 @@
   .pham-identity-access { flex-direction: column; align-items: flex-start; gap: 6px; margin: 18px 0 22px; padding: 12px 0; }
   .pham-identity-editor__grid { grid-template-columns: minmax(0,1fr); gap: 20px; }
   .pham-identity-editor__fields { grid-template-columns: 1fr 1fr; gap: 11px; margin-bottom: 17px; }
-  .pham-identity-page .pham-number-grid { grid-template-columns: repeat(6,minmax(0,1fr)); gap: 6px; }
+  .pham-identity-page .pham-number-grid { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 6px; }
   .pham-identity-page .pham-number-grid button { min-height: 44px; font-size: 12px; }
   .pham-identity-editor__preview { padding-top: 18px; border-top: 1px solid rgba(245,245,241,.16); }
   .pham-identity-editor__preview-label { margin-bottom: 11px; }
