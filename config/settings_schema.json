@@ -2617,6 +2617,12 @@
         "label": "Contact email",
         "default": "contact@phamofficial.com",
         "info": "Shown in the footer and on the contact page."
+      },
+      {
+        "type": "text",
+        "id": "pham_identity_whatsapp_number",
+        "label": "Official WhatsApp contact",
+        "info": "International digits only, with country code and no plus sign (e.g. 84912345678). Leave blank to hide WhatsApp until PHAM has verified its own number."
       }
     ]
   },
