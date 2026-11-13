@@ -685,6 +685,16 @@ function mountReservation(root){
         liveReservationOpen = state === 'reservation_open' &&
           payload.edition.paidReservationIntakeEnabled === true;
 
+        var windowDeadline = root.querySelector('[data-pham-window-deadline]');
+        if(windowDeadline && payload && payload.edition && payload.edition.reservationClosesAt){
+          var closingAt = new Date(payload.edition.reservationClosesAt);
+          if(!isNaN(closingAt.getTime())){
+            windowDeadline.textContent = 'Reservation deadline: ' +
+              closingAt.toLocaleString() + ' (your local time). Reservations close automatically at this time.';
+            windowDeadline.hidden = false;
+          }
+        }
+
         if(sizePreference && payload && payload.edition){
           syncSizeSelect(sizePreference, payload.edition.sizeOptions || []);
           syncSizeUI();
@@ -704,7 +714,11 @@ function mountReservation(root){
         if(!liveReservationOpen && error){
           error.textContent = state === 'reservation_full'
             ? 'Priority Reservation is fully allocated. Join the standby queue for the next released object.'
-            : 'Priority Reservation is not currently open.';
+            : state === 'reservation_closed'
+              ? 'The maximum reservation window has ended. PHAM is reviewing the confirmed orders before deciding whether to proceed or refund.'
+              : state === 'refund_review' || state === 'edition_cancelled'
+                ? 'This edition is not accepting deposits. Contact PHAM about your existing order or refund.'
+                : 'Priority Reservation is not currently open.';
           error.hidden = false;
         }
 
