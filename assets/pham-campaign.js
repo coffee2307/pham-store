@@ -321,7 +321,7 @@ function mountIdentity(root){
       btn.classList.add('is-selected');
       btn.setAttribute('aria-pressed', 'true');
       var selectedNumber = String(btn.dataset.phamObjectNumber || '').padStart(2, '0');
-      if(outNumber) outNumber.textContent = selectedNumber + '/' + (root.dataset.editionSize || '50');
+      if(outNumber) outNumber.textContent = selectedNumber + ' / ' + (root.dataset.editionSize || '50');
       if(numberStatus) numberStatus.textContent = 'Preferred: ' + selectedNumber + '. Pending PHAM confirmation.';
       if(numberInput) numberInput.value = btn.dataset.phamObjectNumber || '';
       if(submit) submit.disabled = !numberInput || numberInput.value === '';
