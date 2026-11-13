@@ -32,7 +32,7 @@ Migration `backend/migrations/0004_identity_production_notes.sql` is required **
 - **Payments and fulfillment:** verify a real supported payment provider can capture and refund USD; test actual shipping destinations, duties/taxes, email notifications and support escalation. Complete staged purchases: $24.99 deposit, $29.99 deposit+Identity, $174.01 balance with exact credit, and $199 standby route, plus failed/refunded/expired cases.
 - **Live endpoints and operational security:** apply migration 0004, verify App Proxy, orders-paid and fulfillment webhook signatures/idempotency, retries, object number conflicts, authenticated collector data and complete lifecycle records. Reconcile the publicly accessible direct Shopify reservation SKU to prevent paid orders bypassing Edition Engine while the front-end is still gated.
 - **Content and experience:** verify actual Digital Lookbook download and terms/consent, no placeholder public legal facts, all links and forms on mobile and desktop, focus states, accessibility, loading performance, and final marketing imagery versus approved sample.
-- **EU electronic withdrawal:** the contact page includes request type and order reference; the Edition Terms link to the online form. Test delivery to the actual support inbox and confirm whether market-specific additional Shopify withdrawal functionality is required.
+- **EU electronic withdrawal:** the contact page includes request type and order reference; the Edition Terms link to the online form. This is a basic request channel **not yet proof of compliance** with Article 11a of Directive (EU) 2023/2673: the prominent, always-available withdrawal function, unambiguous 'confirm withdrawal' action and prompt durable acknowledgment containing submission time/content must be validated and implemented for applicable EU sales. Keep EU checkout closed until independently tested and legally signed off.
 
 ## D. Legal sources to review on launch day
 
@@ -41,7 +41,8 @@ Migration `backend/migrations/0004_identity_production_notes.sql` is required **
 3. Personal Data Protection Law No. 91/2025/QH15: https://bocongan.gov.vn/chinh-sach-phap-luat/co-so-du-lieu-van-ban/luat-bao-ve-du-lieu-ca-nhan-1753688803
 4. EU Consumer Rights Directive 2011/83/EU: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A32011L0083
 5. EU consumers' distance selling returns: https://europa.eu/youreurope/citizens/consumers/shopping/returns/index_en.htm
-6. EU Directive (EU) 2023/2673, online withdrawal function from June 2026: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32023L2673\n7. Shopify returns guidance: https://help.shopify.com/en/manual/fulfillment/managing-orders/returns/return-rules\n8. Shopify store testing before launch: https://help.shopify.com/en/manual/intro-to-shopify/initial-setup/setup-prepare-for-launch/
-7. Shopify store testing before launch: https://help.shopify.com/en/manual/intro-to-shopify/initial-setup/setup-prepare-for-launch/
+6. EU Directive (EU) 2023/2673, online withdrawal function from June 2026: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32023L2673
+7. Shopify returns guidance: https://help.shopify.com/en/manual/fulfillment/managing-orders/returns/return-rules
+8. Shopify store testing before launch: https://help.shopify.com/en/manual/intro-to-shopify/initial-setup/setup-prepare-for-launch/
 
 **Never claim full legal compliance merely because templates exist.** Record independent counsel review or an accountable merchant decision for each actual target country.
