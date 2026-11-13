@@ -159,6 +159,30 @@ function campaignPresentation(context, state){
         'COLLECTOR ACCESS TRACKS THE OBJECT RECORD'
       ];
       break;
+    case 'reservation_closed':
+      presentation.url = context.editionPageUrl || '/pages/edition-01';
+      presentation.entryLabel = 'VIEW EDITION';
+      presentation.primaryLabel = 'RESERVATIONS CLOSED';
+      presentation.status = 'RESERVATIONS CLOSED · PHAM REVIEWING ORDERS';
+      presentation.acquisitionSubtitle = 'RESERVATION WINDOW ENDED';
+      presentation.acquisitionCopy = 'The 14-day reservation period has ended. PHAM will communicate the next step. No further deposits are accepted.';
+      break;
+    case 'refund_review':
+      presentation.url = context.collectorPageUrl || '/pages/reservation-status';
+      presentation.entryLabel = 'ORDER STATUS';
+      presentation.primaryLabel = 'VIEW ORDER STATUS';
+      presentation.status = 'EDITION · REFUND REVIEW';
+      presentation.acquisitionSubtitle = 'ORDER REVIEW';
+      presentation.acquisitionCopy = 'PHAM is reconciling refunds with Shopify. Contact the atelier about an unresolved payment.';
+      break;
+    case 'edition_cancelled':
+      presentation.url = context.editionPageUrl || '/pages/edition-01';
+      presentation.entryLabel = 'VIEW EDITION';
+      presentation.primaryLabel = 'EDITION CANCELLED';
+      presentation.status = 'EDITION CANCELLED';
+      presentation.acquisitionSubtitle = 'EDITION CANCELLED';
+      presentation.acquisitionCopy = 'The edition was cancelled after its reservation window. Check your payment and refund correspondence.';
+      break;
     case 'sold_out':
       presentation.entryLabel = 'VIEW EDITION';
       presentation.primaryLabel = 'VIEW EDITION';
@@ -230,6 +254,9 @@ function applyGlobalCampaignState(context, state){
   var indexLabels = {
     reservation_open: ['RESERVATION OPEN', 'reservation-open'],
     reservation_full: ['RESERVED / STANDBY', 'reserved-standby'],
+    reservation_closed: ['RESERVATIONS CLOSED', 'closed'],
+    refund_review: ['REFUND REVIEW', 'closed'],
+    edition_cancelled: ['EDITION CANCELLED', 'closed'],
     final_payment: ['ACQUISITION OPEN', 'acquisition-open'],
     sold_out: ['CLOSED', 'closed'],
     archived: ['ARCHIVED', 'archived']
@@ -838,11 +865,20 @@ function mountCollector(root){
     });
   }
 
-  function nextInstruction(reservation, identity){
+  function nextInstruction(reservation, identity, campaign){
     if(reservation.status === 'final_payment_open'){
       return 'Complete the remaining acquisition balance before the published deadline. The allocation is released if the payment window expires.';
     }
 
+    if(campaign && (campaign.refundReviewStatus === 'pending_review' || campaign.state === 'refund_review')){
+      return 'PHAM is reviewing your reservation for a refund. No further payment is due. Contact PHAM with your order reference if you need support.';
+    }
+    if(campaign && campaign.state === 'edition_cancelled'){
+      return 'This edition was cancelled. Please retain the original Shopify order and contact PHAM if you have not received refund confirmation.';
+    }
+    if(campaign && campaign.state === 'reservation_closed' && !campaign.partialRunApproved){
+      return 'The reservation window has closed. PHAM is verifying whether the confirmed orders can proceed or require refunds. Do not pay an additional balance now.';
+    }
     if(reservation.status === 'final_paid' && identity && identity.status === 'claimed'){
       return 'Your jacket acquisition is confirmed. To personalise your card, send the requested text to PHAM by email or WhatsApp on the Object Identity page. PHAM must confirm it before engraving.';
     }
@@ -980,7 +1016,7 @@ function mountCollector(root){
             ? formatMoney(reservation.balanceDueCents, root.dataset.currency || 'USD')
             : 'AWAITING FINAL PAYMENT INVITATION';
       }
-      if(nextAction) nextAction.textContent = nextInstruction(reservation, identity);
+      if(nextAction) nextAction.textContent = nextInstruction(reservation, identity, payload.campaign || null);
 
       renderLifecycle(reservation.lifecycleStage || 'not_started');
 
