@@ -66,6 +66,10 @@ switch(command){
     await request('/internal/readiness?edition=' + encodeURIComponent(editionArg()));
     break;
 
+  case 'personalizations':
+    await request('/internal/personalizations?edition=' + encodeURIComponent(editionArg()));
+    break;
+
   case 'reviews': {
     const rawLimit = Number(valueArg('--limit') || 50);
     const limit = Number.isInteger(rawLimit) ? Math.max(1, Math.min(100, rawLimit)) : 50;
