@@ -882,7 +882,12 @@ test('paid reservation intake fails closed independently of theme and legacy cam
   assert.equal(canAcceptPaidReservation({state:'prelaunch',commerce_acceptance_enabled:1}),false);
   assert.equal(canAcceptPaidReservation({state:'reservation_open'}),false);
   assert.equal(canAcceptPaidReservation({state:'reservation_open',commerce_acceptance_enabled:0}),false);
-  assert.equal(canAcceptPaidReservation({state:'reservation_open',commerce_acceptance_enabled:1}),true);
+  assert.equal(canAcceptPaidReservation({state:'reservation_open',commerce_acceptance_enabled:1}),false);
+  assert.equal(canAcceptPaidReservation({
+    state:'reservation_open',commerce_acceptance_enabled:1,
+    reservation_opened_at:'2026-11-13T00:00:00.000Z',
+    reservation_closes_at:'2026-11-27T00:00:00.000Z'
+  },new Date('2026-11-14T00:00:00Z')),true);
   assert.equal(canAcceptPaidReservation({state:'reservation_full',commerce_acceptance_enabled:1}),false);
   assert.equal(canAcceptPaidReservation({state:'archived',commerce_acceptance_enabled:0}),false);
 });
