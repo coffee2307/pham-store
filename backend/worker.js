@@ -3183,7 +3183,9 @@ async function syncReservationMetafields(env, data) {
 }
 
 async function openFinalPayment(request, env) {
-  const body = await request.json();
+  const body = await request.json().catch(()=>null);
+  if(!body||body.confirm!=='OPEN_FINAL_ACQUISITION')
+    return json({ok:false,error:'explicit_confirmation_required'},422);
   const editionId = body.editionId || 'edition-01';
   const edition = await env.PHAM_CAMPAIGN_DB.prepare(
     'SELECT * FROM editions WHERE id = ?'
@@ -3583,6 +3585,12 @@ async function resolveUnderfilledReservationWindow(request,env){
 
   // Do not refund a financial transaction from this endpoint. Only create
   // a traceable, authenticated queue for the merchant to refund in Shopify.
+  if(count===0){
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      "UPDATE editions SET state='edition_cancelled',commerce_acceptance_enabled=0,reservation_close_reason='no_reservations',updated_at=CURRENT_TIMESTAMP WHERE id=? AND state='reservation_closed'"
+    ).bind(editionId).run();
+    return json({ok:true,editionId,decision:'refund_review',pendingReviewCount:0,automaticRefundsIssued:false,state:'edition_cancelled'},200,{'Cache-Control':'no-store'});
+  }
   await env.PHAM_CAMPAIGN_DB.batch([
     env.PHAM_CAMPAIGN_DB.prepare(
       `INSERT OR IGNORE INTO refund_review_cases
