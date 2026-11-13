@@ -13,7 +13,7 @@
   data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
-    <h1 class="pham-campaign-title">Object record.</h1>
+    <h1 class="pham-campaign-title">Object <strong class="pham-funnel-emphasis">record.</strong></h1>
     <p class="pham-campaign-lede"><span data-pham-provenance-auth>{{ auth_status }}</span>. Record details require an assigned object and successful verification.</p>
     <div class="pham-campaign-alert" data-pham-provenance-result hidden role="status"></div>
 

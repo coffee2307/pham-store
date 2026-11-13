@@ -25,7 +25,7 @@
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
     <p class="pham-campaign-kicker"><span class="pham-campaign-kicker__edition">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' | escape }}</span><span class="pham-campaign-kicker__status" data-pham-live-state>{{ state_label }}</span></p>
-    <h1 class="pham-campaign-title"><span class="pham-campaign-title__unit">{{ settings.pham_campaign_product_code | default: 'PHAM-001' | escape }}</span></h1>
+    <h1 class="pham-campaign-title"><strong class="pham-funnel-emphasis"><span class="pham-campaign-title__unit">{{ settings.pham_campaign_product_code | default: 'PHAM-001' | escape }}</span></strong></h1>
     <p class="pham-campaign-lede">{{ section.settings.intro }}</p>
 
     <div class="pham-campaign-grid">
@@ -54,7 +54,7 @@
       </article>
 
       <article class="pham-campaign-card">
-        <h2>Reserve</h2>
+        <h2>Reservation price.</h2>
         <ul class="pham-campaign-list">
           <li><span>Due at reservation</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></li>
           <li><span>Edition price</span><strong>{{ settings.pham_campaign_final_price | default: '$199.00' }}</strong></li>
@@ -62,17 +62,9 @@
         </ul>
       </article>
 
-      <article class="pham-campaign-card">
-        <h2>Digital Access</h2>
-        <p>{% if settings.pham_campaign_include_digital_lookbook %}The {{ settings.pham_campaign_digital_lookbook_label | default: 'Collector Lookbook' }} is emailed after confirmed payment.{% else %}Digital collector material can be attached to this edition later.{% endif %}</p>
-      </article>
 
-      <article class="pham-campaign-card">
-        <h2>Founder’s Token</h2>
-        <p>50 commemorative tokens: 49 silver-tone, one gold-tone. The Edition Engine assigns the gold-tone token after the object set is finalized. The result stays sealed until delivery.</p>
-      </article>
       <article class="pham-campaign-card pham-campaign-card--full">
-        <h2>Edition ledger</h2>
+        <h2>Edition records.</h2>
         <div class="pham-edition-ledger">
           <div><span>Object set</span><strong>{{ edition_size }} / {{ edition_size }}</strong></div>
           <div><span>Acquired</span><strong data-pham-live-acquired-count>— / {{ edition_size }}</strong></div>
@@ -80,8 +72,15 @@
           <div><span>Design origin</span><strong data-pham-live-design-origin>{{ settings.pham_campaign_origin_label | default: 'VIETNAM / 2026' }}</strong></div>
           <div><span>Reproduction</span><strong>NEVER AFTER ARCHIVE</strong></div>
         </div>
-        <p class="pham-edition-ledger__note" data-pham-live-archive-note>After all acquired objects are delivered, Edition 01 can enter the permanent archive. No restock.</p>
+        <p class="pham-edition-ledger__note" data-pham-live-archive-note>Archived after all acquired jackets are delivered. No restock.</p>
       </article>
+      <details class="pham-campaign-expander pham-campaign-grid__full">
+        <summary>Included with Edition 01 <span aria-hidden="true">+</span></summary>
+        <div class="pham-campaign-expander__body">
+          <p>Digital Collector Lookbook: {% if settings.pham_campaign_include_digital_lookbook %}included after confirmed payment{% else %}not yet enabled{% endif %}.</p>
+          <p>Founder’s Token: 49 silver-tone, one gold-tone. Allocation remains sealed until delivery.</p>
+        </div>
+      </details>
 
     </div>
   </div>

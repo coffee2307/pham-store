@@ -20,7 +20,7 @@
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
     {%- unless commerce_ready -%}<span class="pham-campaign-draft">PRELAUNCH CONFIGURATOR · SUBMISSION DISABLED</span>{%- endunless -%}
-    <h1 class="pham-campaign-title">Object identity.</h1>
+    <h1 class="pham-campaign-title">Object <strong class="pham-funnel-emphasis">identity.</strong></h1>
     <p class="pham-campaign-lede">Configure your collector identity when eligible. {{ settings.pham_campaign_identity_limit | default: 15 }} privileges are shared between paid upgrades and referral unlocks.</p>
 
     <div class="pham-campaign-grid">
@@ -35,6 +35,7 @@
           {%- endif -%}
         {%- endif -%}
 
+        {%- unless submit_enabled -%}<details class="pham-campaign-expander pham-identity-preview-disclosure"><summary>Preview customization <span aria-hidden="true">+</span></summary><div class="pham-campaign-expander__body">{%- endunless -%}
         {%- form 'contact', id: 'PhamIdentityForm', class: 'pham-identity-form' -%}
           <div data-pham-identity-form>
           <input type="hidden" name="contact[Source]" value="PHAM Object Identity">
@@ -119,6 +120,7 @@
           <p class="pham-campaign-alert" data-pham-identity-result hidden role="status"></p>
           </div>
         {%- endform -%}
+        {%- unless submit_enabled -%}</div></details>{%- endunless -%}
       </div>
     </div>
   </div>

@@ -548,3 +548,383 @@
   }
   .pham-campaign-shell:not([data-pham-edition-campaign]) .pham-status-row strong { text-align:left; }
 }
+
+/* PHAM FUNNEL UI V3: a single clear path from reservation to collector record.
+   Functional inputs, prices, countdowns and legal disclosures remain in markup. */
+.pham-campaign-shell .pham-funnel-emphasis {
+  font: inherit;
+  font-weight: 700;
+  line-height: inherit;
+  letter-spacing: inherit;
+  color: #f4f3f1;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) {
+  padding-top: clamp(36px, 5vw, 68px);
+  padding-bottom: clamp(44px, 6vw, 72px);
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-title {
+  font-weight: 400;
+  letter-spacing: -.043em;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-grid {
+  margin-top: clamp(24px, 3.5vw, 40px);
+  gap: 12px;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-card {
+  padding: clamp(17px, 2.2vw, 27px);
+  min-width: 0;
+  min-height: 0;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-card h2 {
+  font-size: clamp(1.04rem,1.45vw,1.3rem);
+  margin-bottom: 12px;
+}
+.pham-campaign-shell:not([data-pham-edition-campaign]) .pham-campaign-lede {
+  margin-top: 13px;
+}
+.pham-campaign-expander {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border-top: 1px solid rgba(240,239,235,.22);
+  border-bottom: 1px solid rgba(240,239,235,.22);
+  color: #f4f3f1;
+}
+.pham-campaign-grid__full { grid-column: 1 / -1; }
+.pham-campaign-expander>summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 48px;
+  cursor: pointer;
+  list-style: none;
+  font: 600 12px/1.4 var(--font-body,Arial,sans-serif);
+  letter-spacing: .015em;
+}
+.pham-campaign-expander>summary::-webkit-details-marker { display:none; }
+.pham-campaign-expander>summary>span:last-child {
+  font-family: var(--font-mono,monospace);
+  font-size: 17px;
+  color: rgba(244,243,241,.74);
+  transition: transform 220ms ease;
+}
+.pham-campaign-expander[open]>summary>span:last-child { transform: rotate(45deg); }
+.pham-campaign-expander__body {
+  display: grid;
+  gap: 10px;
+  padding: 0 0 22px;
+  color: rgba(245,245,241,.73);
+  font: 400 13px/1.6 var(--font-body,Arial,sans-serif);
+}
+.pham-campaign-expander__body p { margin: 0; }
+.pham-identity-preview-disclosure { margin-top: 18px; border-color: var(--pc-line); }
+.pham-identity-preview-disclosure .pham-campaign-expander__body { padding-top: 16px; }
+.pham-identity-preview-disclosure .pham-identity-form { width: 100%; }
+.pham-campaign-shell[data-pham-edition-campaign] {
+  padding-bottom: clamp(48px, 6vw, 78px);
+}
+.pham-campaign-shell[data-pham-edition-campaign] .pham-campaign-grid {
+  gap: 12px;
+  margin-top: clamp(24px, 3.5vw, 38px);
+}
+.pham-campaign-shell[data-pham-edition-campaign] .pham-campaign-card {
+  min-height: 0;
+  padding: clamp(17px, 2vw, 25px);
+}
+.pham-campaign-shell[data-pham-edition-campaign] .pham-campaign-card h2 {
+  font-size: clamp(1.15rem,1.7vw,1.5rem);
+  letter-spacing: -.02em;
+}
+.pham-campaign-shell[data-pham-edition-campaign] .pham-edition-ledger {
+  grid-template-columns: repeat(3, minmax(0,1fr));
+}
+.pham-campaign-shell[data-pham-edition-campaign] .pham-edition-ledger>div {
+  min-height: 77px;
+  padding: 12px 14px;
+  gap: 6px;
+}
+.pham-campaign-shell[data-pham-edition-campaign] .pham-edition-ledger strong {
+  font-size: clamp(.8rem,1.3vw,1.08rem);
+  overflow-wrap: anywhere;
+}
+.pham-campaign-shell[data-pham-edition-campaign] .pham-campaign-expander {
+  margin-top: 2px;
+}
+.pham-reservation-commerce {
+  padding-block: clamp(32px,4.3vw,72px) clamp(52px,6vw,76px);
+}
+.pham-reservation-commerce .pham-campaign-inner { width: min(1240px,100%); }
+.pham-reservation-commerce__layout {
+  grid-template-columns: minmax(0,.97fr) minmax(360px,1.03fr);
+  gap: clamp(24px,4.2vw,60px);
+}
+.pham-reservation-commerce__image-frame { background: #101114; }
+.pham-reservation-commerce__edition-note { margin-top: 8px; }
+.pham-reservation-commerce__head { padding-bottom: 17px; }
+.pham-reservation-commerce__head h1 {
+  font-size: clamp(2.15rem,4.25vw,3.9rem);
+  line-height: 1.09;
+  max-width: 100%;
+  letter-spacing: -.05em;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.pham-reservation-commerce__head h1 .pham-funnel-emphasis {
+  white-space: nowrap;
+}
+.pham-reservation-commerce__price-row {
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 17px;
+}
+.pham-reservation-commerce__price-row strong {
+  font: 700 clamp(1.75rem,3.1vw,2.45rem)/1 var(--font-body,Arial,sans-serif);
+  letter-spacing: -.035em;
+}
+.pham-reservation-commerce__price-row span { letter-spacing: .08em; }
+.pham-reservation-commerce__credit {
+  margin-top: 9px !important;
+  font-size: .92rem !important;
+  line-height: 1.53 !important;
+}
+.pham-reservation-commerce__balance {
+  margin-top: 5px !important;
+  font-size: .81rem !important;
+}
+.pham-reservation-commerce .pham-reservation-size {
+  margin-top: 19px;
+  padding-top: 0;
+}
+.pham-reservation-size__head h3,
+.pham-reservation-commerce .pham-reservation-size__head h3 {
+  font-family: var(--font-body,Arial,sans-serif);
+  font-size: 1.12rem;
+  font-weight: 600;
+  letter-spacing: -.025em;
+  text-transform: none;
+}
+.pham-reservation-commerce .pham-reservation-size__head {
+  align-items: center;
+  flex-direction: row;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.pham-reservation-size__status {
+  font-size: 9px;
+  letter-spacing: 0;
+}
+.pham-reservation-commerce .pham-reservation-size__choices {
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 7px;
+}
+.pham-reservation-commerce .pham-reservation-size__choices button {
+  min-height: 67px;
+  min-width: 0;
+  gap: 6px;
+  padding: 10px;
+  border-color: rgba(238,238,238,.22);
+  transform: none;
+}
+.pham-reservation-commerce .pham-reservation-size__choices strong {
+  font-family: var(--font-body,Arial,sans-serif);
+  font-size: 1.2rem;
+}
+.pham-reservation-commerce .pham-reservation-size__choices span {
+  font-size: 9px;
+  letter-spacing: -.025em;
+  white-space: nowrap;
+}
+.pham-reservation-size__help {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 7px;
+  margin-top: 10px;
+}
+.pham-reservation-size__help a {
+  color: #e8e7e2;
+  font: 500 12px/1.35 var(--font-body,Arial,sans-serif);
+  letter-spacing: 0;
+  white-space: normal;
+}
+.pham-reservation-commerce__addon {
+  margin-top: 19px;
+  border-color: rgba(238,238,238,.2);
+}
+.pham-reservation-commerce__addon .pham-reservation-upgrade__choice {
+  gap: 12px;
+  padding: 14px;
+}
+.pham-reservation-upgrade__choice strong {
+  font-size: 12px;
+  line-height: 1.4;
+}
+.pham-reservation-upgrade__choice small {
+  font-size: 12px;
+  line-height: 1.48;
+}
+.pham-reservation-commerce__availability {
+  padding: 0 14px 12px;
+  letter-spacing: .06em;
+}
+.pham-reservation-commerce__summary {
+  margin-top: 16px;
+}
+.pham-reservation-commerce__summary-row { padding: 8px 0; }
+.pham-reservation-commerce__summary-total { padding: 13px 0; }
+.pham-reservation-commerce__summary-total strong {
+  font: 700 1.35rem/1.1 var(--font-body,Arial,sans-serif);
+}
+.pham-reservation-commerce__later {
+  padding: 10px 0;
+  font-size: .84rem;
+}
+.pham-reservation-commerce__consent { margin-top: 14px; gap: 10px; }
+.pham-reservation-commerce__consent label {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.pham-reservation-commerce__consent a { color:#f4f3f1; text-underline-offset: 3px; }
+.pham-reservation-commerce__checkout {
+  display: block;
+  position: static;
+  padding: 0;
+  margin-top: 15px;
+  border: 0;
+  background: none;
+  backdrop-filter: none;
+}
+.pham-reservation-commerce__checkout .pham-campaign-btn {
+  width: 100%;
+  min-height: 51px;
+  font-size: 11px;
+  letter-spacing: .04em;
+}
+.pham-reservation-commerce__microcopy {
+  margin-top: 10px;
+  font: 400 11px/1.4 var(--font-body,Arial,sans-serif);
+  letter-spacing: 0;
+}
+.pham-reservation-commerce__below {
+  max-width: 850px;
+  margin: clamp(30px,5vw,54px) auto 0;
+  padding-top: 22px;
+}
+.pham-reservation-commerce__details { margin: 0; }
+.pham-reservation-details-title {
+  margin: 0 0 13px;
+  font: 600 clamp(1.12rem,1.7vw,1.35rem)/1.2 var(--font-body,Arial,sans-serif);
+  letter-spacing: -.025em;
+}
+.pham-reservation-commerce__details summary {
+  font: 600 12px/1.4 var(--font-body,Arial,sans-serif);
+  letter-spacing: .01em;
+  padding: 15px 0;
+}
+.pham-reservation-commerce__details summary span {
+  color: rgba(244,243,241,.68);
+  font-size: 16px;
+  transition: transform 200ms ease;
+}
+.pham-reservation-commerce__details details[open] summary span { transform:rotate(45deg); }
+.pham-reservation-commerce__details details p {
+  font-size: 13px !important;
+  line-height: 1.58 !important;
+  max-width: 70ch;
+}
+@media(max-width:980px) {
+  .pham-reservation-commerce__layout { grid-template-columns: minmax(0,1fr); }
+  .pham-reservation-commerce__media { position: relative; top: auto; }
+}
+@media(max-width:700px) {
+  .pham-campaign-shell[data-pham-edition-campaign] .pham-edition-ledger {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  .pham-campaign-shell[data-pham-edition-campaign] .pham-edition-ledger>div {
+    min-height: 74px;
+    padding: 12px;
+  }
+  .pham-campaign-shell[data-pham-edition-campaign] .pham-campaign-grid {
+    margin-top: 25px;
+    gap: 10px;
+  }
+  .pham-campaign-shell[data-pham-edition-campaign] .pham-campaign-card {
+    padding: 17px;
+  }
+  .pham-reservation-commerce {
+    padding: 36px clamp(15px,4.4vw,23px) 52px;
+  }
+  .pham-reservation-commerce__layout { gap: 20px; }
+  .pham-reservation-commerce__image-frame {
+    aspect-ratio: 5 / 4;
+    border-color: rgba(244,243,241,.14);
+  }
+  .pham-reservation-commerce__image-frame img { object-fit: contain; }
+  .pham-reservation-commerce__thumbs { gap: 6px; margin-top: 8px; }
+  .pham-reservation-commerce__thumbs button {
+    flex-basis: 56px; width: 56px; height: 65px;
+  }
+  .pham-reservation-commerce__edition-note {
+    margin-top: 8px;
+    font-size: 9px;
+    letter-spacing: .05em;
+  }
+  .pham-reservation-commerce__head h1 {
+    font-size: clamp(1.76rem, 8.45vw, 2.55rem);
+    line-height: 1.12;
+  }
+  .pham-reservation-commerce__price-row { margin-top: 16px; }
+  .pham-reservation-commerce__credit { font-size: .875rem !important; }
+  .pham-reservation-commerce__balance { font-size: .78rem !important; }
+  .pham-reservation-commerce .pham-reservation-size__head {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  .pham-reservation-commerce .pham-reservation-size__choices {
+    grid-template-columns: repeat(4,minmax(0,1fr));
+  }
+  .pham-reservation-commerce .pham-reservation-size__choices button {
+    padding: 9px 6px;
+    min-height: 64px;
+  }
+  .pham-reservation-commerce .pham-reservation-size__choices strong {
+    font-size: 1.12rem;
+  }
+  .pham-reservation-commerce .pham-reservation-size__choices span {
+    font-size: 8.5px;
+  }
+  .pham-reservation-commerce__checkout {
+    position: static;
+    z-index: auto;
+    margin-top: 16px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+  .pham-reservation-commerce__checkout .pham-campaign-btn { min-height: 50px; }
+  .pham-reservation-commerce[data-can-checkout="true"] .pham-reservation-commerce__checkout {
+    position: sticky;
+    bottom: 8px;
+    z-index: 9;
+    padding: 7px;
+    background: rgba(10,11,13,.96);
+    border: 1px solid rgba(243,241,238,.22);
+  }
+  .pham-reservation-commerce__below { margin-top: 35px; padding-top: 20px; }
+}
+@media(max-width:355px) {
+  .pham-reservation-commerce .pham-reservation-size__choices {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  .pham-reservation-commerce .pham-reservation-size__choices span { font-size: 10px; }
+  .pham-reservation-commerce__head h1 { font-size: clamp(1.65rem,8vw,1.95rem); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .pham-reservation-commerce__details summary span,
+  .pham-campaign-expander>summary>span:last-child {
+    transition: none;
+  }
+}

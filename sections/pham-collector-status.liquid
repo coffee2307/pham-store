@@ -31,7 +31,7 @@
   data-edition-size="{{ settings.pham_campaign_edition_size | default: 50 }}"
   {% if payment_deadline != blank %}data-payment-deadline="{{ payment_deadline | escape }}"{% endif %}>
   <div class="pham-campaign-inner">
-      <h1 class="pham-campaign-title">{% if customer %}{{ customer.first_name | default: 'Collector' | escape }}{% else %}Collector{% endif %} record.</h1>
+      <h1 class="pham-campaign-title">{% if customer %}{{ customer.first_name | default: 'Collector' | escape }}{% else %}Collector{% endif %} <strong class="pham-funnel-emphasis">record.</strong></h1>
     <p class="pham-campaign-lede">View your reservation, object status, payment steps and delivery record.</p>
 
     <div class="pham-campaign-grid">
@@ -90,6 +90,7 @@
         {%- endunless -%}
       </article>
 
+      {%- if customer -%}
       <article class="pham-campaign-card">
         <h2>Current instruction</h2>
         <p data-pham-next-action-copy>PHAM will surface the next required action here as your object moves through the edition protocol.</p>
@@ -128,6 +129,7 @@
         <h2>Birth Record</h2>
         <p>Your numbered object receives a tokenized PHAM Birth Record after the final object set is fixed. The record carries origin, assignment and lifecycle data without exposing private contact information.</p>
       </article>
+      {%- endif -%}
     </div>
   </div>
 </section>
