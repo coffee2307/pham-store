@@ -26,9 +26,8 @@
 <section class="pham-archive" data-pham-archive aria-label="{{ section.settings.title | escape }}">
   <div class="pham-archive__sticky">
     <header class="pham-archive__head pham-container">
-      <p>{{ section.settings.eyebrow }}</p>
       <h2>{{ section.settings.title }}</h2>
-      <span>SCROLL / DRAG</span>
+      <span>DRAG TO EXPLORE</span>
     </header>
 
     <div class="pham-archive__viewport" data-pham-archive-viewport>
@@ -41,7 +40,6 @@
               {%- assign archive_alt = media.alt | default: archive_product.title -%}
               <figure class="pham-archive__frame{% if frame_index == 1 %} pham-archive__frame--hero{% endif %}">
                 {{ media | image_url: width: 1800 | image_tag: loading: 'lazy', widths: '600, 900, 1200, 1500, 1800', sizes: '(max-width: 749px) 82vw, 58vw', alt: archive_alt }}
-                <figcaption><span>FRAME / 0{{ frame_index }}</span><span>{{ archive_product.title }}</span></figcaption>
               </figure>
             {%- endif -%}
           {%- endfor -%}
@@ -53,13 +51,12 @@
               {%- else -%}
                 <div class="pham-archive__frame-empty"><span>PHAM</span><i></i><span>0{{ forloop.index }}</span></div>
               {%- endif -%}
-              <figcaption><span>FRAME / 0{{ forloop.index }}</span><span>{{ block.settings.caption }}</span></figcaption>
+              {%- if block.settings.caption != blank -%}<figcaption>{{ block.settings.caption | escape }}</figcaption>{%- endif -%}
             </figure>
           {%- endfor -%}
         {%- endif -%}
 
         <div class="pham-archive__manifesto">
-          <p>{{ section.settings.manifesto_eyebrow }}</p>
           <blockquote>{{ section.settings.manifesto }}</blockquote>
           <a href="{{ archive_link }}">{{ section.settings.link_label }}</a>
         </div>

@@ -29,14 +29,8 @@
     </div>
   {%- endif -%}
 
-  <div class="pham-editorial-stage__meta pham-container">
-    <p>PHAM / EDITION 01</p>
-    <p>{{ section.settings.object_code }}</p>
-  </div>
-
   <div class="pham-editorial-stage__content pham-container">
     <div class="pham-editorial-stage__copy">
-      <p class="pham-editorial-stage__eyebrow">{{ section.settings.eyebrow }}</p>
       <h1 class="pham-editorial-stage__title{% if section.settings.heading == "THE FIRST OBJECT" %} pham-editorial-stage__title--phrase{% endif %}">{% if section.settings.heading == "THE FIRST OBJECT" %}<span class="pham-editorial-stage__phrase-unit">THE <strong>FIRST</strong> OBJECT</span>{% else %}{{ section.settings.heading | escape }}{% endif %}</h1>
       <p class="pham-editorial-stage__description pham-editorial-stage__description--desktop">{{ section.settings.body }}</p>
       <p class="pham-editorial-stage__description pham-editorial-stage__description--mobile">{{ section.settings.mobile_body | default: section.settings.body }}</p>
@@ -45,10 +39,6 @@
 
 </a>
     </div>
-  </div>
-  <div class="pham-editorial-stage__footer pham-container">
-    <span>PHAM / THE FIRST OBJECT</span>
-    <span>DESIGNED IN VIETNAM / EDITION 01</span>
   </div>
 </section>
 

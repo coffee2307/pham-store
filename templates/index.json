@@ -40,9 +40,9 @@
             "size": "lg",
             "aspect": "4-5",
             "parallax_speed": 0.2,
-            "caption": "PHAM-001 · CONSTRUCTION DETAILS · EDITION 01",
+            "caption": "",
             "caption_position": "below",
-            "overlay_eyebrow": "LOOK · 01",
+            "overlay_eyebrow": "",
             "overlay_text": "The Silhouette"
           }
         },
@@ -65,7 +65,7 @@
           "settings": {
             "body": "Simply Being, Fully Living.",
             "author": "PHAM Atelier",
-            "author_role": "BRAND MANIFESTO · 01",
+            "author_role": "",
             "size": "sm"
           }
         },

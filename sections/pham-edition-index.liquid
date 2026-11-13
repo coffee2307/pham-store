@@ -61,7 +61,6 @@
 
     <div class="pham-edition-index__grid">
       <div class="pham-edition-index__archive reveal-up">
-        <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
 
         <div class="pham-edition-index__archive-head">
           <h2 id="pham-edition-index-{{ section.id }}" class="pham-edition-index__title">{{ edition_heading }}</h2>
@@ -69,7 +68,6 @@
         </div>
 
         <a class="pham-edition-index__record" href="{{ edition_url }}">
-          <span class="pham-edition-index__record-index">{{ section.settings.edition_number }}</span>
 
           <div class="pham-edition-index__record-main">
             <strong class="pham-edition-index__record-object">
@@ -91,7 +89,6 @@
 
       <div class="pham-edition-index__protocol reveal-up" aria-labelledby="pham-release-protocol-{{ section.id }}">
         <div class="pham-edition-index__protocol-head">
-          <p class="pham-eyebrow">RELEASE PROTOCOL</p>
           <h3 id="pham-release-protocol-{{ section.id }}">{% render "pham-editorial-title", text: section.settings.protocol_heading %}</h3>
         </div>
 
@@ -121,10 +118,6 @@
     </div>
 
     <div class="pham-edition-index__principle reveal-up" aria-labelledby="pham-edition-principle-{{ section.id }}">
-      <div class="pham-edition-index__principle-label">
-        <p class="pham-eyebrow">{{ section.settings.principle_eyebrow }}</p>
-      </div>
-
       <div class="pham-edition-index__principle-copy">
         <h3 id="pham-edition-principle-{{ section.id }}" class="pham-edition-index__principle-title">
           <span>{{ section.settings.principle_line_1 }}</span>
@@ -134,11 +127,6 @@
       </div>
     </div>
 
-    <div class="pham-edition-index__footerline" aria-label="PHAM archive note">
-      <span>PHAM ATELIER</span>
-      <span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span>
-      <span>{{ settings.pham_campaign_origin_label | default: 'VIETNAM / 2026' }}</span>
-    </div>
   </div>
 </section>
 
@@ -505,6 +493,21 @@
       transition: none !important;
     }
   }
+/* Minimal edition layout after removing decorative index and metadata */
+.pham-edition-index__record {
+  grid-template-columns: minmax(0,1fr) auto;
+  margin-top: clamp(24px,3vw,38px);
+  min-height: 110px;
+}
+.pham-edition-index__principle {
+  grid-template-columns: minmax(0,1fr);
+  gap: 0;
+}
+@media (max-width: 749px) {
+  .pham-edition-index__record { grid-template-columns: minmax(0,1fr); }
+  .pham-edition-index__status { grid-column: 1; grid-row: auto; }
+  .pham-edition-index__principle { grid-template-columns: minmax(0,1fr); }
+}
 </style>
 
 {% schema %}

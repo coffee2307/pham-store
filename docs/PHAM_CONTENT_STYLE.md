@@ -7,3 +7,11 @@
 - **Legal and privacy text is separate.** Never automatically compress policies, agreements, consent or statutory notices.
 - **Authoritative data.** Theme copy lives in Liquid sections and template JSON. Shopify Admin product descriptions and SEO are separate resources. Update both sources explicitly and check the storefront.
 - **QA.** Check mobile/desktop wrapping, screen-reader labels, all links, toggles and no unexpected horizontal overflow before deployment to the actual Live theme.
+
+## UI metadata discipline
+
+- Avoid decorative strings like 01 / THRESHOLD, ARCHIVE / EDITION INDEX, or long catalogue metadata above clear titles.
+- Do not add fake-square markers to image captions or repeat product codes in captions and headings.
+- Keep numbering for actual workflows, sizes, product IDs, quantities and reservation data.
+- Preserve measurements, status labels, checkout disclosures and legal policies.
+- Prefer one clear title over stacked eyebrow, serial tag, label and title.

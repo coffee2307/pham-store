@@ -7,7 +7,6 @@
 <section class="pham-blog" data-pham-blog data-section-id="{{ section.id }}" style="--pham-blog-cols: {{ cols }};" role="region" aria-label="{{ blog.title | default: 'Journal' | escape }}">
   <div class="pham-container">
     <header class="pham-blog__head reveal-up">
-      <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
       <h1 class="pham-blog__title">{{ blog.title | default: 'Journal' }}</h1>
       {%- if section.settings.intro != blank -%}
         <p class="pham-blog__intro">{{ section.settings.intro }}</p>

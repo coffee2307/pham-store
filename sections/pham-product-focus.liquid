@@ -27,7 +27,6 @@
 
     {%- comment -%} EDITORIAL HEADER {%- endcomment -%}
     <header class="pham-product-focus__head reveal-up">
-      <p class="pham-eyebrow">{{ section.settings.eyebrow | default: 'PHAM · EDITION 01' }}</p>
       <h1 class="pham-product-focus__title">
         {% assign pham_focus_headline = section.settings.heading | default: 'Simply Being, Fully Living.' | strip %}
         {% if pham_focus_headline == 'Simply Being, Fully Living.' %}<span>Simply Being,</span> <span>Fully <strong class="pham-editorial-emphasis">Living.</strong></span>{% else %}<span class="pham-split" data-pham-split>{{ pham_focus_headline | escape }}</span>{% endif %}
@@ -35,11 +34,6 @@
       {%- if section.settings.intro != blank -%}
         <p class="pham-product-focus__intro">{{ section.settings.intro }}</p>
       {%- endif -%}
-      <p class="pham-product-focus__meta pham-eyebrow">
-        <span>EDITION · 01</span>
-        <span aria-hidden="true">/</span>
-        <span>FIRST RELEASE</span>
-      </p>
     </header>
 
     {%- if focus_product != blank and focus_product != nil -%}
@@ -63,10 +57,6 @@
               <div class="pham-product-focus__img pham-skeleton" aria-hidden="true"></div>
             {%- endif -%}
           </div>
-          <figcaption class="pham-product-focus__caption">
-            <span class="pham-product-focus__caption-mark" aria-hidden="true">▢</span>
-            <span>{{ section.settings.caption | default: focus_product.title }}</span>
-          </figcaption>
         </figure>
 
         {%- comment -%} PANEL — product detail capsule {%- endcomment -%}

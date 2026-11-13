@@ -31,8 +31,7 @@
   data-edition-size="{{ settings.pham_campaign_edition_size | default: 50 }}"
   {% if payment_deadline != blank %}data-payment-deadline="{{ payment_deadline | escape }}"{% endif %}>
   <div class="pham-campaign-inner">
-    <p class="pham-campaign-kicker">PHAM · COLLECTOR ACCESS</p>
-    <h1 class="pham-campaign-title">{% if customer %}{{ customer.first_name | default: 'Collector' | escape }}{% else %}Collector{% endif %} record.</h1>
+      <h1 class="pham-campaign-title">{% if customer %}{{ customer.first_name | default: 'Collector' | escape }}{% else %}Collector{% endif %} record.</h1>
     <p class="pham-campaign-lede">A private record of access, acquisition, production, delivery and provenance for your PHAM object.</p>
 
     <div class="pham-campaign-grid">

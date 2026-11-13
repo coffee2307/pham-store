@@ -20,7 +20,7 @@
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
     {%- unless commerce_ready -%}<span class="pham-campaign-draft">PRELAUNCH CONFIGURATOR · SUBMISSION DISABLED</span>{%- endunless -%}
-    <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · OBJECT IDENTITY</p>
+    <p class="pham-campaign-kicker">OBJECT IDENTITY</p>
     <h1 class="pham-campaign-title">Make it yours.</h1>
     <p class="pham-campaign-lede">The Identity privilege is shared across paid upgrades and referral unlocks. Only {{ settings.pham_campaign_identity_limit | default: 15 }} privileges exist for the active edition.</p>
 
@@ -113,7 +113,7 @@
                   <div class="pham-id-preview__identity"><span data-pham-preview-name>COLLECTOR ID</span>
 <span data-pham-preview-inscription>YOUR INSCRIPTION</span></div>
                 </div>
-                <div class="pham-id-preview__foot"><span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span><span>QR · PROVENANCE</span></div>
+                <div class="pham-id-preview__foot"><span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span><span>QR RECORD</span></div>
               </div>
             </div>
           {%- endif -%}

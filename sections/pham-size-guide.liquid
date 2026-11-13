@@ -1,6 +1,4 @@
 {%- liquid
-  assign edition_label = section.settings.edition_label | default: 'EDITION 01'
-  assign product_code = section.settings.product_code | default: 'PHAM-001'
   assign recommendation_enabled = section.settings.enable_recommendation
   assign diagram_image = section.settings.diagram_image
 -%}
@@ -12,20 +10,13 @@
   <div class="pham-fit__inner">
     <header class="pham-fit__hero">
       <div class="pham-fit__hero-copy-wrap">
-        <p class="pham-fit__kicker">{{ product_code }} / {{ edition_label }}</p>
         <h1>Find your <strong class="pham-editorial-emphasis">fit.</strong></h1>
         <p class="pham-fit__hero-copy">Choose a starting size, then compare it with the finished jacket measurements.</p>
       </div>
-      <nav class="pham-fit__jump-links" aria-label="Size guide sections">
-        <a href="#pham-fit-choose" aria-label="Jump to sizes"><span>01</span> SIZES <span aria-hidden="true">↓</span></a>
-        <a href="#pham-fit-measure" aria-label="Jump to measurements"><span>02</span> MEASURE <span aria-hidden="true">↓</span></a>
-        <a href="#pham-fit-assistant" aria-label="Jump to fit assistant"><span>03</span> FIT HELP <span aria-hidden="true">↓</span></a>
-      </nav>
     </header>
 
     <section class="pham-fit__quick" id="pham-fit-choose" aria-labelledby="pham-fit-quick-heading">
       <div class="pham-fit__section-title">
-        <p>01 / START HERE</p>
         <h2 id="pham-fit-quick-heading">Your starting <strong class="pham-editorial-emphasis">size.</strong></h2>
         <span>Body chest circumference in centimeters, not flat jacket width.</span>
       </div>
@@ -38,12 +29,12 @@
       <div class="pham-fit__quick-preview" data-pham-fit-preview role="status" aria-live="polite" aria-atomic="true">
         <div class="pham-fit__quick-preview-inner">
           <div class="pham-fit__quick-preview-panel">
-            <div class="pham-fit__quick-preview-top"><span>GARMENT MEASUREMENTS / CM</span><strong data-pham-preview-size>XL</strong></div>
+            <div class="pham-fit__quick-preview-top"><span>Garment measurements (cm)</span><strong data-pham-preview-size>XL</strong></div>
             <dl class="pham-fit__quick-preview-values">
-              <div><dt>A / SHOULDER</dt><dd data-pham-preview-shoulder>—</dd></div>
-              <div><dt>B / CHEST</dt><dd data-pham-preview-chest>—</dd></div>
-              <div><dt>C / BODY</dt><dd data-pham-preview-length>—</dd></div>
-              <div><dt>D / SLEEVE</dt><dd data-pham-preview-sleeve>—</dd></div>
+              <div><dt>A · SHOULDER</dt><dd data-pham-preview-shoulder>—</dd></div>
+              <div><dt>B · CHEST</dt><dd data-pham-preview-chest>—</dd></div>
+              <div><dt>C · BODY</dt><dd data-pham-preview-length>—</dd></div>
+              <div><dt>D · SLEEVE</dt><dd data-pham-preview-sleeve>—</dd></div>
             </dl>
           </div>
         </div>
@@ -53,7 +44,6 @@
 
     <section class="pham-fit__measurement-section" id="pham-fit-measure" aria-labelledby="pham-fit-measure-heading">
       <div class="pham-fit__section-title">
-        <p>02 / THE GARMENT</p>
         <h2 id="pham-fit-measure-heading">Measure the <strong class="pham-editorial-emphasis">jacket.</strong></h2>
         <span>All garment dimensions in centimeters. Jacket laid flat, fully zipped.</span>
       </div>
@@ -65,7 +55,6 @@
             <p class="pham-fit__image-fallback">Measurement diagram is being prepared.</p>
           {%- endif -%}
           <figcaption>
-            <span>PHAM-001 · MEASUREMENT MAP</span>
             {%- if diagram_image != blank -%}<button type="button" data-pham-fit-expand>Enlarge diagram <span aria-hidden="true">+</span></button>{%- endif -%}
           </figcaption>
         </figure>
@@ -79,7 +68,7 @@
 
       <div class="pham-fit__measurements" aria-labelledby="pham-fit-table-heading">
         <div class="pham-fit__measurements-heading">
-          <div><p>GARMENT SPECIFICATIONS</p><h3 id="pham-fit-table-heading">Compare all <strong class="pham-editorial-emphasis">four sizes.</strong></h3></div>
+          <div><h3 id="pham-fit-table-heading">Compare all <strong class="pham-editorial-emphasis">four sizes.</strong></h3></div>
           <span data-pham-selected-size aria-live="polite">Selected size: XL</span>
         </div>
         <div class="pham-fit__table-wrap">
@@ -109,7 +98,6 @@
 
     <section class="pham-fit__assistant" id="pham-fit-assistant" aria-labelledby="pham-fit-assistant-heading">
       <div class="pham-fit__section-title">
-        <p>03 / OPTIONAL ASSISTANT</p>
         <h2 id="pham-fit-assistant-heading">Need a <strong class="pham-editorial-emphasis">starting point?</strong></h2>
         <span>Enter your own body measurements for an approximate size suggestion.</span>
       </div>
@@ -126,7 +114,6 @@
           <button type="submit">RECOMMEND A SIZE <span aria-hidden="true">→</span></button>
         </form>
         <div class="pham-fit__result" data-pham-fit-result aria-live="polite" aria-atomic="true">
-          <span class="pham-fit__result-label">{{ product_code }} / FIT REFERENCE</span>
           <div class="pham-fit__result-size" data-pham-fit-result-size>—</div>
           <h3 data-pham-fit-result-title>{% if recommendation_enabled %}Enter your measurements{% else %}Recommendation unavailable{% endif %}</h3>
           <p data-pham-fit-result-copy>{% if recommendation_enabled %}This tool suggests a starting size. Always verify it against the garment chart above.{% else %}Please use the verified garment chart while fit recommendations are disabled.{% endif %}</p>
@@ -136,14 +123,13 @@
     </section>
 
     <div class="pham-fit__footer">
-      <div><strong>Ready to explore PHAM-001?</strong><p>Review the jacket, edition release and product details before deciding.</p></div>
       <a href="{{ section.settings.product_url | default: '/products/pham-001' }}">BACK TO PHAM-001 <span aria-hidden="true">→</span></a>
     </div>
   </div>
 
   {%- if diagram_image != blank -%}
     <dialog class="pham-fit__modal" data-pham-fit-modal aria-label="Full size PHAM-001 measurement diagram">
-      <div class="pham-fit__modal-head"><strong>PHAM-001 / MEASUREMENT MAP</strong><button type="button" data-pham-fit-close aria-label="Close enlarged diagram">CLOSE ×</button></div>
+      <div class="pham-fit__modal-head"><strong>Measurement diagram</strong><button type="button" data-pham-fit-close aria-label="Close enlarged diagram">CLOSE ×</button></div>
       <div class="pham-fit__modal-scroll">
         {{ diagram_image | image_url: width: 1600 | image_tag: class: 'pham-fit__modal-img', loading: 'lazy', decoding: 'async', widths: '900, 1200, 1448, 1600', sizes: 'max(900px, 96vw)', alt: 'Enlarged PHAM-001 size guide: A shoulder, B chest, C body, D sleeve, E hem' }}
       </div>
@@ -380,6 +366,12 @@
   .pham-fit__compare-toggle span { transition: none !important; }
 }
 
+/* PHAM SIZE GUIDE / DE-CLUTTER */
+.pham-fit__hero { grid-template-columns: minmax(0, 1fr); }
+.pham-fit__figure figcaption { justify-content: flex-end; }
+.pham-fit__figure figcaption button { margin-left: auto; }
+.pham-fit__section-title h2 { margin-top: 0; }
+.pham-fit__result { min-width: 0; }
 /* PHAM SIZE GUIDE / COMPACT EDITORIAL V4 */
 .pham-fit__hero h1 .pham-editorial-emphasis,
 .pham-fit__section-title .pham-editorial-emphasis,

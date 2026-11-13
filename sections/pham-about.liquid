@@ -6,9 +6,6 @@
   <div class="pham-about__grid" aria-hidden="true"></div>
   <div class="pham-container pham-about__inner">
     <header class="pham-about__head reveal-up">
-      {%- if section.settings.eyebrow != blank -%}
-        <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
-      {%- endif -%}
       <h1 id="pham-about-heading-{{ section.id }}" class="pham-about__title">
         <span class="pham-about__title-line">{{ section.settings.title_line_1 | default: 'PHAM' | escape }}</span> <span class="pham-about__title-line">{{ section.settings.title_line_2 | default: 'MANIFESTO' | escape }}</span>
       </h1>
@@ -50,7 +47,6 @@
           <div><dt>MODEL</dt><dd>Independent · Edition-based</dd></div>
         </dl>
         <div class="pham-about__founder-narrative">
-          <p class="pham-eyebrow">{{ section.settings.founder_eyebrow }}</p>
           <h2 class="pham-about__record-title">{% render "pham-editorial-title", text: section.settings.founder_title %}</h2>
           <p class="pham-about__record-copy">{{ section.settings.founder_body }}</p>
           {%- if section.settings.founder_body_2 != blank -%}
@@ -68,7 +64,6 @@
 
       <div class="pham-about__record-block pham-about__record-block--edition">
         <div class="pham-about__edition-heading">
-          <p class="pham-eyebrow">{{ section.settings.edition_eyebrow }}</p>
           <h2 class="pham-about__record-title">{% render "pham-editorial-title", text: section.settings.edition_title %}</h2>
         </div>
         <div class="pham-about__edition-copy">
@@ -82,31 +77,23 @@
         </div>
       </div>
 
-      <div class="pham-about__edition-note">
-        <span>{{ section.settings.edition_note_label }}</span>
-        <strong>{{ section.settings.edition_note_value }}</strong>
-      </div>
       <nav class="pham-about__resources" aria-label="Learn more about PHAM-001">
         <a href="/products/pham-001">
           <strong>EXPLORE PHAM-001</strong>
-          <span>Design, specification and current availability</span>
           <span aria-hidden="true">→</span>
         </a>
         <a href="/pages/pham-001-size-guide">
           <strong>SIZE GUIDE</strong>
-          <span>Garment measurements and fit guidance</span>
           <span aria-hidden="true">→</span>
         </a>
         <a href="/pages/edition-01">
           <strong>EDITION DETAILS</strong>
-          <span>Release format and edition information</span>
           <span aria-hidden="true">→</span>
         </a>
       </nav>
     </section>
 
     <aside class="pham-about__origin reveal-up">
-      <p>{{ section.settings.origin_eyebrow }}</p>
       <div>
         <span>{{ section.settings.origin_label }}</span>
         <strong>{{ section.settings.origin_value }}</strong>

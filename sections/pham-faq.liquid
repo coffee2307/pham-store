@@ -5,7 +5,6 @@
          aria-labelledby="pham-faq-heading-{{ section.id }}">
   <header class="pham-faq__head reveal-up">
     {%- if section.settings.eyebrow != blank -%}
-      <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
     {%- endif -%}
     <h1 id="pham-faq-heading-{{ section.id }}" class="pham-faq__title">
       {{ section.settings.heading | default: 'FAQ' }}

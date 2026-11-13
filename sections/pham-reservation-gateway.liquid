@@ -77,14 +77,12 @@
         {%- endif -%}
 
         <div class="pham-reservation-commerce__edition-note">
-          <span>EDITION 01</span>
-          <strong>50 NUMBERED OBJECTS</strong>
+          <strong>50 NUMBERED JACKETS</strong>
         </div>
       </div>
 
       <div class="pham-reservation-commerce__buy">
         <header class="pham-reservation-commerce__head">
-          <p class="pham-reservation-commerce__eyebrow">{{ settings.pham_campaign_product_code | default: 'PHAM-001' }} / {{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</p>
           <h1>Secure Your<br>PHAM-001</h1>
           <div class="pham-reservation-commerce__price-row">
             <strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong>
@@ -170,7 +168,7 @@
         </div>
 
         <div class="pham-reservation-commerce__summary">
-          <div class="pham-reservation-commerce__summary-head"><span>ORDER SUMMARY</span><span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span></div>
+          <div class="pham-reservation-commerce__summary-head"><span>ORDER SUMMARY</span></div>
           <div class="pham-reservation-commerce__summary-row"><span>PHAM-001 jacket deposit</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
           <div class="pham-reservation-commerce__summary-row" data-pham-identity-summary hidden><span>Object Identity</span><strong>+ {{ settings.pham_campaign_identity_price | default: '$5.00' }}</strong></div>
           <div class="pham-reservation-commerce__summary-row"><span>Collector Lookbook</span><strong>INCLUDED</strong></div>
