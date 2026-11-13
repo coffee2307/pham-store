@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS identity_claims (
   preferred_number INTEGER,
   engraving_name TEXT,
   engraving_text TEXT,
+  production_notes TEXT,
   public_identity INTEGER NOT NULL DEFAULT 0,
   configured_at TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
