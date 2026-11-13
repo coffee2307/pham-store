@@ -1406,3 +1406,25 @@
 @media(prefers-reduced-motion:reduce){
   [data-pham-identity-configurator] .pham-identity-contact-method{transition:none}
 }
+
+
+/* Private collector record: verified data first, clear next action, restrained progress */
+[data-pham-collector-status] [data-pham-collector-record][hidden]{display:none!important}
+[data-pham-collector-status] .pham-collector-live-status{margin:24px 0 0;min-height:48px;padding:15px 17px;border:1px solid rgba(255,255,255,.24);color:var(--pc-soft);font:400 .85rem/1.5 var(--font-body,Arial,sans-serif)}
+[data-pham-collector-status] .pham-collector-action-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;margin-top:12px;border:1px solid var(--pc-line);background:var(--pc-line)}
+[data-pham-collector-status] .pham-collector-action-strip span{padding:15px 12px;background:#080808;text-align:center;color:var(--pc-soft);font:550 9px/1.45 var(--font-mono,monospace);letter-spacing:.06em}
+[data-pham-collector-status] .pham-collector-next-note{margin-top:15px!important;color:var(--pc-dim)!important;font-size:.78rem!important;line-height:1.55!important}
+[data-pham-collector-status] .pham-collector-event-log{margin-top:26px;padding-top:23px;border-top:1px solid var(--pc-line)}
+[data-pham-collector-status] .pham-collector-event-log h3{margin:0 0 15px;font:550 13px/1.35 var(--font-mono,monospace);letter-spacing:.08em;text-transform:uppercase}
+[data-pham-collector-status] .pham-collector-event-log ol{margin:0;padding:0;list-style:none}
+[data-pham-collector-status] .pham-collector-event-log li{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid rgba(255,255,255,.13);font-size:.85rem}
+[data-pham-collector-status] .pham-collector-event-log li strong{font:600 10px/1.4 var(--font-mono,monospace);letter-spacing:.04em}
+[data-pham-collector-status] .pham-collector-event-log time{color:var(--pc-dim);font:400 11px/1.5 var(--font-body,Arial,sans-serif);text-align:right}
+[data-pham-collector-status] .pham-collector-support{margin:32px 0 0;color:var(--pc-soft);font-size:.85rem;line-height:1.6}
+[data-pham-collector-status] .pham-collector-support a{color:inherit;text-decoration:underline;text-underline-offset:4px}
+@media(max-width:640px){
+  [data-pham-collector-status] .pham-collector-action-strip{grid-template-columns:1fr}
+  [data-pham-collector-status] .pham-collector-action-strip span{text-align:left;padding:11px 14px}
+  [data-pham-collector-status] .pham-collector-event-log li{align-items:flex-start;flex-direction:column;gap:4px}
+  [data-pham-collector-status] .pham-collector-event-log time{text-align:left}
+}
