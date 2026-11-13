@@ -50,7 +50,7 @@ jobs:
         run: node scripts/check-backend-config.mjs
 
       - name: Run PHAM backend tests
-        run: node --test backend/worker.test.mjs backend/card-manifest.test.mjs backend/identity-contact.test.mjs
+        run: node --test backend/worker.test.mjs backend/card-manifest.test.mjs backend/identity-contact.test.mjs backend/operations-ledger.test.mjs backend/operator-console.test.mjs
 
       - name: Check PHAM D1 migration drift
         run: python backend/check-schema.py
