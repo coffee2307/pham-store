@@ -1338,8 +1338,10 @@
 }
 .pham-reservation-commerce__details .pham-accordion__heading {
   font: 600 13px/1.45 var(--font-body,Arial,sans-serif);
-  letter-spacing: 0;
-  text-transform: none;
+  font-family: var(--font-body,Arial,sans-serif) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
 }
 .pham-reservation-commerce__details .pham-accordion__summary {
   text-transform: none;
