@@ -82,6 +82,10 @@ switch(command){
     break;
   }
 
+  case 'operations':
+    await request('/internal/operations?edition=' + encodeURIComponent(editionArg()));
+    break;
+
   case 'personalizations':
     await request('/internal/personalizations?edition=' + encodeURIComponent(editionArg()));
     break;
@@ -258,6 +262,8 @@ Commands:
   node admin.mjs state [--edition=edition-01]
   node admin.mjs readiness [--edition=edition-01]
   node admin.mjs reviews [--limit=50]
+  node admin.mjs operations [--edition=edition-01]   # private production ledger; never publish
+  node operator-console.mjs --output=<private/report.html>  # offline visual launch board
   node admin.mjs personalizations [--edition=edition-01]  # sensitive; operator only
   node admin.mjs confirm-identity --file=private-confirmed-request.json --confirm
   # Confirmation requires prior verified email/WhatsApp correspondence and eligible reservation
