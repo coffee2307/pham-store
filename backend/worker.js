@@ -418,6 +418,14 @@ async function getCollectorStatus(env, customerId, editionId) {
   },200,{'Cache-Control':'private, no-store'});
 }
 
+export function canAcceptPaidReservation(edition) {
+  return Boolean(
+    edition &&
+    edition.state === 'reservation_open' &&
+    Number(edition.commerce_acceptance_enabled) === 1
+  );
+}
+
 export function validateIdentityPersonalization(body, editionSize) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw new Error('identity_alias_invalid');
@@ -730,9 +738,22 @@ async function setCampaignState(request, env) {
     ]);
   }
 
-  await env.PHAM_CAMPAIGN_DB.prepare(
-    'UPDATE editions SET state = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-  ).bind(nextState, editionId).run();
+  // State and paid-intake gate transition together. Never open on a legacy
+  // reservation_open state left over from an incomplete storefront launch.
+  const stateResult = await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE editions
+       SET state = ?, commerce_acceptance_enabled = ?,
+           updated_at = CURRENT_TIMESTAMP
+     WHERE id = ? AND state = ?`
+  ).bind(
+    nextState,
+    nextState === 'reservation_open' ? 1 : 0,
+    editionId,
+    edition.state
+  ).run();
+  if (!stateResult || !stateResult.meta || Number(stateResult.meta.changes) !== 1) {
+    return json({ok:false,error:'campaign_state_changed_concurrently'},409);
+  }
 
   return json({
     ok: true,
@@ -1365,6 +1386,18 @@ async function getReadiness(env, editionId) {
   ).bind(editionId).first();
 
   check('d1.edition', Boolean(edition), edition ? edition.id : 'missing');
+  check('d1.paid_intake_gate_migration',
+    Boolean(edition && edition.commerce_acceptance_enabled !== undefined),
+    edition && edition.commerce_acceptance_enabled !== undefined
+      ? 'present / '+(edition.commerce_acceptance_enabled ? 'accepting' : 'closed')
+      : 'migration 0006 required');
+  if (edition) {
+    check('d1.paid_intake_gate_matches_state',
+      edition.state === 'reservation_open'
+        ? canAcceptPaidReservation(edition)
+        : Number(edition.commerce_acceptance_enabled) === 0,
+      {editionState:edition.state, paidIntakeEnabled:Number(edition.commerce_acceptance_enabled||0)===1});
+  }
 
   // Fail closed if the deployed Worker has not received the card-personalisation migrations.
   try {
@@ -1666,7 +1699,8 @@ async function getCampaign(env, editionId) {
       standbyWindowHours: edition.standby_window_hours,
       designOrigin: edition.design_origin,
       founderTokensAllocated: Boolean(edition.founder_tokens_allocated_at),
-      archivePermanent: edition.state === 'archived'
+      archivePermanent: edition.state === 'archived',
+      paidReservationIntakeEnabled: canAcceptPaidReservation(edition)
     },
     counters: {
       reserved,
@@ -1996,6 +2030,23 @@ async function handleOrdersPaid(request, env) {
     'SELECT * FROM editions WHERE id = ?'
   ).bind('edition-01').first();
   if (!edition) throw new Error('Edition configuration missing');
+
+  // The Shopify product can be reachable through a direct checkout URL even if
+  // the theme button is hidden. Never allocate a paid reservation until the
+  // *independent* D1 gate was explicitly opened by the validated launch transition.
+  if (!canAcceptPaidReservation(edition)) {
+    const review = {
+      ok: false,
+      review: true,
+      reason: 'paid_reservation_outside_launch',
+      editionState: edition.state,
+      shopifyOrderId: order && order.id ? toGid('Order', order.id) : null
+    };
+    if (webhookId) {
+      await recordWebhook(env, webhookId, topic, 'review_required', JSON.stringify(review));
+    }
+    return json(review);
+  }
 
   let reservationValidation;
   try {
