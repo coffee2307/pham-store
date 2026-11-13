@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS editions (
   product_code TEXT NOT NULL,
   edition_size INTEGER NOT NULL,
   state TEXT NOT NULL DEFAULT 'prelaunch',
+  commerce_acceptance_enabled INTEGER NOT NULL DEFAULT 0,
   reservation_price_cents INTEGER NOT NULL,
   final_price_cents INTEGER NOT NULL,
   identity_limit INTEGER NOT NULL,
