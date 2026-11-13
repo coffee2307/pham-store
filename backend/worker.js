@@ -1,5 +1,6 @@
 import { compileEditionOperations } from './operations-ledger.mjs';
 import {planReservationOpening,canAcceptDatedReservation,isReservationWindowExpired,validateUnderfilledDecision} from './reservation-window.mjs';
+import {enqueueCustomerNotice,dispatchCustomerNotices,enqueuePaymentReminders,notificationTransportConfigured} from './customer-notices.mjs';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
 
@@ -179,6 +180,17 @@ export default {
         requireInternalKey(request, env);
         return getRefundReviewCases(env, url.searchParams.get('edition') || 'edition-01');
       }
+      if (request.method === 'GET' && url.pathname === '/internal/notifications') {
+        requireInternalKey(request, env);
+        return getNotificationQueue(env);
+      }
+      if (request.method === 'POST' && url.pathname === '/internal/notifications/dispatch') {
+        requireInternalKey(request, env);
+        const body=await request.json().catch(()=>null);
+        if(!body||body.confirm!=='DISPATCH_TRANSACTIONAL_NOTICES')
+          return json({ok:false,error:'operator_confirmation_required'},422);
+        return json({ok:true,...await dispatchCustomerNotices(env)},200,{'Cache-Control':'no-store'});
+      }
       if (request.method === 'POST' && url.pathname === '/internal/refund-reviews/settle') {
         requireInternalKey(request, env);
         return confirmRefundSettled(request, env);
@@ -266,7 +278,9 @@ export default {
   async scheduled(_event, env, ctx) {
     ctx.waitUntil((async function(){
       await closeExpiredReservationWindows(env);
+      await enqueuePaymentReminders(env);
       await expireReservationsAndPromote(env);
+      await dispatchCustomerNotices(env);
     })());
   }
 };
@@ -3455,6 +3469,17 @@ function centsToMoney(cents) {
 /** Close intake after <=14 days even when the merchant has not filled 50 slots.
  * No new payments or final invoices are initiated; merchant decisions are separate.
  */
+async function getNotificationQueue(env) {
+  const rows=await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT id,reservation_id,event_type,status,attempt_count,provider_id,
+            last_error,created_at,sent_at FROM customer_notification_jobs
+      ORDER BY created_at DESC LIMIT 100`
+  ).all();
+  return json({ok:true,privateOperatorData:true,
+    deliveryConfigured:notificationTransportConfigured(env),
+    jobs:rows.results||[]},200,{'Cache-Control':'no-store'});
+}
+
 async function closeExpiredReservationWindows(env, now=new Date()) {
   const nowIso=new Date(now).toISOString();
   const rows=await env.PHAM_CAMPAIGN_DB.prepare(
@@ -3483,6 +3508,14 @@ async function closeExpiredReservationWindows(env, now=new Date()) {
       ).bind('pham-window-'+edition.id+'-'+edition.reservation_closes_at,
         'internal/reservation-window',
         fullyAllocated?'processed':'review_required',detail).run();
+      if(!fullyAllocated){
+        const customerRows=await env.PHAM_CAMPAIGN_DB.prepare(
+          "SELECT id FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')"
+        ).bind(edition.id).all();
+        for(const row of customerRows.results||[]){
+          await enqueueCustomerNotice(env,row.id,edition.id,'window_closed_review');
+        }
+      }
     }
   }
 }
@@ -3539,6 +3572,12 @@ async function resolveUnderfilledReservationWindow(request,env){
         WHERE id=? AND state='reservation_closed' AND partial_run_approved_at IS NULL`
     ).bind(editionId)
   ]);
+  const notices=await env.PHAM_CAMPAIGN_DB.prepare(
+    "SELECT id FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')"
+  ).bind(editionId).all();
+  for(const row of notices.results||[]){
+    await enqueueCustomerNotice(env,row.id,editionId,'refund_review');
+  }
   return json({ok:true,editionId,decision:'refund_review',
     pendingReviewCount:count,automaticRefundsIssued:false,
     nextAction:'review_order_and_complete_shopify_refunds_individually'},200,{'Cache-Control':'no-store'});
@@ -3578,6 +3617,7 @@ async function confirmRefundSettled(request,env){
   await env.PHAM_CAMPAIGN_DB.prepare(
     "UPDATE reservations SET status='cancelled',final_payment_status='refunded',updated_at=CURRENT_TIMESTAMP WHERE id=?"
   ).bind(reservationId).run();
+  await enqueueCustomerNotice(env,reservationId,existing.edition_id,'refund_completed');
   const pending=await scalar(env,
     "SELECT COUNT(*) AS count FROM refund_review_cases WHERE edition_id=? AND status='pending_review'",
     existing.edition_id);
