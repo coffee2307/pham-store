@@ -1,0 +1,67 @@
+name: PHAM Edition 01 — Release Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Preflight checks only, or open Edition 01 after every gate passes"
+        required: true
+        type: choice
+        default: preflight
+        options:
+          - preflight
+          - launch
+      confirmation:
+        description: "For launch type OPEN_EDITION_01 (ignored for preflight)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pham-edition-01-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: pham-production
+    timeout-minutes: 20
+    env:
+      ACTION_MODE: ${{ inputs.mode }}
+      RELEASE_CONFIRMATION: ${{ inputs.confirmation }}
+      CAMPAIGN_BACKEND_URL: ${{ secrets.CAMPAIGN_BACKEND_URL }}
+      INTERNAL_ADMIN_KEY: ${{ secrets.INTERNAL_ADMIN_KEY }}
+      SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_FLAG_STORE }}
+      SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
+      PHAM_LEGAL_SIGNOFF: ${{ secrets.PHAM_LEGAL_SIGNOFF }}
+      PHAM_PAYMENT_TEST_SIGNOFF: ${{ secrets.PHAM_PAYMENT_TEST_SIGNOFF }}
+      PHAM_LOOKBOOK_DELIVERY_SIGNOFF: ${{ secrets.PHAM_LOOKBOOK_DELIVERY_SIGNOFF }}
+      PHAM_PRODUCTION_SIGNOFF: ${{ secrets.PHAM_PRODUCTION_SIGNOFF }}
+      PHAM_SHIPPING_TAX_SIGNOFF: ${{ secrets.PHAM_SHIPPING_TAX_SIGNOFF }}
+      PHAM_DATA_PROTECTION_SIGNOFF: ${{ secrets.PHAM_DATA_PROTECTION_SIGNOFF }}
+      PHAM_THEME_DEPLOYED_SIGNOFF: ${{ secrets.PHAM_THEME_DEPLOYED_SIGNOFF }}
+      PHAM_WEBHOOK_E2E_SIGNOFF: ${{ secrets.PHAM_WEBHOOK_E2E_SIGNOFF }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Validate tracked theme and backend
+        run: |
+          node scripts/check-backend-config.mjs
+          node scripts/check-campaign-safety.mjs
+          node --check backend/worker.js
+          node --check assets/pham-campaign.js
+          node --check scripts/release-edition-01.mjs
+          node --test backend/worker.test.mjs
+          python backend/check-schema.py
+      - name: Read live Shopify theme (no writes)
+        run: |
+          test -n "$SHOPIFY_FLAG_STORE" || { echo "SHOPIFY_FLAG_STORE missing"; exit 1; }
+          test -n "$SHOPIFY_CLI_THEME_TOKEN" || { echo "SHOPIFY_CLI_THEME_TOKEN missing"; exit 1; }
+          npm install --global @shopify/cli@latest
+          shopify theme pull --live --only config/settings_data.json --store "$SHOPIFY_FLAG_STORE" --password "$SHOPIFY_CLI_THEME_TOKEN" --force
+      - name: Preflight or open Edition 01 (operator controlled)
+        run: node scripts/release-edition-01.mjs "$ACTION_MODE"
