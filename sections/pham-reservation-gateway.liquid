@@ -87,6 +87,8 @@
             <span>DUE TODAY</span>
           </div>
           <p class="pham-reservation-commerce__credit">Deposit credited toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} jacket price.</p>
+          <p class="pham-reservation-commerce__policy">Reservations open for up to 14 days or until 50 allocations are claimed. If fewer than 50 are reserved by the deadline, PHAM must confirm a feasible smaller run or arrange the applicable refunds. No further balance is due until a verified final-payment invitation.</p>
+          <p class="pham-reservation-commerce__policy" data-pham-window-deadline hidden></p>
           <p class="pham-reservation-commerce__balance">Remaining <strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong> due within {{ settings.pham_campaign_payment_window_hours | default: 72 }} hours of the final-payment invitation. Shipping and taxes calculated later.</p>
           {%- unless can_checkout -%}
             <span class="pham-reservation-commerce__launch-note">
