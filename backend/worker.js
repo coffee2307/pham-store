@@ -131,7 +131,9 @@ export default {
         }
 
         if (request.method === 'POST' && url.pathname === '/identity/configure') {
-          return configureIdentity(request, env, proxyAuth.customerId, url.searchParams.get('edition') || 'edition-01');
+          // Collector requests must be sent directly through PHAM email or WhatsApp.
+          // Only an authenticated operator may confirm the correspondence.
+          return json({ ok: false, error: 'manual_contact_required' }, 409);
         }
 
         if (request.method === 'POST' && url.pathname === '/standby/join') {
@@ -200,6 +202,11 @@ export default {
       if (request.method === 'POST' && url.pathname === '/internal/reservations/map-variants') {
         requireInternalKey(request, env);
         return mapReservationVariants(request, env);
+      }
+
+      if (request.method === 'POST' && url.pathname === '/internal/identity/confirm') {
+        requireInternalKey(request, env);
+        return confirmIdentityFromCorrespondence(request, env);
       }
 
       if (request.method === 'POST' && url.pathname === '/internal/edition/size-options') {
@@ -516,6 +523,66 @@ async function configureIdentity(request, env, customerId, editionId) {
       publicIdentity: Boolean(publicIdentity)
     }
   });
+}
+
+export function validateManualContactEvidence(body) {
+  if (!body || body.confirm !== 'CONFIRM_MANUAL_IDENTITY' ||
+      !['email', 'whatsapp'].includes(body.channel)) {
+    throw new Error('identity_contact_verification_required');
+  }
+  const reservationId = typeof body.reservationId === 'string' ? body.reservationId.trim() : '';
+  const evidence = typeof body.contactReference === 'string' ? body.contactReference.trim() : '';
+  if (!reservationId || reservationId.length > 100 ||
+      !evidence || evidence.length > 160 ||
+      /[<>\u0000-\u001F]/u.test(evidence)) {
+    throw new Error('identity_contact_verification_required');
+  }
+  return { reservationId, evidence, channel: body.channel };
+}
+
+async function confirmIdentityFromCorrespondence(request, env) {
+  const body = await request.json().catch(() => null);
+  let evidence;
+  try { evidence = validateManualContactEvidence(body); }
+  catch(error) { return json({ok:false,error:error.message},422); }
+
+  const reservation = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT id, edition_id, shopify_customer_id FROM reservations WHERE id = ? AND status NOT IN (\'cancelled\',\'expired\')'
+  ).bind(evidence.reservationId).first();
+  if (!reservation || !reservation.shopify_customer_id) {
+    return json({ok:false,error:'reservation_not_found'},404);
+  }
+  const confirmation = await configureIdentity(
+    new Request('https://internal.pham.invalid/identity/configure', {
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({
+        preferredNumber:body.preferredNumber,
+        alias:body.alias,
+        inscription:body.inscription,
+        productionNotes:body.productionNotes,
+        publicIdentity:body.publicIdentity,
+        acknowledgeReview:true,
+      }),
+    }),
+    env, reservation.shopify_customer_id, reservation.edition_id
+  );
+  if (!confirmation.ok) return confirmation;
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE identity_claims
+       SET contact_channel = ?, contact_reference = ?,
+           contact_verified_at = CURRENT_TIMESTAMP
+     WHERE reservation_id = ?`
+  ).bind(evidence.channel, evidence.evidence, evidence.reservationId).run();
+  const payload = await confirmation.json();
+  return json({
+    ok:true,
+    identity:payload.identity,
+    reservationId:evidence.reservationId,
+    contactChannel:evidence.channel,
+    operatorConfirmed:true,
+  },200,{'Cache-Control':'no-store'});
 }
 
 async function joinStandbyProxy(request, env, customerId, editionId) {
@@ -1255,13 +1322,14 @@ async function getReadiness(env, editionId) {
 
   check('d1.edition', Boolean(edition), edition ? edition.id : 'missing');
 
-  // Fail closed if the deployed Worker uses the new personalization query but
-  // the remote D1 database has not received the forward migration.
+  // Fail closed if the deployed Worker has not received the card-personalisation migrations.
   try {
-    await env.PHAM_CAMPAIGN_DB.prepare('SELECT production_notes FROM identity_claims LIMIT 0').all();
-    check('d1.production_notes_migration', true, 'applied');
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      'SELECT production_notes, contact_channel, contact_reference, contact_verified_at FROM identity_claims LIMIT 0'
+    ).all();
+    check('d1.manual_identity_migrations', true, '0004 and 0005 applied');
   } catch (_error) {
-    check('d1.production_notes_migration', false, 'migration 0004 required');
+    check('d1.manual_identity_migrations', false, 'migrations 0004 and 0005 required');
   }
 
   if (edition) {
