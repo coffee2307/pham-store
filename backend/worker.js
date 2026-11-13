@@ -226,6 +226,10 @@ export default {
         return getWebhookReviews(env, url);
       }
 
+      if (request.method === 'POST' && url.pathname === '/internal/reservation/link-customer') {
+        requireInternalKey(request, env);
+        return linkVerifiedCustomerToReservation(request, env);
+      }
       if (request.method === 'POST' && url.pathname === '/internal/reservation/variant') {
         requireInternalKey(request, env);
         return assignReservationVariant(request, env);
@@ -1318,6 +1322,71 @@ async function mapReservationVariants(request, env) {
     mapped: mappings.length,
     reservations: mappings
   });
+}
+
+export function validateCollectorAccountLink(reservation,customer,expectedCustomerId){
+  if(!reservation||!customer || reservation.status==='expired' ||
+     reservation.status==='cancelled')throw new Error('reservation_not_linkable');
+  if(reservation.shopify_customer_id){
+    if(reservation.shopify_customer_id===expectedCustomerId)
+      return {alreadyLinked:true};
+    throw new Error('reservation_customer_already_linked');
+  }
+  const actualId=String(customer.id||'');
+  const actualEmail=String(customer.defaultEmailAddress?.emailAddress||'').trim().toLowerCase();
+  const orderEmail=String(reservation.email||'').trim().toLowerCase();
+  if(actualId!==expectedCustomerId || customer.verifiedEmail!==true ||
+     !actualEmail || !orderEmail || actualEmail!==orderEmail)
+    throw new Error('verified_shopify_customer_email_mismatch');
+  return {alreadyLinked:false};
+}
+async function linkVerifiedCustomerToReservation(request,env){
+  const body=await request.json().catch(()=>null);
+  if(!body||body.confirm!=='LINK_VERIFIED_COLLECTOR_ACCOUNT'){
+    return json({ok:false,error:'explicit_confirmation_required'},422);
+  }
+  const reservationId=String(body.reservationId||'').trim();
+  const customerId=String(body.customerId||'').trim();
+  const supportCase=String(body.supportCaseReference||'').trim();
+  if(!reservationId || !/^gid:\/\/shopify\/Customer\/\d+$/.test(customerId) ||
+      supportCase.length<12 || supportCase.length>160 ||
+      /[<>\u0000-\u001f]/u.test(supportCase)){
+    return json({ok:false,error:'verified_support_case_required'},422);
+  }
+  const reservation=await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM reservations WHERE id=?'
+  ).bind(reservationId).first();
+  if(!reservation)return json({ok:false,error:'reservation_not_found'},404);
+  const result=await shopifyGraphQL(env,
+    `query PhamVerifyCollectorForGuestReservation($id:ID!){
+      customer(id:$id){id verifiedEmail defaultEmailAddress{emailAddress}}
+    }`,{id:customerId});
+  const customer=result?.data?.customer;
+  let validation;
+  try{validation=validateCollectorAccountLink(reservation,customer,customerId);}
+  catch(error){return json({ok:false,error:error.message},409);}
+  if(validation.alreadyLinked){
+    return json({ok:true,reservationId,alreadyLinked:true},200,{'Cache-Control':'no-store'});
+  }
+  let update;
+  try{
+    update=await env.PHAM_CAMPAIGN_DB.prepare(
+      `UPDATE reservations SET shopify_customer_id=?,updated_at=CURRENT_TIMESTAMP
+       WHERE id=? AND shopify_customer_id IS NULL AND status NOT IN ('cancelled','expired')`
+    ).bind(customerId,reservationId).run();
+  }catch(error){
+    if(isUniqueConstraintError(error))return json({ok:false,error:'customer_already_has_edition_reservation'},409);
+    throw error;
+  }
+  if(!update?.meta?.changes)return json({ok:false,error:'customer_link_concurrent_change'},409);
+  await setMetafields(env,[
+    metafield(customerId,'reservation_id','single_line_text_field',reservation.id),
+    metafield(customerId,'current_reservation_status','single_line_text_field',reservation.status),
+    metafield(customerId,'size_preference','single_line_text_field',reservation.size_preference||''),
+    metafield(customerId,'digital_lookbook_status','single_line_text_field',reservation.digital_lookbook_status||'pending')
+  ]);
+  return json({ok:true,reservationId,customerLinked:true,
+    supportCaseRecordedExternally:true},200,{'Cache-Control':'no-store'});
 }
 
 async function assignReservationVariant(request, env) {
