@@ -3603,7 +3603,7 @@ async function resolveUnderfilledReservationWindow(request,env){
     ).bind(editionId).run();
     return json({ok:true,editionId,decision:'refund_review',pendingReviewCount:0,automaticRefundsIssued:false,state:'edition_cancelled'},200,{'Cache-Control':'no-store'});
   }
-  await env.PHAM_CAMPAIGN_DB.batch([
+  const resolution = await env.PHAM_CAMPAIGN_DB.batch([
     env.PHAM_CAMPAIGN_DB.prepare(
       `INSERT OR IGNORE INTO refund_review_cases
        (id,edition_id,reservation_id,shopify_order_id,reason)
@@ -3617,6 +3617,9 @@ async function resolveUnderfilledReservationWindow(request,env){
         WHERE id=? AND state='reservation_closed' AND partial_run_approved_at IS NULL`
     ).bind(editionId)
   ]);
+  if(!resolution?.[1]?.meta?.changes){
+    return json({ok:false,error:'underfill_decision_changed_concurrently'},409);
+  }
   const notices=await env.PHAM_CAMPAIGN_DB.prepare(
     "SELECT id FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')"
   ).bind(editionId).all();
@@ -3784,6 +3787,9 @@ async function promoteNextStandby(env, editionId) {
     'SELECT * FROM editions WHERE id = ?'
   ).bind(editionId).first();
   if (!edition) return { ok: false, promoted: false, reason: 'edition_not_found' };
+  if (!['reservation_full','final_payment'].includes(edition.state)) {
+    return {ok:false,promoted:false,reason:'standby_promotion_not_authorized_for_state'};
+  }
 
   const next = await env.PHAM_CAMPAIGN_DB.prepare(
     "SELECT * FROM standby WHERE edition_id = ? AND status = 'waiting' ORDER BY position ASC LIMIT 1"
