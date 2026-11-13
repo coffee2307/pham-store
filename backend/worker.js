@@ -720,7 +720,7 @@ async function setCampaignState(request, env) {
       editionId
     );
 
-    const editionSize = Number(edition.edition_size);
+    const editionSize = Number(edition.release_quantity || edition.edition_size);
     if (
       finalPaidCount !== editionSize ||
       deliveredCount !== editionSize ||
@@ -2176,7 +2176,7 @@ async function handleOrdersPaid(request, env) {
 
   if (activeReservations >= edition.edition_size) {
     await env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE editions SET state = 'reservation_full', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+      "UPDATE editions SET state = 'reservation_full', commerce_acceptance_enabled=0, release_quantity=edition_size, reservation_closed_at=CURRENT_TIMESTAMP, reservation_close_reason='capacity_reached', updated_at=CURRENT_TIMESTAMP WHERE id = ?"
     ).bind(edition.id).run();
     throw new Error('Reservation capacity exceeded; manual review required');
   }
@@ -2256,7 +2256,7 @@ async function handleOrdersPaid(request, env) {
 
   if (!(reservationInsert && reservationInsert.meta && reservationInsert.meta.changes)) {
     await env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE editions SET state = 'reservation_full', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+      "UPDATE editions SET state = 'reservation_full', commerce_acceptance_enabled=0, release_quantity=edition_size, reservation_closed_at=CURRENT_TIMESTAMP, reservation_close_reason='capacity_reached', updated_at=CURRENT_TIMESTAMP WHERE id = ?"
     ).bind(edition.id).run();
 
     const capacityReview = {
@@ -2328,7 +2328,7 @@ async function handleOrdersPaid(request, env) {
   );
   if (afterCount >= Number(edition.edition_size)) {
     await env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE editions SET state = 'reservation_full', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+      "UPDATE editions SET state = 'reservation_full', commerce_acceptance_enabled=0, release_quantity=edition_size, reservation_closed_at=CURRENT_TIMESTAMP, reservation_close_reason='capacity_reached', updated_at=CURRENT_TIMESTAMP WHERE id = ?"
     ).bind(edition.id).run();
   }
 
@@ -2637,11 +2637,13 @@ async function finalizeObjectNumbers(request, env) {
     editionId
   );
 
-  if (finalPaidCount !== Number(edition.edition_size)) {
+  const runQuantity = Number(edition.release_quantity || edition.edition_size);
+  if (edition.state !== 'final_payment' || finalPaidCount !== runQuantity) {
     return json({
       ok: false,
       error: 'edition_not_fully_acquired',
       finalPaidCount,
+      requiredRunQuantity: runQuantity,
       editionSize: Number(edition.edition_size)
     }, 409);
   }
@@ -2692,11 +2694,13 @@ async function finalizeObjectNumbers(request, env) {
      ORDER BY created_at ASC, id ASC`
   ).bind(editionId).all();
 
-  if ((unnumbered.results || []).length !== available.length) {
+  const remainingNeeded = runQuantity - used.size;
+  if ((unnumbered.results || []).length !== remainingNeeded || available.length < remainingNeeded) {
     return json({
       ok: false,
       error: 'object_number_allocation_mismatch',
       available: available.length,
+      remainingNeeded,
       unnumbered: (unnumbered.results || []).length
     }, 409);
   }
@@ -2816,12 +2820,12 @@ async function allocateFounderTokens(request, env) {
   ).bind(editionId).all();
   const objects = objectRows.results || [];
 
-  if (objects.length !== Number(edition.edition_size)) {
+  if (objects.length !== Number(edition.release_quantity || edition.edition_size)) {
     return json({
       ok: false,
       error: 'object_set_incomplete',
       objectCount: objects.length,
-      editionSize: Number(edition.edition_size)
+      requiredRunQuantity: Number(edition.release_quantity || edition.edition_size)
     }, 409);
   }
   if (objects.some(function(object) { return Boolean(object.token_type); })) {
@@ -2893,7 +2897,7 @@ async function allocateFounderTokens(request, env) {
     editionId
   );
 
-  if (goldCount !== 1 || silverCount !== Number(edition.edition_size) - 1) {
+  if (goldCount !== 1 || silverCount !== Number(edition.release_quantity || edition.edition_size) - 1) {
     return json({
       ok: false,
       error: 'token_allocation_integrity_failure',
@@ -3133,7 +3137,11 @@ async function openFinalPayment(request, env) {
 
   if (!edition) return json({ error: 'Edition not found' }, 404);
 
-  if (!['reservation_full', 'final_payment'].includes(edition.state)) {
+  const approvedPartialRun = edition.state === 'reservation_closed' &&
+    Number(edition.release_quantity) >= 1 &&
+    Number(edition.release_quantity) < Number(edition.edition_size) &&
+    Boolean(edition.partial_run_approved_at && edition.partial_run_reference);
+  if (!['reservation_full', 'final_payment'].includes(edition.state) && !approvedPartialRun) {
     return json({
       ok: false,
       error: 'edition_not_ready_for_final_payment',
@@ -3150,12 +3158,14 @@ async function openFinalPayment(request, env) {
     editionId
   );
 
-  if (allocatedReservationCount !== Number(edition.edition_size)) {
+  const releaseQuantity = Number(edition.release_quantity || edition.edition_size);
+  if (allocatedReservationCount !== releaseQuantity) {
     return json({
       ok: false,
       error: 'reservation_allocation_incomplete',
       allocatedReservationCount,
-      editionSize: Number(edition.edition_size)
+      requiredRunQuantity: releaseQuantity,
+      editionMaximum: Number(edition.edition_size)
     }, 409);
   }
 
@@ -3283,7 +3293,7 @@ async function openFinalPayment(request, env) {
 
   if (failed === 0) {
     await env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE editions SET state = 'final_payment', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+      "UPDATE editions SET state = 'final_payment', commerce_acceptance_enabled=0, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
     ).bind(editionId).run();
   }
 
