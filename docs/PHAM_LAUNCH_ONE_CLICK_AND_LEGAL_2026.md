@@ -37,7 +37,7 @@ Migration `backend/migrations/0004_identity_production_notes.sql` is required **
 ## D. Legal sources to review on launch day
 
 1. Viet Nam Law on E-commerce (effective 01-07-2026), government presentation: https://en.baochinhphu.vn/viet-nams-law-on-e-commerce-111260825143234285.htm
-2. Decree 248/2026/ND-CP and official e-commerce notice service: https://online.gov.vn/sct-25/van-ban-phap-luat
+2. Decree 248/2026/ND-CP official text: https://vanban.chinhphu.vn/?docid=218747&pageid=27160&typegroupid=4
 3. Personal Data Protection Law No. 91/2025/QH15: https://bocongan.gov.vn/chinh-sach-phap-luat/co-so-du-lieu-van-ban/luat-bao-ve-du-lieu-ca-nhan-1753688803
 4. EU Consumer Rights Directive 2011/83/EU: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A32011L0083
 5. EU consumers' distance selling returns: https://europa.eu/youreurope/citizens/consumers/shopping/returns/index_en.htm
