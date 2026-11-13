@@ -40,6 +40,8 @@ export function isReservationWindowExpired(edition, now=new Date()){
 export function validateUnderfilledDecision({edition,activeCount,decision,reference,productionApproved,legalApproved,customerNoticeApproved}){
   if(!edition || edition.state!=='reservation_closed')
     throw new Error('edition_not_closed');
+  if(edition.partial_run_approved_at)
+    throw new Error('underfill_decision_already_recorded');
   const amount=Number(activeCount), cap=Number(edition.edition_size);
   if(!Number.isInteger(amount)||!Number.isInteger(cap)||amount<0||amount>=cap)
     throw new Error('not_an_underfilled_edition');
