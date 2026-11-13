@@ -14,6 +14,7 @@ import {
   selectFinalVariantBySize,
   validateFinalAcquisitionOrder,
   validateIdentityPersonalization,
+  validateManualContactEvidence,
   validatePriorityReservationOrder,
   validateStandbyAcquisitionOrder,
   validateLifecycleTransition,
@@ -854,4 +855,23 @@ test('Object Identity validates number, print name, optional private instruction
   assert.throws(() => validateIdentityPersonalization({...data, productionNotes: 'X'.repeat(241)}, 50), /identity_production_notes_invalid/);
   assert.throws(() => validateIdentityPersonalization({...data, productionNotes: '<b>sample</b>'}, 50), /identity_production_notes_invalid/);
   assert.throws(() => validateIdentityPersonalization({...data, acknowledgeReview: false}, 50), /identity_review_required/);
+});
+
+test('Object Identity requires verifiable email or WhatsApp correspondence for operator confirmation', () => {
+  const verified = {
+    confirm: 'CONFIRM_MANUAL_IDENTITY',
+    reservationId: 'PHAM-R-TEST',
+    channel: 'email',
+    contactReference: 'support-case-2026-11-13-01'
+  };
+  assert.deepEqual(validateManualContactEvidence(verified), {
+    reservationId: 'PHAM-R-TEST',
+    evidence: 'support-case-2026-11-13-01',
+    channel: 'email'
+  });
+  assert.equal(validateManualContactEvidence({...verified, channel:'whatsapp'}).channel,'whatsapp');
+  assert.throws(() => validateManualContactEvidence({...verified, confirm:''}), /identity_contact_verification_required/);
+  assert.throws(() => validateManualContactEvidence({...verified, channel:'webform'}), /identity_contact_verification_required/);
+  assert.throws(() => validateManualContactEvidence({...verified, contactReference:''}), /identity_contact_verification_required/);
+  assert.throws(() => validateManualContactEvidence({...verified, contactReference:'<script>'}), /identity_contact_verification_required/);
 });
