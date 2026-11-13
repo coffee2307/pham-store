@@ -86,6 +86,55 @@ switch(command){
     await request('/internal/operations?edition=' + encodeURIComponent(editionArg()));
     break;
 
+  case 'refund-reviews':
+    await request('/internal/refund-reviews?edition=' + encodeURIComponent(editionArg()));
+    break;
+
+  case 'notifications':
+    await request('/internal/notifications');
+    break;
+
+  case 'dispatch-notifications':
+    if(!hasFlag('--confirm'))fail('Notification dispatch needs --confirm and a verified email transport.');
+    await request('/internal/notifications/dispatch',{
+      method:'POST',body:{confirm:'DISPATCH_TRANSACTIONAL_NOTICES'}
+    });
+    break;
+
+  case 'close-underfilled': {
+    if(!hasFlag('--confirm'))fail('Explicit --confirm required before recording the edition decision.');
+    const decision=valueArg('--decision');
+    const approvalReference=valueArg('--reference');
+    if(!['proceed_partial','refund_review'].includes(decision)||!approvalReference)
+      fail('Provide --decision=proceed_partial|refund_review and --reference=<verified external approval record>.');
+    await request('/internal/window/resolve',{
+      method:'POST',body:{
+        editionId:editionArg(),decision,approvalReference,
+        productionApproved:hasFlag('--production-approved'),
+        legalApproved:hasFlag('--legal-approved'),
+        customerNoticeApproved:hasFlag('--customer-notice-approved'),
+        confirm:'RESOLVE_UNDERFILLED_EDITION'
+      }
+    });
+    break;
+  }
+
+  case 'attest-refund': {
+    if(!hasFlag('--confirm')||!hasFlag('--refunded-in-shopify'))
+      fail('Verify the completed Shopify refund and use --confirm --refunded-in-shopify.');
+    const reservationId=valueArg('--reservation');
+    const shopifyRefundReference=valueArg('--refund-reference');
+    if(!reservationId||!shopifyRefundReference)
+      fail('Provide --reservation=<PHAM reservation> --refund-reference=<actual Shopify refund ID>.');
+    await request('/internal/refund-reviews/settle',{
+      method:'POST',body:{
+        reservationId,shopifyRefundReference,refundedInShopify:true,
+        confirm:'ATTEST_SHOPIFY_REFUND_COMPLETED'
+      }
+    });
+    break;
+  }
+
   case 'personalizations':
     await request('/internal/personalizations?edition=' + encodeURIComponent(editionArg()));
     break;
@@ -152,7 +201,9 @@ switch(command){
       method:'POST',
       body:{
         reservationId,
-        status
+        status,
+        deliveryVerified:hasFlag('--delivery-verified'),
+        deliveryReference:valueArg('--delivery-reference')
       }
     });
     break;
@@ -211,9 +262,10 @@ switch(command){
   }
 
   case 'open-final-payment':
+    if(!hasFlag('--confirm'))fail('Final payment invites require --confirm and signoff checks.');
     await request('/internal/final-payment/open', {
       method:'POST',
-      body:{editionId:editionArg()}
+      body:{editionId:editionArg(),confirm:'OPEN_FINAL_ACQUISITION'}
     });
     break;
 
@@ -263,6 +315,12 @@ Commands:
   node admin.mjs readiness [--edition=edition-01]
   node admin.mjs reviews [--limit=50]
   node admin.mjs operations [--edition=edition-01]   # private production ledger; never publish
+  node admin.mjs notifications
+  node admin.mjs dispatch-notifications --confirm
+  node admin.mjs refund-reviews [--edition=edition-01]
+  node admin.mjs close-underfilled --decision=proceed_partial --reference=... --production-approved --legal-approved --customer-notice-approved --confirm
+  node admin.mjs close-underfilled --decision=refund_review --reference=... --confirm
+  node admin.mjs attest-refund --reservation=... --refund-reference=<actual Shopify refund> --refunded-in-shopify --confirm
   node operator-console.mjs --output=<private/report.html>  # offline visual launch board
   node admin.mjs personalizations [--edition=edition-01]  # sensitive; operator only
   node admin.mjs confirm-identity --file=private-confirmed-request.json --confirm
@@ -273,11 +331,11 @@ Commands:
   node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=packed --confirm
   node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=dispatched --carrier=DHL --tracking=... --tracking-url=https://... --confirm
   node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=delivered --confirm
-  node admin.mjs mark-lookbook --reservation=PHAM-R-... --status=delivered
+  node admin.mjs mark-lookbook --reservation=PHAM-R-... --status=delivered --delivery-verified --delivery-reference=<actual delivery evidence>
   node admin.mjs assign-variant --reservation=PHAM-R-... --variant=gid://shopify/ProductVariant/...
   node admin.mjs map-variants --confirm [--edition=edition-01]
   node admin.mjs set-size-options --sizes=M,L,XL,XXL --confirm [--edition=edition-01]
-  node admin.mjs open-final-payment [--edition=edition-01]
+  node admin.mjs open-final-payment --confirm [--edition=edition-01]
   node admin.mjs promote-standby [--edition=edition-01]
   node admin.mjs finalize-objects --confirm [--edition=edition-01]
   node admin.mjs allocate-tokens --confirm [--edition=edition-01]
