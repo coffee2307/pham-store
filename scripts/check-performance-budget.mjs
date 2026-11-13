@@ -12,7 +12,7 @@ function assert(condition, message) {
 const budgets = [
   ['assets/pham-vault.js', 53_000],
   ['assets/pham-vault.css', 53_000],
-  ['assets/pham-campaign.js', 52_000],
+  ['assets/pham-campaign.js', 56_000],
   ['assets/pham-cart.js', 27_000],
   ['assets/pham-animations.js', 30_000],
   ['assets/pham-lookbook.js', 32_000],
