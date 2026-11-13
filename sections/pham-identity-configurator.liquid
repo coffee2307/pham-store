@@ -10,7 +10,7 @@
 {%- assign can_configure = false -%}
 {%- if customer and identity_status != 'locked' -%}{%- assign can_configure = true -%}{%- endif -%}
 {%- assign submit_enabled = false -%}
-{%- if can_configure and commerce_ready -%}{%- assign submit_enabled = true -%}{%- endif -%}
+{%- if can_configure and commerce_ready and settings.pham_campaign_engine_enabled -%}{%- assign submit_enabled = true -%}{%- endif -%}
 
 <section class="pham-campaign-shell"
   data-pham-identity-configurator
@@ -142,7 +142,7 @@
                 <span>I have checked the spelling. I understand this is a request, not a final production proof; numbers and special instructions are subject to approval. <a href="{{ settings.pham_campaign_terms_page_url | default: '/pages/edition-01-terms' }}">Edition terms</a>.</span>
               </label>
               {%- if submit_enabled -%}
-                <button type="submit" class="pham-campaign-btn" data-pham-identity-submit disabled>Send card instructions</button>
+                <button type="button" class="pham-campaign-btn" data-pham-identity-submit disabled>Send card instructions</button>
               {%- else -%}
                 <p class="pham-identity-editor__locked">Requests are currently unavailable. This preview does not reserve a number.</p>
               {%- endif -%}
