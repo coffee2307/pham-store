@@ -82,6 +82,20 @@ switch(command){
     break;
   }
 
+  case 'link-guest-order': {
+    if(!hasFlag('--confirm'))fail('Verified Shopify customer and documented support case required.');
+    const reservationId=valueArg('--reservation');
+    const customerId=valueArg('--customer');
+    const supportCaseReference=valueArg('--case-reference');
+    if(!reservationId||!customerId||!supportCaseReference)
+      fail('Provide reservation, Shopify Customer GID and verified support case reference.');
+    await request('/internal/reservation/link-customer',{
+      method:'POST',body:{reservationId,customerId,supportCaseReference,
+        confirm:'LINK_VERIFIED_COLLECTOR_ACCOUNT'}
+    });
+    break;
+  }
+
   case 'operations':
     await request('/internal/operations?edition=' + encodeURIComponent(editionArg()));
     break;
@@ -315,6 +329,7 @@ Commands:
   node admin.mjs readiness [--edition=edition-01]
   node admin.mjs reviews [--limit=50]
   node admin.mjs operations [--edition=edition-01]   # private production ledger; never publish
+  node admin.mjs link-guest-order --reservation=PHAM-R-... --customer=gid://shopify/Customer/... --case-reference=... --confirm
   node admin.mjs notifications
   node admin.mjs dispatch-notifications --confirm
   node admin.mjs refund-reviews [--edition=edition-01]
