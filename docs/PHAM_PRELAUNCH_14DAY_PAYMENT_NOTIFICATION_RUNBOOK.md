@@ -77,6 +77,20 @@ node backend/admin.mjs mark-lookbook \
 ```
 The Worker rejects a delivered status without explicit evidence. The email notification is a receipt/confirmation, not the content-delivery mechanism itself. A real secure Lookbook portal/download and end-to-end delivery confirmation still need merchant-owned hosting/assets.
 
+## 3A. Guest checkout: access to the collector record
+
+A Shopify order without a bound Shopify Customer GID must **not** be claimed automatically by guessing the email address. If a paid guest buyer later registers or signs in, PHAM support verifies the buyer's original Shopify order, the identity of the claimant and a recorded support case. The authenticated Worker then rechecks the account via Shopify Admin: `verifiedEmail=true` and the exact `defaultEmailAddress.emailAddress` must match the original order email; the reservation must not already be linked or cancelled. Operator command:
+
+```bash
+node backend/admin.mjs link-guest-order \
+  --reservation=PHAM-R-... \
+  --customer=gid://shopify/Customer/123... \
+  --case-reference=PHAM-VERIFIED-SUPPORT-CASE-123 \
+  --confirm
+```
+
+The link is written once and its support reference is recorded privately. Customers cannot call this operator endpoint. Account linking requires a real support workflow, not merely a matching unverified email.
+
 ## 4. Non-production dry-run versus real end-to-end tests
 
 The repository's automated test suite includes `backend/end-to-end-simulation.test.mjs` for a **simulated** deposit → $174.01 final invoice → lifecycle → delivery and underfilled refusal, plus notification transport mocks and deadline tests. This is not proof of a real payment gateway, actual customer email delivery, bank settlement, real shipping, or production xưởng.
