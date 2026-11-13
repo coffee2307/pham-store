@@ -7,6 +7,14 @@ CREATE TABLE IF NOT EXISTS editions (
   edition_size INTEGER NOT NULL,
   state TEXT NOT NULL DEFAULT 'prelaunch',
   commerce_acceptance_enabled INTEGER NOT NULL DEFAULT 0,
+  reservation_window_days INTEGER NOT NULL DEFAULT 14,
+  reservation_opened_at TEXT,
+  reservation_closes_at TEXT,
+  reservation_closed_at TEXT,
+  reservation_close_reason TEXT,
+  release_quantity INTEGER NOT NULL DEFAULT 50,
+  partial_run_approved_at TEXT,
+  partial_run_reference TEXT,
   reservation_price_cents INTEGER NOT NULL,
   final_price_cents INTEGER NOT NULL,
   identity_limit INTEGER NOT NULL,
@@ -148,6 +156,22 @@ CREATE TABLE IF NOT EXISTS webhook_events (
   detail TEXT,
   processed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS refund_review_cases (
+  id TEXT PRIMARY KEY,
+  edition_id TEXT NOT NULL,
+  reservation_id TEXT NOT NULL UNIQUE,
+  shopify_order_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending_review',
+  reason TEXT NOT NULL,
+  settlement_reference TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  settled_at TEXT,
+  FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_refund_review_cases_edition
+  ON refund_review_cases(edition_id, status);
 
 CREATE INDEX IF NOT EXISTS idx_reservations_edition_status
   ON reservations(edition_id, status);
