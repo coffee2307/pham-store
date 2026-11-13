@@ -43,8 +43,6 @@
         <dl class="pham-about__founder-facts" aria-label="Founder details">
           <div><dt>FOUNDER</dt><dd>Coffee Pham</dd></div>
           <div><dt>ESTABLISHED</dt><dd>2026 · Vietnam</dd></div>
-          <div><dt>AT THE BEGINNING</dt><dd>Age 16 · High school student</dd></div>
-          <div><dt>MODEL</dt><dd>Independent · Edition-based</dd></div>
         </dl>
         <div class="pham-about__founder-narrative">
           <h2 class="pham-about__record-title">{% render "pham-editorial-title", text: section.settings.founder_title %}</h2>
@@ -522,6 +520,32 @@
  .pham-about__title{font-size:clamp(2rem,9.4vw,3.2rem)}
 }
 
+/* About typography: two intentional short lines, no orphan words. */
+.pham-about__edition-heading .pham-editorial-line {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  white-space: nowrap;
+  text-wrap: nowrap;
+}
+.pham-about__edition-heading .pham-about__record-title {
+  letter-spacing: -.035em;
+  text-wrap: initial;
+}
+.pham-about__founder-facts {
+  margin-bottom: 0;
+}
+@media (max-width: 599px) {
+  .pham-about__edition-heading .pham-about__record-title {
+    font-size: clamp(1.47rem, 6.8vw, 1.95rem);
+    line-height: 1.16;
+  }
+  .pham-about__founder-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+  }
+  .pham-about__record-block--founder { gap: 18px; }
+}
 </style>
 
 {% schema %}
@@ -620,7 +644,7 @@
       "type": "text",
       "id": "edition_title",
       "label": "Edition title",
-      "default": "PHAM-001 / A CONSIDERED FIRST RELEASE"
+      "default": "PHAM-001. FIRST RELEASE."
     },
     {
       "type": "textarea",

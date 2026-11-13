@@ -213,6 +213,57 @@
   .pham-founder__section-phrase { white-space:normal }
 }
 
+/* A solid square label interrupts the timeline rail behind it. */
+.pham-founder__chapter-aside {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  padding-top: 0;
+}
+.pham-founder__chapter-category {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: min(100%, 23ch);
+  min-height: 44px;
+  padding: 9px 12px;
+  background: #0a0b0d;
+  border: 1px solid rgba(241,240,236,.28);
+  box-shadow: 0 0 0 5px #0a0b0d;
+  color: #cecdca;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: .075em;
+  text-wrap: balance;
+}
+.pham-founder__chapter-copy h3 {
+  text-wrap: balance;
+  overflow-wrap: normal;
+}
+@media (max-width: 700px) {
+  .pham-founder__chapter-aside {
+    margin-left: -54px;
+    width: calc(100% + 54px);
+    padding-top: 0;
+  }
+  .pham-founder__chapter-category {
+    max-width: min(194px, 100%);
+    min-height: 44px;
+    padding: 8px 11px;
+    font-size: 10px;
+    letter-spacing: .06em;
+  }
+  .pham-founder__chapter-copy {
+    padding-left: 0;
+  }
+  .pham-founder__chapter-copy h3 {
+    font-size: clamp(1.26rem, 5.25vw, 1.85rem);
+    line-height: 1.24;
+    letter-spacing: -.02em;
+  }
+}
 </style>
 {% schema %}
 {

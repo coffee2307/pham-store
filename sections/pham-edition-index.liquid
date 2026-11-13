@@ -508,6 +508,35 @@
   .pham-edition-index__status { grid-column: 1; grid-row: auto; }
   .pham-edition-index__principle { grid-template-columns: minmax(0,1fr); }
 }
+/* The edition declaration is a two-line statement, not a paragraph. */
+.pham-edition-index__principle-title {
+  max-width: 100%;
+  gap: .12em;
+  letter-spacing: -.025em;
+}
+.pham-edition-index__principle-title > span {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  white-space: nowrap;
+}
+.pham-edition-index__principle-title > span:last-child {
+  color: #f1f0ed;
+}
+.pham-edition-index__principle-sub {
+  max-width: 35ch;
+  margin-top: 17px;
+}
+@media (max-width: 699px) {
+  .pham-edition-index__principle-title {
+    font-size: clamp(1.4rem, 6.7vw, 2.15rem);
+    line-height: 1.17;
+  }
+  .pham-edition-index__principle {
+    margin-top: 34px;
+    padding-top: 24px;
+  }
+}
 </style>
 
 {% schema %}
@@ -542,9 +571,9 @@
     { "type": "textarea", "id": "step_5", "label": "05 · Archive", "default": "After delivery, Edition 01 enters the archive. No restock." },
     { "type": "header", "content": "Edition principle" },
     { "type": "text", "id": "principle_eyebrow", "label": "Principle eyebrow", "default": "PHAM / EDITION PRINCIPLE" },
-    { "type": "text", "id": "principle_line_1", "label": "Principle line 1", "default": "PHAM DOES NOT RETURN TO AN EDITION" },
-    { "type": "text", "id": "principle_line_2", "label": "Principle line 2", "default": "ONCE IT IS CLOSED." },
-    { "type": "textarea", "id": "principle_subtext", "label": "Principle supporting text", "default": "What remains is the object, its record, and the person who holds it." }
+    { "type": "text", "id": "principle_line_1", "label": "Principle line 1", "default": "ONE EDITION." },
+    { "type": "text", "id": "principle_line_2", "label": "Principle line 2", "default": "NO RESTOCK." },
+    { "type": "textarea", "id": "principle_subtext", "label": "Principle supporting text", "default": "The object and its record remain." }
   ],
   "presets": [{ "name": "PHAM Edition Index", "category": "PHAM" }],
   "enabled_on": { "templates": ["index"] }
