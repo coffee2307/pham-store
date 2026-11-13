@@ -182,6 +182,11 @@ export default {
         return getReadiness(env, url.searchParams.get('edition') || 'edition-01');
       }
 
+      if (request.method === 'GET' && url.pathname === '/internal/personalizations') {
+        requireInternalKey(request, env);
+        return getProductionPersonalizations(env, url);
+      }
+
       if (request.method === 'GET' && url.pathname === '/internal/reviews') {
         requireInternalKey(request, env);
         return getWebhookReviews(env, url);
