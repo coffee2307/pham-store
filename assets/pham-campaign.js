@@ -653,7 +653,10 @@ function mountReservation(root){
     proxyRequest(root, '/campaign?edition=' + encodeURIComponent(root.dataset.editionId || 'edition-01'))
       .then(function(payload){
         var state = payload && payload.edition ? payload.edition.state : '';
-        liveReservationOpen = state === 'reservation_open';
+        // A campaign state alone never authorizes payment; the independently
+        // verified D1 acceptance gate must also be active.
+        liveReservationOpen = state === 'reservation_open' &&
+          payload.edition.paidReservationIntakeEnabled === true;
 
         if(sizePreference && payload && payload.edition){
           syncSizeSelect(sizePreference, payload.edition.sizeOptions || []);
