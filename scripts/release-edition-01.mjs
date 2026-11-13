@@ -15,7 +15,10 @@ const required = [
   'PHAM_SHIPPING_TAX_SIGNOFF',
   'PHAM_DATA_PROTECTION_SIGNOFF',
   'PHAM_THEME_DEPLOYED_SIGNOFF',
-  'PHAM_WEBHOOK_E2E_SIGNOFF'
+  'PHAM_WEBHOOK_E2E_SIGNOFF',
+  'PHAM_DEPOSIT_CATALOG_SIGNOFF',
+  'PHAM_UNDERFILL_REFUND_SIGNOFF',
+  'PHAM_NOTIFICATION_E2E_SIGNOFF'
 ];
 
 function fail(message) {
@@ -58,6 +61,13 @@ async function api(path, options={}) {
 }
 const ready = await api('/internal/readiness?edition=edition-01');
 if (!ready.ok) fail('Backend readiness did not pass.');
+const notifications = await api('/internal/notifications');
+if(notifications.deliveryConfigured !== true){
+  fail('Verified transactional notification transport is not configured.');
+}
+if((notifications.jobs||[]).some(job => job.status === 'needs_review')){
+  fail('Unresolved notice-delivery incidents must be reviewed before the edition opens.');
+}
 const status = await api('/internal/state?edition=edition-01');
 if (!status.edition || status.edition.id !== 'edition-01') fail('Wrong edition.');
 if (status.edition.state !== 'prelaunch') fail('Edition is not safely in prelaunch. Current state: '+status.edition.state);
