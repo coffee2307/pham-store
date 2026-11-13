@@ -241,8 +241,11 @@ export default {
   }
 };
 
-function json(payload, status = 200) {
-  return new Response(JSON.stringify(payload), { status, headers: JSON_HEADERS });
+function json(payload, status = 200, extraHeaders = {}) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { ...JSON_HEADERS, ...extraHeaders }
+  });
 }
 
 function requireInternalKey(request, env) {
