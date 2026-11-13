@@ -1330,3 +1330,17 @@
     transition: none;
   }
 }
+/* Reservation disclosure typography: legible labels instead of legacy wide uppercase display type. */
+.pham-reservation-commerce__details .pham-reservation-details-title {
+  font: 600 14px/1.4 var(--font-body,Arial,sans-serif);
+  letter-spacing: -.015em;
+  text-transform: none;
+}
+.pham-reservation-commerce__details .pham-accordion__heading {
+  font: 600 13px/1.45 var(--font-body,Arial,sans-serif);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.pham-reservation-commerce__details .pham-accordion__summary {
+  text-transform: none;
+}
