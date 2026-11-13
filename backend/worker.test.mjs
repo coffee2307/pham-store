@@ -15,6 +15,7 @@ import {
   validateFinalAcquisitionOrder,
   validateIdentityPersonalization,
   canAcceptPaidReservation,
+  validateCollectorAccountLink,
   validateManualContactEvidence,
   validatePriorityReservationOrder,
   validateStandbyAcquisitionOrder,
@@ -890,4 +891,15 @@ test('paid reservation intake fails closed independently of theme and legacy cam
   },new Date('2026-11-14T00:00:00Z')),true);
   assert.equal(canAcceptPaidReservation({state:'reservation_full',commerce_acceptance_enabled:1}),false);
   assert.equal(canAcceptPaidReservation({state:'archived',commerce_acceptance_enabled:0}),false);
+});
+
+test('guest checkout cannot be claimed by another account or by an unverified email',()=>{
+  const reservation={id:'PHAM-R-TEST',status:'active',shopify_customer_id:null,email:'collector@example.com'};
+  const legitimate={id:'gid://shopify/Customer/101',verifiedEmail:true,defaultEmailAddress:{emailAddress:'collector@example.com'}};
+  assert.deepEqual(validateCollectorAccountLink(reservation,legitimate,legitimate.id),{alreadyLinked:false});
+  assert.throws(()=>validateCollectorAccountLink(reservation,{...legitimate,verifiedEmail:false},legitimate.id),/verified_shopify_customer_email_mismatch/);
+  assert.throws(()=>validateCollectorAccountLink(reservation,{...legitimate,defaultEmailAddress:{emailAddress:'someone-else@example.com'}},legitimate.id),/verified_shopify_customer_email_mismatch/);
+  assert.throws(()=>validateCollectorAccountLink({...reservation,status:'expired'},legitimate,legitimate.id),/reservation_not_linkable/);
+  assert.throws(()=>validateCollectorAccountLink({...reservation,shopify_customer_id:'gid://shopify/Customer/202'},legitimate,legitimate.id),/reservation_customer_already_linked/);
+  assert.deepEqual(validateCollectorAccountLink({...reservation,shopify_customer_id:legitimate.id},legitimate,legitimate.id),{alreadyLinked:true});
 });
