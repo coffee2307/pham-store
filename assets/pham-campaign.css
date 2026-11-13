@@ -1346,3 +1346,12 @@
 .pham-reservation-commerce__details .pham-accordion__summary {
   text-transform: none;
 }
+/* Extend the Product accordion's 350ms opening animation to informational
+   Edition disclosures, without altering collection filter controls. */
+.pham-campaign-expander__body {
+  overflow: hidden;
+  padding-bottom: 0;
+}
+.pham-campaign-expander__body > :last-child {
+  padding-bottom: 22px;
+}

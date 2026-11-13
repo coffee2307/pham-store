@@ -6,7 +6,7 @@
   const easing = 'cubic-bezier(.22,.7,.2,1)';
 
   function animateAccordion(details) {
-    const body = details.querySelector(':scope > .pham-accordion__body');
+    const body = details.querySelector(':scope > .pham-accordion__body, :scope > .pham-campaign-expander__body');
     if (!body || reduceMotion() || !body.animate) { details.open = !details.open; return; }
     if (details.dataset.phamAccordionBusy === 'true') return;
     const opening = !details.open;
@@ -32,7 +32,7 @@
   }
   document.addEventListener('click', event => {
     const summary = event.target instanceof Element
-      ? event.target.closest('details.pham-accordion > summary') : null;
+      ? event.target.closest('details.pham-accordion > summary, details.pham-campaign-expander > summary') : null;
     if (summary) {
       event.preventDefault();
       animateAccordion(summary.parentElement);
