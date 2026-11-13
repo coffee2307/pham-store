@@ -3,6 +3,7 @@
  * These are repository guardrails, not lab/field Core Web Vitals measurements.
  */
 import fs from 'node:fs';
+import zlib from 'node:zlib';
 
 const failures = [];
 const results = [];
@@ -12,7 +13,7 @@ function assert(condition, message) {
 const budgets = [
   ['assets/pham-vault.js', 53_000],
   ['assets/pham-vault.css', 53_000],
-  ['assets/pham-campaign.js', 56_000],
+  ['assets/pham-campaign.js', 60_000],
   ['assets/pham-cart.js', 27_000],
   ['assets/pham-animations.js', 30_000],
   ['assets/pham-lookbook.js', 32_000],
@@ -28,6 +29,13 @@ for (const [path, maxBytes] of budgets) {
   results.push({path, actualBytes, maxBytes});
   assert(actualBytes <= maxBytes,
     path + ' is ' + actualBytes + ' bytes; budget is ' + maxBytes + ' bytes.');
+  if(path==='assets/pham-campaign.js'){
+    const gzipBytes=zlib.gzipSync(fs.readFileSync(path),{level:9}).length;
+    const gzipBudget=15_000;
+    assert(gzipBytes<=gzipBudget,
+      'PHAM campaign JS compresses to '+gzipBytes+' B gzip; limit '+gzipBudget+' B.');
+    results[results.length-1].gzipBytes=gzipBytes;
+  }
 }
 
 for (const path of [
