@@ -52,6 +52,8 @@ CREATE TABLE IF NOT EXISTS reservations (
   payment_deadline TEXT,
   final_payment_status TEXT NOT NULL DEFAULT 'pending',
   digital_lookbook_status TEXT NOT NULL DEFAULT 'pending',
+  lookbook_delivery_reference TEXT,
+  lookbook_delivery_confirmed_at TEXT,
   final_draft_order_id TEXT,
   final_invoice_url TEXT,
   final_shopify_order_id TEXT UNIQUE,
@@ -169,6 +171,23 @@ CREATE TABLE IF NOT EXISTS refund_review_cases (
   settled_at TEXT,
   FOREIGN KEY (reservation_id) REFERENCES reservations(id)
 );
+
+CREATE TABLE IF NOT EXISTS customer_notification_jobs (
+  id TEXT PRIMARY KEY,
+  edition_id TEXT NOT NULL,
+  reservation_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'queued',
+  attempt_count INTEGER NOT NULL DEFAULT 0,
+  provider_id TEXT,
+  last_error TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  sent_at TEXT,
+  FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_outbox
+  ON customer_notification_jobs(status,created_at);
 
 CREATE INDEX IF NOT EXISTS idx_refund_review_cases_edition
   ON refund_review_cases(edition_id, status);
