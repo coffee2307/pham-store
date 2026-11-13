@@ -296,6 +296,7 @@ function mountIdentity(root){
   var inscription = root.querySelector('[data-pham-id-inscription]');
   var productionNotes = root.querySelector('[data-pham-id-production-notes]');
   var review = root.querySelector('[data-pham-identity-review]');
+  var publicIdentity = root.querySelector('input[name="contact[Public identity]"], input[data-pham-public-identity]');
   var outName = root.querySelector('[data-pham-preview-name]');
   var outInscription = root.querySelector('[data-pham-preview-inscription]');
   var outNumber = root.querySelector('[data-pham-preview-number]');
@@ -304,99 +305,117 @@ function mountIdentity(root){
   var nameCount = root.querySelector('[data-pham-name-count]');
   var notesCount = root.querySelector('[data-pham-notes-count]');
   var numberInput = root.querySelector('[data-pham-id-number-input]');
-  var submit = root.querySelector('[data-pham-identity-submit]');
-  var form = root.querySelector('.pham-identity-form');
-  var publicIdentity = root.querySelector('input[name="contact[Public identity]"]');
+  var emailLink = root.querySelector('[data-pham-identity-email-link]');
+  var whatsappLink = root.querySelector('[data-pham-identity-whatsapp-link]');
   var result = root.querySelector('[data-pham-identity-result]');
-  var engineEnabled = root.dataset.engineEnabled === 'true';
   var buttons = qsa('[data-pham-object-number]', root);
+  var eligible = root.dataset.submitEnabled === 'true';
+  var email = String(root.dataset.identityEmail || '').trim();
+  var whatsappNumber = String(root.dataset.identityWhatsapp || '').trim();
+  var whatsappValid = /^\d{8,15}$/.test(whatsappNumber);
+  var emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  function safeLine(value, maxLength){
+    return Array.from(String(value || '').replace(/[\r\n\t\x00-\x1f]/g, ' ').trim())
+      .slice(0, maxLength).join('');
+  }
+
+  function ready(){
+    return eligible && emailValid && Boolean(
+      numberInput && numberInput.value &&
+      name && safeLine(name.value, 24) &&
+      review && review.checked
+    );
+  }
+
+  function buildMessage(){
+    var preferred = String(numberInput.value).padStart(2, '0');
+    var lines = [
+      'Hello PHAM Atelier,',
+      '',
+      'I would like to request personalisation of my PHAM-001 collector card.',
+      'Edition: ' + safeLine(root.dataset.identityEdition || 'EDITION 01', 50),
+      'Reservation: ' + safeLine(root.dataset.identityReservation || 'Please verify my eligible order', 80),
+      'Preferred jacket number: ' + preferred + ' / ' + (root.dataset.editionSize || '50'),
+      'Name to print: ' + safeLine(name.value, 24),
+      'Inscription: ' + (inscription && safeLine(inscription.value, 40) || '(none)'),
+      'Special production request: ' + (productionNotes && safeLine(productionNotes.value, 240) || '(none)'),
+      'Publish my alias on the public Object Record: ' + (publicIdentity && publicIdentity.checked ? 'Yes' : 'No'),
+      '',
+      'I understand that my number and final card layout must be reviewed and confirmed by PHAM.',
+      'Please confirm availability and production feasibility before engraving.',
+      'Thank you.'
+    ];
+    return lines.join('\n');
+  }
+
+  function setReady(link, enabled){
+    if(!link) return;
+    link.classList.toggle('is-disabled', !enabled);
+    link.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+    link.tabIndex = enabled ? 0 : -1;
+    if(!enabled) link.setAttribute('href', '#');
+  }
 
   function sync(){
-    if(outName) outName.textContent = (name && name.value.trim()) || 'COLLECTOR ID';
-    if(outInscription) outInscription.textContent = (inscription && inscription.value.trim()) || 'YOUR INSCRIPTION';
+    if(outName) outName.textContent = name && name.value.trim() || 'COLLECTOR ID';
+    if(outInscription) outInscription.textContent = inscription && inscription.value.trim() || 'YOUR INSCRIPTION';
     if(count && inscription) count.textContent = String(Array.from(inscription.value).length) + '/40';
     if(nameCount && name) nameCount.textContent = String(Array.from(name.value).length) + '/24';
     if(notesCount && productionNotes) notesCount.textContent = String(Array.from(productionNotes.value).length) + '/240';
-    var ready = !!(numberInput && numberInput.value && name && name.value.trim() && review && review.checked);
-    if(submit && !submit.classList.contains('is-busy')) submit.disabled = !ready;
+    setReady(emailLink, ready());
+    setReady(whatsappLink, ready() && whatsappValid);
+  }
+
+  if(whatsappLink && !whatsappValid){
+    whatsappLink.hidden = true;
+    if(result){
+      result.textContent = 'WhatsApp is temporarily unavailable. Use email until PHAM has configured a verified WhatsApp number.';
+      result.hidden = false;
+    }
   }
 
   if(name) name.addEventListener('input', sync);
   if(inscription) inscription.addEventListener('input', sync);
   if(productionNotes) productionNotes.addEventListener('input', sync);
   if(review) review.addEventListener('change', sync);
+  if(publicIdentity) publicIdentity.addEventListener('change', sync);
 
   buttons.forEach(function(btn){
     btn.addEventListener('click', function(){
-      buttons.forEach(function(x){
-        x.classList.remove('is-selected');
-        x.setAttribute('aria-pressed', 'false');
+      buttons.forEach(function(item){
+        item.classList.remove('is-selected');
+        item.setAttribute('aria-pressed', 'false');
       });
       btn.classList.add('is-selected');
       btn.setAttribute('aria-pressed', 'true');
-      var selectedNumber = String(btn.dataset.phamObjectNumber || '').padStart(2, '0');
-      if(outNumber) outNumber.textContent = selectedNumber + ' / ' + (root.dataset.editionSize || '50');
-      if(numberStatus) numberStatus.textContent = 'Preferred: ' + selectedNumber + '. Pending PHAM confirmation.';
+      var number = String(btn.dataset.phamObjectNumber || '').padStart(2, '0');
       if(numberInput) numberInput.value = btn.dataset.phamObjectNumber || '';
+      if(outNumber) outNumber.textContent = number + ' / ' + (root.dataset.editionSize || '50');
+      if(numberStatus) numberStatus.textContent = 'Preferred ' + number + '. Not reserved until PHAM confirms it.';
       sync();
     });
   });
 
-  sync();
-
-  if(engineEnabled && form){
-    if(submit) submit.addEventListener('click', function(){
-      if(!submit.disabled && form.requestSubmit) form.requestSubmit();
-    });
-    form.addEventListener('submit', function(event){
+  if(emailLink) emailLink.addEventListener('click', function(event){
+    if(!ready()){
       event.preventDefault();
-      if(!submit || submit.disabled || !numberInput || !numberInput.value) return;
+      return;
+    }
+    var subject = 'PHAM-001 / Edition 01 / Collector card personalisation';
+    emailLink.href = 'mailto:' + email +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(buildMessage());
+  });
 
-      submit.disabled = true;
-      submit.classList.add('is-busy');
-      submit.textContent = 'Saving Identity…';
-      if(result) result.hidden = true;
-
-      proxyRequest(root, '/identity/configure', {
-        method: 'POST',
-        body: {
-          alias: name ? name.value : '',
-          inscription: inscription ? inscription.value : '',
-          productionNotes: productionNotes ? productionNotes.value : '',
-          acknowledgeReview: Boolean(review && review.checked),
-          preferredNumber: Number(numberInput.value),
-          publicIdentity: Boolean(publicIdentity && publicIdentity.checked)
-        }
-      })
-      .then(function(payload){
-        if(result){
-          result.textContent = 'IDENTITY RECORDED · OBJECT ' +
-            String(payload.identity.preferredNumber).padStart(2, '0') +
-            '/' + (root.dataset.editionSize || '50') +
-            ' SAVED WITH YOUR CARD INSTRUCTIONS. FINAL PRODUCTION DETAILS REQUIRE CONFIRMATION.';
-          result.hidden = false;
-        }
-        buttons.forEach(function(btn){ btn.disabled = true; });
-        if(name) name.disabled = true;
-        if(inscription) inscription.disabled = true;
-        if(productionNotes) productionNotes.disabled = true;
-        if(review) review.disabled = true;
-        if(publicIdentity) publicIdentity.disabled = true;
-        submit.classList.remove('is-busy');
-        submit.textContent = 'Card instructions recorded';
-      })
-      .catch(function(error){
-        if(result){
-          result.textContent = engineErrorMessage(error.code);
-          result.hidden = false;
-        }
-        submit.disabled = false;
-        submit.classList.remove('is-busy');
-        submit.textContent = 'Send card instructions';
-        sync();
-      });
-    });
-  }
+  if(whatsappLink) whatsappLink.addEventListener('click', function(event){
+    if(!ready() || !whatsappValid){
+      event.preventDefault();
+      return;
+    }
+    whatsappLink.href = 'https://wa.me/' + whatsappNumber +
+      '?text=' + encodeURIComponent(buildMessage());
+  });
 
   sync();
 }
