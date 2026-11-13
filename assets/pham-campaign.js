@@ -93,12 +93,12 @@ function readCampaignContext(){
   catch (e) { return null; }
 }
 
-function effectiveCampaignState(context, state){
+function effectiveCampaignState(context, state, edition){
   var normalized = String(state || 'prelaunch');
   if(normalized === 'reservation_open'){
     var commerceReady = context && context.commerceReady === true;
     var lookbookReady = !context || context.includeLookbook !== true || context.lookbookReady === true;
-    if(!commerceReady || !lookbookReady) return 'prelaunch';
+    if(!commerceReady || !lookbookReady || !edition || edition.paidReservationIntakeEnabled !== true) return 'prelaunch';
   }
   return normalized;
 }
@@ -187,7 +187,7 @@ function applyGlobalCampaignState(context, state){
   qsa('[data-pham-campaign-entry]').forEach(function(link){
     link.href = presentation.url;
     if(presentation.entryLabel){
-      link.innerHTML = presentation.entryLabel + ' <span aria-hidden="true">&#8599;</span>';
+      link.textContent = presentation.entryLabel;
     }
   });
 
@@ -279,7 +279,7 @@ function mountGlobalCampaignRuntime(){
   .then(function(payload){
     if(!payload || !payload.edition) return;
     window.__PHAM_CAMPAIGN_LIVE__ = payload;
-    var effectiveState = effectiveCampaignState(context, payload.edition.state);
+    var effectiveState = effectiveCampaignState(context, payload.edition.state, payload.edition);
     document.documentElement.dataset.phamCampaignState = effectiveState;
     applyGlobalCampaignState(context, effectiveState);
   })
@@ -1168,7 +1168,7 @@ function mountLiveCampaign(root){
       var identities = Number(payload.counters.identityClaimed || 0);
       var identityLimit = Number(payload.edition.identityLimit || 0);
       var context = readCampaignContext() || {};
-      var liveState = effectiveCampaignState(context, payload.edition.state);
+      var liveState = effectiveCampaignState(context, payload.edition.state, payload.edition);
       var presentation = campaignPresentation(context, liveState);
 
       var stateText = root.querySelector('[data-pham-live-state]');
