@@ -345,6 +345,9 @@ function mountIdentity(root){
   sync();
 
   if(engineEnabled && form){
+    if(submit) submit.addEventListener('click', function(){
+      if(!submit.disabled && form.requestSubmit) form.requestSubmit();
+    });
     form.addEventListener('submit', function(event){
       event.preventDefault();
       if(!submit || submit.disabled || !numberInput || !numberInput.value) return;
