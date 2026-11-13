@@ -1385,8 +1385,13 @@ async function linkVerifiedCustomerToReservation(request,env){
     metafield(customerId,'size_preference','single_line_text_field',reservation.size_preference||''),
     metafield(customerId,'digital_lookbook_status','single_line_text_field',reservation.digital_lookbook_status||'pending')
   ]);
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    "INSERT OR IGNORE INTO webhook_events(id,topic,status,detail) VALUES(?,?,?,?)"
+  ).bind('pham-collector-link:'+reservationId,
+    'internal/collector-link','processed',
+    JSON.stringify({reservationId,customerId,supportCase})).run();
   return json({ok:true,reservationId,customerLinked:true,
-    supportCaseRecordedExternally:true},200,{'Cache-Control':'no-store'});
+    supportCaseRecorded:true},200,{'Cache-Control':'no-store'});
 }
 
 async function assignReservationVariant(request, env) {
