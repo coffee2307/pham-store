@@ -628,6 +628,7 @@ async function confirmIdentityFromCorrespondence(request, env) {
            contact_verified_at = CURRENT_TIMESTAMP
      WHERE reservation_id = ?`
   ).bind(evidence.channel, evidence.evidence, evidence.reservationId).run();
+  await enqueueCustomerNotice(env,reservation.id,reservation.edition_id,'identity_confirmed');
   const payload = await confirmation.json();
   return json({
     ok:true,
@@ -932,6 +933,16 @@ async function persistObjectLifecycle(env, reservation, nextStage, details = {})
   });
 
   await syncLifecycleMetafields(env, reservation, nextStage, trackingNumber);
+  const eventForStage={
+    in_production:'production_started',
+    quality_control:'quality_control',
+    packed:'packed',
+    dispatched:'dispatched',
+    delivered:'delivered'
+  }[nextStage];
+  if(eventForStage){
+    await enqueueCustomerNotice(env,reservation.id,reservation.edition_id,eventForStage);
+  }
 
   return {
     previousStage: transition.currentStage,
@@ -1007,6 +1018,12 @@ async function setLookbookStatus(request, env) {
   const reservationId = String(body.reservationId || '').trim();
   const status = String(body.status || '').trim().toLowerCase();
   const allowed = ['pending', 'entitled', 'delivered', 'failed'];
+  const deliveryReference=String(body.deliveryReference||'').trim();
+  if(status==='delivered' && (body.deliveryVerified!==true ||
+    deliveryReference.length<12 || deliveryReference.length>160 ||
+    /[<>\u0000-\u001f]/u.test(deliveryReference))) {
+    return json({ok:false,error:'verified_lookbook_delivery_reference_required'},422);
+  }
 
   if (!reservationId) {
     return json({ ok: false, error: 'reservation_id_required' }, 422);
@@ -1027,9 +1044,15 @@ async function setLookbookStatus(request, env) {
 
   await env.PHAM_CAMPAIGN_DB.prepare(
     `UPDATE reservations
-     SET digital_lookbook_status = ?, updated_at = CURRENT_TIMESTAMP
+     SET digital_lookbook_status = ?,
+         lookbook_delivery_reference = CASE WHEN ?='delivered' THEN ? ELSE lookbook_delivery_reference END,
+         lookbook_delivery_confirmed_at = CASE WHEN ?='delivered' THEN CURRENT_TIMESTAMP ELSE lookbook_delivery_confirmed_at END,
+         updated_at = CURRENT_TIMESTAMP
      WHERE id = ?`
-  ).bind(status, reservationId).run();
+  ).bind(status,status,status==='delivered'?deliveryReference:null,status,reservationId).run();
+  if(status==='delivered'){
+    await enqueueCustomerNotice(env,reservationId,reservation.edition_id,'lookbook_delivered');
+  }
 
   const fields = [
     metafield(
@@ -2361,6 +2384,7 @@ async function handleOrdersPaid(request, env) {
     ).bind(edition.id).run();
   }
 
+  await enqueueCustomerNotice(env,reservationId,edition.id,'reservation_confirmed');
   if (webhookId) await recordWebhook(env, webhookId, topic);
 
   return json({
@@ -2451,6 +2475,7 @@ async function handleFinalAcquisitionPaid(env, order) {
     stage: 'production_queued',
     note: 'Final acquisition payment confirmed.'
   });
+  await enqueueCustomerNotice(env,reservationId,reservation.edition_id,'final_payment_paid');
 
   const fields = [
     metafield(reservation.shopify_order_id, 'final_payment_status', 'single_line_text_field', 'paid'),
