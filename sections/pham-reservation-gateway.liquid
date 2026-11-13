@@ -64,7 +64,7 @@
 
         {%- if object_product != blank and object_product.images.size > 1 -%}
           <div class="pham-reservation-commerce__thumbs" aria-label="PHAM-001 product images">
-            {%- for image in object_product.images limit: 4 -%}
+            {%- for image in object_product.images limit: 3 -%}
               <button type="button"
                 class="{% if forloop.first %}is-active{% endif %}"
                 data-pham-reservation-thumb
@@ -76,9 +76,7 @@
           </div>
         {%- endif -%}
 
-        <div class="pham-reservation-commerce__edition-note">
-          <strong>50 NUMBERED JACKETS</strong>
-        </div>
+
       </div>
 
       <div class="pham-reservation-commerce__buy">
@@ -88,8 +86,8 @@
             <strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong>
             <span>DUE TODAY</span>
           </div>
-          <p class="pham-reservation-commerce__credit">Your {{ settings.pham_campaign_reservation_price | default: '$24.99' }} deposit counts toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} jacket price.</p>
-          <p class="pham-reservation-commerce__balance">Pay <strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong> within {{ settings.pham_campaign_payment_window_hours | default: 72 }} hours of the final-payment invitation. Shipping and taxes may apply.</p>
+          <p class="pham-reservation-commerce__credit">Deposit credited toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} jacket price.</p>
+          <p class="pham-reservation-commerce__balance">Remaining <strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong> due within {{ settings.pham_campaign_payment_window_hours | default: 72 }} hours of the final-payment invitation. Shipping and taxes calculated later.</p>
           {%- unless can_checkout -%}
             <span class="pham-reservation-commerce__launch-note">
               {% if state == 'reservation_full' %}RESERVATION FULL{% elsif commerce_ready == false %}RESERVATIONS OPEN AT LAUNCH{% elsif digital_delivery_ready == false %}RESERVATION PREPARING{% else %}RESERVATION NOT OPEN{% endif %}
@@ -101,7 +99,7 @@
         <div class="pham-config-field pham-reservation-size">
           <div class="pham-reservation-size__head">
             <div>
-                            <h3>Choose a size.</h3>
+              <h3>Choose your size</h3>
             </div>
             <span class="pham-reservation-size__status" data-pham-size-status>NOT SELECTED</span>
           </div>
@@ -135,7 +133,7 @@
               <span>
 
                 <strong>OBJECT IDENTITY</strong>
-                <small>Stainless-steel collector card · inscription · preferred number request · QR Birth Record</small>
+                <small>Personalized collector card and preferred jacket number</small>
               </span>
             </span>
             <strong>+ {{ settings.pham_campaign_identity_price | default: '$5.00' }}</strong>
@@ -145,12 +143,10 @@
 
 
         <div class="pham-reservation-commerce__summary">
-          <div class="pham-reservation-commerce__summary-head"><span>ORDER SUMMARY</span></div>
+          <div class="pham-reservation-commerce__summary-head"><span>Payment summary</span></div>
           <div class="pham-reservation-commerce__summary-row"><span>PHAM-001 jacket deposit</span><strong>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
           <div class="pham-reservation-commerce__summary-row" data-pham-identity-summary hidden><span>Object Identity</span><strong>+ {{ settings.pham_campaign_identity_price | default: '$5.00' }}</strong></div>
-          <div class="pham-reservation-commerce__summary-row"><span>Collector Lookbook</span><strong>INCLUDED</strong></div>
           <div class="pham-reservation-commerce__summary-total"><span>DUE TODAY</span><strong data-pham-reservation-total>{{ settings.pham_campaign_reservation_price | default: '$24.99' }}</strong></div>
-          <div class="pham-reservation-commerce__later"><span>Balance payable later</span><strong>{{ settings.pham_campaign_balance_due | default: '$174.01' }}</strong></div>
         </div>
 
         <div class="pham-campaign-consent pham-reservation-commerce__consent">
@@ -170,33 +166,27 @@
         <p class="pham-campaign-error" data-pham-reservation-error hidden role="alert"></p>
         <div class="pham-reservation-commerce__microcopy">
           <span>50 numbered jackets. No restock.</span>
-          <a href="{{ settings.pham_campaign_terms_page_url | default: '/pages/edition-01-terms' }}">Edition Terms</a>
+        </div>
+
+        <div class="pham-reservation-commerce__details" aria-label="Further reservation information">
+          <h2 class="pham-reservation-details-title">More information</h2>
+          {%- capture pham_reservation_payment_info -%}
+            <p>The {{ settings.pham_campaign_reservation_price | default: '$24.99' }} deposit counts toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} jacket price. It is not an additional access fee.</p>
+            <p>After your final-payment invitation, pay the remaining {{ settings.pham_campaign_balance_due | default: '$174.01' }} within {{ settings.pham_campaign_payment_window_hours | default: 72 }} hours. Shipping, taxes and duties may apply at final checkout.</p>
+            {%- unless commerce_ready -%}<p>Reservation checkout is not open yet.</p>{%- endunless -%}
+          {%- endcapture -%}
+          {% render 'pham-accordion', heading: 'Payment and delivery', content: pham_reservation_payment_info, id: 'pham-reserve-payment', size: 'sm' %}
+          {%- capture pham_reservation_identity_info -%}
+            <p>Optional {{ settings.pham_campaign_identity_price | default: '$5.00' }} upgrade: personalized stainless-steel card, inscription, preferred object number and QR Birth Record. Limited to {{ identity_limit }} privileges. Number allocation is confirmed separately.</p>
+          {%- endcapture -%}
+          {% render 'pham-accordion', heading: 'Object Identity', content: pham_reservation_identity_info, id: 'pham-reserve-identity', size: 'sm' %}
+          {%- capture pham_reservation_lookbook_info -%}
+            <p>The digital Collector Lookbook is included after confirmed payment, at no additional charge. It may appear as a separate $0 line item for delivery.</p>
+          {%- endcapture -%}
+          {% render 'pham-accordion', heading: 'Collector Lookbook', content: pham_reservation_lookbook_info, id: 'pham-reserve-lookbook', size: 'sm' %}
         </div>
       </div>
     </div>
-
-    <section class="pham-reservation-commerce__below">
-
-      <div class="pham-reservation-commerce__details">
-        <h2 class="pham-reservation-details-title">Reservation details</h2>
-        <details>
-          <summary>HOW THE DEPOSIT WORKS <span>+</span></summary>
-          <p>A confirmed {{ settings.pham_campaign_reservation_price | default: '$24.99' }} reservation holds an allocation while available and counts toward the {{ settings.pham_campaign_final_price | default: '$199.00' }} jacket. This is not an additional access fee. Full-payment checkout is not yet available.</p>
-        </details>
-        <details>
-          <summary>FINAL PAYMENT &amp; SHIPPING <span>+</span></summary>
-          <p>When acquisition opens, reserved collectors receive a final payment invitation. The remaining {{ settings.pham_campaign_balance_due | default: '$174.01' }} is due within {{ settings.pham_campaign_payment_window_hours | default: 72 }} hours. Shipping, duties and taxes may apply at final checkout.</p>
-        </details>
-        <details>
-          <summary>OBJECT IDENTITY <span>+</span></summary>
-          <p>The optional {{ settings.pham_campaign_identity_price | default: '$5.00' }} Object Identity add-on includes a custom stainless-steel card, inscription, preferred object-number request and QR Birth Record. Availability is limited to {{ identity_limit }} privileges.</p>
-        </details>
-        <details>
-          <summary>COLLECTOR LOOKBOOK <span>+</span></summary>
-          <p>The Collector Lookbook is included after confirmed payment. It may appear as a separate $0 line item for digital delivery.</p>
-        </details>
-      </div>
-    </section>
   </div>
 </section>
 
