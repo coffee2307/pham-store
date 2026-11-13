@@ -396,6 +396,34 @@ async function getCollectorStatus(env, customerId, editionId) {
   });
 }
 
+export function validateIdentityPersonalization(body, editionSize) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    throw new Error('identity_alias_invalid');
+  }
+  // Do not truncate silently: what is saved must match what the customer reviewed.
+  const alias = typeof body.alias === 'string' ? body.alias.trim() : '';
+  const inscription = typeof body.inscription === 'string' ? body.inscription.trim() : '';
+  const productionNotes = typeof body.productionNotes === 'string' ? body.productionNotes.trim() : '';
+  const invalid = /[<>\u0000-\u0008\u000B-\u001F\u007F]/u;
+  if (!alias || Array.from(alias).length > 24 || invalid.test(alias)) {
+    throw new Error('identity_alias_invalid');
+  }
+  if (Array.from(inscription).length > 40 || invalid.test(inscription)) {
+    throw new Error('identity_inscription_invalid');
+  }
+  if (Array.from(productionNotes).length > 240 || invalid.test(productionNotes)) {
+    throw new Error('identity_production_notes_invalid');
+  }
+  const preferredNumber = Number(body.preferredNumber);
+  if (!Number.isInteger(preferredNumber) || preferredNumber < 1 || preferredNumber > editionSize) {
+    throw new Error('object_number_out_of_range');
+  }
+  if (body.acknowledgeReview !== true) {
+    throw new Error('identity_review_required');
+  }
+  return { preferredNumber, alias, inscription, productionNotes, publicIdentity: body.publicIdentity === true ? 1 : 0 };
+}
+
 async function configureIdentity(request, env, customerId, editionId) {
   if (!customerId) return json({ ok: false, error: 'customer_login_required' }, 401);
 
@@ -422,15 +450,14 @@ async function configureIdentity(request, env, customerId, editionId) {
     'SELECT * FROM editions WHERE id = ?'
   ).bind(editionId).first();
 
-  const body = await request.json();
-  const preferredNumber = Number(body.preferredNumber);
-  const alias = String(body.alias || '').trim().slice(0, 24);
-  const inscription = String(body.inscription || '').trim().slice(0, 40);
-  const publicIdentity = body.publicIdentity === true ? 1 : 0;
-
-  if (!Number.isInteger(preferredNumber) || preferredNumber < 1 || preferredNumber > edition.edition_size) {
-    return json({ ok: false, error: 'object_number_out_of_range' }, 422);
+  const body = await request.json().catch(() => null);
+  let personalization;
+  try {
+    personalization = validateIdentityPersonalization(body, edition.edition_size);
+  } catch (error) {
+    return json({ ok: false, error: error.message }, 422);
   }
+  const { preferredNumber, alias, inscription, productionNotes, publicIdentity } = personalization;
 
   const taken = await env.PHAM_CAMPAIGN_DB.prepare(
     `SELECT id FROM reservations
@@ -451,11 +478,12 @@ async function configureIdentity(request, env, customerId, editionId) {
          SET preferred_number = ?,
              engraving_name = ?,
              engraving_text = ?,
+             production_notes = ?,
              public_identity = ?,
              configured_at = CURRENT_TIMESTAMP,
              status = 'configured'
          WHERE reservation_id = ?`
-      ).bind(preferredNumber, alias, inscription, publicIdentity, reservation.id)
+      ).bind(preferredNumber, alias, inscription, productionNotes, publicIdentity, reservation.id)
     ]);
   } catch (error) {
     if (/UNIQUE|constraint/i.test(String(error && error.message || error))) {
@@ -476,6 +504,7 @@ async function configureIdentity(request, env, customerId, editionId) {
       preferredNumber,
       alias,
       inscription,
+      productionNotesSaved: Boolean(productionNotes),
       publicIdentity: Boolean(publicIdentity)
     }
   });
