@@ -1467,6 +1467,9 @@ async function getReadiness(env, editionId) {
   check('env.SHOPIFY_CLIENT_SECRET', Boolean(env.SHOPIFY_CLIENT_SECRET), env.SHOPIFY_CLIENT_SECRET ? 'configured (Admin API auth + App Proxy + webhook HMAC)' : 'missing');
   check('env.INTERNAL_ADMIN_KEY', Boolean(env.INTERNAL_ADMIN_KEY), env.INTERNAL_ADMIN_KEY ? 'configured' : 'missing');
   check('env.STOREFRONT_ORIGIN', Boolean(env.STOREFRONT_ORIGIN), env.STOREFRONT_ORIGIN || null);
+  check('notifications.delivery_configured', notificationTransportConfigured(env),
+    notificationTransportConfigured(env) ? 'transactional email transport ready' :
+      'requires PHAM_NOTIFICATIONS_ENABLED=true, verified PHAM_NOTIFICATION_FROM and PHAM_RESEND_API_KEY');
 
   const edition = await env.PHAM_CAMPAIGN_DB.prepare(
     'SELECT * FROM editions WHERE id = ?'
@@ -1497,6 +1500,15 @@ async function getReadiness(env, editionId) {
       {editionState:edition.state, paidIntakeEnabled:Number(edition.commerce_acceptance_enabled||0)===1});
   }
 
+  try {
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      'SELECT lookbook_delivery_reference, lookbook_delivery_confirmed_at FROM reservations LIMIT 0'
+    ).all();
+    await env.PHAM_CAMPAIGN_DB.prepare('SELECT id,status FROM customer_notification_jobs LIMIT 0').all();
+    check('d1.lookbook_and_notification_migration', true, '0008 applied');
+  } catch (_error) {
+    check('d1.lookbook_and_notification_migration', false, 'migration 0008 required');
+  }
   // Fail closed if the deployed Worker has not received the card-personalisation migrations.
   try {
     await env.PHAM_CAMPAIGN_DB.prepare(
