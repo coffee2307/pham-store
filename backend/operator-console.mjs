@@ -22,6 +22,10 @@ if(!output.endsWith('.html') && !output.endsWith('.htm')){
   process.exit(1);
 }
 const full=path.resolve(output);
+const relative=path.relative(process.cwd(),full);
+if(relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative))) {
+  throw new Error('Private operator report must be saved outside the source repository.');
+}
 if(fs.existsSync(full))throw new Error('Refusing to overwrite existing private report. Choose a new filename.');
 
 async function read(endpoint){
