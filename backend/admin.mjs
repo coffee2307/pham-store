@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+
 const base = String(process.env.CAMPAIGN_BACKEND_URL || '').replace(/\/$/, '');
 const key = process.env.INTERNAL_ADMIN_KEY || '';
 const command = process.argv[2] || 'help';
@@ -65,6 +67,20 @@ switch(command){
   case 'readiness':
     await request('/internal/readiness?edition=' + encodeURIComponent(editionArg()));
     break;
+
+  case 'confirm-identity': {
+    if(!hasFlag('--confirm')) fail('Refusing to allocate a card number without --confirm.');
+    const file = valueArg('--file');
+    if(!file) fail('Provide --file=<private JSON request from verified email/WhatsApp correspondence>.');
+    const payload = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if(!payload || !['email','whatsapp'].includes(payload.channel) || !payload.contactReference)
+      fail('Verified channel and conversation reference required.');
+    await request('/internal/identity/confirm', {
+      method:'POST',
+      body:{...payload,confirm:'CONFIRM_MANUAL_IDENTITY'}
+    });
+    break;
+  }
 
   case 'personalizations':
     await request('/internal/personalizations?edition=' + encodeURIComponent(editionArg()));
@@ -243,6 +259,8 @@ Commands:
   node admin.mjs readiness [--edition=edition-01]
   node admin.mjs reviews [--limit=50]
   node admin.mjs personalizations [--edition=edition-01]  # sensitive; operator only
+  node admin.mjs confirm-identity --file=private-confirmed-request.json --confirm
+  # Confirmation requires prior verified email/WhatsApp correspondence and eligible reservation
   node admin.mjs set-state --state=reservation_open --confirm [--edition=edition-01]
   node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=in_production --confirm
   node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=quality_control --confirm
