@@ -1,3 +1,5 @@
+import { compileEditionOperations } from './operations-ledger.mjs';
+
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
 
 export const OBJECT_LIFECYCLE_STAGES = [
@@ -182,6 +184,11 @@ export default {
       if (request.method === 'GET' && url.pathname === '/internal/readiness') {
         requireInternalKey(request, env);
         return getReadiness(env, url.searchParams.get('edition') || 'edition-01');
+      }
+
+      if (request.method === 'GET' && url.pathname === '/internal/operations') {
+        requireInternalKey(request, env);
+        return getPrivateOperationsLedger(env, url.searchParams.get('edition') || 'edition-01');
       }
 
       if (request.method === 'GET' && url.pathname === '/internal/personalizations') {
@@ -408,7 +415,7 @@ async function getCollectorStatus(env, customerId, editionId) {
       verifiedCount,
       requiredCount: 1
     }
-  });
+  },200,{'Cache-Control':'private, no-store'});
 }
 
 export function validateIdentityPersonalization(body, editionSize) {
@@ -966,6 +973,43 @@ async function setLookbookStatus(request, env) {
     reservationId,
     status
   });
+}
+
+async function getPrivateOperationsLedger(env, editionId) {
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT id, state, edition_size FROM editions WHERE id = ?'
+  ).bind(editionId).first();
+  if (!edition) return json({ok:false,error:'edition_not_found'},404);
+
+  // Private, minimal production projection: deliberately omit email, customer ID,
+  // delivery address, financial account data, and unpublished QR tokens.
+  const rows = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT r.id, r.object_number, r.size_preference, r.status,
+            r.final_payment_status, r.lifecycle_stage, r.tracking_number,
+            r.tracking_url, r.digital_lookbook_status, r.payment_deadline,
+            c.status AS identity_status, c.preferred_number,
+            c.engraving_name, c.engraving_text, c.production_notes,
+            c.contact_verified_at
+       FROM reservations r
+       LEFT JOIN identity_claims c ON c.reservation_id = r.id
+      WHERE r.edition_id = ? AND r.status NOT IN ('cancelled', 'expired')
+      ORDER BY r.created_at ASC
+      LIMIT 501`
+  ).bind(editionId).all();
+
+  try {
+    return json({
+      ok:true,
+      privateOperatorData:true,
+      ...compileEditionOperations(edition, rows.results || []),
+    },200,{'Cache-Control':'no-store'});
+  } catch(error) {
+    return json({
+      ok:false,
+      error:'operations_integrity_alert',
+      reason:error.message,
+    },503,{'Cache-Control':'no-store'});
+  }
 }
 
 async function getProductionPersonalizations(env, url) {
