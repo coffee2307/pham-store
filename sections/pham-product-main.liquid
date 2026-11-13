@@ -42,8 +42,8 @@
   endif
   if product.handle == 'pham-edition-01-collector-lookbook'
     assign is_lookbook_benefit = true
-    assign display_product_title = 'PHAM-001 PRIORITY RESERVATION'
-    assign display_product_price = settings.pham_campaign_reservation_price | default: '$24.99'
+    assign display_product_title = 'COLLECTOR LOOKBOOK'
+    assign display_product_price = 'INCLUDED'
   endif
 -%}
 {%- capture construction_content -%}
@@ -78,6 +78,9 @@
       {%- assign gallery_image_blocks = section.blocks | where: 'type', 'gallery_image' -%}
       {%- if pham_show_jacket_reference and pham_object_product != blank -%}
         {% render 'pham-product-gallery', product: pham_object_product, section_id: section.id, gallery_blocks: blank %}
+        {%- if is_lookbook_benefit -%}
+          <p class="pham-product-main__reference-note">PHAM-001 reference imagery</p>
+        {%- endif -%}
       {%- elsif product.handle == 'pham-001' -%}
         {% render 'pham-product-gallery', product: product, section_id: section.id, gallery_blocks: gallery_image_blocks %}
       {%- elsif product.images.size > 0 -%}
@@ -101,7 +104,7 @@
           {%- endif -%}
           <h1 class="pham-product-main__title">{{ display_product_title }}</h1>
           {%- if is_lookbook_benefit -%}
-            <p class="pham-product-main__tagline">Priority Reservation for PHAM-001 / Edition 01. Collector Lookbook included at no additional charge.</p>
+            <p class="pham-product-main__tagline">Digital collector material included after confirmed PHAM-001 Priority Reservation. Not sold separately.</p>
           {%- endif -%}
           {%- if short_tagline != blank -%}
             <p class="pham-product-main__tagline">{{ short_tagline }}</p>
@@ -122,8 +125,7 @@
               {%- endif -%}
             </p>
             {%- if is_lookbook_benefit -%}
-              <p class="pham-product-main__price-note">DUE TODAY · CREDITED TOWARD THE $199 OBJECT</p>
-              <p class="pham-product-main__benefit-note">Collector Lookbook is included at no additional charge and is not sold separately.</p>
+              <p class="pham-product-main__benefit-note">Access is granted after confirmed reservation payment.</p>
             {%- elsif product.price_varies -%}
               <p class="pham-product-main__price-note">Price varies by option</p>
             {%- endif -%}
@@ -211,7 +213,7 @@
               style: 'main'
           -%}
 
-          {%- if section.settings.preorder_note != blank -%}
+          {%- if section.settings.preorder_note != blank and is_lookbook_benefit == false -%}
             <p class="pham-product-main__preorder-note">{{ section.settings.preorder_note }}</p>
           {%- endif -%}
           {%- if shipping_window != blank -%}
@@ -240,12 +242,12 @@
             {% render 'pham-accordion', heading: section.settings.materials_heading, content: materials_content, id: materials_id %}
           {%- endif -%}
 
-          {%- if shipping_content != blank -%}
+          {%- if shipping_content != blank and is_lookbook_benefit == false -%}
             {%- assign ship_id = section.id | append: '-ship' -%}
             {% render 'pham-accordion', heading: shipping_heading, content: shipping_content, id: ship_id %}
           {%- endif -%}
 
-          {%- if care_content != blank -%}
+          {%- if care_content != blank and is_lookbook_benefit == false -%}
             {%- assign care_id = section.id | append: '-care' -%}
             {% render 'pham-accordion', heading: care_heading, content: care_content, id: care_id %}
           {%- endif -%}
@@ -321,6 +323,12 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: clamp(var(--space-lg), 4vw, var(--space-2xl));
     align-items: start;
+  }
+  .pham-product-main__reference-note {
+    margin: 10px 0 0;
+    color: rgba(245,245,241,.55);
+    font: 500 10px/1.4 var(--font-mono,monospace);
+    letter-spacing: .055em;
   }
   .pham-product-main__tagline { max-width: 42ch; margin: 14px 0 0; color: var(--color-bone-60); font: 400 .9rem/1.6 var(--font-body); }
   .pham-product-main__edition { margin: 12px 0 0; color: var(--color-smoke); font: 400 9px/1.4 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
