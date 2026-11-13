@@ -774,6 +774,30 @@ function mountCollector(root){
   var countdownRow = root.querySelector('[data-pham-countdown-row]');
   var deadlineLabel = root.querySelector('[data-pham-live-deadline]');
   var timer = null;
+  var liveStatus = root.querySelector('[data-pham-collector-live-status]');
+  var record = root.querySelector('[data-pham-collector-record]');
+  var eventList = root.querySelector('[data-pham-collector-events]');
+
+  function safeHttpsLink(raw){
+    try {
+      var url = new URL(String(raw || ''), window.location.origin);
+      return url.protocol === 'https:' && !url.username && !url.password ? url.href : '';
+    } catch(_error){ return ''; }
+  }
+
+  function showError(error){
+    if(record) record.hidden = true;
+    if(liveStatus){
+      var code = error && error.code || '';
+      if(code === 'reservation_not_found'){
+        liveStatus.textContent = 'No Edition 01 reservation is linked to this account. If you have paid, contact PHAM with your order reference.';
+      } else if(code === 'customer_login_required'){
+        liveStatus.textContent = 'Sign in with the account linked to your reservation to view your private record.';
+      } else {
+        liveStatus.textContent = 'PHAM could not verify your live collector record. Please retry or contact PHAM. No unverified financial details will be shown.';
+      }
+    }
+  }
 
   function displayState(value){
     return String(value || 'pending').replace(/_/g, ' ').toUpperCase();
@@ -811,9 +835,16 @@ function mountCollector(root){
     });
   }
 
-  function nextInstruction(reservation){
+  function nextInstruction(reservation, identity){
     if(reservation.status === 'final_payment_open'){
       return 'Complete the remaining acquisition balance before the published deadline. The allocation is released if the payment window expires.';
+    }
+
+    if(reservation.status === 'final_paid' && identity && identity.status === 'claimed'){
+      return 'Your jacket acquisition is confirmed. To personalise your card, send the requested text to PHAM by email or WhatsApp on the Object Identity page. PHAM must confirm it before engraving.';
+    }
+    if(reservation.status !== 'final_paid' && reservation.status !== 'final_payment_open'){
+      return 'Your reservation is recorded. Watch for your final-payment invitation. Contact PHAM for any size or contact corrections.';
     }
 
     switch(String(reservation.lifecycleStage || 'not_started')){
@@ -887,7 +918,10 @@ function mountCollector(root){
   if(root.dataset.paymentDeadline) startCountdown(root.dataset.paymentDeadline);
   renderLifecycle('not_started');
 
-  if(root.dataset.engineEnabled !== 'true') return;
+  if(root.dataset.engineEnabled !== 'true'){
+    if(liveStatus) liveStatus.textContent = 'Collector tracking is not connected yet. PHAM will display verified progress when it is available.';
+    return;
+  }
 
   proxyRequest(root, '/status')
     .then(function(payload){
@@ -897,6 +931,8 @@ function mountCollector(root){
       var editionSize = root.dataset.editionSize || '50';
       var productCode = root.dataset.productCode || 'PHAM-001';
 
+      if(!reservation.id) throw new Error('reservation_not_found');
+      var reservationIdEl = root.querySelector('[data-pham-live-reservation-id]');
       var statusEl = root.querySelector('[data-pham-live-reservation-status]');
       var objectEl = root.querySelector('[data-pham-live-object]');
       var identityEl = root.querySelector('[data-pham-live-identity-status]');
@@ -916,6 +952,7 @@ function mountCollector(root){
       var trackingLink = root.querySelector('[data-pham-tracking-link]');
       var nextAction = root.querySelector('[data-pham-next-action-copy]');
 
+      if(reservationIdEl) reservationIdEl.textContent = reservation.id;
       if(statusEl) statusEl.textContent = displayState(reservation.status);
       if(objectEl){
         objectEl.textContent = reservation.objectNumber
@@ -935,19 +972,22 @@ function mountCollector(root){
       if(recordIdEl) recordIdEl.textContent = reservation.objectRecordId || 'PENDING';
       if(lookbookCopyEl) lookbookCopyEl.textContent = displayState(reservation.lookbookStatus);
       if(balanceEl && reservation.balanceDueCents != null){
-        balanceEl.textContent = formatMoney(
-          reservation.balanceDueCents,
-          root.dataset.currency || 'USD'
-        );
+        balanceEl.textContent = reservation.status === 'final_paid' ? 'PAID' :
+          reservation.status === 'final_payment_open'
+            ? formatMoney(reservation.balanceDueCents, root.dataset.currency || 'USD')
+            : 'AWAITING FINAL PAYMENT INVITATION';
       }
-      if(nextAction) nextAction.textContent = nextInstruction(reservation);
+      if(nextAction) nextAction.textContent = nextInstruction(reservation, identity);
 
       renderLifecycle(reservation.lifecycleStage || 'not_started');
 
       if(finalPaymentLink){
-        var canPay = reservation.status === 'final_payment_open' && Boolean(reservation.invoiceUrl);
+        var invoiceUrl = safeHttpsLink(reservation.invoiceUrl);
+        var deadlineActive = !reservation.paymentDeadline ||
+          (new Date(reservation.paymentDeadline).getTime() > Date.now());
+        var canPay = reservation.status === 'final_payment_open' && Boolean(invoiceUrl) && deadlineActive;
         if(canPay){
-          finalPaymentLink.href = reservation.invoiceUrl;
+          finalPaymentLink.href = invoiceUrl;
           finalPaymentLink.hidden = false;
           finalPaymentLink.textContent = 'COMPLETE ACQUISITION · ' +
             formatMoney(reservation.balanceDueCents, root.dataset.currency || 'USD');
@@ -958,8 +998,9 @@ function mountCollector(root){
       }
 
       if(birthRecordLink){
-        if(reservation.provenanceUrl){
-          birthRecordLink.href = reservation.provenanceUrl;
+        var birthUrl = safeHttpsLink(reservation.provenanceUrl);
+        if(birthUrl){
+          birthRecordLink.href = birthUrl;
           birthRecordLink.hidden = false;
         } else {
           birthRecordLink.hidden = true;
@@ -975,8 +1016,9 @@ function mountCollector(root){
           (reservation.trackingUrl ? 'AVAILABLE' : '—');
       }
       if(trackingLink){
-        if(reservation.trackingUrl){
-          trackingLink.href = reservation.trackingUrl;
+        var trackUrl = safeHttpsLink(reservation.trackingUrl);
+        if(trackUrl){
+          trackingLink.href = trackUrl;
           trackingLink.hidden = false;
         } else {
           trackingLink.hidden = true;
@@ -987,14 +1029,39 @@ function mountCollector(root){
       if(reservation.paymentDeadline && reservation.status === 'final_payment_open'){
         startCountdown(reservation.paymentDeadline);
       } else {
+        if(timer) window.clearInterval(timer);
+        timer = null;
         if(deadlineRow) deadlineRow.hidden = true;
         if(countdownRow) countdownRow.hidden = true;
       }
+
+      if(eventList){
+        while(eventList.firstChild) eventList.removeChild(eventList.firstChild);
+        var events = payload.lifecycle && Array.isArray(payload.lifecycle.events)
+          ? payload.lifecycle.events.slice(-10).reverse() : [];
+        if(!events.length){
+          var empty = document.createElement('li');
+          empty.textContent = 'Production milestones will appear after final acquisition.';
+          eventList.appendChild(empty);
+        }
+        events.forEach(function(entry){
+          var li = document.createElement('li');
+          var title = document.createElement('strong');
+          title.textContent = displayState(entry.stage);
+          var time = document.createElement('time');
+          time.textContent = displayDate(entry.occurredAt);
+          li.appendChild(title);
+          li.appendChild(time);
+          eventList.appendChild(li);
+        });
+      }
+      if(record) record.hidden = false;
+      if(liveStatus){
+        liveStatus.textContent = 'Private record verified with PHAM. Last checked: ' +
+          displayDate(new Date().toISOString()) + '.';
+      }
     })
-    .catch(function(error){
-      if(error && error.code === 'customer_login_required') return;
-      // Shopify metafields remain the safe fallback if the Edition Engine is unavailable.
-    });
+    .catch(showError);
 }
 
 function mountProvenance(root){
