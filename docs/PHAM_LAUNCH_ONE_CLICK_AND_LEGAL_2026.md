@@ -20,7 +20,33 @@ Sequence: select preferred numbered jacket (01–50) → enter printable name (1
 
 The server validates all fields and authenticated entitlement before modifying the record. Preferred numbers are checked for conflicts in D1, and allocation is still subject to final operator confirmation and edition rules. The UI must not imply that selecting a number has guaranteed assignment before saving. Public identity display remains separately opt-in; private production notes are never exposed via the public provenance/QR record.
 
-Migration `backend/migrations/0004_identity_production_notes.sql` is required **before** deploying the updated identity form/Worker to a live accepting state. Private operator list: `node backend/admin.mjs personalizations --edition=edition-01` with `CAMPAIGN_BACKEND_URL` and `INTERNAL_ADMIN_KEY`. Restrict operator logs, exports, retention and access. Do not email raw payment details.
+Migrations `backend/migrations/0004_identity_production_notes.sql` and `backend/migrations/0005_identity_contact_verification.sql` are required **before** deploying the updated identity form/Worker to a live accepting state. Private operator list: `node backend/admin.mjs personalizations --edition=edition-01` with `CAMPAIGN_BACKEND_URL` and `INTERNAL_ADMIN_KEY`. Restrict operator logs, exports, retention and access. Do not email raw payment details.
+
+### Manual collector correspondence — updated 13 November 2026
+
+Object Identity no longer submits card details through Shopify's contact form or an authenticated customer-to-Worker POST. Buyers **must** message PHAM through the prefilled email request or the officially configured WhatsApp chat. The URL only opens the customer's email or messaging client; the customer must press **Send**. No number is reserved by clicking a channel.
+
+- Email is derived from the Shopify `pham_contact_email` setting (currently `contact@phamofficial.com`).
+- WhatsApp uses `pham_identity_whatsapp_number`: an operator-owned verified international telephone number containing 8–15 digits with country code, no plus sign. If blank or invalid, the WhatsApp option is unavailable; never invent a number or redirect customers to a generic WhatsApp site.
+- The form preserves number selection, printable name, inscription, optional print instructions, illustrative card preview, and opt-in for public alias.
+- Before recording the result, the PHAM operator checks the actual email/WhatsApp message against the existing paid Identity entitlement or verified referral, confirms the number is free, and records only the source channel plus a support-message reference. Never treat an unsent mailto/WhatsApp draft as evidence of a received message.
+- Customer-facing `POST /identity/configure` returns `manual_contact_required`. Only `POST /internal/identity/confirm` is allowed to apply a configuration, after authenticated staff review.
+- Apply `backend/migrations/0005_identity_contact_verification.sql` after 0004 before deploying the new Worker.
+
+Verified support correspondence example (stored only on a secure operator machine; do not commit):
+```json
+{
+  "reservationId": "PHAM-R-EXAMPLE",
+  "channel": "email",
+  "contactReference": "support-case-reference",
+  "preferredNumber": 13,
+  "alias": "CUSTOMER PRINT NAME",
+  "inscription": "CUSTOM INSCRIPTION",
+  "productionNotes": "MANUFACTURING NOTES",
+  "publicIdentity": false
+}
+```
+Then, with production credentials, run `node backend/admin.mjs confirm-identity --file=private-confirmed-request.json --confirm`. The `contactReference` must correspond to a message PHAM actually received; never use the example literally.
 
 ## C. Required decisions and verification (operator/legal owner)
 
