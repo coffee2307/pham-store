@@ -55,7 +55,7 @@ jobs:
           node --check backend/worker.js
           node --check assets/pham-campaign.js
           node --check scripts/release-edition-01.mjs
-          node --test backend/worker.test.mjs backend/card-manifest.test.mjs backend/identity-contact.test.mjs backend/operations-ledger.test.mjs backend/operator-console.test.mjs
+          node --test backend/worker.test.mjs backend/card-manifest.test.mjs backend/identity-contact.test.mjs backend/operations-ledger.test.mjs backend/operator-console.test.mjs backend/operations-http.test.mjs
           python backend/check-schema.py
       - name: Read live Shopify theme (no writes)
         run: |
