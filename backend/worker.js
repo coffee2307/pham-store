@@ -381,6 +381,12 @@ async function getCollectorStatus(env, customerId, editionId) {
     "SELECT COUNT(*) AS count FROM referrals WHERE referrer_reservation_id = ? AND status = 'verified'",
     reservation.id
   );
+  const editionState = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT state, reservation_closes_at, partial_run_approved_at FROM editions WHERE id=?'
+  ).bind(editionId).first();
+  const refundCase = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT status FROM refund_review_cases WHERE reservation_id=?'
+  ).bind(reservation.id).first();
 
   const storefront = String(env.STOREFRONT_ORIGIN || 'https://phamofficial.com').replace(/\/$/, '');
   const provenanceUrl = collectorObject && collectorObject.qr_token
@@ -420,6 +426,12 @@ async function getCollectorStatus(env, customerId, editionId) {
       events: (lifecycleRows.results || []).map(function(row) {
         return { stage: row.stage, occurredAt: row.created_at };
       })
+    },
+    campaign: {
+      state: editionState ? editionState.state : 'unknown',
+      reservationClosesAt: editionState ? editionState.reservation_closes_at : null,
+      partialRunApproved: Boolean(editionState && editionState.partial_run_approved_at),
+      refundReviewStatus: refundCase ? refundCase.status : null
     },
     identity: {
       status: identity ? identity.status : 'locked',
@@ -1732,13 +1744,16 @@ async function getCampaign(env, editionId) {
     editionId
   );
 
+  const presentedState = isReservationWindowExpired(edition)
+    ? 'reservation_closed' : edition.state;
   return json({
     edition: {
       id: edition.id,
       label: edition.label,
       productCode: edition.product_code,
       editionSize: edition.edition_size,
-      state: edition.state,
+      state: presentedState,
+      requiresMerchantDecision: presentedState === 'reservation_closed' && !edition.partial_run_approved_at,
       reservationPriceCents: edition.reservation_price_cents,
       finalPriceCents: edition.final_price_cents,
       balanceDueCents: edition.final_price_cents - edition.reservation_price_cents,
