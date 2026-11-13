@@ -1,4 +1,5 @@
 import { compileEditionOperations } from './operations-ledger.mjs';
+import {planReservationOpening,canAcceptDatedReservation,isReservationWindowExpired,validateUnderfilledDecision} from './reservation-window.mjs';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
 
@@ -170,6 +171,14 @@ export default {
         requireInternalKey(request, env);
         return setCampaignState(request, env);
       }
+      if (request.method === 'POST' && url.pathname === '/internal/window/resolve') {
+        requireInternalKey(request, env);
+        return resolveUnderfilledReservationWindow(request, env);
+      }
+      if (request.method === 'GET' && url.pathname === '/internal/refund-reviews') {
+        requireInternalKey(request, env);
+        return getRefundReviewCases(env, url.searchParams.get('edition') || 'edition-01');
+      }
 
       if (request.method === 'POST' && url.pathname === '/internal/lookbook/status') {
         requireInternalKey(request, env);
@@ -251,7 +260,10 @@ export default {
   },
 
   async scheduled(_event, env, ctx) {
-    ctx.waitUntil(expireReservationsAndPromote(env));
+    ctx.waitUntil((async function(){
+      await closeExpiredReservationWindows(env);
+      await expireReservationsAndPromote(env);
+    })());
   }
 };
 
@@ -418,12 +430,8 @@ async function getCollectorStatus(env, customerId, editionId) {
   },200,{'Cache-Control':'private, no-store'});
 }
 
-export function canAcceptPaidReservation(edition) {
-  return Boolean(
-    edition &&
-    edition.state === 'reservation_open' &&
-    Number(edition.commerce_acceptance_enabled) === 1
-  );
+export function canAcceptPaidReservation(edition, now=new Date()) {
+  return canAcceptDatedReservation(edition, now);
 }
 
 export function validateIdentityPersonalization(body, editionSize) {
@@ -640,7 +648,7 @@ async function setCampaignState(request, env) {
 
   const allowed = {
     prelaunch: ['reservation_open'],
-    reservation_open: ['prelaunch'],
+    reservation_open: ['prelaunch','reservation_closed'],
     sold_out: ['archived']
   };
 
@@ -656,6 +664,14 @@ async function setCampaignState(request, env) {
   }
 
   if (nextState === 'reservation_open') {
+    if (edition.reservation_opened_at) {
+      return json({ok:false,error:'reservation_window_cannot_be_reopened'},409);
+    }
+    const pending = await scalar(env,
+      "SELECT COUNT(*) AS count FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')",
+      editionId
+    );
+    if (pending !== 0) return json({ok:false,error:'existing_paid_orders_require_reconciliation'},409);
     const readiness = await collectReadiness(env, editionId);
     if (!readiness.ok) {
       return json({
@@ -664,6 +680,13 @@ async function setCampaignState(request, env) {
         readiness
       }, 409);
     }
+  }
+  if (nextState === 'prelaunch') {
+    const pending = await scalar(env,
+      "SELECT COUNT(*) AS count FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')",
+      editionId
+    );
+    if (pending > 0) return json({ok:false,error:'paid_reservations_cannot_reset_to_prelaunch'},409);
   }
 
   if (nextState === 'archived') {
@@ -740,14 +763,25 @@ async function setCampaignState(request, env) {
 
   // State and paid-intake gate transition together. Never open on a legacy
   // reservation_open state left over from an incomplete storefront launch.
+  const window = nextState === 'reservation_open'
+    ? planReservationOpening(new Date(), edition.reservation_window_days || 14)
+    : null;
   const stateResult = await env.PHAM_CAMPAIGN_DB.prepare(
     `UPDATE editions
        SET state = ?, commerce_acceptance_enabled = ?,
+           reservation_opened_at = COALESCE(reservation_opened_at, ?),
+           reservation_closes_at = COALESCE(reservation_closes_at, ?),
+           reservation_closed_at = CASE WHEN ?='reservation_closed' THEN CURRENT_TIMESTAMP ELSE reservation_closed_at END,
+           reservation_close_reason = CASE WHEN ?='reservation_closed' THEN 'operator_closed' ELSE reservation_close_reason END,
            updated_at = CURRENT_TIMESTAMP
      WHERE id = ? AND state = ?`
   ).bind(
     nextState,
     nextState === 'reservation_open' ? 1 : 0,
+    window ? window.openedAt : null,
+    window ? window.closesAt : null,
+    nextState,
+    nextState,
     editionId,
     edition.state
   ).run();
@@ -1386,6 +1420,17 @@ async function getReadiness(env, editionId) {
   ).bind(editionId).first();
 
   check('d1.edition', Boolean(edition), edition ? edition.id : 'missing');
+  check('d1.reservation_window_migration',
+    Boolean(edition && edition.reservation_window_days !== undefined
+      && edition.reservation_opened_at !== undefined && edition.release_quantity !== undefined),
+    'migration 0007 required');
+  if (edition) {
+    check('d1.reservation_window_max_14_days',
+      Number.isInteger(Number(edition.reservation_window_days)) &&
+      Number(edition.reservation_window_days) >= 1 &&
+      Number(edition.reservation_window_days) <= 14,
+      {windowDays:edition.reservation_window_days});
+  }
   check('d1.paid_intake_gate_migration',
     Boolean(edition && edition.commerce_acceptance_enabled !== undefined),
     edition && edition.commerce_acceptance_enabled !== undefined
@@ -1700,6 +1745,12 @@ async function getCampaign(env, editionId) {
       designOrigin: edition.design_origin,
       founderTokensAllocated: Boolean(edition.founder_tokens_allocated_at),
       archivePermanent: edition.state === 'archived',
+      reservationOpenedAt: edition.reservation_opened_at || null,
+      reservationClosesAt: edition.reservation_closes_at || null,
+      reservationClosedAt: edition.reservation_closed_at || null,
+      reservationWindowDays: Number(edition.reservation_window_days || 14),
+      plannedRunQuantity: Number(edition.release_quantity || edition.edition_size),
+      partialRunApproved: Boolean(edition.partial_run_approved_at),
       paidReservationIntakeEnabled: canAcceptPaidReservation(edition)
     },
     counters: {
