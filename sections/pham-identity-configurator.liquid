@@ -26,7 +26,7 @@
 
     <div class="pham-identity-access" role="status">
       {%- unless commerce_ready -%}
-        <p><strong>Preview mode.</strong> You can explore the design now. Identity requests are not open yet.</p>
+        <p><strong>Preview mode.</strong> Explore the card without submitting information. No number is reserved before launch.</p>
       {%- else -%}
         {%- if customer == nil -%}
           <p><strong>Sign in to continue.</strong> Identity configuration is available to eligible collectors.</p>
@@ -61,13 +61,32 @@
             {%- endif -%}
             <div class="pham-identity-editor__grid">
               <div class="pham-identity-editor__controls">
+
+                <fieldset class="pham-identity-number-field">
+                  <legend><span class="pham-identity-step-index">01</span> Choose jacket number <span>01–{{ edition_size }}</span></legend>
+                  <p class="pham-identity-number-field__hint">Choose one preferred number. This request is subject to PHAM confirmation.</p>
+                  <div class="pham-number-grid" role="group" aria-label="Preferred jacket number">
+                    {%- for i in (1..edition_size) -%}
+                      {%- capture display_number -%}{%- if i < 10 -%}0{%- endif -%}{{ i }}{%- endcapture -%}
+                      <button type="button"
+                              data-pham-object-number="{{ i }}"
+                              aria-label="Request jacket number {{ display_number }} of {{ edition_size }}"
+                              aria-pressed="false"
+                              {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>{{ display_number }}</button>
+                    {%- endfor -%}
+                  </div>
+                  <p class="pham-identity-number-status" data-pham-number-status aria-live="polite">No number selected yet.</p>
+                </fieldset>
+
+                <div class="pham-identity-step-title"><span class="pham-identity-step-index">02</span><div><h2>Personalize your card</h2><p>Your name and inscription appear on the preview. Special requests go privately to our production team.</p></div></div>
                 <div class="pham-identity-editor__fields">
                   <div class="pham-config-field">
-                    <label for="PhamIdentityName-{{ section.id }}">Name or alias</label>
+                    <label for="PhamIdentityName-{{ section.id }}">Name to print <span class="pham-identity-counter" data-pham-name-count>0/24</span></label>
                     <input id="PhamIdentityName-{{ section.id }}"
                            data-pham-id-name
                            name="contact[Identity alias]"
                            maxlength="24"
+                           required
                            autocomplete="nickname"
                            placeholder="YOUR IDENTITY"
                            {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>
@@ -82,27 +101,20 @@
                               placeholder="A SHORT PERSONAL MESSAGE"
                               {% unless can_configure or commerce_ready == false %}disabled{% endunless %}></textarea>
                   </div>
+                  <div class="pham-config-field pham-config-field--notes">
+                    <label for="PhamIdentityNotes-{{ section.id }}">Special printing request <span class="pham-identity-counter" data-pham-notes-count>0/240</span></label>
+                    <textarea id="PhamIdentityNotes-{{ section.id }}" data-pham-id-production-notes name="contact[Private production instructions]"
+                              maxlength="240" rows="3"
+                              placeholder="Letter case, spacing or layout details for PHAM to review"
+                              {% unless can_configure or commerce_ready == false %}disabled{% endunless %}></textarea>
+                    <p class="pham-identity-field-note">Optional and private. Not printed verbatim or shown publicly. Please avoid contact or sensitive information; all changes require production approval.</p>
+                  </div>
                 </div>
 
-                <fieldset class="pham-identity-number-field">
-                  <legend>Preferred jacket number <span>01–{{ edition_size }}</span></legend>
-                  <p class="pham-identity-number-field__hint">Tap a number to preview it on your card.</p>
-                  <div class="pham-number-grid" role="group" aria-label="Preferred jacket number">
-                    {%- for i in (1..edition_size) -%}
-                      {%- capture display_number -%}{%- if i < 10 -%}0{%- endif -%}{{ i }}{%- endcapture -%}
-                      <button type="button"
-                              data-pham-object-number="{{ i }}"
-                              aria-label="Request jacket number {{ display_number }} of {{ edition_size }}"
-                              aria-pressed="false"
-                              {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>{{ display_number }}</button>
-                    {%- endfor -%}
-                  </div>
-                  <p class="pham-identity-number-status" data-pham-number-status aria-live="polite">No number selected yet.</p>
-                </fieldset>
               </div>
 
               <aside class="pham-identity-editor__preview">
-                <p class="pham-identity-editor__preview-label">Your card preview</p>
+                <p class="pham-identity-editor__preview-label"><span class="pham-identity-step-index">03</span> Your card preview</p>
                 <div class="pham-id-preview" aria-label="Collector card preview">
                   <div class="pham-id-preview__brand">PHAM</div>
                   <div class="pham-id-preview__main">
@@ -112,7 +124,7 @@
                   </div>
                   <div class="pham-id-preview__foot"><span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span><span>QR RECORD</span></div>
                 </div>
-                <p class="pham-identity-editor__preview-note">Live preview only. Number allocation is confirmed separately by PHAM.</p>
+                <p class="pham-identity-editor__preview-note">Illustrative preview, not a manufacturing proof. Final layout and number are confirmed separately by PHAM.</p>
               </aside>
             </div>
 
@@ -124,8 +136,13 @@
                        {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>
                 <span>Show my alias on the public Object Record. Contact information remains private.</span>
               </label>
+              <label class="pham-identity-public-choice pham-identity-review-choice">
+                <input type="checkbox" data-pham-identity-review required
+                       {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>
+                <span>I have checked the spelling. I understand this is a request, not a final production proof; numbers and special instructions are subject to approval. <a href="{{ settings.pham_campaign_terms_page_url | default: '/pages/edition-01-terms' }}">Edition terms</a>.</span>
+              </label>
               {%- if submit_enabled -%}
-                <button type="submit" class="pham-campaign-btn" data-pham-identity-submit disabled>Save identity request</button>
+                <button type="submit" class="pham-campaign-btn" data-pham-identity-submit disabled>Send card instructions</button>
               {%- else -%}
                 <p class="pham-identity-editor__locked">Requests are currently unavailable. This preview does not reserve a number.</p>
               {%- endif -%}
