@@ -242,6 +242,7 @@ Commands:
   node admin.mjs state [--edition=edition-01]
   node admin.mjs readiness [--edition=edition-01]
   node admin.mjs reviews [--limit=50]
+  node admin.mjs personalizations [--edition=edition-01]  # sensitive; operator only
   node admin.mjs set-state --state=reservation_open --confirm [--edition=edition-01]
   node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=in_production --confirm
   node admin.mjs set-lifecycle --reservation=PHAM-R-... --stage=quality_control --confirm
