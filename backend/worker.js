@@ -1252,6 +1252,15 @@ async function getReadiness(env, editionId) {
 
   check('d1.edition', Boolean(edition), edition ? edition.id : 'missing');
 
+  // Fail closed if the deployed Worker uses the new personalization query but
+  // the remote D1 database has not received the forward migration.
+  try {
+    await env.PHAM_CAMPAIGN_DB.prepare('SELECT production_notes FROM identity_claims LIMIT 0').all();
+    check('d1.production_notes_migration', true, 'applied');
+  } catch (_error) {
+    check('d1.production_notes_migration', false, 'migration 0004 required');
+  }
+
   if (edition) {
     check('d1.edition_size', Number(edition.edition_size) > 0, String(edition.edition_size));
     check('d1.final_product_variant_id', Boolean(edition.final_product_variant_id), edition.final_product_variant_id || 'missing');
