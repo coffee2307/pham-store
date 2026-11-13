@@ -41,7 +41,7 @@ Migration `backend/migrations/0004_identity_production_notes.sql` is required **
 3. Personal Data Protection Law No. 91/2025/QH15: https://bocongan.gov.vn/chinh-sach-phap-luat/co-so-du-lieu-van-ban/luat-bao-ve-du-lieu-ca-nhan-1753688803
 4. EU Consumer Rights Directive 2011/83/EU: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A32011L0083
 5. EU consumers' distance selling returns: https://europa.eu/youreurope/citizens/consumers/shopping/returns/index_en.htm
-6. Shopify returns and EU electronic withdrawal settings: https://help.shopify.com/en/manual/fulfillment/managing-orders/returns/return-rules
+6. EU Directive (EU) 2023/2673, online withdrawal function from June 2026: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32023L2673\n7. Shopify returns guidance: https://help.shopify.com/en/manual/fulfillment/managing-orders/returns/return-rules\n8. Shopify store testing before launch: https://help.shopify.com/en/manual/intro-to-shopify/initial-setup/setup-prepare-for-launch/
 7. Shopify store testing before launch: https://help.shopify.com/en/manual/intro-to-shopify/initial-setup/setup-prepare-for-launch/
 
 **Never claim full legal compliance merely because templates exist.** Record independent counsel review or an accountable merchant decision for each actual target country.
