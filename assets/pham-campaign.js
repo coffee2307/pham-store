@@ -42,6 +42,10 @@ function engineErrorMessage(code){
     object_number_taken: 'That object number was just claimed. Select another number.',
     object_number_out_of_range: 'Select a valid object number for this edition.',
     identity_not_claimed: 'Object Identity is not unlocked for this collector.',
+    identity_alias_invalid: 'Enter a printable name (1–24 characters).',
+    identity_inscription_invalid: 'Check the inscription (40 characters maximum, no markup).',
+    identity_production_notes_invalid: 'Check the production request (240 characters maximum, no markup).',
+    identity_review_required: 'Review the card details before submitting.',
     customer_login_required: 'Sign in with the collector account linked to your reservation.',
     reservation_not_found: 'No active reservation was found for this collector account.',
     standby_not_open: 'Standby is not open yet.',
@@ -290,11 +294,15 @@ function mountIdentity(root){
 
   var name = root.querySelector('[data-pham-id-name]');
   var inscription = root.querySelector('[data-pham-id-inscription]');
+  var productionNotes = root.querySelector('[data-pham-id-production-notes]');
+  var review = root.querySelector('[data-pham-identity-review]');
   var outName = root.querySelector('[data-pham-preview-name]');
   var outInscription = root.querySelector('[data-pham-preview-inscription]');
   var outNumber = root.querySelector('[data-pham-preview-number]');
   var numberStatus = root.querySelector('[data-pham-number-status]');
   var count = root.querySelector('[data-pham-inscription-count]');
+  var nameCount = root.querySelector('[data-pham-name-count]');
+  var notesCount = root.querySelector('[data-pham-notes-count]');
   var numberInput = root.querySelector('[data-pham-id-number-input]');
   var submit = root.querySelector('[data-pham-identity-submit]');
   var form = root.querySelector('.pham-identity-form');
@@ -306,11 +314,17 @@ function mountIdentity(root){
   function sync(){
     if(outName) outName.textContent = (name && name.value.trim()) || 'COLLECTOR ID';
     if(outInscription) outInscription.textContent = (inscription && inscription.value.trim()) || 'YOUR INSCRIPTION';
-    if(count && inscription) count.textContent = String(inscription.value.length) + '/40';
+    if(count && inscription) count.textContent = String(Array.from(inscription.value).length) + '/40';
+    if(nameCount && name) nameCount.textContent = String(Array.from(name.value).length) + '/24';
+    if(notesCount && productionNotes) notesCount.textContent = String(Array.from(productionNotes.value).length) + '/240';
+    var ready = !!(numberInput && numberInput.value && name && name.value.trim() && review && review.checked);
+    if(submit && !submit.classList.contains('is-busy')) submit.disabled = !ready;
   }
 
   if(name) name.addEventListener('input', sync);
   if(inscription) inscription.addEventListener('input', sync);
+  if(productionNotes) productionNotes.addEventListener('input', sync);
+  if(review) review.addEventListener('change', sync);
 
   buttons.forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -324,11 +338,11 @@ function mountIdentity(root){
       if(outNumber) outNumber.textContent = selectedNumber + ' / ' + (root.dataset.editionSize || '50');
       if(numberStatus) numberStatus.textContent = 'Preferred: ' + selectedNumber + '. Pending PHAM confirmation.';
       if(numberInput) numberInput.value = btn.dataset.phamObjectNumber || '';
-      if(submit) submit.disabled = !numberInput || numberInput.value === '';
+      sync();
     });
   });
 
-  if(submit) submit.disabled = !numberInput || numberInput.value === '';
+  sync();
 
   if(engineEnabled && form){
     form.addEventListener('submit', function(event){
@@ -345,6 +359,8 @@ function mountIdentity(root){
         body: {
           alias: name ? name.value : '',
           inscription: inscription ? inscription.value : '',
+          productionNotes: productionNotes ? productionNotes.value : '',
+          acknowledgeReview: Boolean(review && review.checked),
           preferredNumber: Number(numberInput.value),
           publicIdentity: Boolean(publicIdentity && publicIdentity.checked)
         }
@@ -354,14 +370,17 @@ function mountIdentity(root){
           result.textContent = 'IDENTITY RECORDED · OBJECT ' +
             String(payload.identity.preferredNumber).padStart(2, '0') +
             '/' + (root.dataset.editionSize || '50') +
-            ' IS NOW LOCKED TO YOUR RESERVATION.';
+            ' SAVED WITH YOUR CARD INSTRUCTIONS. FINAL PRODUCTION DETAILS REQUIRE CONFIRMATION.';
           result.hidden = false;
         }
         buttons.forEach(function(btn){ btn.disabled = true; });
         if(name) name.disabled = true;
         if(inscription) inscription.disabled = true;
+        if(productionNotes) productionNotes.disabled = true;
+        if(review) review.disabled = true;
         if(publicIdentity) publicIdentity.disabled = true;
-        submit.textContent = 'Identity recorded';
+        submit.classList.remove('is-busy');
+        submit.textContent = 'Card instructions recorded';
       })
       .catch(function(error){
         if(result){
@@ -370,7 +389,8 @@ function mountIdentity(root){
         }
         submit.disabled = false;
         submit.classList.remove('is-busy');
-        submit.textContent = 'Submit Identity request';
+        submit.textContent = 'Send card instructions';
+        sync();
       });
     });
   }
