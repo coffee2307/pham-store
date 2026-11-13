@@ -1386,3 +1386,23 @@
 @media(prefers-reduced-motion:reduce){
   [data-pham-identity-configurator] .pham-number-grid button{transition:none}
 }
+
+
+/* Manual collector-card confirmation: email / WhatsApp only. */
+[data-pham-identity-configurator] .pham-identity-step-title--contact{margin-top:0;margin-bottom:20px}
+[data-pham-identity-configurator] .pham-identity-contact-methods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 12px}
+[data-pham-identity-configurator] .pham-identity-contact-method{min-width:0;min-height:68px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:7px;padding:14px 18px;border:1px solid rgba(255,255,255,.76);background:#f5f5f1;color:#080808;text-align:left;text-decoration:none;font:600 11px/1.2 var(--font-mono,monospace);letter-spacing:.04em;transition:background 180ms ease,color 180ms ease,border-color 180ms ease}
+[data-pham-identity-configurator] .pham-identity-contact-method small{font:400 10px/1.35 var(--font-body,Arial,sans-serif);letter-spacing:0;overflow-wrap:anywhere;opacity:.76}
+[data-pham-identity-configurator] .pham-identity-contact-method--secondary{background:transparent;color:#f5f5f1}
+[data-pham-identity-configurator] .pham-identity-contact-method:hover:not(.is-disabled){background:#d9d9d6;color:#050505;border-color:#f5f5f1}
+[data-pham-identity-configurator] .pham-identity-contact-method:focus-visible{outline:2px solid #f5f5f1;outline-offset:3px}
+[data-pham-identity-configurator] .pham-identity-contact-method.is-disabled{opacity:.4;pointer-events:none;cursor:not-allowed}
+[data-pham-identity-configurator] .pham-identity-contact-method--unavailable{border-color:var(--pc-line);background:transparent;color:var(--pc-dim);opacity:.6;cursor:default}
+[data-pham-identity-configurator] .pham-identity-contact-method[hidden]{display:none!important}
+@media(max-width:600px){
+  [data-pham-identity-configurator] .pham-identity-contact-methods{grid-template-columns:1fr}
+  [data-pham-identity-configurator] .pham-identity-contact-method{min-height:62px}
+}
+@media(prefers-reduced-motion:reduce){
+  [data-pham-identity-configurator] .pham-identity-contact-method{transition:none}
+}
