@@ -79,10 +79,6 @@
 
       <div class="pham-product-spotlight__panel reveal-up">
         <div class="pham-product-spotlight__panel-inner">
-          {%- if section.settings.eyebrow != blank -%}
-            <p class="pham-eyebrow pham-product-spotlight__eyebrow">{{ section.settings.eyebrow }}</p>
-          {%- endif -%}
-
           <h2 class="pham-product-spotlight__title">{{ product.title }}</h2>
 
           <p class="pham-product-spotlight__price" data-pham-spotlight-price>
@@ -104,7 +100,8 @@
             <div class="pham-product-spotlight__desc rte">{{ section.settings.description }}</div>
           {%- elsif product.description != blank -%}
             <div class="pham-product-spotlight__desc rte">
-              {{ product.description | strip_html | strip | truncatewords: 60 }}
+              {%- capture pham_spotlight_description -%}{%- render 'pham-richtext-plain', html: product.description -%}{%- endcapture -%}
+              {{ pham_spotlight_description | strip | truncatewords: 60 }}
             </div>
           {%- endif -%}
 

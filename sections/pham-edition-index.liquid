@@ -48,11 +48,11 @@
         assign edition_status = 'PRELAUNCH'
     endcase
 
-    assign protocol_step_1 = 'Priority Reservation grants controlled access to one allocation. Its value is credited toward the final object price.'
-    assign protocol_step_2 = 'Collectors complete acquisition within the published window. Identity and object-number privileges are bound to the collector record.'
-    assign protocol_step_3 = 'Acquired objects enter a tracked production sequence from queue to construction and quality control.'
-    assign protocol_step_4 = 'Each object is packed, dispatched and delivered with its numbered Identity and tokenized Birth Record.'
-    assign protocol_step_5 = 'Only after delivery is complete does the edition enter the permanent PHAM archive. A closed edition is never reproduced.'
+    assign protocol_step_1 = 'Reservation holds an allocation. The deposit counts toward the jacket price.'
+    assign protocol_step_2 = 'Complete payment within the stated window. Identity privileges remain linked to your record.'
+    assign protocol_step_3 = 'Production is tracked from construction to quality control.'
+    assign protocol_step_4 = 'Each object ships with its numbered Identity and Birth Record.'
+    assign protocol_step_5 = 'After all deliveries, the edition enters the archive. No reproduction.'
   endif
 -%}
 
@@ -61,7 +61,6 @@
 
     <div class="pham-edition-index__grid">
       <div class="pham-edition-index__archive reveal-up">
-        <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
 
         <div class="pham-edition-index__archive-head">
           <h2 id="pham-edition-index-{{ section.id }}" class="pham-edition-index__title">{{ edition_heading }}</h2>
@@ -69,7 +68,6 @@
         </div>
 
         <a class="pham-edition-index__record" href="{{ edition_url }}">
-          <span class="pham-edition-index__record-index">{{ section.settings.edition_number }}</span>
 
           <div class="pham-edition-index__record-main">
             <strong class="pham-edition-index__record-object">
@@ -91,8 +89,7 @@
 
       <div class="pham-edition-index__protocol reveal-up" aria-labelledby="pham-release-protocol-{{ section.id }}">
         <div class="pham-edition-index__protocol-head">
-          <p class="pham-eyebrow">RELEASE PROTOCOL</p>
-          <h3 id="pham-release-protocol-{{ section.id }}">{{ section.settings.protocol_heading }}</h3>
+          <h3 id="pham-release-protocol-{{ section.id }}">{% render "pham-editorial-title", text: section.settings.protocol_heading %}</h3>
         </div>
 
         <ol class="pham-edition-index__steps" role="list">
@@ -121,24 +118,15 @@
     </div>
 
     <div class="pham-edition-index__principle reveal-up" aria-labelledby="pham-edition-principle-{{ section.id }}">
-      <div class="pham-edition-index__principle-label">
-        <p class="pham-eyebrow">{{ section.settings.principle_eyebrow }}</p>
-      </div>
-
       <div class="pham-edition-index__principle-copy">
         <h3 id="pham-edition-principle-{{ section.id }}" class="pham-edition-index__principle-title">
           <span>{{ section.settings.principle_line_1 }}</span>
-          <span>{{ section.settings.principle_line_2 }}</span>
+          <span>{% render "pham-editorial-title", text: section.settings.principle_line_2 %}</span>
         </h3>
         <p class="pham-edition-index__principle-sub">{{ section.settings.principle_subtext }}</p>
       </div>
     </div>
 
-    <div class="pham-edition-index__footerline" aria-label="PHAM archive note">
-      <span>PHAM ATELIER</span>
-      <span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span>
-      <span>{{ settings.pham_campaign_origin_label | default: 'VIETNAM / 2026' }}</span>
-    </div>
   </div>
 </section>
 
@@ -505,6 +493,50 @@
       transition: none !important;
     }
   }
+/* Minimal edition layout after removing decorative index and metadata */
+.pham-edition-index__record {
+  grid-template-columns: minmax(0,1fr) auto;
+  margin-top: clamp(24px,3vw,38px);
+  min-height: 110px;
+}
+.pham-edition-index__principle {
+  grid-template-columns: minmax(0,1fr);
+  gap: 0;
+}
+@media (max-width: 749px) {
+  .pham-edition-index__record { grid-template-columns: minmax(0,1fr); }
+  .pham-edition-index__status { grid-column: 1; grid-row: auto; }
+  .pham-edition-index__principle { grid-template-columns: minmax(0,1fr); }
+}
+/* The edition declaration is a two-line statement, not a paragraph. */
+.pham-edition-index__principle-title {
+  max-width: 100%;
+  gap: .12em;
+  letter-spacing: -.025em;
+}
+.pham-edition-index__principle-title > span {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  white-space: nowrap;
+}
+.pham-edition-index__principle-title > span:last-child {
+  color: #f1f0ed;
+}
+.pham-edition-index__principle-sub {
+  max-width: 35ch;
+  margin-top: 17px;
+}
+@media (max-width: 699px) {
+  .pham-edition-index__principle-title {
+    font-size: clamp(1.4rem, 6.7vw, 2.15rem);
+    line-height: 1.17;
+  }
+  .pham-edition-index__principle {
+    margin-top: 34px;
+    padding-top: 24px;
+  }
+}
 </style>
 
 {% schema %}
@@ -517,7 +549,7 @@
     { "type": "url", "id": "product_link", "label": "Optional product link" },
     { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "ARCHIVE / EDITION INDEX" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "EDITION 01" },
-    { "type": "textarea", "id": "intro", "label": "Introduction", "default": "A finite release system. Each PHAM edition enters the archive once its release closes and is not reproduced." },
+    { "type": "textarea", "id": "intro", "label": "Introduction", "default": "One edition at a time. No restock after closure." },
     { "type": "text", "id": "edition_number", "label": "Edition number", "default": "01" },
     { "type": "text", "id": "object_name", "label": "Fallback object name", "default": "PHAM-001" },
     { "type": "text", "id": "object_count", "label": "Object count", "default": "50 OBJECTS" },
@@ -532,16 +564,16 @@
       { "value": "ARCHIVED", "label": "Archived" }
     ]},
     { "type": "text", "id": "protocol_heading", "label": "Protocol heading", "default": "FROM ACCESS TO ARCHIVE" },
-    { "type": "textarea", "id": "step_1", "label": "01 · Access", "default": "Priority Reservation opens when the edition is ready. The reservation amount is credited toward the final object price." },
-    { "type": "textarea", "id": "step_2", "label": "02 · Order", "default": "When access opens, the object can be acquired within the active edition window." },
-    { "type": "textarea", "id": "step_3", "label": "03 · Production", "default": "The edition moves through controlled production and final quality inspection." },
-    { "type": "textarea", "id": "step_4", "label": "04 · Delivery", "default": "Each released piece travels with its own identity card and edition identifier." },
-    { "type": "textarea", "id": "step_5", "label": "05 · Archive", "default": "Once the edition closes, it is recorded and does not return to production." },
+    { "type": "textarea", "id": "step_1", "label": "01 · Access", "default": "Reservation opens when ready. The deposit counts toward the jacket price." },
+    { "type": "textarea", "id": "step_2", "label": "02 · Order", "default": "Object Identity: 15 privileges across add-ons and verified referrals." },
+    { "type": "textarea", "id": "step_3", "label": "03 · Production", "default": "Complete the remaining payment within the announced window." },
+    { "type": "textarea", "id": "step_4", "label": "04 · Delivery", "default": "Each jacket receives a numbered identity and provenance record." },
+    { "type": "textarea", "id": "step_5", "label": "05 · Archive", "default": "After delivery, Edition 01 enters the archive. No restock." },
     { "type": "header", "content": "Edition principle" },
     { "type": "text", "id": "principle_eyebrow", "label": "Principle eyebrow", "default": "PHAM / EDITION PRINCIPLE" },
-    { "type": "text", "id": "principle_line_1", "label": "Principle line 1", "default": "PHAM DOES NOT RETURN TO AN EDITION" },
-    { "type": "text", "id": "principle_line_2", "label": "Principle line 2", "default": "ONCE IT IS CLOSED." },
-    { "type": "textarea", "id": "principle_subtext", "label": "Principle supporting text", "default": "What remains is the object, its record, and the person who holds it." }
+    { "type": "text", "id": "principle_line_1", "label": "Principle line 1", "default": "ONE EDITION." },
+    { "type": "text", "id": "principle_line_2", "label": "Principle line 2", "default": "NO RESTOCK." },
+    { "type": "textarea", "id": "principle_subtext", "label": "Principle supporting text", "default": "The object and its record remain." }
   ],
   "presets": [{ "name": "PHAM Edition Index", "category": "PHAM" }],
   "enabled_on": { "templates": ["index"] }

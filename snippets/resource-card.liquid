@@ -151,7 +151,9 @@
       </p>
     {% else %}
       <p class="resource-card__subtext paragraph">
-        {{- resource.excerpt | default: resource.content | strip_html | truncate: 65 -}}
+        {%- assign pham_resource_excerpt_source = resource.excerpt | default: resource.content -%}
+        {%- capture pham_resource_excerpt -%}{%- render 'pham-richtext-plain', html: pham_resource_excerpt_source -%}{%- endcapture -%}
+        {{- pham_resource_excerpt | strip | truncate: 65 -}}
       </p>
     {% endif %}
   </div>

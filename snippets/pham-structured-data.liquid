@@ -22,6 +22,7 @@
   endunless
 -%}
 
+{%- capture pham_structured_description_plain -%}{%- render 'pham-richtext-plain', html: product.description -%}{%- endcapture -%}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -165,7 +166,7 @@
       "url": {{ canonical_url | json }},
       "name": {{ product.title | json }},
       "model": {{ product.title | json }},
-      "description": {{ product.description | replace: '</p>', '</p> ' | replace: '<br>', ' ' | replace: '<br/>', ' ' | replace: '<br />', ' ' | strip_html | strip | json }},
+      "description": {{ pham_structured_description_plain | strip | json }},
       "category": {{ product.type | default: 'Outerwear' | json }},
       "mainEntityOfPage": {{ canonical_url | json }},
       "brand": {

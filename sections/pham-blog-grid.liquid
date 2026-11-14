@@ -7,7 +7,6 @@
 <section class="pham-blog" data-pham-blog data-section-id="{{ section.id }}" style="--pham-blog-cols: {{ cols }};" role="region" aria-label="{{ blog.title | default: 'Journal' | escape }}">
   <div class="pham-container">
     <header class="pham-blog__head reveal-up">
-      <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
       <h1 class="pham-blog__title">{{ blog.title | default: 'Journal' }}</h1>
       {%- if section.settings.intro != blank -%}
         <p class="pham-blog__intro">{{ section.settings.intro }}</p>
@@ -51,9 +50,11 @@
                   {%- if article.excerpt != blank or article.content != blank -%}
                     <p class="pham-blog__excerpt">
                       {%- if article.excerpt != blank -%}
-                        {{ article.excerpt | strip_html | truncatewords: 24 }}
+                        {%- capture pham_blog_excerpt -%}{%- render 'pham-richtext-plain', html: article.excerpt -%}{%- endcapture -%}
+                        {{ pham_blog_excerpt | strip | truncatewords: 24 }}
                       {%- else -%}
-                        {{ article.content | strip_html | truncatewords: 24 }}
+                        {%- capture pham_blog_content -%}{%- render 'pham-richtext-plain', html: article.content -%}{%- endcapture -%}
+                        {{ pham_blog_content | strip | truncatewords: 24 }}
                       {%- endif -%}
                     </p>
                   {%- endif -%}

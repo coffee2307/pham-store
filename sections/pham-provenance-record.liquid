@@ -13,17 +13,18 @@
   data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
   <div class="pham-campaign-inner">
-    <p class="pham-campaign-kicker">PHAM ARCHIVE · BIRTH RECORD</p>
-    <h1 class="pham-campaign-title"><span data-pham-provenance-product>{{ object_product }}</span><br><span data-pham-provenance-number>{% if object_number != blank %}OBJECT {{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}{% else %}OBJECT — / {{ settings.pham_campaign_edition_size | default: 50 }}{% endif %}</span></h1>
-    <p class="pham-campaign-lede"><span data-pham-provenance-auth>{{ auth_status }}</span> · <span data-pham-provenance-edition>{{ object_edition }}</span> · <span data-pham-provenance-design-origin>{{ design_origin }}</span></p>
+    <h1 class="pham-campaign-title">Object <strong class="pham-funnel-emphasis">record.</strong></h1>
+    <p class="pham-campaign-lede"><span data-pham-provenance-auth>{{ auth_status }}</span>. Record details require an assigned object and successful verification.</p>
     <div class="pham-campaign-alert" data-pham-provenance-result hidden role="status"></div>
 
     <div class="pham-campaign-grid">
       <article class="pham-campaign-card pham-campaign-card--wide">
         <h2>Birth record</h2>
         <dl class="pham-provenance-timeline">
+          <div><dt>Product</dt><dd data-pham-provenance-product>{{ object_product }}</dd></div>
+          <div><dt>Edition</dt><dd data-pham-provenance-edition>{{ object_edition }}</dd></div>
           <div><dt>Record ID</dt><dd data-pham-provenance-record-id>PENDING</dd></div>
-          <div><dt>Object</dt><dd data-pham-provenance-assignment>{% if object_number != blank %}Assigned as Object {{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}.{% else %}Object number not yet assigned.{% endif %}</dd></div>
+          <div><dt>Object</dt><dd data-pham-provenance-number>{% if object_number != blank %}Object {{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}{% else %}Not assigned{% endif %}</dd></div>
           <div><dt>Size</dt><dd data-pham-provenance-size>—</dd></div>
           <div><dt>Acquired</dt><dd data-pham-provenance-acquired>—</dd></div>
           <div><dt>Birth recorded</dt><dd data-pham-provenance-birth-recorded>—</dd></div>
@@ -37,18 +38,18 @@
 
       <article class="pham-campaign-card">
         <h2>Identity</h2>
-        <p data-pham-provenance-identity>{% if public_identity and identity_label != blank %}{{ identity_label }}{% else %}Collector identity remains private unless the collector explicitly opts into public display.{% endif %}</p>
+        <p data-pham-provenance-identity>{% if public_identity and identity_label != blank %}{{ identity_label }}{% else %}Private unless the collector chooses public display.{% endif %}</p>
       </article>
 
       <article class="pham-campaign-card">
         <h2>Founder’s Token</h2>
         <div class="pham-campaign-stat"><strong data-pham-provenance-token>{{ token_type | upcase }}</strong><span>Collector token</span></div>
-        <p style="margin-top:20px">Edition 01 contains 49 silver-tone tokens and one gold-tone token. Allocation is performed once by the Edition Engine and remains sealed online until delivery.</p>
+        <p style="margin-top:20px">Edition 01 has 49 silver-tone tokens and one gold-tone token. Allocation remains sealed until delivery.</p>
       </article>
 
       <article class="pham-campaign-card">
         <h2>Authentication</h2>
-        <p>This record is resolved through a tokenized QR route. The token, not the sequential object number, is the authentication secret. The public record never exposes the collector’s email, shipping address or account identifier.</p>
+        <p>Verification uses a unique QR token, not the object number. Contact and delivery details remain private.</p>
       </article>
 
       <article class="pham-campaign-card">

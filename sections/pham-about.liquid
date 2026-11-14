@@ -6,9 +6,6 @@
   <div class="pham-about__grid" aria-hidden="true"></div>
   <div class="pham-container pham-about__inner">
     <header class="pham-about__head reveal-up">
-      {%- if section.settings.eyebrow != blank -%}
-        <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
-      {%- endif -%}
       <h1 id="pham-about-heading-{{ section.id }}" class="pham-about__title">
         <span class="pham-about__title-line">{{ section.settings.title_line_1 | default: 'PHAM' | escape }}</span> <span class="pham-about__title-line">{{ section.settings.title_line_2 | default: 'MANIFESTO' | escape }}</span>
       </h1>
@@ -46,12 +43,9 @@
         <dl class="pham-about__founder-facts" aria-label="Founder details">
           <div><dt>FOUNDER</dt><dd>Coffee Pham</dd></div>
           <div><dt>ESTABLISHED</dt><dd>2026 · Vietnam</dd></div>
-          <div><dt>AT THE BEGINNING</dt><dd>Age 16 · High school student</dd></div>
-          <div><dt>MODEL</dt><dd>Independent · Edition-based</dd></div>
         </dl>
         <div class="pham-about__founder-narrative">
-          <p class="pham-eyebrow">{{ section.settings.founder_eyebrow }}</p>
-          <h2 class="pham-about__record-title">{{ section.settings.founder_title }}</h2>
+          <h2 class="pham-about__record-title">{% render "pham-editorial-title", text: section.settings.founder_title %}</h2>
           <p class="pham-about__record-copy">{{ section.settings.founder_body }}</p>
           {%- if section.settings.founder_body_2 != blank -%}
             <p class="pham-about__record-copy">{{ section.settings.founder_body_2 }}</p>
@@ -68,8 +62,7 @@
 
       <div class="pham-about__record-block pham-about__record-block--edition">
         <div class="pham-about__edition-heading">
-          <p class="pham-eyebrow">{{ section.settings.edition_eyebrow }}</p>
-          <h2 class="pham-about__record-title">{{ section.settings.edition_title }}</h2>
+          <h2 class="pham-about__record-title">{% render "pham-editorial-title", text: section.settings.edition_title %}</h2>
         </div>
         <div class="pham-about__edition-copy">
           <p class="pham-about__record-copy">{{ section.settings.edition_body }}</p>
@@ -82,31 +75,23 @@
         </div>
       </div>
 
-      <div class="pham-about__edition-note">
-        <span>{{ section.settings.edition_note_label }}</span>
-        <strong>{{ section.settings.edition_note_value }}</strong>
-      </div>
       <nav class="pham-about__resources" aria-label="Learn more about PHAM-001">
         <a href="/products/pham-001">
           <strong>EXPLORE PHAM-001</strong>
-          <span>Design, specification and current availability</span>
           <span aria-hidden="true">→</span>
         </a>
         <a href="/pages/pham-001-size-guide">
           <strong>SIZE GUIDE</strong>
-          <span>Garment measurements and fit guidance</span>
           <span aria-hidden="true">→</span>
         </a>
         <a href="/pages/edition-01">
           <strong>EDITION DETAILS</strong>
-          <span>Release format and edition information</span>
           <span aria-hidden="true">→</span>
         </a>
       </nav>
     </section>
 
     <aside class="pham-about__origin reveal-up">
-      <p>{{ section.settings.origin_eyebrow }}</p>
       <div>
         <span>{{ section.settings.origin_label }}</span>
         <strong>{{ section.settings.origin_value }}</strong>
@@ -535,6 +520,32 @@
  .pham-about__title{font-size:clamp(2rem,9.4vw,3.2rem)}
 }
 
+/* About typography: two intentional short lines, no orphan words. */
+.pham-about__edition-heading .pham-editorial-line {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  white-space: nowrap;
+  text-wrap: nowrap;
+}
+.pham-about__edition-heading .pham-about__record-title {
+  letter-spacing: -.035em;
+  text-wrap: initial;
+}
+.pham-about__founder-facts {
+  margin-bottom: 0;
+}
+@media (max-width: 599px) {
+  .pham-about__edition-heading .pham-about__record-title {
+    font-size: clamp(1.47rem, 6.8vw, 1.95rem);
+    line-height: 1.16;
+  }
+  .pham-about__founder-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+  }
+  .pham-about__record-block--founder { gap: 18px; }
+}
 </style>
 
 {% schema %}
@@ -571,13 +582,13 @@
       "type": "textarea",
       "id": "paragraph_1",
       "label": "Paragraph 1",
-      "default": "PHAM (Profound Human Authentic Mastery) is an independent fashion label founded in Vietnam in 2026. We focus on dark, understated garments with considered volume, deliberate proportions and purposeful details. Our starting point is the shape and construction of each object—not a seasonal trend or oversized branding."
+      "default": "PHAM (Profound Human Authentic Mastery) is an independent label founded in Vietnam in 2026. We focus on restrained form, considered volume and purposeful detail."
     },
     {
       "type": "textarea",
       "id": "paragraph_2",
       "label": "Paragraph 2",
-      "default": "Rather than following a traditional seasonal calendar, PHAM develops one release at a time. The process moves from design and material research to physical samples, fit reviews and refinements. Each edition has a defined scope, and product information is documented so customers can understand what they are choosing."
+      "default": "We develop one edition at a time. Each design is sampled, refined and documented before release."
     },
     {
       "type": "textarea",
@@ -605,19 +616,19 @@
       "type": "textarea",
       "id": "founder_body",
       "label": "Founder story",
-      "default": "PHAM was started by Coffee Pham in 2026, when he was sixteen and still in high school. He began without external funding, a team or established contacts in fashion. There was no existing collection or ready-made business behind the name—only an idea and the decision to learn how to make it real."
+      "default": "Coffee Pham founded PHAM at sixteen in 2026, while still in school. He started without investors, a team or industry contacts."
     },
     {
       "type": "textarea",
       "id": "founder_body_2",
       "label": "Founder - building the label",
-      "default": "The first months meant researching garment construction, developing the PHAM-001 bomber, speaking directly with manufacturing partners, comparing fabrics and hardware, reviewing a physical sample, and building the storefront and release system. These were practical steps, often taken without prior experience or someone to delegate them to."
+      "default": "He learned through sampling, factory collaboration and building the storefront independently."
     },
     {
       "type": "textarea",
       "id": "founder_body_3",
       "label": "Founder - perspective",
-      "default": "The work remains in progress. Samples reveal details to improve, and production decisions require care. PHAM does not ask to be judged by the founder's age or by an origin story. It aims to earn trust through clear information, considered design and the quality of each finished object."
+      "default": "PHAM remains a work in progress. Trust must come from the garment and clear information, not the founder's age."
     },
     {
       "type": "header",
@@ -633,25 +644,25 @@
       "type": "text",
       "id": "edition_title",
       "label": "Edition title",
-      "default": "PHAM-001 / A CONSIDERED FIRST RELEASE"
+      "default": "PHAM-001. FIRST RELEASE."
     },
     {
       "type": "textarea",
       "id": "edition_body",
       "label": "Edition story",
-      "default": "PHAM-001 is a cropped bomber jacket with relaxed sleeves, contrasting panels, shoulder mesh, metal zippers and adjustable side straps. Its proportions and detailing are being refined through sampling; the lookbook reflects a development sample, not a guarantee that every production detail is final."
+      "default": "PHAM-001 is a cropped bomber with structured panels, mesh shoulders and adjustable straps. The lookbook shows a development sample. Final details may change."
     },
     {
       "type": "textarea",
       "id": "edition_body_2",
       "label": "Edition description / series information",
-      "default": "Edition 01 is planned for 50 individually identified jackets, with no restock of the same edition after it closes. The planned package includes an edition identity card and a commemorative pendant. The pendant finishes are allocated as 49 silver-finished and one gold-finished piece; these descriptions refer to surface finishes, not solid precious metal."
+      "default": "Edition 01 is planned for 50 numbered jackets, with no restock. The planned package includes an identity card and a commemorative pendant: 49 silver-tone finishes and one gold-tone. Neither finish is solid precious metal."
     },
     {
       "type": "textarea",
       "id": "edition_body_3",
       "label": "Buying information / useful links",
-      "default": "Before ordering, use the product page to check the current specification and availability, the Size Guide to compare measurements, and Edition Details to understand the release structure. These pages should take precedence over earlier campaign visuals if a product detail changes during development."
+      "default": "Refer to the Product, Size Guide and Edition Details pages for the latest specifications and release conditions. These take precedence over earlier campaign images."
     },
     {
       "type": "text",

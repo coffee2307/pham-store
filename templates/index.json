@@ -40,9 +40,9 @@
             "size": "lg",
             "aspect": "4-5",
             "parallax_speed": 0.2,
-            "caption": "PHAM-001 · CONSTRUCTION DETAILS · EDITION 01",
+            "caption": "",
             "caption_position": "below",
-            "overlay_eyebrow": "LOOK · 01",
+            "overlay_eyebrow": "",
             "overlay_text": "The Silhouette"
           }
         },
@@ -65,7 +65,7 @@
           "settings": {
             "body": "Simply Being, Fully Living.",
             "author": "PHAM Atelier",
-            "author_role": "BRAND MANIFESTO · 01",
+            "author_role": "",
             "size": "sm"
           }
         },
@@ -74,7 +74,7 @@
           "settings": {
             "eyebrow": "PROCESS",
             "heading": "Built in layers.",
-            "body": "<p>PHAM-001 is built around a compact cropped silhouette using premium nylon, microfiber leather, mesh lining and quilted insulation. Paneled construction and controlled volume define Edition 01 before it enters its limited production run.</p>",
+            "body": "<p>Structured panels. Controlled volume. The first PHAM object.</p>",
             "cta_label": "ABOUT PHAM ATELIER",
             "cta_link": "/pages/about",
             "size": "xl"
@@ -90,7 +90,7 @@
       "settings": {
         "eyebrow": "EDITORIAL · PHAM ATELIER",
         "title": "The Architecture of Restraint",
-        "intro": "A PHAM Atelier visual study of Edition 01 — its silhouette, material construction and the slow process behind the first release.",
+        "intro": "Edition 01. Form, materials and detail.",
         "enable_parallax": true,
         "columns": 12
       }
@@ -98,15 +98,15 @@
     "pham-vault": {
       "type": "pham-vault",
       "settings": {
-        "accessibility_label": "PHAM Atelier — Edition 01 digital archive",
+        "accessibility_label": "PHAM Atelier, Edition 01 archive",
         "product": "pham-001",
         "object_scale": 90,
         "orbit_speed": 6,
         "orbit_tilt": 5,
         "chapter_1_title": "ENTER THE VAULT",
-        "chapter_1_body": "One object. One edition. Built without compromise.",
+        "chapter_1_body": "One jacket. One edition.",
         "chapter_2_title": "FORM BEFORE NOISE",
-        "chapter_2_body": "A cropped silhouette engineered to hold tension between restraint and force.",
+        "chapter_2_body": "Cropped form. Structured shoulders. Controlled volume.",
         "chapter_3_title": "BUILT IN LAYERS",
         "spec_1_label": "SHELL",
         "spec_1_value": "PREMIUM NYLON",
@@ -115,7 +115,7 @@
         "spec_3_label": "EDITION",
         "spec_3_value": "LIMITED / 001",
         "chapter_4_title": "PHAM-001",
-        "chapter_4_body": "The first object from PHAM Atelier. Released as PHAM-001 in a deliberately limited Edition 01.",
+        "chapter_4_body": "PHAM-001. Edition 01. Limited to 50 numbered jackets.",
         "cta_label": "INSPECT PHAM-001",
         "cta_link": "/products/pham-001"
       },
@@ -148,7 +148,7 @@
           "type": "orbit_card",
           "settings": {
             "image": "shopify://shop_images/pham-001-orbit-04-v2.png",
-            "alt_text": "PHAM-001 editorial lookbook frame 04 — natural skin tone",
+            "alt_text": "PHAM-001 editorial lookbook frame 04, natural skin tone",
             "link": ""
           }
         },
@@ -203,22 +203,22 @@
         "product_link": "/products/pham-001",
         "eyebrow": "ARCHIVE / EDITION INDEX",
         "heading": "EDITION 01",
-        "intro": "A finite release system. Each PHAM edition enters the archive once its release closes and is not reproduced.",
+        "intro": "One edition at a time. No restock after closure.",
         "edition_number": "01",
         "object_name": "PHAM-001",
         "object_count": "50 OBJECTS",
         "release_year": "2026",
         "status": "PRELAUNCH",
         "protocol_heading": "FROM ACCESS TO ARCHIVE",
-        "step_1": "Priority Reservation opens when the edition is ready. The reservation amount is credited toward the final object price.",
-        "step_2": "Object Identity is limited and can be claimed by paid upgrade or one verified reservation referral.",
-        "step_3": "Reserved collectors complete the remaining balance during the acquisition window.",
-        "step_4": "Each confirmed object receives a numbered identity and provenance record.",
-        "step_5": "Once the edition closes, it remains in the PHAM archive and does not return to production.",
+        "step_1": "Reservation opens when ready. The deposit counts toward the jacket price.",
+        "step_2": "Object Identity: 15 privileges across add-ons and verified referrals.",
+        "step_3": "Complete the remaining payment within the announced window.",
+        "step_4": "Each jacket receives a numbered identity and provenance record.",
+        "step_5": "After delivery, Edition 01 enters the archive. No restock.",
         "principle_eyebrow": "PHAM / EDITION PRINCIPLE",
-        "principle_line_1": "PHAM DOES NOT RETURN TO AN EDITION",
-        "principle_line_2": "ONCE IT IS CLOSED.",
-        "principle_subtext": "What remains is the object, its record, and the person who holds it."
+        "principle_line_1": "ONE EDITION.",
+        "principle_line_2": "NO RESTOCK.",
+        "principle_subtext": "The object and its record remain."
       }
     }
   },

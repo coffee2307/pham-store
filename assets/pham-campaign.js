@@ -293,6 +293,7 @@ function mountIdentity(root){
   var outName = root.querySelector('[data-pham-preview-name]');
   var outInscription = root.querySelector('[data-pham-preview-inscription]');
   var outNumber = root.querySelector('[data-pham-preview-number]');
+  var numberStatus = root.querySelector('[data-pham-number-status]');
   var count = root.querySelector('[data-pham-inscription-count]');
   var numberInput = root.querySelector('[data-pham-id-number-input]');
   var submit = root.querySelector('[data-pham-identity-submit]');
@@ -319,7 +320,9 @@ function mountIdentity(root){
       });
       btn.classList.add('is-selected');
       btn.setAttribute('aria-pressed', 'true');
-      if(outNumber) outNumber.textContent = btn.dataset.phamObjectNumber + '/' + (root.dataset.editionSize || '50');
+      var selectedNumber = String(btn.dataset.phamObjectNumber || '').padStart(2, '0');
+      if(outNumber) outNumber.textContent = selectedNumber + ' / ' + (root.dataset.editionSize || '50');
+      if(numberStatus) numberStatus.textContent = 'Preferred: ' + selectedNumber + '. Pending PHAM confirmation.';
       if(numberInput) numberInput.value = btn.dataset.phamObjectNumber || '';
       if(submit) submit.disabled = !numberInput || numberInput.value === '';
     });
@@ -577,12 +580,12 @@ function mountReservation(root){
       submit.textContent = 'Preparing secure checkout…';
       if(error) error.hidden = true;
 
-      fetch('/cart/add.js', {
+      fetch('/cart.js', { headers: { 'Accept': 'application/json' } }).then(function(response){ if(!response.ok) throw new Error('Unable to verify cart contents. Please try again.'); return response.json(); }).then(function(cart){ if(!cart || !Array.isArray(cart.items)) throw new Error('Unable to verify cart contents. Please try again.'); if(cart.items.length) throw new Error('Your cart already has items. Remove them before placing a PHAM-001 reservation to prevent an invalid mixed order.'); return fetch('/cart/add.js', {
         method:'POST',
         headers:{'Content-Type':'application/json','Accept':'application/json'},
         body:JSON.stringify({items:items})
       })
-      .then(function(response){
+      }).then(function(response){
         return response.json().then(function(payload){
           if(!response.ok) throw new Error(payload.description || payload.message || 'Unable to prepare reservation.');
           return payload;

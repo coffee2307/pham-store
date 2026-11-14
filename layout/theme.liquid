@@ -48,6 +48,7 @@
     {%- comment -%} Pre-paint critical styles — eliminates white flash before pham-theme loads {%- endcomment -%}
     <style>
       html { background-color: #0A0A0C !important; }
+      html, body { margin: 0 !important; } /* remove default 8px edge and viewport offset */
       html, body, #MainContent, .content-for-layout, main { background-color: #0A0A0C !important; color: #E8E8EA; }
       html.pham-js body,
       html.pham-js body.pham-page-ready,
@@ -69,11 +70,44 @@
       <link rel="dns-prefetch" href="//ajax.googleapis.com">
     {%- endif -%}
     {%- assign pham_text_fonts_url = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400&display=swap' -%}
-    {%- assign pham_display_fonts_url = 'https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&display=optional' -%}
-    <link rel="preload" as="style" href="{{ pham_text_fonts_url }}">
-    <link href="{{ pham_text_fonts_url }}" rel="stylesheet" media="print" onload="this.media='all'">
-    <link rel="preload" as="style" href="{{ pham_display_fonts_url }}">
-    <link href="{{ pham_display_fonts_url }}" rel="stylesheet" media="print" onload="this.media='all'">
+    {%- assign pham_display_fonts_url = 'https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&display=swap' -%}
+    {%- comment -%}Load brand font CSS before first paint to prevent typography swap after reveal.{%- endcomment -%}
+    <script>
+      document.documentElement.classList.add('pham-font-pending');
+      (function () {
+        var finished = false;
+        function release() {
+          if (finished) return;
+          finished = true;
+          document.documentElement.classList.remove('pham-font-pending');
+          document.documentElement.classList.add('pham-fonts-settled');
+        }
+        var safety = window.setTimeout(release, 3300);
+        function loadBrandType() {
+          if (!document.fonts || !document.fonts.load) { release(); return; }
+          Promise.allSettled([
+            document.fonts.load('400 48px "Syncopate"', 'PHAM OBJECT'),
+            document.fonts.load('700 48px "Syncopate"', 'FIRST'),
+            document.fonts.load('400 16px "Space Grotesk"', 'PHAM'),
+            document.fonts.load('400 14px "Space Mono"', 'EDITION')
+          ]).then(function () {
+            document.fonts.ready.then(function () {
+              requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                  window.clearTimeout(safety);
+                  release();
+                });
+              });
+            }, release);
+          }, release);
+        }
+        if (document.readyState === 'loading')
+          document.addEventListener('DOMContentLoaded', loadBrandType, { once: true });
+        else loadBrandType();
+      })();
+    </script>
+    <link href="{{ pham_text_fonts_url }}" rel="stylesheet">
+    <link href="{{ pham_display_fonts_url }}" rel="stylesheet">
     <noscript>
       <link href="{{ pham_text_fonts_url }}" rel="stylesheet">
       <link href="{{ pham_display_fonts_url }}" rel="stylesheet">
@@ -83,6 +117,9 @@
     {%- if request.page_type == 'index' -%}
       <link rel="preload" as="style" href="{{ 'pham-vault.css' | asset_url }}">
       {{ 'pham-vault.css' | asset_url | stylesheet_tag }}
+    {%- endif -%}
+    {%- if request.page_type == 'policy' or request.path contains '/policies/' -%}
+      <script src="{{ 'pham-policy-typography.js' | asset_url }}" defer></script>
     {%- endif -%}
     <script src="{{ 'pham-security.js' | asset_url }}" defer></script>
     {%- if request.path contains '/challenge' -%}
@@ -124,6 +161,7 @@
       <script src="{{ 'pham-policy.js' | asset_url }}" defer></script>
       {% # theme-check-enable ParserBlockingScript %}
     {% endif %}
+    <script src="{{ 'pham-interactions.js' | asset_url }}" defer></script>
     <script src="{{ 'pham-animations.js' | asset_url }}" defer></script>
     {%- if request.page_type == 'index' -%}
       <script src="{{ 'pham-immersive.js' | asset_url }}" defer></script>

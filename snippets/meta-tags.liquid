@@ -33,8 +33,10 @@
 
 {%- liquid
   assign pham_seo_title = page_title | default: shop.name | strip_html | strip
-  assign pham_seo_description = page_description | default: shop.description | default: settings.pham_seo_default_description | strip_html | strip | truncate: 320
+  assign pham_seo_description_source = page_description | default: shop.description | default: settings.pham_seo_default_description
 -%}
+{%- capture pham_meta_description_plain -%}{%- render 'pham-richtext-plain', html: pham_seo_description_source -%}{%- endcapture -%}
+{%- assign pham_seo_description = pham_meta_description_plain | strip | truncate: 320 -%}
 {%- liquid
   assign og_url = canonical_url | default: request.origin
   assign og_type = 'website'

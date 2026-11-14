@@ -303,6 +303,25 @@
 {%- comment -%} Render the cart drawer once globally {%- endcomment -%}
 {% render 'pham-cart-drawer' %}
 
+
+<style>
+/* PHAM menu controls — unboxed, accessible touch targets */
+.pham-header .pham-header__hamburger,
+.pham-header__drawer .pham-header__drawer-close {
+  border: 0 !important;
+  background: transparent;
+  box-shadow: none;
+}
+.pham-header.pham-header--menu-open .pham-header__hamburger {
+  border: 0 !important;
+}
+.pham-header .pham-header__hamburger:focus-visible,
+.pham-header__drawer .pham-header__drawer-close:focus-visible {
+  outline: 2px solid #f3f1eb;
+  outline-offset: 2px;
+}
+</style>
+
 {% schema %}
 {
   "name": "PHAM Header",

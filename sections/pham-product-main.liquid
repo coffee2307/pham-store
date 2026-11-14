@@ -36,10 +36,14 @@
   assign display_product_title = product.title
   assign display_product_price = current_variant.price | money
   assign pham_object_product = all_products['pham-001']
+  assign pham_show_jacket_reference = false
+  if product.handle == 'pham-001-priority-reservation' or product.handle == 'pham-edition-01-collector-lookbook'
+    assign pham_show_jacket_reference = true
+  endif
   if product.handle == 'pham-edition-01-collector-lookbook'
     assign is_lookbook_benefit = true
-    assign display_product_title = 'PHAM-001 PRIORITY RESERVATION'
-    assign display_product_price = settings.pham_campaign_reservation_price | default: '$24.99'
+    assign display_product_title = 'COLLECTOR LOOKBOOK'
+    assign display_product_price = 'INCLUDED'
   endif
 -%}
 {%- capture construction_content -%}
@@ -72,10 +76,21 @@
     {%- comment -%} ============= LEFT: GALLERY (e-commerce layout) ============= {%- endcomment -%}
     <div class="pham-product-main__media reveal-up">
       {%- assign gallery_image_blocks = section.blocks | where: 'type', 'gallery_image' -%}
-      {%- if is_lookbook_benefit and pham_object_product != blank -%}
+      {%- if pham_show_jacket_reference and pham_object_product != blank -%}
         {% render 'pham-product-gallery', product: pham_object_product, section_id: section.id, gallery_blocks: blank %}
-      {%- else -%}
+        {%- if is_lookbook_benefit -%}
+          <p class="pham-product-main__reference-note">PHAM-001 reference imagery</p>
+        {%- endif -%}
+      {%- elsif product.handle == 'pham-001' -%}
         {% render 'pham-product-gallery', product: product, section_id: section.id, gallery_blocks: gallery_image_blocks %}
+      {%- elsif product.images.size > 0 -%}
+        {% render 'pham-product-gallery', product: product, section_id: section.id, gallery_blocks: blank %}
+      {%- else -%}
+        <div class="pham-pdp-service-visual" role="img" aria-label="{{ product.title | escape }}">
+          <span class="pham-pdp-service-visual__brand">PHAM</span>
+          <strong class="pham-pdp-service-visual__title">{{ product.title | escape }}</strong>
+          <span class="pham-pdp-service-visual__edition">EDITION 01</span>
+        </div>
       {%- endif -%}
     </div>
 
@@ -89,7 +104,7 @@
           {%- endif -%}
           <h1 class="pham-product-main__title">{{ display_product_title }}</h1>
           {%- if is_lookbook_benefit -%}
-            <p class="pham-product-main__tagline">Priority Reservation for PHAM-001 / Edition 01. Collector Lookbook included at no additional charge.</p>
+            <p class="pham-product-main__tagline">Digital collector material included after confirmed PHAM-001 Priority Reservation. Not sold separately.</p>
           {%- endif -%}
           {%- if short_tagline != blank -%}
             <p class="pham-product-main__tagline">{{ short_tagline }}</p>
@@ -110,8 +125,7 @@
               {%- endif -%}
             </p>
             {%- if is_lookbook_benefit -%}
-              <p class="pham-product-main__price-note">DUE TODAY · CREDITED TOWARD THE $199 OBJECT</p>
-              <p class="pham-product-main__benefit-note">Collector Lookbook is included at no additional charge and is not sold separately.</p>
+              <p class="pham-product-main__benefit-note">Access is granted after confirmed reservation payment.</p>
             {%- elsif product.price_varies -%}
               <p class="pham-product-main__price-note">Price varies by option</p>
             {%- endif -%}
@@ -124,12 +138,8 @@
           {%- endif -%}
         </header>
 
-        {%- if section.settings.show_object_record and is_lookbook_benefit == false -%}
+        {%- if section.settings.show_object_record and product.handle == 'pham-001' -%}
           <section class="pham-object-record reveal-up" data-pham-delay="100" aria-label="PHAM object identity">
-            <div class="pham-object-record__head">
-              <span>OBJECT RECORD</span>
-              <span>{{ section.settings.object_status }}</span>
-            </div>
             <dl class="pham-object-record__grid">
               <div><dt>OBJECT ID</dt><dd>{{ section.settings.object_id }}</dd></div>
               <div><dt>EDITION</dt><dd>{{ section.settings.object_edition }}</dd></div>
@@ -203,7 +213,7 @@
               style: 'main'
           -%}
 
-          {%- if section.settings.preorder_note != blank -%}
+          {%- if section.settings.preorder_note != blank and is_lookbook_benefit == false -%}
             <p class="pham-product-main__preorder-note">{{ section.settings.preorder_note }}</p>
           {%- endif -%}
           {%- if shipping_window != blank -%}
@@ -217,7 +227,7 @@
 
         <div class="pham-product-main__accordions reveal-up" data-pham-delay="180">
           {%- assign phase_blocks = section.blocks | where: 'type', 'phase' -%}
-          {%- if phase_blocks.size > 0 or section.settings.show_phases_default -%}
+          {%- if product.handle == 'pham-001' and phase_blocks.size > 0 or product.handle == 'pham-001' and section.settings.show_phases_default -%}
             {%- capture phases_content -%}{%- render 'pham-product-phases-content', section: section -%}{%- endcapture -%}
             {%- assign phases_id = section.id | append: '-phases' -%}
             {%- assign phases_heading = section.settings.phases_eyebrow | default: 'PRODUCTION SCHEDULE' -%}
@@ -232,17 +242,17 @@
             {% render 'pham-accordion', heading: section.settings.materials_heading, content: materials_content, id: materials_id %}
           {%- endif -%}
 
-          {%- if shipping_content != blank -%}
+          {%- if shipping_content != blank and is_lookbook_benefit == false -%}
             {%- assign ship_id = section.id | append: '-ship' -%}
             {% render 'pham-accordion', heading: shipping_heading, content: shipping_content, id: ship_id %}
           {%- endif -%}
 
-          {%- if care_content != blank -%}
+          {%- if care_content != blank and is_lookbook_benefit == false -%}
             {%- assign care_id = section.id | append: '-care' -%}
             {% render 'pham-accordion', heading: care_heading, content: care_content, id: care_id %}
           {%- endif -%}
 
-          {%- if section.settings.show_size_guide_link and size_guide_page != blank -%}
+          {%- if section.settings.show_size_guide_link and size_guide_page != blank and product.handle == 'pham-001' -%}
             {%- capture size_guide_content -%}
               <p><a href="{{ size_guide_page.url }}" class="pham-product-main__guide-link">View full size guide</a></p>
             {%- endcapture -%}
@@ -313,6 +323,12 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: clamp(var(--space-lg), 4vw, var(--space-2xl));
     align-items: start;
+  }
+  .pham-product-main__reference-note {
+    margin: 10px 0 0;
+    color: rgba(245,245,241,.55);
+    font: 500 10px/1.4 var(--font-mono,monospace);
+    letter-spacing: .055em;
   }
   .pham-product-main__tagline { max-width: 42ch; margin: 14px 0 0; color: var(--color-bone-60); font: 400 .9rem/1.6 var(--font-body); }
   .pham-product-main__edition { margin: 12px 0 0; color: var(--color-smoke); font: 400 9px/1.4 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
@@ -1116,6 +1132,36 @@
     .pham-object-record__grid dt, .pham-object-record__grid dd { overflow-wrap: anywhere; }
   }
 
+/* Minimal service-product presentation when Shopify has no actual imagery. */
+.pham-pdp-service-visual {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 25px;
+  width: 100%;
+  aspect-ratio: 4/5;
+  padding: clamp(22px,4vw,48px);
+  background: linear-gradient(155deg,#131519,#090a0c 65%);
+  border: 1px solid rgba(243,241,238,.23);
+  color: #f3f1ed;
+}
+.pham-pdp-service-visual__brand,
+.pham-pdp-service-visual__edition {
+  font: 600 11px/1.3 var(--font-mono,monospace);
+  letter-spacing: .15em;
+}
+.pham-pdp-service-visual__edition { color: rgba(243,241,238,.62); }
+.pham-pdp-service-visual__title {
+  font: 400 clamp(1.4rem,4vw,3rem)/1.15 var(--font-display,"Syncopate",sans-serif);
+  letter-spacing: -.035em;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+@media(max-width:700px) {
+  .pham-pdp-service-visual { aspect-ratio: 5/4; padding: 24px; }
+  .pham-pdp-service-visual__title { font-size: clamp(1.35rem,6.2vw,2.05rem); }
+}
 </style>
 
 <script>

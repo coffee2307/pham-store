@@ -18,26 +18,33 @@
   data-submit-enabled="{% if submit_enabled %}true{% else %}false{% endif %}"
   data-engine-enabled="{% if settings.pham_campaign_engine_enabled %}true{% else %}false{% endif %}"
   data-engine-proxy="{{ settings.pham_campaign_engine_proxy_path | default: '/apps/pham-edition' | escape }}">
-  <div class="pham-campaign-inner">
-    {%- unless commerce_ready -%}<span class="pham-campaign-draft">PRELAUNCH CONFIGURATOR · SUBMISSION DISABLED</span>{%- endunless -%}
-    <p class="pham-campaign-kicker">{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }} · OBJECT IDENTITY</p>
-    <h1 class="pham-campaign-title">Make it yours.</h1>
-    <p class="pham-campaign-lede">The Identity privilege is shared across paid upgrades and referral unlocks. Only {{ settings.pham_campaign_identity_limit | default: 15 }} privileges exist for the active edition.</p>
+  <div class="pham-campaign-inner pham-identity-page">
+    <header class="pham-identity-page__intro">
+      <h1 class="pham-campaign-title">Object <strong class="pham-funnel-emphasis">identity.</strong></h1>
+      <p class="pham-campaign-lede">Create your collector card. Choose a preferred number for your PHAM-001 jacket.</p>
+    </header>
 
-    <div class="pham-campaign-grid">
-      <div class="pham-campaign-card pham-campaign-card--full">
-        {%- if commerce_ready and customer == nil -%}
-          <div class="pham-campaign-alert">Collector authentication is required before an Identity request can be submitted.</div>
-          <div class="pham-campaign-actions"><a class="pham-campaign-btn" href="{{ routes.account_login_url }}">Sign in</a></div>
-        {%- elsif commerce_ready and can_configure == false -%}
-          <div class="pham-campaign-alert">OBJECT IDENTITY IS LOCKED FOR THIS ACCOUNT. Unlock it through the paid upgrade or one verified successful reservation referral while the shared privilege pool remains open.</div>
+    <div class="pham-identity-access" role="status">
+      {%- unless commerce_ready -%}
+        <p><strong>Preview mode.</strong> You can explore the design now. Identity requests are not open yet.</p>
+      {%- else -%}
+        {%- if customer == nil -%}
+          <p><strong>Sign in to continue.</strong> Identity configuration is available to eligible collectors.</p>
+          <a href="{{ routes.account_login_url }}">Sign in</a>
+        {%- elsif can_configure == false -%}
+          <p><strong>Identity not unlocked.</strong> Available through the paid upgrade or a verified referral, subject to the {{ settings.pham_campaign_identity_limit | default: 15 }}-place limit.</p>
           {%- if settings.pham_campaign_referral_page_url != blank -%}
-            <div class="pham-campaign-actions"><a class="pham-campaign-btn" href="{{ settings.pham_campaign_referral_page_url }}">Referral access</a></div>
+            <a href="{{ settings.pham_campaign_referral_page_url }}">Referral access</a>
           {%- endif -%}
+        {%- else -%}
+          <p><strong>Ready to personalize.</strong> Choose a name, inscription and preferred number.</p>
         {%- endif -%}
+      {%- endunless -%}
+    </div>
 
-        {%- form 'contact', id: 'PhamIdentityForm', class: 'pham-identity-form' -%}
-          <div data-pham-identity-form>
+    <div class="pham-identity-editor">
+      {%- form 'contact', id: 'PhamIdentityForm', class: 'pham-identity-form' -%}
+        <div data-pham-identity-form>
           <input type="hidden" name="contact[Source]" value="PHAM Object Identity">
           <input type="hidden" name="contact[Edition]" value="{{ settings.pham_campaign_edition_label | default: 'EDITION 01' | escape }}">
           <input type="hidden" name="contact[Product]" value="{{ settings.pham_campaign_product_code | default: 'PHAM-001' | escape }}">
@@ -47,80 +54,86 @@
           {%- if customer -%}<input type="hidden" name="contact[email]" value="{{ customer.email | escape }}">{%- endif -%}
 
           {%- if form.posted_successfully? -%}
-            <div class="pham-campaign-alert" role="status">
-              <strong>IDENTITY REQUEST RECEIVED.</strong> Your preferred number remains pending until PHAM confirms the allocation. Do not treat the preview as final object assignment.
-            </div>
+            <p class="pham-identity-success" role="status"><strong>Request received.</strong> Your preferred number remains pending until PHAM confirms allocation.</p>
           {%- else -%}
-            <div class="pham-config-grid">
-              <div>
-                <div class="pham-config-field">
-                  <label for="PhamIdentityName-{{ section.id }}">Identity / alias</label>
-                  <input id="PhamIdentityName-{{ section.id }}"
-                         data-pham-id-name
-                         name="contact[Identity alias]"
-                         maxlength="24"
-                         placeholder="COLLECTOR ID"
-                         {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>
+            {%- if form.errors -%}
+              <div class="pham-identity-error" role="alert">{{ form.errors | default_errors }}</div>
+            {%- endif -%}
+            <div class="pham-identity-editor__grid">
+              <div class="pham-identity-editor__controls">
+                <div class="pham-identity-editor__fields">
+                  <div class="pham-config-field">
+                    <label for="PhamIdentityName-{{ section.id }}">Name or alias</label>
+                    <input id="PhamIdentityName-{{ section.id }}"
+                           data-pham-id-name
+                           name="contact[Identity alias]"
+                           maxlength="24"
+                           autocomplete="nickname"
+                           placeholder="YOUR IDENTITY"
+                           {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>
+                  </div>
+                  <div class="pham-config-field">
+                    <label for="PhamIdentityInscription-{{ section.id }}">Card inscription <span class="pham-identity-counter" data-pham-inscription-count>0/40</span></label>
+                    <textarea id="PhamIdentityInscription-{{ section.id }}"
+                              data-pham-id-inscription
+                              name="contact[Inscription]"
+                              maxlength="40"
+                              rows="2"
+                              placeholder="A SHORT PERSONAL MESSAGE"
+                              {% unless can_configure or commerce_ready == false %}disabled{% endunless %}></textarea>
+                  </div>
                 </div>
 
-                <div class="pham-config-field">
-                  <label for="PhamIdentityInscription-{{ section.id }}">Inscription · <span data-pham-inscription-count>0/40</span></label>
-                  <textarea id="PhamIdentityInscription-{{ section.id }}"
-                            data-pham-id-inscription
-                            name="contact[Inscription]"
-                            maxlength="40"
-                            rows="3"
-                            placeholder="YOUR INSCRIPTION"
-                            {% unless can_configure or commerce_ready == false %}disabled{% endunless %}></textarea>
-                </div>
-
-                <div class="pham-config-field">
-                  <label>Preferred object number</label>
-                  <div class="pham-number-grid" aria-label="Preferred object number">
+                <fieldset class="pham-identity-number-field">
+                  <legend>Preferred jacket number <span>01–{{ edition_size }}</span></legend>
+                  <p class="pham-identity-number-field__hint">Tap a number to preview it on your card.</p>
+                  <div class="pham-number-grid" role="group" aria-label="Preferred jacket number">
                     {%- for i in (1..edition_size) -%}
                       {%- capture display_number -%}{%- if i < 10 -%}0{%- endif -%}{{ i }}{%- endcapture -%}
                       <button type="button"
                               data-pham-object-number="{{ i }}"
+                              aria-label="Request jacket number {{ display_number }} of {{ edition_size }}"
                               aria-pressed="false"
                               {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>{{ display_number }}</button>
                     {%- endfor -%}
                   </div>
-                </div>
-
-                <label class="pham-identity-public-choice">
-                  <input type="checkbox"
-                         name="contact[Public identity]"
-                         value="yes"
-                         {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>
-                  <span>Allow my chosen identity/alias to appear on the public provenance record. Personal contact information is never shown.</span>
-                </label>
-
-                <div class="pham-campaign-alert">Object numbers are locked when your Identity configuration is recorded. If another collector secures the same number first, the system will ask you to choose another available number.</div>
-
-                <div class="pham-campaign-actions">
-                  {%- if submit_enabled -%}
-                    <button type="submit" class="pham-campaign-btn" data-pham-identity-submit disabled>Submit Identity request</button>
-                  {%- else -%}
-                    <span class="pham-campaign-btn" aria-disabled="true">{% if commerce_ready %}Identity locked{% else %}Submission disabled in prelaunch{% endif %}</span>
-                  {%- endif -%}
-                </div>
+                  <p class="pham-identity-number-status" data-pham-number-status aria-live="polite">No number selected yet.</p>
+                </fieldset>
               </div>
 
-              <div class="pham-id-preview" aria-label="Identity card preview">
-                <div class="pham-id-preview__brand">PHAM</div>
-                <div class="pham-id-preview__main">
-                  <div class="pham-id-preview__object">{{ settings.pham_campaign_product_code | default: 'PHAM-001' }} · <span data-pham-preview-number>??/{{ edition_size }}</span></div>
-                  <div class="pham-id-preview__identity"><span data-pham-preview-name>COLLECTOR ID</span>
+              <aside class="pham-identity-editor__preview">
+                <p class="pham-identity-editor__preview-label">Your card preview</p>
+                <div class="pham-id-preview" aria-label="Collector card preview">
+                  <div class="pham-id-preview__brand">PHAM</div>
+                  <div class="pham-id-preview__main">
+                    <div class="pham-id-preview__object">{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}<span class="pham-id-preview__number">No. <span data-pham-preview-number>-- / {{ edition_size }}</span></span></div>
+                    <div class="pham-id-preview__identity"><span data-pham-preview-name>YOUR IDENTITY</span>
 <span data-pham-preview-inscription>YOUR INSCRIPTION</span></div>
+                  </div>
+                  <div class="pham-id-preview__foot"><span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span><span>QR RECORD</span></div>
                 </div>
-                <div class="pham-id-preview__foot"><span>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span><span>QR · PROVENANCE</span></div>
-              </div>
+                <p class="pham-identity-editor__preview-note">Live preview only. Number allocation is confirmed separately by PHAM.</p>
+              </aside>
+            </div>
+
+            <div class="pham-identity-editor__actions">
+              <label class="pham-identity-public-choice">
+                <input type="checkbox"
+                       name="contact[Public identity]"
+                       value="yes"
+                       {% unless can_configure or commerce_ready == false %}disabled{% endunless %}>
+                <span>Show my alias on the public Object Record. Contact information remains private.</span>
+              </label>
+              {%- if submit_enabled -%}
+                <button type="submit" class="pham-campaign-btn" data-pham-identity-submit disabled>Save identity request</button>
+              {%- else -%}
+                <p class="pham-identity-editor__locked">Requests are currently unavailable. This preview does not reserve a number.</p>
+              {%- endif -%}
             </div>
           {%- endif -%}
-          <p class="pham-campaign-alert" data-pham-identity-result hidden role="status"></p>
-          </div>
-        {%- endform -%}
-      </div>
+          <p class="pham-identity-result" data-pham-identity-result hidden role="status"></p>
+        </div>
+      {%- endform -%}
     </div>
   </div>
 </section>

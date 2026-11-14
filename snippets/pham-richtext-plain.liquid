@@ -1,0 +1,11 @@
+{%- comment -%}
+  Convert rich text to readable plain text without joining words at block boundaries.
+  Use this before truncating excerpts, SEO descriptions, or accessibility labels.
+  The source HTML is never modified.
+{%- endcomment -%}
+{%- assign pham_plain = html | default: '' -%}
+{%- assign pham_plain = pham_plain | replace: '</p>', ' ' | replace: '</div>', ' ' | replace: '</li>', ' ' | replace: '</ul>', ' ' | replace: '</ol>', ' ' | replace: '</blockquote>', ' ' -%}
+{%- assign pham_plain = pham_plain | replace: '</h1>', ' ' | replace: '</h2>', ' ' | replace: '</h3>', ' ' | replace: '</h4>', ' ' | replace: '</h5>', ' ' | replace: '</h6>', ' ' -%}
+{%- assign pham_plain = pham_plain | replace: '<br>', ' ' | replace: '<br/>', ' ' | replace: '<br />', ' ' | replace: '<hr>', ' ' | replace: '<hr/>', ' ' | replace: '<hr />', ' ' -%}
+{%- assign pham_plain = pham_plain | strip_html | replace: '&nbsp;', ' ' | replace: '&#160;', ' ' | replace: '  ', ' ' | replace: '  ', ' ' | replace: '  ', ' ' | strip -%}
+{{- pham_plain -}}

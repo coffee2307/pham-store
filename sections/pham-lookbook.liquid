@@ -13,9 +13,6 @@
     {%- comment -%} HEADER {%- endcomment -%}
     {%- if section.settings.eyebrow != blank or section.settings.title != blank or section.settings.intro != blank -%}
       <header class="pham-lookbook-v2__head reveal-up">
-        {%- if section.settings.eyebrow != blank -%}
-          <p class="pham-eyebrow">{{ section.settings.eyebrow }}</p>
-        {%- endif -%}
         {%- if section.settings.title != blank -%}
           <h2 class="pham-lookbook-v2__title">
             {% assign editorial_look_title = section.settings.title | strip | downcase %}{% if editorial_look_title == 'the architecture of restraint' %}<span class="pham-lookbook-v2__phrase">The <strong>Architecture</strong></span><span class="pham-lookbook-v2__phrase"> of <em>Restraint</em></span>{% else %}<span class="pham-split" data-pham-split>{{ section.settings.title | escape }}</span>{% endif %}
@@ -201,14 +198,12 @@
 
                 {%- if block.settings.overlay_text != blank -%}
                   <div class="pham-lookbook-v2__overlay">
-                    <span class="pham-eyebrow pham-lookbook-v2__overlay-tag">{{ block.settings.overlay_eyebrow | default: 'LOOK' }}</span>
                     <span class="pham-lookbook-v2__overlay-text">{{ block.settings.overlay_text }}</span>
                   </div>
                 {%- endif -%}
               </div>
               {%- if block.settings.caption != blank -%}
                 <figcaption class="pham-lookbook-v2__caption">
-                  <span class="pham-lookbook-v2__caption-mark" aria-hidden="true">▢</span>
                   <span>{{ block.settings.caption }}</span>
                 </figcaption>
               {%- endif -%}
@@ -217,11 +212,8 @@
           {%- when 'editorial' -%}
             <div class="pham-lookbook-v2__cell pham-lookbook-v2__cell--{{ size }} pham-lookbook-v2__cell--editorial" {{ block.shopify_attributes }}>
               <div class="pham-lookbook-v2__editorial">
-                {%- if block.settings.eyebrow != blank -%}
-                  <p class="pham-eyebrow">{{ block.settings.eyebrow }}</p>
-                {%- endif -%}
                 {%- if block.settings.heading != blank -%}
-                  <h3 class="pham-lookbook-v2__editorial-heading">{{ block.settings.heading }}</h3>
+                  <h3 class="pham-lookbook-v2__editorial-heading">{% render "pham-editorial-title", text: block.settings.heading %}</h3>
                 {%- endif -%}
                 {%- if block.settings.body != blank -%}
                   <div class="pham-lookbook-v2__editorial-body rte">{{ block.settings.body }}</div>
@@ -238,7 +230,6 @@
           {%- when 'quote' -%}
             <blockquote class="pham-lookbook-v2__cell pham-lookbook-v2__cell--{{ size }} pham-lookbook-v2__cell--quote" {{ block.shopify_attributes }}>
               <div class="pham-lookbook-v2__quote-head">
-                <span class="pham-eyebrow">{{ block.settings.author_role | default: 'BRAND MANIFESTO · 01' }}</span>
                 <span class="pham-lookbook-v2__quote-mark" aria-hidden="true">“</span>
               </div>
 
@@ -247,8 +238,7 @@
               {%- if block.settings.author != blank -%}
                 <footer class="pham-lookbook-v2__quote-cite">
                   <span class="pham-lookbook-v2__quote-author">{{ block.settings.author }}</span>
-                  <span class="pham-lookbook-v2__quote-index" aria-hidden="true">PHAM / 01</span>
-                </footer>
+                  </footer>
               {%- endif -%}
             </blockquote>
 
@@ -1055,7 +1045,7 @@
       "type": "textarea",
       "id": "intro",
       "label": "Intro",
-      "default": "A visual study of Edition 01 — its silhouette, fabric, and the slow process behind the first release."
+      "default": "Edition 01. Form, materials and detail."
     },
     {
       "type": "header",

@@ -93,22 +93,13 @@
   <div class="pham-vault__sticky">
     <div class="pham-vault__fallback" aria-hidden="true"></div>
 
-    <div class="pham-vault__chrome" aria-hidden="true">
-      <span>PHAM / DIGITAL ARCHIVE</span>
-      <span>{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</span>
-      <span>{{ settings.pham_campaign_origin_label | default: 'VIETNAM / 2026' }}</span>
-    </div>
-
     <div class="pham-vault__orbit-stage" data-pham-vault-orbit>
       <div class="pham-vault__orbit-plane" data-pham-vault-orbit-plane>
         <div class="pham-vault__orbit-cards">
           <div class="pham-vault__orbit-core" data-pham-vault-core aria-hidden="true">
-            <span class="pham-vault__core-eyebrow">PHAM ATELIER / {{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</span>
             <span class="pham-vault__core-title" data-text="PHAM">PHAM</span>
             <span class="pham-vault__core-meta">
-              <span>{{ settings.pham_campaign_product_code | default: 'PHAM-001' }}</span>
               <span>{{ settings.pham_campaign_edition_size | default: 50 }} OBJECTS</span>
-              <span>{{ settings.pham_campaign_origin_label | default: 'VIETNAM / 2026' }}</span>
             </span>
           </div>
           {%- assign vault_product = section.settings.product -%}
@@ -135,7 +126,7 @@
                       {% if card_image != blank %}data-pham-expanded-src="{{ card_image | image_url: width: 1800 }}"{% endif %}
                       {% if block.settings.link == blank %}tabindex="0" role="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Open {{ card_alt | escape }}"{% endif %}
                       {{ block.shopify_attributes }}>
-                <div class="pham-vault__orbit-card-face">
+                <div class="pham-vault__orbit-card-face"{% if card_image != blank %} style="--vault-orbit-preview: url('{{ card_image | image_url: width: 96 }}')"{% endif %}>
                   {%- if block.settings.link != blank -%}<a href="{{ block.settings.link }}" aria-label="{{ card_alt | escape }}">{%- endif -%}
                     {%- if card_image != blank -%}
                       {{
@@ -146,7 +137,7 @@
                           fetchpriority: card_fetchpriority,
                           decoding: 'async',
                           widths: '320, 480, 720, 960, 1200, 1600, 1800',
-                          sizes: '(max-width: 749px) 70vw, 35vw',
+                          sizes: '(max-width: 749px) 30vw, 35vw',
                           alt: card_alt
                       }}
                     {%- else -%}
@@ -167,12 +158,11 @@
           {%- endif -%}
         </div>
       </div>
-      <span class="pham-vault__orbit-hint" aria-hidden="true">MOVE / DRAG / ORBIT</span>
+      <span class="pham-vault__orbit-hint" aria-hidden="true">DRAG TO EXPLORE</span>
     </div>
 
     <div class="pham-vault__chapters pham-container">
       <article class="pham-vault__chapter is-active" data-pham-vault-chapter="0">
-        <p class="pham-vault__kicker">01 / THRESHOLD</p>
         <h1 class="pham-vault__display pham-vault__display--editorial">{% if section.settings.chapter_1_title == "ENTER THE VAULT" %}<span class="pham-vault__phrase-unit">ENTER THE <strong>VAULT</strong></span>{% else %}{{ section.settings.chapter_1_title | escape }}{% endif %}</h1>
         <p class="pham-vault__copy">{{ section.settings.chapter_1_body }}</p>
         <div class="pham-vault__entry-actions">
@@ -184,13 +174,11 @@
       </article>
 
       <article class="pham-vault__chapter pham-vault__chapter--right" data-pham-vault-chapter="1" aria-hidden="true">
-        <p class="pham-vault__kicker">02 / OBJECT</p>
         <h2 class="pham-vault__display pham-vault__display--editorial">{% if section.settings.chapter_2_title == "FORM BEFORE NOISE" %}<span class="pham-vault__phrase-unit">FORM BEFORE <strong>NOISE</strong></span>{% else %}{{ section.settings.chapter_2_title | escape }}{% endif %}</h2>
         <p class="pham-vault__copy">{{ section.settings.chapter_2_body }}</p>
       </article>
 
       <article class="pham-vault__chapter" data-pham-vault-chapter="2" aria-hidden="true">
-        <p class="pham-vault__kicker">03 / CONSTRUCTION</p>
         <h2 class="pham-vault__display pham-vault__display--editorial">{% if section.settings.chapter_3_title == "BUILT IN LAYERS" %}<span class="pham-vault__phrase-unit">BUILT IN <strong>LAYERS</strong></span>{% else %}{{ section.settings.chapter_3_title | escape }}{% endif %}</h2>
         <div class="pham-vault__specs">
           <div><span>{{ section.settings.spec_1_label }}</span><strong>{{ section.settings.spec_1_value }}</strong></div>
@@ -200,10 +188,9 @@
       </article>
 
       <article class="pham-vault__chapter pham-vault__chapter--purchase" data-pham-vault-chapter="3" aria-hidden="true">
-        <p class="pham-vault__kicker">04 / ACQUISITION</p>
         <h2 class="pham-vault__display pham-vault__display--purchase">
           <span data-pham-acquisition-title>{{ acquisition_title }}</span>
-          <span data-pham-acquisition-subtitle>{{ acquisition_subtitle }}</span>
+          <span data-pham-acquisition-subtitle>{% if acquisition_subtitle == 'EDITION 01' %}<strong class="pham-editorial-emphasis">EDITION 01</strong>{% else %}{{ acquisition_subtitle | escape }}{% endif %}</span>
         </h2>
         {%- if featured_product != blank -%}
           <div class="pham-vault__purchase-meta">
@@ -276,11 +263,11 @@
     { "type": "range", "id": "orbit_speed", "label": "Automatic rotation speed", "min": 0, "max": 16, "step": 1, "unit": "°/s", "default": 6 },
     { "type": "range", "id": "orbit_tilt", "label": "Orbit tilt", "min": 2, "max": 16, "step": 1, "unit": "°", "default": 8 },
     { "type": "text", "id": "chapter_1_title", "label": "Chapter 1 title", "default": "ENTER THE VAULT" },
-    { "type": "textarea", "id": "chapter_1_body", "label": "Chapter 1 text", "default": "One object. One edition. Built without compromise." },
+    { "type": "textarea", "id": "chapter_1_body", "label": "Chapter 1 text", "default": "One jacket. One edition." },
     { "type": "text", "id": "scroll_label", "label": "Scroll prompt", "default": "SCROLL TO ENTER" },
     { "type": "text", "id": "entry_cta_label", "label": "Immediate product link", "default": "VIEW OBJECT 001" },
     { "type": "text", "id": "chapter_2_title", "label": "Chapter 2 title", "default": "FORM BEFORE NOISE" },
-    { "type": "textarea", "id": "chapter_2_body", "label": "Chapter 2 text", "default": "A cropped silhouette engineered to hold tension between restraint and force." },
+    { "type": "textarea", "id": "chapter_2_body", "label": "Chapter 2 text", "default": "Cropped form. Structured shoulders. Controlled volume." },
     { "type": "text", "id": "chapter_3_title", "label": "Chapter 3 title", "default": "BUILT IN LAYERS" },
     { "type": "text", "id": "spec_1_label", "label": "Specification 1 label", "default": "SHELL" },
     { "type": "text", "id": "spec_1_value", "label": "Specification 1 value", "default": "PREMIUM NYLON" },
@@ -289,7 +276,7 @@
     { "type": "text", "id": "spec_3_label", "label": "Specification 3 label", "default": "EDITION" },
     { "type": "text", "id": "spec_3_value", "label": "Specification 3 value", "default": "LIMITED / 001" },
     { "type": "text", "id": "chapter_4_title", "label": "Chapter 4 title", "default": "PHAM-001" },
-    { "type": "textarea", "id": "chapter_4_body", "label": "Chapter 4 text", "default": "The first PHAM object. Released in a deliberately limited edition." },
+    { "type": "textarea", "id": "chapter_4_body", "label": "Chapter 4 text", "default": "PHAM-001. Edition 01. Limited to 50 numbered jackets." },
     { "type": "text", "id": "available_label", "label": "Available label", "default": "AVAILABLE / LIMITED EDITION" },
     { "type": "text", "id": "sold_out_label", "label": "Sold out label", "default": "EDITION CLOSED" },
     { "type": "text", "id": "cta_label", "label": "Button label", "default": "INSPECT THE OBJECT" },

@@ -1,7 +1,8 @@
 
 
 {%- assign block_settings = block.settings -%}
-{%- assign plain_text = block_settings.text | strip_newlines | strip_html | strip -%}
+{%- capture pham_announcement_plain -%}{%- render 'pham-richtext-plain', html: block_settings.text -%}{%- endcapture -%}
+{%- assign plain_text = pham_announcement_plain | strip -%}
 {%- assign block_index = section.blocks | find_index: 'id', block.id -%}
 
 {%- unless plain_text == '' -%}
@@ -36,7 +37,7 @@
         href="{{ block_settings.link }}"
       >
         <span class="visually-hidden">
-          {{ block_settings.text | strip_html }}
+          {{ plain_text | escape }}
         </span>
       </a>
     {% endif %}

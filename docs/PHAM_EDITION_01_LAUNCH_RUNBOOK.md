@@ -482,3 +482,24 @@ Before live opening, execute at least:
 - archive gate rejection while any object is undelivered.
 
 Only after all checks pass should live Priority Reservation open.
+
+## P0/P1 verification and safe prelaunch — November 14, 2026
+
+The main PHAM-001 physical product remains ACTIVE. Supporting Shopify
+products PHAM-001-RES-E01 ($24.99), PHAM-ID-E01 ($5.00), and
+PHAM-LOOKBOOK-E01 ($0) were set to DRAFT to prevent direct paid checkout.
+Their prices, SKU assignments and inventory remain unchanged.
+
+Before opening reservations, restore these three products to ACTIVE and
+verify publication, price, available inventory and exact product bundle.
+Changing the theme or D1 campaign state does not automatically activate
+a DRAFT product.
+
+A read-only production check on November 14, 2026 returned
+edition.state=reservation_open from /apps/pham-edition/campaign,
+while the published theme had prelaunch, commerce_ready=false and
+lookbook_ready=false. Reconcile the Worker/D1 state to the intended
+prelaunch state before enabling commerce or activating payment products.
+
+The P1 frontend now refuses checkout with a pre-existing nonempty cart.
+The backend must independently continue verifying the paid order bundle.

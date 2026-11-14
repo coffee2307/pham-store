@@ -13,9 +13,9 @@
       <h1 class="pham-search__title">
         {%- if search.performed -%}
           {%- if search.results_count > 0 -%}
-            Results for &ldquo;{{ terms }}&rdquo;
+            Results for <strong class="pham-editorial-emphasis">&ldquo;{{ terms }}&rdquo;</strong>
           {%- else -%}
-            No results for &ldquo;{{ terms }}&rdquo;
+            No results for <strong class="pham-editorial-emphasis">&ldquo;{{ terms }}&rdquo;</strong>
           {%- endif -%}
         {%- else -%}
           Search the atelier

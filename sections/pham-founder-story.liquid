@@ -11,28 +11,23 @@
 
     <header class="pham-founder__hero">
       <div class="pham-founder__hero-main">
-        <p class="pham-founder__eyebrow">{{ section.settings.eyebrow | escape }}</p>
         <h1 id="pham-founder-title">{% if section.settings.title == 'Building PHAM, from the beginning.' %}<span class="pham-founder__title-phrase">Building <strong>PHAM,</strong></span><span class="pham-founder__title-phrase"> from the <em>beginning.</em></span>{% else %}{{ section.settings.title | escape }}{% endif %}</h1>
         <p class="pham-founder__lead">{{ section.settings.lead | escape }}</p>
         <a class="pham-founder__jump" href="#pham-founder-story">READ THE STORY <span aria-hidden="true">↓</span></a>
       </div>
       <aside class="pham-founder__facts" aria-label="Founder and brand facts">
-        <p class="pham-founder__facts-label">FOUNDER'S RECORD</p>
         <dl>
           <div><dt>FOUNDER</dt><dd>Coffee Pham</dd></div>
           <div><dt>FOUNDED</dt><dd>2026 · VIETNAM</dd></div>
           <div><dt>STARTING POINT</dt><dd>16 YEARS OLD · STILL IN SCHOOL</dd></div>
           <div><dt>FIRST OBJECT</dt><dd>PHAM-001 · CROPPED BOMBER</dd></div>
         </dl>
-        <p class="pham-founder__facts-footnote">A personal account of a work in progress, not a story of a finished success.</p>
       </aside>
     </header>
 
     <section id="pham-founder-story" class="pham-founder__story" aria-labelledby="pham-founder-story-title">
       <div class="pham-founder__section-heading">
-        <p class="pham-founder__eyebrow">01 / THE JOURNEY</p>
-        <h2 id="pham-founder-story-title"><span class="pham-founder__section-phrase">How it began.</span><span class="pham-founder__section-phrase"> What it took.</span></h2>
-        <p>From the first sketch to the questions that still have to be answered.</p>
+        <h2 id="pham-founder-story-title"><span class="pham-founder__section-phrase">How it began.</span><span class="pham-founder__section-phrase"> What it <strong class="pham-editorial-emphasis">took.</strong></span></h2>
       </div>
 
       <div class="pham-founder__chapters" data-pham-scroll-progress>
@@ -40,11 +35,10 @@
           {%- if block.type == 'chapter' -%}
             <article class="pham-founder__chapter" {{ block.shopify_attributes }}>
               <div class="pham-founder__chapter-aside">
-                <span class="pham-founder__chapter-number">{{ block.settings.number | escape }}</span>
                 <span class="pham-founder__chapter-category">{{ block.settings.category | escape }}</span>
               </div>
               <div class="pham-founder__chapter-copy">
-                <h3>{{ block.settings.title | escape }}</h3>
+                <h3>{% render "pham-editorial-title", text: block.settings.title %}</h3>
                 <p>{{ block.settings.body_1 | escape }}</p>
                 {%- if block.settings.body_2 != blank -%}<p>{{ block.settings.body_2 | escape }}</p>{%- endif -%}
               </div>
@@ -56,16 +50,13 @@
 
     <section class="pham-founder__obstacles" aria-labelledby="pham-founder-obstacles-title">
       <div class="pham-founder__section-heading">
-        <p class="pham-founder__eyebrow">02 / THE REAL CONSTRAINTS</p>
-        <h2 id="pham-founder-obstacles-title">What a lookbook doesn't show.</h2>
-        <p>Each of these constraints has shaped how the first edition is being built.</p>
+        <h2 id="pham-founder-obstacles-title">{% render "pham-editorial-title", text: "What a lookbook doesn't show." %}</h2>
       </div>
       <div class="pham-founder__obstacles-grid">
         {%- for block in section.blocks -%}
           {%- if block.type == 'obstacle' -%}
             <article class="pham-founder__obstacle" {{ block.shopify_attributes }}>
-              <span class="pham-founder__obstacle-index">{{ block.settings.number | escape }}</span>
-              <h3>{{ block.settings.title | escape }}</h3>
+              <h3>{% render "pham-editorial-title", text: block.settings.title %}</h3>
               <p>{{ block.settings.body | escape }}</p>
             </article>
           {%- endif -%}
@@ -74,25 +65,21 @@
     </section>
 
     <section class="pham-founder__present" aria-labelledby="pham-founder-present-title">
-      <div class="pham-founder__present-meta">
-        <p class="pham-founder__eyebrow">03 / WHERE THINGS STAND</p>
-        <span>AN UNFINISHED BEGINNING</span>
-      </div>
       <div>
-        <h2 id="pham-founder-present-title">{{ section.settings.present_heading | escape }}</h2>
+        <h2 id="pham-founder-present-title">{% render "pham-editorial-title", text: section.settings.present_heading %}</h2>
         <p>{{ section.settings.present_body_1 | escape }}</p>
         <p>{{ section.settings.present_body_2 | escape }}</p>
-        <p class="pham-founder__signature">Coffee Pham <span>FOUNDER / PHAM</span></p>
+        <p class="pham-founder__signature">Coffee Pham</p>
       </div>
     </section>
 
     <nav class="pham-founder__end-links" aria-label="Explore more about PHAM">
       <a href="/products/pham-001">
-        <span><strong>THE FIRST OBJECT</strong><small>PHAM-001 / THE PRODUCT</small></span>
+        <span><strong>THE FIRST OBJECT</strong></span>
         <span aria-hidden="true">→</span>
       </a>
       <a href="/pages/about">
-        <span><strong>ABOUT PHAM</strong><small>PHILOSOPHY / DESIGN / THE EDITION</small></span>
+        <span><strong>ABOUT PHAM</strong></span>
         <span aria-hidden="true">→</span>
       </a>
     </nav>
@@ -107,6 +94,9 @@
 .pham-founder__breadcrumb{display:flex;align-items:center;gap:13px;min-height:40px;margin-bottom:clamp(36px,5vw,64px);flex-wrap:wrap}
 .pham-founder__breadcrumb a{color:#c7c6c2;text-decoration:none;display:inline-flex;align-items:center;min-height:40px}
 .pham-founder__breadcrumb a:hover,.pham-founder__breadcrumb a:focus-visible{color:#fff;text-decoration:underline;text-underline-offset:4px}
+.pham-founder__section-heading{grid-template-columns:minmax(0,1fr);gap:0;}
+.pham-founder__present{grid-template-columns:minmax(0,1fr) !important;}
+.pham-founder__chapter-aside{min-height:0;}
 .pham-founder__hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.6fr);gap:clamp(38px,7vw,100px);align-items:end;padding-bottom:clamp(60px,8vw,108px)}
 .pham-founder__hero-main{min-width:0}
 .pham-founder__hero h1{margin:18px 0 24px;max-width:none;font:400 clamp(2.9rem,4.9vw,5.15rem)/1.08 var(--font-display,Arial,sans-serif);letter-spacing:-.04em;text-wrap:pretty}
@@ -223,6 +213,70 @@
   .pham-founder__section-phrase { white-space:normal }
 }
 
+/* Founder Story rail stacking: the chapters are always solid, above the
+   independently animated vertical progress line. An opacity or transform
+   entrance on the whole chapter would expose the line through its label. */
+.pham-founder__chapters { isolation: isolate; }
+.pham-founder__chapters::before,
+.pham-founder__chapters::after { z-index: 0; }
+.pham-founder__chapters > .pham-founder__chapter {
+  position: relative;
+  z-index: 1;
+  opacity: 1;
+  transform: none;
+}
+.pham-founder__chapter-aside { isolation: isolate; }
+/* A solid square label interrupts the timeline rail behind it. */
+.pham-founder__chapter-aside {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  padding-top: 0;
+}
+.pham-founder__chapter-category {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: min(100%, 23ch);
+  min-height: 44px;
+  padding: 9px 12px;
+  background: #0a0b0d;
+  border: 1px solid rgba(241,240,236,.28);
+  box-shadow: 0 0 0 5px #0a0b0d;
+  color: #cecdca;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: .075em;
+  text-wrap: balance;
+}
+.pham-founder__chapter-copy h3 {
+  text-wrap: balance;
+  overflow-wrap: normal;
+}
+@media (max-width: 700px) {
+  .pham-founder__chapter-aside {
+    margin-left: -54px;
+    width: calc(100% + 54px);
+    padding-top: 0;
+  }
+  .pham-founder__chapter-category {
+    max-width: min(194px, 100%);
+    min-height: 44px;
+    padding: 8px 11px;
+    font-size: 10px;
+    letter-spacing: .06em;
+  }
+  .pham-founder__chapter-copy {
+    padding-left: 0;
+  }
+  .pham-founder__chapter-copy h3 {
+    font-size: clamp(1.26rem, 5.25vw, 1.85rem);
+    line-height: 1.24;
+    letter-spacing: -.02em;
+  }
+}
 </style>
 {% schema %}
 {
@@ -232,10 +286,10 @@
   "settings": [
     {"type":"text","id":"eyebrow","label":"Header eyebrow","default":"PHAM / FOUNDER JOURNAL"},
     {"type":"text","id":"title","label":"Main heading","default":"Building PHAM, from the beginning."},
-    {"type":"textarea","id":"lead","label":"Introductory statement","default":"I started PHAM at sixteen, still in high school, without a funded business, an industry network or a team. This is the story of learning to build the first object—and the questions that still have to be answered."},
+    {"type":"textarea","id":"lead","label":"Introductory statement","default":"I started PHAM at sixteen, without a team or an industry network. This is the work behind Edition 01."},
     {"type":"text","id":"present_heading","label":"Current chapter heading","default":"The first edition is still being built."},
-    {"type":"textarea","id":"present_body_1","label":"Current chapter, paragraph one","default":"PHAM-001 is the first release I want to put into the world. Its planned edition is fifty numbered pieces. Before that can mean something to anyone else, the final product must deserve their trust. That means being clear about the sample, the changes being considered and the reality of production."},
-    {"type":"textarea","id":"present_body_2","label":"Current chapter, paragraph two","default":"I cannot promise that building this will be easy or that every attempt will work. I can keep learning, keep improving the object and explain decisions with more care than hype. The story is not that I succeeded at sixteen. The story is that I started—and I am still doing the work."}
+    {"type":"textarea","id":"present_body_1","label":"Current chapter, paragraph one","default":"PHAM-001 is still being refined. I want its specifications, changes and production decisions to be clear before the release."},
+    {"type":"textarea","id":"present_body_2","label":"Current chapter, paragraph two","default":"I cannot promise a sellout. I can keep improving the object and be transparent about what I can deliver."}
   ],
   "blocks": [
     {

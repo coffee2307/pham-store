@@ -11,7 +11,6 @@
 
     {%- comment -%} HEADER {%- endcomment -%}
     <header class="pham-story__head reveal-up">
-      <p class="pham-eyebrow">{{ section.settings.eyebrow | default: 'PHAM · MANIFESTO' }}</p>
       <h2 class="pham-story__title">
         {%- if story_layout == 'about' -%}
           {{ section.settings.title | default: 'The first months.' }}
@@ -404,13 +403,13 @@
       "type": "richtext",
       "id": "intro_left",
       "label": "Left column",
-      "default": "<p>PHAM is built slowly, one piece at a time. <strong>Edition 01</strong> is where we begin — limited by craft and production scale, not by intent.</p><p>What survives is the work itself: cut by hand, sewn in small batches, finished with care.</p>"
+      "default": "<p>One edition at a time. Designed, sampled and refined with care.</p>"
     },
     {
       "type": "richtext",
       "id": "intro_right",
       "label": "Right column",
-      "default": "<p>This timeline reflects the first months of the project from 20 March 2026. It will be revised once the atelier enters public release.</p><p>Quiet, technical, deliberate.</p>"
+      "default": "<p>PHAM began on 20 March 2026. The work continues.</p>"
     },
     {
       "type": "header",
@@ -420,7 +419,7 @@
       "type": "textarea",
       "id": "pull_quote",
       "label": "Pull quote",
-      "default": "We refuse to rush. The atelier makes one thing well — then the next."
+      "default": "Make one object well. Then the next."
     },
     {
       "type": "text",

@@ -136,14 +136,24 @@
   height: 100%;
   transform-style: preserve-3d;
 }
+/* Keep 3D perspective intact while waiting for measured geometry.
+   Opacity < 1 on this 3D ancestor forces flattening, making cards jump in size
+   the instant the fade reaches 1. Use visibility instead of parent opacity. */
 .pham-vault__orbit-cards {
-  opacity: 0;
+  opacity: 1;
+  visibility: hidden;
   contain: layout;
   transform-style: preserve-3d;
 }
 .pham-vault__orbit-cards.is-positioned {
+  visibility: visible;
+}
+/* Fade the 2D card surfaces, not the 3D group, to retain a gentle entrance. */
+.pham-vault__orbit-card-face {
+  opacity: 0;
+}
+.pham-vault__orbit-cards.is-positioned .pham-vault__orbit-card-face {
   opacity: 1;
-  transition: opacity 180ms ease;
 }
 .pham-vault__orbit-plane {
   will-change: transform;
@@ -184,7 +194,8 @@
   transition:
     transform 320ms cubic-bezier(.2,.78,.2,1),
     border-color 260ms ease,
-    box-shadow 320ms ease;
+    box-shadow 320ms ease,
+    opacity 260ms ease-out;
   will-change: transform;
 }
 .pham-vault__orbit-card.is-front .pham-vault__orbit-card-face {
@@ -560,7 +571,8 @@
   .pham-vault__sticky { position: relative; min-height: 100svh; }
   .pham-vault__chapter:not(:first-child),.pham-vault__nav,.pham-vault__progress,.pham-vault__canvas { display: none; }
   .pham-vault__chapter { opacity: 1; visibility: visible; transform: none; }
-  .pham-vault__orbit-cards { opacity: 1; transition: none; }
+  .pham-vault__orbit-cards { opacity: 1; visibility: visible; transition: none; }
+  .pham-vault__orbit-card-face { opacity: 1; transition: none; }
   .pham-vault__cue::before { animation: none; }
   .pham-vault__orbit-stage { cursor: default; }
 }
@@ -1405,4 +1417,50 @@
   .pham-vault__chapter--right .pham-vault__display--editorial {
     font-size:clamp(1.15rem, 5.85vw, 2.1rem);
   }
+}
+
+
+
+/* Progressive orbit: actual 3D cards remain on screen during image loading.
+   A low-resolution image of the SAME card supplies the temporary soft image. */
+@media (max-width: 749px) {
+  .pham-vault__orbit-card-face::before {
+    content: "";
+    position: absolute;
+    inset: -9px;
+    z-index: 0;
+    pointer-events: none;
+    background-image: var(--vault-orbit-preview, linear-gradient(140deg, #242529, #090a0d));
+    background-position: center;
+    background-size: cover;
+    filter: blur(5px) brightness(.76);
+    opacity: .94;
+    transition: opacity 750ms cubic-bezier(.2,.65,.25,1);
+  }
+  .pham-vault__orbit-card-face img {
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    filter: blur(6px);
+    transition:
+      opacity 680ms cubic-bezier(.2,.65,.25,1),
+      filter 850ms cubic-bezier(.2,.65,.25,1);
+  }
+  .pham-vault__orbit-card.is-image-ready .pham-vault__orbit-card-face img,
+  .pham-vault__orbit-card.is-tarot-expanded .pham-vault__orbit-card-face img {
+    opacity: 1;
+    filter: none;
+  }
+  .pham-vault__orbit-card.is-image-ready .pham-vault__orbit-card-face::before,
+  .pham-vault__orbit-card.is-tarot-expanded .pham-vault__orbit-card-face::before {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pham-vault__orbit-card-face img {
+    opacity: 1 !important;
+    filter: none !important;
+    transition: none !important;
+  }
+  .pham-vault__orbit-card-face::before { display: none !important; }
 }
