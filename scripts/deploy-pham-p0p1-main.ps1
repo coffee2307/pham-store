@@ -58,7 +58,7 @@ if ($answer -ne 'UPDATE MAIN 167387103488') {
   throw 'Cancelled; no files uploaded.'
 }
 
-$cliArgs = @('theme', 'push', '--store', $store, '--theme', $mainThemeId,
+$cliArgs = @('theme', 'push', '--path', $root, '--store', $store, '--theme', $mainThemeId,
              '--allow-live', '--nodelete')
 foreach ($file in $files) {
   $cliArgs += @('--only', $file)
