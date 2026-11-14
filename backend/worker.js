@@ -1,3 +1,7 @@
+import { compileEditionOperations } from './operations-ledger.mjs';
+import {planReservationOpening,canAcceptDatedReservation,isReservationWindowExpired,validateUnderfilledDecision} from './reservation-window.mjs';
+import {enqueueCustomerNotice,dispatchCustomerNotices,enqueuePaymentReminders,notificationTransportConfigured} from './customer-notices.mjs';
+
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
 
 export const OBJECT_LIFECYCLE_STAGES = [
@@ -131,7 +135,9 @@ export default {
         }
 
         if (request.method === 'POST' && url.pathname === '/identity/configure') {
-          return configureIdentity(request, env, proxyAuth.customerId, url.searchParams.get('edition') || 'edition-01');
+          // Collector requests must be sent directly through PHAM email or WhatsApp.
+          // Only an authenticated operator may confirm the correspondence.
+          return json({ ok: false, error: 'manual_contact_required' }, 409);
         }
 
         if (request.method === 'POST' && url.pathname === '/standby/join') {
@@ -166,6 +172,29 @@ export default {
         requireInternalKey(request, env);
         return setCampaignState(request, env);
       }
+      if (request.method === 'POST' && url.pathname === '/internal/window/resolve') {
+        requireInternalKey(request, env);
+        return resolveUnderfilledReservationWindow(request, env);
+      }
+      if (request.method === 'GET' && url.pathname === '/internal/refund-reviews') {
+        requireInternalKey(request, env);
+        return getRefundReviewCases(env, url.searchParams.get('edition') || 'edition-01');
+      }
+      if (request.method === 'GET' && url.pathname === '/internal/notifications') {
+        requireInternalKey(request, env);
+        return getNotificationQueue(env);
+      }
+      if (request.method === 'POST' && url.pathname === '/internal/notifications/dispatch') {
+        requireInternalKey(request, env);
+        const body=await request.json().catch(()=>null);
+        if(!body||body.confirm!=='DISPATCH_TRANSACTIONAL_NOTICES')
+          return json({ok:false,error:'operator_confirmation_required'},422);
+        return json({ok:true,...await dispatchCustomerNotices(env)},200,{'Cache-Control':'no-store'});
+      }
+      if (request.method === 'POST' && url.pathname === '/internal/refund-reviews/settle') {
+        requireInternalKey(request, env);
+        return confirmRefundSettled(request, env);
+      }
 
       if (request.method === 'POST' && url.pathname === '/internal/lookbook/status') {
         requireInternalKey(request, env);
@@ -182,11 +211,25 @@ export default {
         return getReadiness(env, url.searchParams.get('edition') || 'edition-01');
       }
 
+      if (request.method === 'GET' && url.pathname === '/internal/operations') {
+        requireInternalKey(request, env);
+        return getPrivateOperationsLedger(env, url.searchParams.get('edition') || 'edition-01');
+      }
+
+      if (request.method === 'GET' && url.pathname === '/internal/personalizations') {
+        requireInternalKey(request, env);
+        return getProductionPersonalizations(env, url);
+      }
+
       if (request.method === 'GET' && url.pathname === '/internal/reviews') {
         requireInternalKey(request, env);
         return getWebhookReviews(env, url);
       }
 
+      if (request.method === 'POST' && url.pathname === '/internal/reservation/link-customer') {
+        requireInternalKey(request, env);
+        return linkVerifiedCustomerToReservation(request, env);
+      }
       if (request.method === 'POST' && url.pathname === '/internal/reservation/variant') {
         requireInternalKey(request, env);
         return assignReservationVariant(request, env);
@@ -195,6 +238,11 @@ export default {
       if (request.method === 'POST' && url.pathname === '/internal/reservations/map-variants') {
         requireInternalKey(request, env);
         return mapReservationVariants(request, env);
+      }
+
+      if (request.method === 'POST' && url.pathname === '/internal/identity/confirm') {
+        requireInternalKey(request, env);
+        return confirmIdentityFromCorrespondence(request, env);
       }
 
       if (request.method === 'POST' && url.pathname === '/internal/edition/size-options') {
@@ -232,12 +280,20 @@ export default {
   },
 
   async scheduled(_event, env, ctx) {
-    ctx.waitUntil(expireReservationsAndPromote(env));
+    ctx.waitUntil((async function(){
+      await closeExpiredReservationWindows(env);
+      await enqueuePaymentReminders(env);
+      await expireReservationsAndPromote(env);
+      await dispatchCustomerNotices(env);
+    })());
   }
 };
 
-function json(payload, status = 200) {
-  return new Response(JSON.stringify(payload), { status, headers: JSON_HEADERS });
+function json(payload, status = 200, extraHeaders = {}) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { ...JSON_HEADERS, ...extraHeaders }
+  });
 }
 
 function requireInternalKey(request, env) {
@@ -343,6 +399,12 @@ async function getCollectorStatus(env, customerId, editionId) {
     "SELECT COUNT(*) AS count FROM referrals WHERE referrer_reservation_id = ? AND status = 'verified'",
     reservation.id
   );
+  const editionState = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT state, reservation_closes_at, partial_run_approved_at FROM editions WHERE id=?'
+  ).bind(editionId).first();
+  const refundCase = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT status FROM refund_review_cases WHERE reservation_id=?'
+  ).bind(reservation.id).first();
 
   const storefront = String(env.STOREFRONT_ORIGIN || 'https://phamofficial.com').replace(/\/$/, '');
   const provenanceUrl = collectorObject && collectorObject.qr_token
@@ -383,6 +445,12 @@ async function getCollectorStatus(env, customerId, editionId) {
         return { stage: row.stage, occurredAt: row.created_at };
       })
     },
+    campaign: {
+      state: editionState ? editionState.state : 'unknown',
+      reservationClosesAt: editionState ? editionState.reservation_closes_at : null,
+      partialRunApproved: Boolean(editionState && editionState.partial_run_approved_at),
+      refundReviewStatus: refundCase ? refundCase.status : null
+    },
     identity: {
       status: identity ? identity.status : 'locked',
       source: identity ? identity.source : null,
@@ -393,7 +461,39 @@ async function getCollectorStatus(env, customerId, editionId) {
       verifiedCount,
       requiredCount: 1
     }
-  });
+  },200,{'Cache-Control':'private, no-store'});
+}
+
+export function canAcceptPaidReservation(edition, now=new Date()) {
+  return canAcceptDatedReservation(edition, now);
+}
+
+export function validateIdentityPersonalization(body, editionSize) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    throw new Error('identity_alias_invalid');
+  }
+  // Do not truncate silently: what is saved must match what the customer reviewed.
+  const alias = typeof body.alias === 'string' ? body.alias.trim() : '';
+  const inscription = typeof body.inscription === 'string' ? body.inscription.trim() : '';
+  const productionNotes = typeof body.productionNotes === 'string' ? body.productionNotes.trim() : '';
+  const invalid = /[<>\u0000-\u0008\u000B-\u001F\u007F]/u;
+  if (!alias || Array.from(alias).length > 24 || invalid.test(alias)) {
+    throw new Error('identity_alias_invalid');
+  }
+  if (Array.from(inscription).length > 40 || invalid.test(inscription)) {
+    throw new Error('identity_inscription_invalid');
+  }
+  if (Array.from(productionNotes).length > 240 || invalid.test(productionNotes)) {
+    throw new Error('identity_production_notes_invalid');
+  }
+  const preferredNumber = Number(body.preferredNumber);
+  if (!Number.isInteger(preferredNumber) || preferredNumber < 1 || preferredNumber > editionSize) {
+    throw new Error('object_number_out_of_range');
+  }
+  if (body.acknowledgeReview !== true) {
+    throw new Error('identity_review_required');
+  }
+  return { preferredNumber, alias, inscription, productionNotes, publicIdentity: body.publicIdentity === true ? 1 : 0 };
 }
 
 async function configureIdentity(request, env, customerId, editionId) {
@@ -422,15 +522,14 @@ async function configureIdentity(request, env, customerId, editionId) {
     'SELECT * FROM editions WHERE id = ?'
   ).bind(editionId).first();
 
-  const body = await request.json();
-  const preferredNumber = Number(body.preferredNumber);
-  const alias = String(body.alias || '').trim().slice(0, 24);
-  const inscription = String(body.inscription || '').trim().slice(0, 40);
-  const publicIdentity = body.publicIdentity === true ? 1 : 0;
-
-  if (!Number.isInteger(preferredNumber) || preferredNumber < 1 || preferredNumber > edition.edition_size) {
-    return json({ ok: false, error: 'object_number_out_of_range' }, 422);
+  const body = await request.json().catch(() => null);
+  let personalization;
+  try {
+    personalization = validateIdentityPersonalization(body, edition.edition_size);
+  } catch (error) {
+    return json({ ok: false, error: error.message }, 422);
   }
+  const { preferredNumber, alias, inscription, productionNotes, publicIdentity } = personalization;
 
   const taken = await env.PHAM_CAMPAIGN_DB.prepare(
     `SELECT id FROM reservations
@@ -451,11 +550,12 @@ async function configureIdentity(request, env, customerId, editionId) {
          SET preferred_number = ?,
              engraving_name = ?,
              engraving_text = ?,
+             production_notes = ?,
              public_identity = ?,
              configured_at = CURRENT_TIMESTAMP,
              status = 'configured'
          WHERE reservation_id = ?`
-      ).bind(preferredNumber, alias, inscription, publicIdentity, reservation.id)
+      ).bind(preferredNumber, alias, inscription, productionNotes, publicIdentity, reservation.id)
     ]);
   } catch (error) {
     if (/UNIQUE|constraint/i.test(String(error && error.message || error))) {
@@ -476,9 +576,71 @@ async function configureIdentity(request, env, customerId, editionId) {
       preferredNumber,
       alias,
       inscription,
+      productionNotesSaved: Boolean(productionNotes),
       publicIdentity: Boolean(publicIdentity)
     }
   });
+}
+
+export function validateManualContactEvidence(body) {
+  if (!body || body.confirm !== 'CONFIRM_MANUAL_IDENTITY' ||
+      !['email', 'whatsapp'].includes(body.channel)) {
+    throw new Error('identity_contact_verification_required');
+  }
+  const reservationId = typeof body.reservationId === 'string' ? body.reservationId.trim() : '';
+  const evidence = typeof body.contactReference === 'string' ? body.contactReference.trim() : '';
+  if (!reservationId || reservationId.length > 100 ||
+      !evidence || evidence.length > 160 ||
+      /[<>\u0000-\u001F]/u.test(evidence)) {
+    throw new Error('identity_contact_verification_required');
+  }
+  return { reservationId, evidence, channel: body.channel };
+}
+
+async function confirmIdentityFromCorrespondence(request, env) {
+  const body = await request.json().catch(() => null);
+  let evidence;
+  try { evidence = validateManualContactEvidence(body); }
+  catch(error) { return json({ok:false,error:error.message},422); }
+
+  const reservation = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT id, edition_id, shopify_customer_id FROM reservations WHERE id = ? AND status NOT IN (\'cancelled\',\'expired\')'
+  ).bind(evidence.reservationId).first();
+  if (!reservation || !reservation.shopify_customer_id) {
+    return json({ok:false,error:'reservation_not_found'},404);
+  }
+  const confirmation = await configureIdentity(
+    new Request('https://internal.pham.invalid/identity/configure', {
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({
+        preferredNumber:body.preferredNumber,
+        alias:body.alias,
+        inscription:body.inscription,
+        productionNotes:body.productionNotes,
+        publicIdentity:body.publicIdentity,
+        acknowledgeReview:true,
+      }),
+    }),
+    env, reservation.shopify_customer_id, reservation.edition_id
+  );
+  if (!confirmation.ok) return confirmation;
+
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE identity_claims
+       SET contact_channel = ?, contact_reference = ?,
+           contact_verified_at = CURRENT_TIMESTAMP
+     WHERE reservation_id = ?`
+  ).bind(evidence.channel, evidence.evidence, evidence.reservationId).run();
+  await enqueueCustomerNotice(env,reservation.id,reservation.edition_id,'identity_confirmed');
+  const payload = await confirmation.json();
+  return json({
+    ok:true,
+    identity:payload.identity,
+    reservationId:evidence.reservationId,
+    contactChannel:evidence.channel,
+    operatorConfirmed:true,
+  },200,{'Cache-Control':'no-store'});
 }
 
 async function joinStandbyProxy(request, env, customerId, editionId) {
@@ -521,7 +683,7 @@ async function setCampaignState(request, env) {
 
   const allowed = {
     prelaunch: ['reservation_open'],
-    reservation_open: ['prelaunch'],
+    reservation_open: ['prelaunch','reservation_closed'],
     sold_out: ['archived']
   };
 
@@ -537,6 +699,14 @@ async function setCampaignState(request, env) {
   }
 
   if (nextState === 'reservation_open') {
+    if (edition.reservation_opened_at) {
+      return json({ok:false,error:'reservation_window_cannot_be_reopened'},409);
+    }
+    const pending = await scalar(env,
+      "SELECT COUNT(*) AS count FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')",
+      editionId
+    );
+    if (pending !== 0) return json({ok:false,error:'existing_paid_orders_require_reconciliation'},409);
     const readiness = await collectReadiness(env, editionId);
     if (!readiness.ok) {
       return json({
@@ -545,6 +715,13 @@ async function setCampaignState(request, env) {
         readiness
       }, 409);
     }
+  }
+  if (nextState === 'prelaunch') {
+    const pending = await scalar(env,
+      "SELECT COUNT(*) AS count FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')",
+      editionId
+    );
+    if (pending > 0) return json({ok:false,error:'paid_reservations_cannot_reset_to_prelaunch'},409);
   }
 
   if (nextState === 'archived') {
@@ -574,7 +751,7 @@ async function setCampaignState(request, env) {
       editionId
     );
 
-    const editionSize = Number(edition.edition_size);
+    const editionSize = Number(edition.release_quantity || edition.edition_size);
     if (
       finalPaidCount !== editionSize ||
       deliveredCount !== editionSize ||
@@ -619,9 +796,33 @@ async function setCampaignState(request, env) {
     ]);
   }
 
-  await env.PHAM_CAMPAIGN_DB.prepare(
-    'UPDATE editions SET state = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-  ).bind(nextState, editionId).run();
+  // State and paid-intake gate transition together. Never open on a legacy
+  // reservation_open state left over from an incomplete storefront launch.
+  const window = nextState === 'reservation_open'
+    ? planReservationOpening(new Date(), edition.reservation_window_days || 14)
+    : null;
+  const stateResult = await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE editions
+       SET state = ?, commerce_acceptance_enabled = ?,
+           reservation_opened_at = COALESCE(reservation_opened_at, ?),
+           reservation_closes_at = COALESCE(reservation_closes_at, ?),
+           reservation_closed_at = CASE WHEN ?='reservation_closed' THEN CURRENT_TIMESTAMP ELSE reservation_closed_at END,
+           reservation_close_reason = CASE WHEN ?='reservation_closed' THEN 'operator_closed' ELSE reservation_close_reason END,
+           updated_at = CURRENT_TIMESTAMP
+     WHERE id = ? AND state = ?`
+  ).bind(
+    nextState,
+    nextState === 'reservation_open' ? 1 : 0,
+    window ? window.openedAt : null,
+    window ? window.closesAt : null,
+    nextState,
+    nextState,
+    editionId,
+    edition.state
+  ).run();
+  if (!stateResult || !stateResult.meta || Number(stateResult.meta.changes) !== 1) {
+    return json({ok:false,error:'campaign_state_changed_concurrently'},409);
+  }
 
   return json({
     ok: true,
@@ -736,6 +937,16 @@ async function persistObjectLifecycle(env, reservation, nextStage, details = {})
   });
 
   await syncLifecycleMetafields(env, reservation, nextStage, trackingNumber);
+  const eventForStage={
+    in_production:'production_started',
+    quality_control:'quality_control',
+    packed:'packed',
+    dispatched:'dispatched',
+    delivered:'delivered'
+  }[nextStage];
+  if(eventForStage){
+    await enqueueCustomerNotice(env,reservation.id,reservation.edition_id,eventForStage);
+  }
 
   return {
     previousStage: transition.currentStage,
@@ -811,6 +1022,12 @@ async function setLookbookStatus(request, env) {
   const reservationId = String(body.reservationId || '').trim();
   const status = String(body.status || '').trim().toLowerCase();
   const allowed = ['pending', 'entitled', 'delivered', 'failed'];
+  const deliveryReference=String(body.deliveryReference||'').trim();
+  if(status==='delivered' && (body.deliveryVerified!==true ||
+    deliveryReference.length<12 || deliveryReference.length>160 ||
+    /[<>\u0000-\u001f]/u.test(deliveryReference))) {
+    return json({ok:false,error:'verified_lookbook_delivery_reference_required'},422);
+  }
 
   if (!reservationId) {
     return json({ ok: false, error: 'reservation_id_required' }, 422);
@@ -831,9 +1048,15 @@ async function setLookbookStatus(request, env) {
 
   await env.PHAM_CAMPAIGN_DB.prepare(
     `UPDATE reservations
-     SET digital_lookbook_status = ?, updated_at = CURRENT_TIMESTAMP
+     SET digital_lookbook_status = ?,
+         lookbook_delivery_reference = CASE WHEN ?='delivered' THEN ? ELSE lookbook_delivery_reference END,
+         lookbook_delivery_confirmed_at = CASE WHEN ?='delivered' THEN CURRENT_TIMESTAMP ELSE lookbook_delivery_confirmed_at END,
+         updated_at = CURRENT_TIMESTAMP
      WHERE id = ?`
-  ).bind(status, reservationId).run();
+  ).bind(status,status,status==='delivered'?deliveryReference:null,status,reservationId).run();
+  if(status==='delivered'){
+    await enqueueCustomerNotice(env,reservationId,reservation.edition_id,'lookbook_delivered');
+  }
 
   const fields = [
     metafield(
@@ -862,6 +1085,64 @@ async function setLookbookStatus(request, env) {
     reservationId,
     status
   });
+}
+
+async function getPrivateOperationsLedger(env, editionId) {
+  const edition = await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT id, state, edition_size FROM editions WHERE id = ?'
+  ).bind(editionId).first();
+  if (!edition) return json({ok:false,error:'edition_not_found'},404);
+
+  // Private, minimal production projection: deliberately omit email, customer ID,
+  // delivery address, financial account data, and unpublished QR tokens.
+  const rows = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT r.id, r.object_number, r.size_preference, r.status,
+            r.final_payment_status, r.lifecycle_stage, r.tracking_number,
+            r.tracking_url, r.digital_lookbook_status, r.payment_deadline,
+            c.status AS identity_status, c.preferred_number,
+            c.engraving_name, c.engraving_text, c.production_notes,
+            c.contact_verified_at
+       FROM reservations r
+       LEFT JOIN identity_claims c ON c.reservation_id = r.id
+      WHERE r.edition_id = ? AND r.status NOT IN ('cancelled', 'expired')
+      ORDER BY r.created_at ASC
+      LIMIT 501`
+  ).bind(editionId).all();
+
+  try {
+    return json({
+      ok:true,
+      privateOperatorData:true,
+      ...compileEditionOperations(edition, rows.results || []),
+    },200,{'Cache-Control':'no-store'});
+  } catch(error) {
+    return json({
+      ok:false,
+      error:'operations_integrity_alert',
+      reason:error.message,
+    },503,{'Cache-Control':'no-store'});
+  }
+}
+
+async function getProductionPersonalizations(env, url) {
+  const editionId = url.searchParams.get('edition') || 'edition-01';
+  const rows = await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT r.id AS reservation_id, r.size_preference, r.status AS reservation_status,
+            r.object_number, c.preferred_number, c.engraving_name,
+            c.engraving_text, c.production_notes, c.configured_at
+       FROM identity_claims c
+       JOIN reservations r ON r.id = c.reservation_id
+      WHERE c.edition_id = ? AND c.status = 'configured'
+      ORDER BY c.configured_at DESC
+      LIMIT 50`
+  ).bind(editionId).all();
+  return json({
+    ok: true,
+    editionId,
+    privateOperatorData: true,
+    count: (rows.results || []).length,
+    items: rows.results || []
+  }, 200, { 'Cache-Control': 'no-store' });
 }
 
 async function getWebhookReviews(env, url) {
@@ -1043,6 +1324,76 @@ async function mapReservationVariants(request, env) {
   });
 }
 
+export function validateCollectorAccountLink(reservation,customer,expectedCustomerId){
+  if(!reservation||!customer || reservation.status==='expired' ||
+     reservation.status==='cancelled')throw new Error('reservation_not_linkable');
+  if(reservation.shopify_customer_id){
+    if(reservation.shopify_customer_id===expectedCustomerId)
+      return {alreadyLinked:true};
+    throw new Error('reservation_customer_already_linked');
+  }
+  const actualId=String(customer.id||'');
+  const actualEmail=String(customer.defaultEmailAddress?.emailAddress||'').trim().toLowerCase();
+  const orderEmail=String(reservation.email||'').trim().toLowerCase();
+  if(actualId!==expectedCustomerId || customer.verifiedEmail!==true ||
+     !actualEmail || !orderEmail || actualEmail!==orderEmail)
+    throw new Error('verified_shopify_customer_email_mismatch');
+  return {alreadyLinked:false};
+}
+async function linkVerifiedCustomerToReservation(request,env){
+  const body=await request.json().catch(()=>null);
+  if(!body||body.confirm!=='LINK_VERIFIED_COLLECTOR_ACCOUNT'){
+    return json({ok:false,error:'explicit_confirmation_required'},422);
+  }
+  const reservationId=String(body.reservationId||'').trim();
+  const customerId=String(body.customerId||'').trim();
+  const supportCase=String(body.supportCaseReference||'').trim();
+  if(!reservationId || !/^gid:\/\/shopify\/Customer\/\d+$/.test(customerId) ||
+      supportCase.length<12 || supportCase.length>160 ||
+      /[<>\u0000-\u001f]/u.test(supportCase)){
+    return json({ok:false,error:'verified_support_case_required'},422);
+  }
+  const reservation=await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM reservations WHERE id=?'
+  ).bind(reservationId).first();
+  if(!reservation)return json({ok:false,error:'reservation_not_found'},404);
+  const result=await shopifyGraphQL(env,
+    `query PhamVerifyCollectorForGuestReservation($id:ID!){
+      customer(id:$id){id verifiedEmail defaultEmailAddress{emailAddress}}
+    }`,{id:customerId});
+  const customer=result?.data?.customer;
+  let validation;
+  try{validation=validateCollectorAccountLink(reservation,customer,customerId);}
+  catch(error){return json({ok:false,error:error.message},409);}
+  if(validation.alreadyLinked){
+    return json({ok:true,reservationId,alreadyLinked:true},200,{'Cache-Control':'no-store'});
+  }
+  let update;
+  try{
+    update=await env.PHAM_CAMPAIGN_DB.prepare(
+      `UPDATE reservations SET shopify_customer_id=?,updated_at=CURRENT_TIMESTAMP
+       WHERE id=? AND shopify_customer_id IS NULL AND status NOT IN ('cancelled','expired')`
+    ).bind(customerId,reservationId).run();
+  }catch(error){
+    if(isUniqueConstraintError(error))return json({ok:false,error:'customer_already_has_edition_reservation'},409);
+    throw error;
+  }
+  if(!update?.meta?.changes)return json({ok:false,error:'customer_link_concurrent_change'},409);
+  await setMetafields(env,[
+    metafield(customerId,'reservation_id','single_line_text_field',reservation.id),
+    metafield(customerId,'current_reservation_status','single_line_text_field',reservation.status),
+    metafield(customerId,'size_preference','single_line_text_field',reservation.size_preference||''),
+    metafield(customerId,'digital_lookbook_status','single_line_text_field',reservation.digital_lookbook_status||'pending')
+  ]);
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    "INSERT OR IGNORE INTO webhook_events(id,topic,status,detail) VALUES(?,?,?,?)"
+  ).bind('pham-collector-link:'+reservationId,
+    'internal/collector-link','processed',
+    JSON.stringify({reservationId,customerId,supportCase})).run();
+  return json({ok:true,reservationId,customerLinked:true,
+    supportCaseRecorded:true},200,{'Cache-Control':'no-store'});
+}
+
 async function assignReservationVariant(request, env) {
   const body = await request.json();
   const reservationId = String(body.reservationId || '').trim();
@@ -1190,12 +1541,57 @@ async function getReadiness(env, editionId) {
   check('env.SHOPIFY_CLIENT_SECRET', Boolean(env.SHOPIFY_CLIENT_SECRET), env.SHOPIFY_CLIENT_SECRET ? 'configured (Admin API auth + App Proxy + webhook HMAC)' : 'missing');
   check('env.INTERNAL_ADMIN_KEY', Boolean(env.INTERNAL_ADMIN_KEY), env.INTERNAL_ADMIN_KEY ? 'configured' : 'missing');
   check('env.STOREFRONT_ORIGIN', Boolean(env.STOREFRONT_ORIGIN), env.STOREFRONT_ORIGIN || null);
+  check('notifications.delivery_configured', notificationTransportConfigured(env),
+    notificationTransportConfigured(env) ? 'transactional email transport ready' :
+      'requires PHAM_NOTIFICATIONS_ENABLED=true, verified PHAM_NOTIFICATION_FROM and PHAM_RESEND_API_KEY');
 
   const edition = await env.PHAM_CAMPAIGN_DB.prepare(
     'SELECT * FROM editions WHERE id = ?'
   ).bind(editionId).first();
 
   check('d1.edition', Boolean(edition), edition ? edition.id : 'missing');
+  check('d1.reservation_window_migration',
+    Boolean(edition && edition.reservation_window_days !== undefined
+      && edition.reservation_opened_at !== undefined && edition.release_quantity !== undefined),
+    'migration 0007 required');
+  if (edition) {
+    check('d1.reservation_window_max_14_days',
+      Number.isInteger(Number(edition.reservation_window_days)) &&
+      Number(edition.reservation_window_days) >= 1 &&
+      Number(edition.reservation_window_days) <= 14,
+      {windowDays:edition.reservation_window_days});
+  }
+  check('d1.paid_intake_gate_migration',
+    Boolean(edition && edition.commerce_acceptance_enabled !== undefined),
+    edition && edition.commerce_acceptance_enabled !== undefined
+      ? 'present / '+(edition.commerce_acceptance_enabled ? 'accepting' : 'closed')
+      : 'migration 0006 required');
+  if (edition) {
+    check('d1.paid_intake_gate_matches_state',
+      edition.state === 'reservation_open'
+        ? canAcceptPaidReservation(edition)
+        : Number(edition.commerce_acceptance_enabled) === 0,
+      {editionState:edition.state, paidIntakeEnabled:Number(edition.commerce_acceptance_enabled||0)===1});
+  }
+
+  try {
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      'SELECT lookbook_delivery_reference, lookbook_delivery_confirmed_at FROM reservations LIMIT 0'
+    ).all();
+    await env.PHAM_CAMPAIGN_DB.prepare('SELECT id,status FROM customer_notification_jobs LIMIT 0').all();
+    check('d1.lookbook_and_notification_migration', true, '0008 applied');
+  } catch (_error) {
+    check('d1.lookbook_and_notification_migration', false, 'migration 0008 required');
+  }
+  // Fail closed if the deployed Worker has not received the card-personalisation migrations.
+  try {
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      'SELECT production_notes, contact_channel, contact_reference, contact_verified_at FROM identity_claims LIMIT 0'
+    ).all();
+    check('d1.manual_identity_migrations', true, '0004 and 0005 applied');
+  } catch (_error) {
+    check('d1.manual_identity_migrations', false, 'migrations 0004 and 0005 required');
+  }
 
   if (edition) {
     check('d1.edition_size', Number(edition.edition_size) > 0, String(edition.edition_size));
@@ -1471,13 +1867,16 @@ async function getCampaign(env, editionId) {
     editionId
   );
 
+  const presentedState = isReservationWindowExpired(edition)
+    ? 'reservation_closed' : edition.state;
   return json({
     edition: {
       id: edition.id,
       label: edition.label,
       productCode: edition.product_code,
       editionSize: edition.edition_size,
-      state: edition.state,
+      state: presentedState,
+      requiresMerchantDecision: presentedState === 'reservation_closed' && !edition.partial_run_approved_at,
       reservationPriceCents: edition.reservation_price_cents,
       finalPriceCents: edition.final_price_cents,
       balanceDueCents: edition.final_price_cents - edition.reservation_price_cents,
@@ -1487,7 +1886,14 @@ async function getCampaign(env, editionId) {
       standbyWindowHours: edition.standby_window_hours,
       designOrigin: edition.design_origin,
       founderTokensAllocated: Boolean(edition.founder_tokens_allocated_at),
-      archivePermanent: edition.state === 'archived'
+      archivePermanent: edition.state === 'archived',
+      reservationOpenedAt: edition.reservation_opened_at || null,
+      reservationClosesAt: edition.reservation_closes_at || null,
+      reservationClosedAt: edition.reservation_closed_at || null,
+      reservationWindowDays: Number(edition.reservation_window_days || 14),
+      plannedRunQuantity: Number(edition.release_quantity || edition.edition_size),
+      partialRunApproved: Boolean(edition.partial_run_approved_at),
+      paidReservationIntakeEnabled: canAcceptPaidReservation(edition)
     },
     counters: {
       reserved,
@@ -1818,6 +2224,23 @@ async function handleOrdersPaid(request, env) {
   ).bind('edition-01').first();
   if (!edition) throw new Error('Edition configuration missing');
 
+  // The Shopify product can be reachable through a direct checkout URL even if
+  // the theme button is hidden. Never allocate a paid reservation until the
+  // *independent* D1 gate was explicitly opened by the validated launch transition.
+  if (!canAcceptPaidReservation(edition)) {
+    const review = {
+      ok: false,
+      review: true,
+      reason: 'paid_reservation_outside_launch',
+      editionState: edition.state,
+      shopifyOrderId: order && order.id ? toGid('Order', order.id) : null
+    };
+    if (webhookId) {
+      await recordWebhook(env, webhookId, topic, 'review_required', JSON.stringify(review));
+    }
+    return json(review);
+  }
+
   let reservationValidation;
   try {
     reservationValidation = validatePriorityReservationOrder({ order, edition });
@@ -1891,7 +2314,7 @@ async function handleOrdersPaid(request, env) {
 
   if (activeReservations >= edition.edition_size) {
     await env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE editions SET state = 'reservation_full', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+      "UPDATE editions SET state = 'reservation_full', commerce_acceptance_enabled=0, release_quantity=edition_size, reservation_closed_at=CURRENT_TIMESTAMP, reservation_close_reason='capacity_reached', updated_at=CURRENT_TIMESTAMP WHERE id = ?"
     ).bind(edition.id).run();
     throw new Error('Reservation capacity exceeded; manual review required');
   }
@@ -1971,7 +2394,7 @@ async function handleOrdersPaid(request, env) {
 
   if (!(reservationInsert && reservationInsert.meta && reservationInsert.meta.changes)) {
     await env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE editions SET state = 'reservation_full', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+      "UPDATE editions SET state = 'reservation_full', commerce_acceptance_enabled=0, release_quantity=edition_size, reservation_closed_at=CURRENT_TIMESTAMP, reservation_close_reason='capacity_reached', updated_at=CURRENT_TIMESTAMP WHERE id = ?"
     ).bind(edition.id).run();
 
     const capacityReview = {
@@ -2043,10 +2466,11 @@ async function handleOrdersPaid(request, env) {
   );
   if (afterCount >= Number(edition.edition_size)) {
     await env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE editions SET state = 'reservation_full', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+      "UPDATE editions SET state = 'reservation_full', commerce_acceptance_enabled=0, release_quantity=edition_size, reservation_closed_at=CURRENT_TIMESTAMP, reservation_close_reason='capacity_reached', updated_at=CURRENT_TIMESTAMP WHERE id = ?"
     ).bind(edition.id).run();
   }
 
+  await enqueueCustomerNotice(env,reservationId,edition.id,'reservation_confirmed');
   if (webhookId) await recordWebhook(env, webhookId, topic);
 
   return json({
@@ -2137,6 +2561,7 @@ async function handleFinalAcquisitionPaid(env, order) {
     stage: 'production_queued',
     note: 'Final acquisition payment confirmed.'
   });
+  await enqueueCustomerNotice(env,reservationId,reservation.edition_id,'final_payment_paid');
 
   const fields = [
     metafield(reservation.shopify_order_id, 'final_payment_status', 'single_line_text_field', 'paid'),
@@ -2352,11 +2777,13 @@ async function finalizeObjectNumbers(request, env) {
     editionId
   );
 
-  if (finalPaidCount !== Number(edition.edition_size)) {
+  const runQuantity = Number(edition.release_quantity || edition.edition_size);
+  if (edition.state !== 'final_payment' || finalPaidCount !== runQuantity) {
     return json({
       ok: false,
       error: 'edition_not_fully_acquired',
       finalPaidCount,
+      requiredRunQuantity: runQuantity,
       editionSize: Number(edition.edition_size)
     }, 409);
   }
@@ -2407,11 +2834,13 @@ async function finalizeObjectNumbers(request, env) {
      ORDER BY created_at ASC, id ASC`
   ).bind(editionId).all();
 
-  if ((unnumbered.results || []).length !== available.length) {
+  const remainingNeeded = runQuantity - used.size;
+  if ((unnumbered.results || []).length !== remainingNeeded || available.length < remainingNeeded) {
     return json({
       ok: false,
       error: 'object_number_allocation_mismatch',
       available: available.length,
+      remainingNeeded,
       unnumbered: (unnumbered.results || []).length
     }, 409);
   }
@@ -2531,12 +2960,12 @@ async function allocateFounderTokens(request, env) {
   ).bind(editionId).all();
   const objects = objectRows.results || [];
 
-  if (objects.length !== Number(edition.edition_size)) {
+  if (objects.length !== Number(edition.release_quantity || edition.edition_size)) {
     return json({
       ok: false,
       error: 'object_set_incomplete',
       objectCount: objects.length,
-      editionSize: Number(edition.edition_size)
+      requiredRunQuantity: Number(edition.release_quantity || edition.edition_size)
     }, 409);
   }
   if (objects.some(function(object) { return Boolean(object.token_type); })) {
@@ -2608,7 +3037,7 @@ async function allocateFounderTokens(request, env) {
     editionId
   );
 
-  if (goldCount !== 1 || silverCount !== Number(edition.edition_size) - 1) {
+  if (goldCount !== 1 || silverCount !== Number(edition.release_quantity || edition.edition_size) - 1) {
     return json({
       ok: false,
       error: 'token_allocation_integrity_failure',
@@ -2840,7 +3269,9 @@ async function syncReservationMetafields(env, data) {
 }
 
 async function openFinalPayment(request, env) {
-  const body = await request.json();
+  const body = await request.json().catch(()=>null);
+  if(!body||body.confirm!=='OPEN_FINAL_ACQUISITION')
+    return json({ok:false,error:'explicit_confirmation_required'},422);
   const editionId = body.editionId || 'edition-01';
   const edition = await env.PHAM_CAMPAIGN_DB.prepare(
     'SELECT * FROM editions WHERE id = ?'
@@ -2848,7 +3279,11 @@ async function openFinalPayment(request, env) {
 
   if (!edition) return json({ error: 'Edition not found' }, 404);
 
-  if (!['reservation_full', 'final_payment'].includes(edition.state)) {
+  const approvedPartialRun = edition.state === 'reservation_closed' &&
+    Number(edition.release_quantity) >= 1 &&
+    Number(edition.release_quantity) < Number(edition.edition_size) &&
+    Boolean(edition.partial_run_approved_at && edition.partial_run_reference);
+  if (!['reservation_full', 'final_payment'].includes(edition.state) && !approvedPartialRun) {
     return json({
       ok: false,
       error: 'edition_not_ready_for_final_payment',
@@ -2865,12 +3300,14 @@ async function openFinalPayment(request, env) {
     editionId
   );
 
-  if (allocatedReservationCount !== Number(edition.edition_size)) {
+  const releaseQuantity = Number(edition.release_quantity || edition.edition_size);
+  if (allocatedReservationCount !== releaseQuantity) {
     return json({
       ok: false,
       error: 'reservation_allocation_incomplete',
       allocatedReservationCount,
-      editionSize: Number(edition.edition_size)
+      requiredRunQuantity: releaseQuantity,
+      editionMaximum: Number(edition.edition_size)
     }, 409);
   }
 
@@ -2998,7 +3435,7 @@ async function openFinalPayment(request, env) {
 
   if (failed === 0) {
     await env.PHAM_CAMPAIGN_DB.prepare(
-      "UPDATE editions SET state = 'final_payment', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+      "UPDATE editions SET state = 'final_payment', commerce_acceptance_enabled=0, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
     ).bind(editionId).run();
   }
 
@@ -3142,6 +3579,179 @@ function centsToMoney(cents) {
   return (Number(cents || 0) / 100).toFixed(2);
 }
 
+/** Close intake after <=14 days even when the merchant has not filled 50 slots.
+ * No new payments or final invoices are initiated; merchant decisions are separate.
+ */
+async function getNotificationQueue(env) {
+  const rows=await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT id,reservation_id,event_type,status,attempt_count,provider_id,
+            last_error,created_at,sent_at FROM customer_notification_jobs
+      ORDER BY created_at DESC LIMIT 100`
+  ).all();
+  return json({ok:true,privateOperatorData:true,
+    deliveryConfigured:notificationTransportConfigured(env),
+    jobs:rows.results||[]},200,{'Cache-Control':'no-store'});
+}
+
+async function closeExpiredReservationWindows(env, now=new Date()) {
+  const nowIso=new Date(now).toISOString();
+  const rows=await env.PHAM_CAMPAIGN_DB.prepare(
+    "SELECT id, edition_size, reservation_closes_at FROM editions WHERE state='reservation_open' AND reservation_closes_at IS NOT NULL AND reservation_closes_at <= ?"
+  ).bind(nowIso).all();
+  for(const edition of rows.results||[]){
+    const reserved=await scalar(env,
+      "SELECT COUNT(*) AS count FROM reservations WHERE edition_id = ? AND status NOT IN ('cancelled','expired')",
+      edition.id);
+    const fullyAllocated=reserved>=Number(edition.edition_size);
+    const nextState=fullyAllocated?'reservation_full':'reservation_closed';
+    const update=await env.PHAM_CAMPAIGN_DB.prepare(
+      `UPDATE editions
+       SET state=?, commerce_acceptance_enabled=0,
+           reservation_closed_at=?, reservation_close_reason=?,
+           updated_at=CURRENT_TIMESTAMP
+       WHERE id=? AND state='reservation_open' AND reservation_closes_at <= ?`
+    ).bind(nextState,nowIso,fullyAllocated?'capacity_reached':'window_expired',edition.id,nowIso).run();
+    if(update?.meta?.changes){
+      const detail=JSON.stringify({editionId:edition.id,reserved,
+        maxEditionSize:edition.edition_size,
+        action:fullyAllocated?'prepare_final_payment':'merchant_decision_required',
+        choices:fullyAllocated?[]:['proceed_partial','refund_review']});
+      await env.PHAM_CAMPAIGN_DB.prepare(
+        "INSERT OR IGNORE INTO webhook_events(id,topic,status,detail) VALUES(?,?,?,?)"
+      ).bind('pham-window-'+edition.id+'-'+edition.reservation_closes_at,
+        'internal/reservation-window',
+        fullyAllocated?'processed':'review_required',detail).run();
+      if(!fullyAllocated){
+        const customerRows=await env.PHAM_CAMPAIGN_DB.prepare(
+          "SELECT id FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')"
+        ).bind(edition.id).all();
+        for(const row of customerRows.results||[]){
+          await enqueueCustomerNotice(env,row.id,edition.id,'window_closed_review');
+        }
+      }
+    }
+  }
+}
+async function resolveUnderfilledReservationWindow(request,env){
+  const body=await request.json().catch(()=>null);
+  if(!body||body.confirm!=='RESOLVE_UNDERFILLED_EDITION')
+    return json({ok:false,error:'explicit_confirmation_required'},422);
+  const editionId=String(body.editionId||'edition-01');
+  const edition=await env.PHAM_CAMPAIGN_DB.prepare(
+    'SELECT * FROM editions WHERE id=?'
+  ).bind(editionId).first();
+  if(!edition)return json({ok:false,error:'edition_not_found'},404);
+  const count=await scalar(env,
+    "SELECT COUNT(*) AS count FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')",
+    editionId);
+  let decision;
+  try {
+    decision=validateUnderfilledDecision({
+      edition,activeCount:count,decision:body.decision,
+      reference:body.approvalReference,
+      productionApproved:body.productionApproved,
+      legalApproved:body.legalApproved,
+      customerNoticeApproved:body.customerNoticeApproved
+    });
+  }catch(error){return json({ok:false,error:error.message},409);}
+  if(decision.decision==='proceed_partial'){
+    const updated=await env.PHAM_CAMPAIGN_DB.prepare(
+      `UPDATE editions SET release_quantity=?,
+           partial_run_approved_at=CURRENT_TIMESTAMP,
+           partial_run_reference=?,reservation_close_reason='partial_run_approved',
+           updated_at=CURRENT_TIMESTAMP
+       WHERE id=? AND state='reservation_closed'
+         AND partial_run_approved_at IS NULL`
+    ).bind(decision.runQuantity,decision.reference,editionId).run();
+    if(!updated?.meta?.changes)return json({ok:false,error:'underfill_decision_already_recorded'},409);
+    return json({ok:true,editionId,decision:'proceed_partial',
+      plannedRunQuantity:decision.runQuantity,merchantNoticeRequired:true,
+      nextAction:'map_size_variants_then_open_final_payment_manually'},200,{'Cache-Control':'no-store'});
+  }
+
+  // Do not refund a financial transaction from this endpoint. Only create
+  // a traceable, authenticated queue for the merchant to refund in Shopify.
+  if(count===0){
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      "UPDATE editions SET state='edition_cancelled',commerce_acceptance_enabled=0,reservation_close_reason='no_reservations',updated_at=CURRENT_TIMESTAMP WHERE id=? AND state='reservation_closed'"
+    ).bind(editionId).run();
+    return json({ok:true,editionId,decision:'refund_review',pendingReviewCount:0,automaticRefundsIssued:false,state:'edition_cancelled'},200,{'Cache-Control':'no-store'});
+  }
+  const resolution = await env.PHAM_CAMPAIGN_DB.batch([
+    env.PHAM_CAMPAIGN_DB.prepare(
+      `INSERT OR IGNORE INTO refund_review_cases
+       (id,edition_id,reservation_id,shopify_order_id,reason)
+       SELECT 'refund-'+id,edition_id,id,shopify_order_id,'underfilled_edition'
+       FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')`
+    ).bind(editionId),
+    env.PHAM_CAMPAIGN_DB.prepare(
+      `UPDATE editions SET state='refund_review',
+        commerce_acceptance_enabled=0,reservation_close_reason='refund_review',
+        updated_at=CURRENT_TIMESTAMP
+        WHERE id=? AND state='reservation_closed' AND partial_run_approved_at IS NULL`
+    ).bind(editionId)
+  ]);
+  if(!resolution?.[1]?.meta?.changes){
+    return json({ok:false,error:'underfill_decision_changed_concurrently'},409);
+  }
+  const notices=await env.PHAM_CAMPAIGN_DB.prepare(
+    "SELECT id FROM reservations WHERE edition_id=? AND status NOT IN ('cancelled','expired')"
+  ).bind(editionId).all();
+  for(const row of notices.results||[]){
+    await enqueueCustomerNotice(env,row.id,editionId,'refund_review');
+  }
+  return json({ok:true,editionId,decision:'refund_review',
+    pendingReviewCount:count,automaticRefundsIssued:false,
+    nextAction:'review_order_and_complete_shopify_refunds_individually'},200,{'Cache-Control':'no-store'});
+}
+async function getRefundReviewCases(env,editionId){
+  const rows=await env.PHAM_CAMPAIGN_DB.prepare(
+    `SELECT reservation_id,shopify_order_id,status,reason,created_at,
+            settled_at,settlement_reference
+       FROM refund_review_cases WHERE edition_id=?
+      ORDER BY created_at ASC LIMIT 100`
+  ).bind(editionId).all();
+  return json({ok:true,editionId,privateOperatorData:true,
+    cases:rows.results||[]},200,{'Cache-Control':'no-store'});
+}
+async function confirmRefundSettled(request,env){
+  const body=await request.json().catch(()=>null);
+  if(!body||body.confirm!=='ATTEST_SHOPIFY_REFUND_COMPLETED' ||
+    body.refundedInShopify!==true)
+    return json({ok:false,error:'shopify_refund_evidence_required'},422);
+  const reservationId=String(body.reservationId||'').trim();
+  const reference=String(body.shopifyRefundReference||'').trim();
+  if(!reservationId||reference.length<12||reference.length>160 ||
+    /[<>\u0000-\u001f]/u.test(reference))
+    return json({ok:false,error:'valid_refund_reference_required'},422);
+  const existing=await env.PHAM_CAMPAIGN_DB.prepare(
+    "SELECT * FROM refund_review_cases WHERE reservation_id=? AND status='pending_review'"
+  ).bind(reservationId).first();
+  if(!existing)return json({ok:false,error:'pending_refund_case_not_found'},404);
+  // Staff must verify this reference against an actual paid Shopify refund.
+  // The endpoint records an attestation, it never claims to have initiated a refund.
+  const result=await env.PHAM_CAMPAIGN_DB.prepare(
+    `UPDATE refund_review_cases SET status='settled',
+      settlement_reference=?,settled_at=CURRENT_TIMESTAMP
+     WHERE reservation_id=? AND status='pending_review'`
+  ).bind(reference,reservationId).run();
+  if(!result?.meta?.changes)return json({ok:false,error:'refund_case_changed'},409);
+  await env.PHAM_CAMPAIGN_DB.prepare(
+    "UPDATE reservations SET status='cancelled',final_payment_status='refunded',updated_at=CURRENT_TIMESTAMP WHERE id=?"
+  ).bind(reservationId).run();
+  await enqueueCustomerNotice(env,reservationId,existing.edition_id,'refund_completed');
+  const pending=await scalar(env,
+    "SELECT COUNT(*) AS count FROM refund_review_cases WHERE edition_id=? AND status='pending_review'",
+    existing.edition_id);
+  if(!pending){
+    await env.PHAM_CAMPAIGN_DB.prepare(
+      "UPDATE editions SET state='edition_cancelled',updated_at=CURRENT_TIMESTAMP WHERE id=? AND state='refund_review'"
+    ).bind(existing.edition_id).run();
+  }
+  return json({ok:true,reservationId,refundRecorded:true,refundInitiatedBySystem:false,
+    outstandingRefundCases:pending},200,{'Cache-Control':'no-store'});
+}
+
 async function expireReservationsAndPromote(env) {
   const nowIso = new Date().toISOString();
 
@@ -3251,6 +3861,9 @@ async function promoteNextStandby(env, editionId) {
     'SELECT * FROM editions WHERE id = ?'
   ).bind(editionId).first();
   if (!edition) return { ok: false, promoted: false, reason: 'edition_not_found' };
+  if (!['reservation_full','final_payment'].includes(edition.state)) {
+    return {ok:false,promoted:false,reason:'standby_promotion_not_authorized_for_state'};
+  }
 
   const next = await env.PHAM_CAMPAIGN_DB.prepare(
     "SELECT * FROM standby WHERE edition_id = ? AND status = 'waiting' ORDER BY position ASC LIMIT 1"

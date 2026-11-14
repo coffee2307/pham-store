@@ -13,3 +13,9 @@ INTERNAL_ADMIN_KEY=replace_me
 
 # Deployment helper only
 CAMPAIGN_BACKEND_URL=https://replace-me.workers.dev
+
+# Transactional notices are OFF by default. Configure only after a verified
+# sender domain, privacy/consent review and an actual deliverability test.
+PHAM_NOTIFICATIONS_ENABLED=false
+# PHAM_RESEND_API_KEY=re_replace_me
+# PHAM_NOTIFICATION_FROM=PHAM <updates@phamofficial.com>

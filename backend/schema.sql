@@ -6,6 +6,15 @@ CREATE TABLE IF NOT EXISTS editions (
   product_code TEXT NOT NULL,
   edition_size INTEGER NOT NULL,
   state TEXT NOT NULL DEFAULT 'prelaunch',
+  commerce_acceptance_enabled INTEGER NOT NULL DEFAULT 0,
+  reservation_window_days INTEGER NOT NULL DEFAULT 14,
+  reservation_opened_at TEXT,
+  reservation_closes_at TEXT,
+  reservation_closed_at TEXT,
+  reservation_close_reason TEXT,
+  release_quantity INTEGER NOT NULL DEFAULT 50,
+  partial_run_approved_at TEXT,
+  partial_run_reference TEXT,
   reservation_price_cents INTEGER NOT NULL,
   final_price_cents INTEGER NOT NULL,
   identity_limit INTEGER NOT NULL,
@@ -43,6 +52,8 @@ CREATE TABLE IF NOT EXISTS reservations (
   payment_deadline TEXT,
   final_payment_status TEXT NOT NULL DEFAULT 'pending',
   digital_lookbook_status TEXT NOT NULL DEFAULT 'pending',
+  lookbook_delivery_reference TEXT,
+  lookbook_delivery_confirmed_at TEXT,
   final_draft_order_id TEXT,
   final_invoice_url TEXT,
   final_shopify_order_id TEXT UNIQUE,
@@ -66,6 +77,10 @@ CREATE TABLE IF NOT EXISTS identity_claims (
   preferred_number INTEGER,
   engraving_name TEXT,
   engraving_text TEXT,
+  production_notes TEXT,
+  contact_channel TEXT,
+  contact_reference TEXT,
+  contact_verified_at TEXT,
   public_identity INTEGER NOT NULL DEFAULT 0,
   configured_at TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -143,6 +158,39 @@ CREATE TABLE IF NOT EXISTS webhook_events (
   detail TEXT,
   processed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS refund_review_cases (
+  id TEXT PRIMARY KEY,
+  edition_id TEXT NOT NULL,
+  reservation_id TEXT NOT NULL UNIQUE,
+  shopify_order_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending_review',
+  reason TEXT NOT NULL,
+  settlement_reference TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  settled_at TEXT,
+  FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+);
+
+CREATE TABLE IF NOT EXISTS customer_notification_jobs (
+  id TEXT PRIMARY KEY,
+  edition_id TEXT NOT NULL,
+  reservation_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'queued',
+  attempt_count INTEGER NOT NULL DEFAULT 0,
+  provider_id TEXT,
+  last_error TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  sent_at TEXT,
+  FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_outbox
+  ON customer_notification_jobs(status,created_at);
+
+CREATE INDEX IF NOT EXISTS idx_refund_review_cases_edition
+  ON refund_review_cases(edition_id, status);
 
 CREATE INDEX IF NOT EXISTS idx_reservations_edition_status
   ON reservations(edition_id, status);

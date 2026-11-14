@@ -13,6 +13,10 @@ import {
   REQUIRED_RUNTIME_SCOPES,
   selectFinalVariantBySize,
   validateFinalAcquisitionOrder,
+  validateIdentityPersonalization,
+  canAcceptPaidReservation,
+  validateCollectorAccountLink,
+  validateManualContactEvidence,
   validatePriorityReservationOrder,
   validateStandbyAcquisitionOrder,
   validateLifecycleTransition,
@@ -828,4 +832,74 @@ test('keeps legacy Shopify Admin token as an explicit fallback', async () => {
   });
 
   assert.equal(token, 'legacy-token');
+});
+
+test('Object Identity validates number, print name, optional private instructions and review', () => {
+  const data = {
+    alias: 'Coffee',
+    inscription: 'CREATE / 2026',
+    productionNotes: 'Please check centred spacing.',
+    preferredNumber: 13,
+    acknowledgeReview: true,
+    publicIdentity: false,
+  };
+  assert.deepEqual(validateIdentityPersonalization(data, 50), {
+    preferredNumber: 13,
+    alias: 'Coffee',
+    inscription: 'CREATE / 2026',
+    productionNotes: 'Please check centred spacing.',
+    publicIdentity: 0
+  });
+  assert.throws(() => validateIdentityPersonalization({...data, preferredNumber: 51}, 50), /object_number_out_of_range/);
+  assert.throws(() => validateIdentityPersonalization({...data, alias: ''}, 50), /identity_alias_invalid/);
+  assert.throws(() => validateIdentityPersonalization({...data, alias: '<script>'}, 50), /identity_alias_invalid/);
+  assert.throws(() => validateIdentityPersonalization({...data, inscription: 'X'.repeat(41)}, 50), /identity_inscription_invalid/);
+  assert.throws(() => validateIdentityPersonalization({...data, productionNotes: 'X'.repeat(241)}, 50), /identity_production_notes_invalid/);
+  assert.throws(() => validateIdentityPersonalization({...data, productionNotes: '<b>sample</b>'}, 50), /identity_production_notes_invalid/);
+  assert.throws(() => validateIdentityPersonalization({...data, acknowledgeReview: false}, 50), /identity_review_required/);
+});
+
+test('Object Identity requires verifiable email or WhatsApp correspondence for operator confirmation', () => {
+  const verified = {
+    confirm: 'CONFIRM_MANUAL_IDENTITY',
+    reservationId: 'PHAM-R-TEST',
+    channel: 'email',
+    contactReference: 'support-case-2026-11-13-01'
+  };
+  assert.deepEqual(validateManualContactEvidence(verified), {
+    reservationId: 'PHAM-R-TEST',
+    evidence: 'support-case-2026-11-13-01',
+    channel: 'email'
+  });
+  assert.equal(validateManualContactEvidence({...verified, channel:'whatsapp'}).channel,'whatsapp');
+  assert.throws(() => validateManualContactEvidence({...verified, confirm:''}), /identity_contact_verification_required/);
+  assert.throws(() => validateManualContactEvidence({...verified, channel:'webform'}), /identity_contact_verification_required/);
+  assert.throws(() => validateManualContactEvidence({...verified, contactReference:''}), /identity_contact_verification_required/);
+  assert.throws(() => validateManualContactEvidence({...verified, contactReference:'<script>'}), /identity_contact_verification_required/);
+});
+
+test('paid reservation intake fails closed independently of theme and legacy campaign state',()=>{
+  assert.equal(canAcceptPaidReservation(null),false);
+  assert.equal(canAcceptPaidReservation({state:'prelaunch',commerce_acceptance_enabled:1}),false);
+  assert.equal(canAcceptPaidReservation({state:'reservation_open'}),false);
+  assert.equal(canAcceptPaidReservation({state:'reservation_open',commerce_acceptance_enabled:0}),false);
+  assert.equal(canAcceptPaidReservation({state:'reservation_open',commerce_acceptance_enabled:1}),false);
+  assert.equal(canAcceptPaidReservation({
+    state:'reservation_open',commerce_acceptance_enabled:1,
+    reservation_opened_at:'2026-11-13T00:00:00.000Z',
+    reservation_closes_at:'2026-11-27T00:00:00.000Z'
+  },new Date('2026-11-14T00:00:00Z')),true);
+  assert.equal(canAcceptPaidReservation({state:'reservation_full',commerce_acceptance_enabled:1}),false);
+  assert.equal(canAcceptPaidReservation({state:'archived',commerce_acceptance_enabled:0}),false);
+});
+
+test('guest checkout cannot be claimed by another account or by an unverified email',()=>{
+  const reservation={id:'PHAM-R-TEST',status:'active',shopify_customer_id:null,email:'collector@example.com'};
+  const legitimate={id:'gid://shopify/Customer/101',verifiedEmail:true,defaultEmailAddress:{emailAddress:'collector@example.com'}};
+  assert.deepEqual(validateCollectorAccountLink(reservation,legitimate,legitimate.id),{alreadyLinked:false});
+  assert.throws(()=>validateCollectorAccountLink(reservation,{...legitimate,verifiedEmail:false},legitimate.id),/verified_shopify_customer_email_mismatch/);
+  assert.throws(()=>validateCollectorAccountLink(reservation,{...legitimate,defaultEmailAddress:{emailAddress:'someone-else@example.com'}},legitimate.id),/verified_shopify_customer_email_mismatch/);
+  assert.throws(()=>validateCollectorAccountLink({...reservation,status:'expired'},legitimate,legitimate.id),/reservation_not_linkable/);
+  assert.throws(()=>validateCollectorAccountLink({...reservation,shopify_customer_id:'gid://shopify/Customer/202'},legitimate,legitimate.id),/reservation_customer_already_linked/);
+  assert.deepEqual(validateCollectorAccountLink({...reservation,shopify_customer_id:legitimate.id},legitimate,legitimate.id),{alreadyLinked:true});
 });

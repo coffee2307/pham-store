@@ -32,9 +32,20 @@
   {% if payment_deadline != blank %}data-payment-deadline="{{ payment_deadline | escape }}"{% endif %}>
   <div class="pham-campaign-inner">
       <h1 class="pham-campaign-title">{% if customer %}{{ customer.first_name | default: 'Collector' | escape }}{% else %}Collector{% endif %} <strong class="pham-funnel-emphasis">record.</strong></h1>
-    <p class="pham-campaign-lede">View your reservation, object status, payment steps and delivery record.</p>
+    <p class="pham-campaign-lede">Your reservation, remaining payment, production and delivery — in one private record.</p>
 
-    <div class="pham-campaign-grid">
+    {%- if customer -%}
+      <div class="pham-collector-live-status" data-pham-collector-live-status role="status" aria-live="polite">
+        {% if settings.pham_campaign_engine_enabled %}Verifying your private record with PHAM…{% else %}Collector tracking will appear when the Edition Engine is available.{% endif %}
+      </div>
+      <div class="pham-collector-action-strip">
+        <span>01 · RESERVATION</span>
+        <span>02 · FINAL ACQUISITION</span>
+        <span>03 · PRODUCTION & DELIVERY</span>
+      </div>
+    {%- endif -%}
+
+    <div class="pham-campaign-grid" data-pham-collector-record {% if customer and settings.pham_campaign_engine_enabled %}hidden{% endif %}>
       <article class="pham-campaign-card pham-campaign-card--wide">
         {%- unless customer -%}
           <h2>Collector authentication</h2>
@@ -46,6 +57,7 @@
           <h2>Object record</h2>
           <div class="pham-status-row"><span>Edition</span><strong>{{ settings.pham_campaign_edition_label | default: 'EDITION 01' }}</strong></div>
           <div class="pham-status-row"><span>Object</span><strong data-pham-live-object>{% if object_number != blank %}{{ settings.pham_campaign_product_code | default: 'PHAM-001' }} · {{ object_number }} / {{ settings.pham_campaign_edition_size | default: 50 }}{% else %}{{ settings.pham_campaign_product_code | default: 'PHAM-001' }} · PENDING ASSIGNMENT{% endif %}</strong></div>
+          <div class="pham-status-row"><span>Reservation reference</span><strong data-pham-live-reservation-id>VERIFYING</strong></div>
           <div class="pham-status-row"><span>Acquisition</span><strong data-pham-live-reservation-status>{{ reservation_status }}</strong></div>
           <div class="pham-status-row"><span>Object state</span><strong data-pham-live-lifecycle>{{ lifecycle_stage | replace: '_', ' ' | upcase }}</strong></div>
           <div class="pham-status-row"><span>Acquired</span><strong data-pham-live-acquired>—</strong></div>
@@ -93,7 +105,8 @@
       {%- if customer -%}
       <article class="pham-campaign-card">
         <h2>Current instruction</h2>
-        <p data-pham-next-action-copy>PHAM will surface the next required action here as your object moves through the edition protocol.</p>
+        <p data-pham-next-action-copy>Confirming your record with PHAM's Edition Engine…</p>
+        <p class="pham-collector-next-note">If you need a size correction or a personalized card, contact PHAM with your reservation reference. Personalisation requests must be sent by email or WhatsApp.</p>
       </article>
 
       <article class="pham-campaign-card pham-campaign-card--full">
@@ -111,6 +124,12 @@
           <div class="pham-lifecycle-step" data-pham-lifecycle-step="packed"><span>04</span><strong>PACKED</strong><small>Identity and collector materials are sealed.</small></div>
           <div class="pham-lifecycle-step" data-pham-lifecycle-step="dispatched"><span>05</span><strong>DISPATCHED</strong><small>The object has left PHAM.</small></div>
           <div class="pham-lifecycle-step" data-pham-lifecycle-step="delivered"><span>06</span><strong>DELIVERED</strong><small>The physical object and its record are united.</small></div>
+        </div>
+        <div class="pham-collector-event-log">
+          <h3>Recorded updates</h3>
+          <ol data-pham-collector-events aria-live="polite">
+            <li>Confirming production milestones…</li>
+          </ol>
         </div>
       </article>
 
@@ -131,6 +150,13 @@
       </article>
       {%- endif -%}
     </div>
+
+    {%- if customer -%}
+      <p class="pham-collector-support">Need help with a reservation, payment or size?
+        <a href="/pages/contact">Contact PHAM</a>
+        · <a href="mailto:{{ settings.pham_contact_email | default: 'contact@phamofficial.com' | escape }}">Email the atelier</a>
+      </p>
+    {%- endif -%}
   </div>
 </section>
 

@@ -70,6 +70,23 @@
                    required>
           </div>
 
+          <div class="pham-contact__field">
+            <label for="pham-contact-type-{{ section.id }}" class="pham-contact__label">Request type</label>
+            <select id="pham-contact-type-{{ section.id }}" name="contact[Request type]" class="pham-contact__input" data-pham-contact-request-type required>
+              <option value="General enquiry">General enquiry</option>
+              <option value="Withdrawal or cancellation request">Withdrawal / cancellation request</option>
+              <option value="Refund or damaged item">Refund / damaged item</option>
+              <option value="Order or delivery update">Order / delivery update</option>
+              <option value="Card personalization correction">Card personalization correction</option>
+              <option value="Personal data request">Personal data request</option>
+            </select>
+          </div>
+          <div class="pham-contact__field">
+            <label for="pham-contact-order-{{ section.id }}" class="pham-contact__label">Order / reservation number (if available)</label>
+            <input id="pham-contact-order-{{ section.id }}" type="text" name="contact[Order reference]" class="pham-contact__input"
+                   placeholder="e.g. #1001 / PHAM-R-..." maxlength="60" autocomplete="off">
+          </div>
+
           <div class="pham-contact__field pham-contact__field--full">
             <label for="pham-contact-body-{{ section.id }}" class="pham-contact__label">Message</label>
             <textarea id="pham-contact-body-{{ section.id }}"
@@ -82,7 +99,7 @@
         </div>
 
         <p class="pham-contact__privacy">
-          Messages are sent through Shopify. A security check may be required.
+          Requests are submitted through Shopify. Please do not include payment card details or sensitive identity documents. A security check and order-owner verification may be required.
         </p>
 
         <button type="submit" class="pham-btn pham-contact__submit">

@@ -42,6 +42,10 @@ function engineErrorMessage(code){
     object_number_taken: 'That object number was just claimed. Select another number.',
     object_number_out_of_range: 'Select a valid object number for this edition.',
     identity_not_claimed: 'Object Identity is not unlocked for this collector.',
+    identity_alias_invalid: 'Enter a printable name (1–24 characters).',
+    identity_inscription_invalid: 'Check the inscription (40 characters maximum, no markup).',
+    identity_production_notes_invalid: 'Check the production request (240 characters maximum, no markup).',
+    identity_review_required: 'Review the card details before submitting.',
     customer_login_required: 'Sign in with the collector account linked to your reservation.',
     reservation_not_found: 'No active reservation was found for this collector account.',
     standby_not_open: 'Standby is not open yet.',
@@ -89,12 +93,12 @@ function readCampaignContext(){
   catch (e) { return null; }
 }
 
-function effectiveCampaignState(context, state){
+function effectiveCampaignState(context, state, edition){
   var normalized = String(state || 'prelaunch');
   if(normalized === 'reservation_open'){
     var commerceReady = context && context.commerceReady === true;
     var lookbookReady = !context || context.includeLookbook !== true || context.lookbookReady === true;
-    if(!commerceReady || !lookbookReady) return 'prelaunch';
+    if(!commerceReady || !lookbookReady || !edition || edition.paidReservationIntakeEnabled !== true) return 'prelaunch';
   }
   return normalized;
 }
@@ -155,6 +159,30 @@ function campaignPresentation(context, state){
         'COLLECTOR ACCESS TRACKS THE OBJECT RECORD'
       ];
       break;
+    case 'reservation_closed':
+      presentation.url = context.editionPageUrl || '/pages/edition-01';
+      presentation.entryLabel = 'VIEW EDITION';
+      presentation.primaryLabel = 'RESERVATIONS CLOSED';
+      presentation.status = 'RESERVATIONS CLOSED · PHAM REVIEWING ORDERS';
+      presentation.acquisitionSubtitle = 'RESERVATION WINDOW ENDED';
+      presentation.acquisitionCopy = 'The 14-day reservation period has ended. PHAM will communicate the next step. No further deposits are accepted.';
+      break;
+    case 'refund_review':
+      presentation.url = context.collectorPageUrl || '/pages/reservation-status';
+      presentation.entryLabel = 'ORDER STATUS';
+      presentation.primaryLabel = 'VIEW ORDER STATUS';
+      presentation.status = 'EDITION · REFUND REVIEW';
+      presentation.acquisitionSubtitle = 'ORDER REVIEW';
+      presentation.acquisitionCopy = 'PHAM is reconciling refunds with Shopify. Contact the atelier about an unresolved payment.';
+      break;
+    case 'edition_cancelled':
+      presentation.url = context.editionPageUrl || '/pages/edition-01';
+      presentation.entryLabel = 'VIEW EDITION';
+      presentation.primaryLabel = 'EDITION CANCELLED';
+      presentation.status = 'EDITION CANCELLED';
+      presentation.acquisitionSubtitle = 'EDITION CANCELLED';
+      presentation.acquisitionCopy = 'The edition was cancelled after its reservation window. Check your payment and refund correspondence.';
+      break;
     case 'sold_out':
       presentation.entryLabel = 'VIEW EDITION';
       presentation.primaryLabel = 'VIEW EDITION';
@@ -183,7 +211,7 @@ function applyGlobalCampaignState(context, state){
   qsa('[data-pham-campaign-entry]').forEach(function(link){
     link.href = presentation.url;
     if(presentation.entryLabel){
-      link.innerHTML = presentation.entryLabel + ' <span aria-hidden="true">&#8599;</span>';
+      link.textContent = presentation.entryLabel;
     }
   });
 
@@ -226,6 +254,9 @@ function applyGlobalCampaignState(context, state){
   var indexLabels = {
     reservation_open: ['RESERVATION OPEN', 'reservation-open'],
     reservation_full: ['RESERVED / STANDBY', 'reserved-standby'],
+    reservation_closed: ['RESERVATIONS CLOSED', 'closed'],
+    refund_review: ['REFUND REVIEW', 'closed'],
+    edition_cancelled: ['EDITION CANCELLED', 'closed'],
     final_payment: ['ACQUISITION OPEN', 'acquisition-open'],
     sold_out: ['CLOSED', 'closed'],
     archived: ['ARCHIVED', 'archived']
@@ -275,7 +306,7 @@ function mountGlobalCampaignRuntime(){
   .then(function(payload){
     if(!payload || !payload.edition) return;
     window.__PHAM_CAMPAIGN_LIVE__ = payload;
-    var effectiveState = effectiveCampaignState(context, payload.edition.state);
+    var effectiveState = effectiveCampaignState(context, payload.edition.state, payload.edition);
     document.documentElement.dataset.phamCampaignState = effectiveState;
     applyGlobalCampaignState(context, effectiveState);
   })
@@ -290,90 +321,128 @@ function mountIdentity(root){
 
   var name = root.querySelector('[data-pham-id-name]');
   var inscription = root.querySelector('[data-pham-id-inscription]');
+  var productionNotes = root.querySelector('[data-pham-id-production-notes]');
+  var review = root.querySelector('[data-pham-identity-review]');
+  var publicIdentity = root.querySelector('input[name="contact[Public identity]"], input[data-pham-public-identity]');
   var outName = root.querySelector('[data-pham-preview-name]');
   var outInscription = root.querySelector('[data-pham-preview-inscription]');
   var outNumber = root.querySelector('[data-pham-preview-number]');
   var numberStatus = root.querySelector('[data-pham-number-status]');
   var count = root.querySelector('[data-pham-inscription-count]');
+  var nameCount = root.querySelector('[data-pham-name-count]');
+  var notesCount = root.querySelector('[data-pham-notes-count]');
   var numberInput = root.querySelector('[data-pham-id-number-input]');
-  var submit = root.querySelector('[data-pham-identity-submit]');
-  var form = root.querySelector('.pham-identity-form');
-  var publicIdentity = root.querySelector('input[name="contact[Public identity]"]');
+  var emailLink = root.querySelector('[data-pham-identity-email-link]');
+  var whatsappLink = root.querySelector('[data-pham-identity-whatsapp-link]');
   var result = root.querySelector('[data-pham-identity-result]');
-  var engineEnabled = root.dataset.engineEnabled === 'true';
   var buttons = qsa('[data-pham-object-number]', root);
+  var eligible = root.dataset.submitEnabled === 'true';
+  var email = String(root.dataset.identityEmail || '').trim();
+  var whatsappNumber = String(root.dataset.identityWhatsapp || '').trim();
+  var whatsappValid = /^\d{8,15}$/.test(whatsappNumber);
+  var emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  function safeLine(value, maxLength){
+    return Array.from(String(value || '').replace(/[\r\n\t\x00-\x1f]/g, ' ').trim())
+      .slice(0, maxLength).join('');
+  }
+
+  function ready(){
+    return eligible && emailValid && Boolean(
+      numberInput && numberInput.value &&
+      name && safeLine(name.value, 24) &&
+      review && review.checked
+    );
+  }
+
+  function buildMessage(){
+    var preferred = String(numberInput.value).padStart(2, '0');
+    var lines = [
+      'Hello PHAM Atelier,',
+      '',
+      'I would like to request personalisation of my PHAM-001 collector card.',
+      'Edition: ' + safeLine(root.dataset.identityEdition || 'EDITION 01', 50),
+      'Reservation: ' + safeLine(root.dataset.identityReservation || 'Please verify my eligible order', 80),
+      'Preferred jacket number: ' + preferred + ' / ' + (root.dataset.editionSize || '50'),
+      'Name to print: ' + safeLine(name.value, 24),
+      'Inscription: ' + (inscription && safeLine(inscription.value, 40) || '(none)'),
+      'Special production request: ' + (productionNotes && safeLine(productionNotes.value, 240) || '(none)'),
+      'Publish my alias on the public Object Record: ' + (publicIdentity && publicIdentity.checked ? 'Yes' : 'No'),
+      '',
+      'I understand that my number and final card layout must be reviewed and confirmed by PHAM.',
+      'Please confirm availability and production feasibility before engraving.',
+      'Thank you.'
+    ];
+    return lines.join('\n');
+  }
+
+  function setReady(link, enabled){
+    if(!link) return;
+    link.classList.toggle('is-disabled', !enabled);
+    link.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+    link.tabIndex = enabled ? 0 : -1;
+    if(!enabled) link.setAttribute('href', '#');
+  }
 
   function sync(){
-    if(outName) outName.textContent = (name && name.value.trim()) || 'COLLECTOR ID';
-    if(outInscription) outInscription.textContent = (inscription && inscription.value.trim()) || 'YOUR INSCRIPTION';
-    if(count && inscription) count.textContent = String(inscription.value.length) + '/40';
+    if(outName) outName.textContent = name && name.value.trim() || 'COLLECTOR ID';
+    if(outInscription) outInscription.textContent = inscription && inscription.value.trim() || 'YOUR INSCRIPTION';
+    if(count && inscription) count.textContent = String(Array.from(inscription.value).length) + '/40';
+    if(nameCount && name) nameCount.textContent = String(Array.from(name.value).length) + '/24';
+    if(notesCount && productionNotes) notesCount.textContent = String(Array.from(productionNotes.value).length) + '/240';
+    setReady(emailLink, ready());
+    setReady(whatsappLink, ready() && whatsappValid);
+  }
+
+  if(whatsappLink && !whatsappValid){
+    whatsappLink.hidden = true;
+    if(result){
+      result.textContent = 'WhatsApp is temporarily unavailable. Use email until PHAM has configured a verified WhatsApp number.';
+      result.hidden = false;
+    }
   }
 
   if(name) name.addEventListener('input', sync);
   if(inscription) inscription.addEventListener('input', sync);
+  if(productionNotes) productionNotes.addEventListener('input', sync);
+  if(review) review.addEventListener('change', sync);
+  if(publicIdentity) publicIdentity.addEventListener('change', sync);
 
   buttons.forEach(function(btn){
     btn.addEventListener('click', function(){
-      buttons.forEach(function(x){
-        x.classList.remove('is-selected');
-        x.setAttribute('aria-pressed', 'false');
+      buttons.forEach(function(item){
+        item.classList.remove('is-selected');
+        item.setAttribute('aria-pressed', 'false');
       });
       btn.classList.add('is-selected');
       btn.setAttribute('aria-pressed', 'true');
-      var selectedNumber = String(btn.dataset.phamObjectNumber || '').padStart(2, '0');
-      if(outNumber) outNumber.textContent = selectedNumber + ' / ' + (root.dataset.editionSize || '50');
-      if(numberStatus) numberStatus.textContent = 'Preferred: ' + selectedNumber + '. Pending PHAM confirmation.';
+      var number = String(btn.dataset.phamObjectNumber || '').padStart(2, '0');
       if(numberInput) numberInput.value = btn.dataset.phamObjectNumber || '';
-      if(submit) submit.disabled = !numberInput || numberInput.value === '';
+      if(outNumber) outNumber.textContent = number + ' / ' + (root.dataset.editionSize || '50');
+      if(numberStatus) numberStatus.textContent = 'Preferred ' + number + '. Not reserved until PHAM confirms it.';
+      sync();
     });
   });
 
-  if(submit) submit.disabled = !numberInput || numberInput.value === '';
-
-  if(engineEnabled && form){
-    form.addEventListener('submit', function(event){
+  if(emailLink) emailLink.addEventListener('click', function(event){
+    if(!ready()){
       event.preventDefault();
-      if(!submit || submit.disabled || !numberInput || !numberInput.value) return;
+      return;
+    }
+    var subject = 'PHAM-001 / Edition 01 / Collector card personalisation';
+    emailLink.href = 'mailto:' + email +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(buildMessage());
+  });
 
-      submit.disabled = true;
-      submit.classList.add('is-busy');
-      submit.textContent = 'Saving Identity…';
-      if(result) result.hidden = true;
-
-      proxyRequest(root, '/identity/configure', {
-        method: 'POST',
-        body: {
-          alias: name ? name.value : '',
-          inscription: inscription ? inscription.value : '',
-          preferredNumber: Number(numberInput.value),
-          publicIdentity: Boolean(publicIdentity && publicIdentity.checked)
-        }
-      })
-      .then(function(payload){
-        if(result){
-          result.textContent = 'IDENTITY RECORDED · OBJECT ' +
-            String(payload.identity.preferredNumber).padStart(2, '0') +
-            '/' + (root.dataset.editionSize || '50') +
-            ' IS NOW LOCKED TO YOUR RESERVATION.';
-          result.hidden = false;
-        }
-        buttons.forEach(function(btn){ btn.disabled = true; });
-        if(name) name.disabled = true;
-        if(inscription) inscription.disabled = true;
-        if(publicIdentity) publicIdentity.disabled = true;
-        submit.textContent = 'Identity recorded';
-      })
-      .catch(function(error){
-        if(result){
-          result.textContent = engineErrorMessage(error.code);
-          result.hidden = false;
-        }
-        submit.disabled = false;
-        submit.classList.remove('is-busy');
-        submit.textContent = 'Submit Identity request';
-      });
-    });
-  }
+  if(whatsappLink) whatsappLink.addEventListener('click', function(event){
+    if(!ready() || !whatsappValid){
+      event.preventDefault();
+      return;
+    }
+    whatsappLink.href = 'https://wa.me/' + whatsappNumber +
+      '?text=' + encodeURIComponent(buildMessage());
+  });
 
   sync();
 }
@@ -611,7 +680,20 @@ function mountReservation(root){
     proxyRequest(root, '/campaign?edition=' + encodeURIComponent(root.dataset.editionId || 'edition-01'))
       .then(function(payload){
         var state = payload && payload.edition ? payload.edition.state : '';
-        liveReservationOpen = state === 'reservation_open';
+        // A campaign state alone never authorizes payment; the independently
+        // verified D1 acceptance gate must also be active.
+        liveReservationOpen = state === 'reservation_open' &&
+          payload.edition.paidReservationIntakeEnabled === true;
+
+        var windowDeadline = root.querySelector('[data-pham-window-deadline]');
+        if(windowDeadline && payload && payload.edition && payload.edition.reservationClosesAt){
+          var closingAt = new Date(payload.edition.reservationClosesAt);
+          if(!isNaN(closingAt.getTime())){
+            windowDeadline.textContent = 'Reservation deadline: ' +
+              closingAt.toLocaleString() + ' (your local time). Reservations close automatically at this time.';
+            windowDeadline.hidden = false;
+          }
+        }
 
         if(sizePreference && payload && payload.edition){
           syncSizeSelect(sizePreference, payload.edition.sizeOptions || []);
@@ -632,7 +714,11 @@ function mountReservation(root){
         if(!liveReservationOpen && error){
           error.textContent = state === 'reservation_full'
             ? 'Priority Reservation is fully allocated. Join the standby queue for the next released object.'
-            : 'Priority Reservation is not currently open.';
+            : state === 'reservation_closed'
+              ? 'The maximum reservation window has ended. PHAM is reviewing the confirmed orders before deciding whether to proceed or refund.'
+              : state === 'refund_review' || state === 'edition_cancelled'
+                ? 'This edition is not accepting deposits. Contact PHAM about your existing order or refund.'
+                : 'Priority Reservation is not currently open.';
           error.hidden = false;
         }
 
@@ -732,6 +818,30 @@ function mountCollector(root){
   var countdownRow = root.querySelector('[data-pham-countdown-row]');
   var deadlineLabel = root.querySelector('[data-pham-live-deadline]');
   var timer = null;
+  var liveStatus = root.querySelector('[data-pham-collector-live-status]');
+  var record = root.querySelector('[data-pham-collector-record]');
+  var eventList = root.querySelector('[data-pham-collector-events]');
+
+  function safeHttpsLink(raw){
+    try {
+      var url = new URL(String(raw || ''), window.location.origin);
+      return url.protocol === 'https:' && !url.username && !url.password ? url.href : '';
+    } catch(_error){ return ''; }
+  }
+
+  function showError(error){
+    if(record) record.hidden = true;
+    if(liveStatus){
+      var code = error && error.code || '';
+      if(code === 'reservation_not_found'){
+        liveStatus.textContent = 'No Edition 01 reservation is linked to this account. If you have paid, contact PHAM with your order reference.';
+      } else if(code === 'customer_login_required'){
+        liveStatus.textContent = 'Sign in with the account linked to your reservation to view your private record.';
+      } else {
+        liveStatus.textContent = 'PHAM could not verify your live collector record. Please retry or contact PHAM. No unverified financial details will be shown.';
+      }
+    }
+  }
 
   function displayState(value){
     return String(value || 'pending').replace(/_/g, ' ').toUpperCase();
@@ -769,9 +879,25 @@ function mountCollector(root){
     });
   }
 
-  function nextInstruction(reservation){
+  function nextInstruction(reservation, identity, campaign){
     if(reservation.status === 'final_payment_open'){
       return 'Complete the remaining acquisition balance before the published deadline. The allocation is released if the payment window expires.';
+    }
+
+    if(campaign && (campaign.refundReviewStatus === 'pending_review' || campaign.state === 'refund_review')){
+      return 'PHAM is reviewing your reservation for a refund. No further payment is due. Contact PHAM with your order reference if you need support.';
+    }
+    if(campaign && campaign.state === 'edition_cancelled'){
+      return 'This edition was cancelled. Please retain the original Shopify order and contact PHAM if you have not received refund confirmation.';
+    }
+    if(campaign && campaign.state === 'reservation_closed' && !campaign.partialRunApproved){
+      return 'The reservation window has closed. PHAM is verifying whether the confirmed orders can proceed or require refunds. Do not pay an additional balance now.';
+    }
+    if(reservation.status === 'final_paid' && identity && identity.status === 'claimed'){
+      return 'Your jacket acquisition is confirmed. To personalise your card, send the requested text to PHAM by email or WhatsApp on the Object Identity page. PHAM must confirm it before engraving.';
+    }
+    if(reservation.status !== 'final_paid' && reservation.status !== 'final_payment_open'){
+      return 'Your reservation is recorded. Watch for your final-payment invitation. Contact PHAM for any size or contact corrections.';
     }
 
     switch(String(reservation.lifecycleStage || 'not_started')){
@@ -845,7 +971,10 @@ function mountCollector(root){
   if(root.dataset.paymentDeadline) startCountdown(root.dataset.paymentDeadline);
   renderLifecycle('not_started');
 
-  if(root.dataset.engineEnabled !== 'true') return;
+  if(root.dataset.engineEnabled !== 'true'){
+    if(liveStatus) liveStatus.textContent = 'Collector tracking is not connected yet. PHAM will display verified progress when it is available.';
+    return;
+  }
 
   proxyRequest(root, '/status')
     .then(function(payload){
@@ -855,6 +984,8 @@ function mountCollector(root){
       var editionSize = root.dataset.editionSize || '50';
       var productCode = root.dataset.productCode || 'PHAM-001';
 
+      if(!reservation.id) throw new Error('reservation_not_found');
+      var reservationIdEl = root.querySelector('[data-pham-live-reservation-id]');
       var statusEl = root.querySelector('[data-pham-live-reservation-status]');
       var objectEl = root.querySelector('[data-pham-live-object]');
       var identityEl = root.querySelector('[data-pham-live-identity-status]');
@@ -874,6 +1005,7 @@ function mountCollector(root){
       var trackingLink = root.querySelector('[data-pham-tracking-link]');
       var nextAction = root.querySelector('[data-pham-next-action-copy]');
 
+      if(reservationIdEl) reservationIdEl.textContent = reservation.id;
       if(statusEl) statusEl.textContent = displayState(reservation.status);
       if(objectEl){
         objectEl.textContent = reservation.objectNumber
@@ -893,19 +1025,22 @@ function mountCollector(root){
       if(recordIdEl) recordIdEl.textContent = reservation.objectRecordId || 'PENDING';
       if(lookbookCopyEl) lookbookCopyEl.textContent = displayState(reservation.lookbookStatus);
       if(balanceEl && reservation.balanceDueCents != null){
-        balanceEl.textContent = formatMoney(
-          reservation.balanceDueCents,
-          root.dataset.currency || 'USD'
-        );
+        balanceEl.textContent = reservation.status === 'final_paid' ? 'PAID' :
+          reservation.status === 'final_payment_open'
+            ? formatMoney(reservation.balanceDueCents, root.dataset.currency || 'USD')
+            : 'AWAITING FINAL PAYMENT INVITATION';
       }
-      if(nextAction) nextAction.textContent = nextInstruction(reservation);
+      if(nextAction) nextAction.textContent = nextInstruction(reservation, identity, payload.campaign || null);
 
       renderLifecycle(reservation.lifecycleStage || 'not_started');
 
       if(finalPaymentLink){
-        var canPay = reservation.status === 'final_payment_open' && Boolean(reservation.invoiceUrl);
+        var invoiceUrl = safeHttpsLink(reservation.invoiceUrl);
+        var deadlineActive = !reservation.paymentDeadline ||
+          (new Date(reservation.paymentDeadline).getTime() > Date.now());
+        var canPay = reservation.status === 'final_payment_open' && Boolean(invoiceUrl) && deadlineActive;
         if(canPay){
-          finalPaymentLink.href = reservation.invoiceUrl;
+          finalPaymentLink.href = invoiceUrl;
           finalPaymentLink.hidden = false;
           finalPaymentLink.textContent = 'COMPLETE ACQUISITION · ' +
             formatMoney(reservation.balanceDueCents, root.dataset.currency || 'USD');
@@ -916,8 +1051,9 @@ function mountCollector(root){
       }
 
       if(birthRecordLink){
-        if(reservation.provenanceUrl){
-          birthRecordLink.href = reservation.provenanceUrl;
+        var birthUrl = safeHttpsLink(reservation.provenanceUrl);
+        if(birthUrl){
+          birthRecordLink.href = birthUrl;
           birthRecordLink.hidden = false;
         } else {
           birthRecordLink.hidden = true;
@@ -933,8 +1069,9 @@ function mountCollector(root){
           (reservation.trackingUrl ? 'AVAILABLE' : '—');
       }
       if(trackingLink){
-        if(reservation.trackingUrl){
-          trackingLink.href = reservation.trackingUrl;
+        var trackUrl = safeHttpsLink(reservation.trackingUrl);
+        if(trackUrl){
+          trackingLink.href = trackUrl;
           trackingLink.hidden = false;
         } else {
           trackingLink.hidden = true;
@@ -945,14 +1082,39 @@ function mountCollector(root){
       if(reservation.paymentDeadline && reservation.status === 'final_payment_open'){
         startCountdown(reservation.paymentDeadline);
       } else {
+        if(timer) window.clearInterval(timer);
+        timer = null;
         if(deadlineRow) deadlineRow.hidden = true;
         if(countdownRow) countdownRow.hidden = true;
       }
+
+      if(eventList){
+        while(eventList.firstChild) eventList.removeChild(eventList.firstChild);
+        var events = payload.lifecycle && Array.isArray(payload.lifecycle.events)
+          ? payload.lifecycle.events.slice(-10).reverse() : [];
+        if(!events.length){
+          var empty = document.createElement('li');
+          empty.textContent = 'Production milestones will appear after final acquisition.';
+          eventList.appendChild(empty);
+        }
+        events.forEach(function(entry){
+          var li = document.createElement('li');
+          var title = document.createElement('strong');
+          title.textContent = displayState(entry.stage);
+          var time = document.createElement('time');
+          time.textContent = displayDate(entry.occurredAt);
+          li.appendChild(title);
+          li.appendChild(time);
+          eventList.appendChild(li);
+        });
+      }
+      if(record) record.hidden = false;
+      if(liveStatus){
+        liveStatus.textContent = 'Private record verified with PHAM. Last checked: ' +
+          displayDate(new Date().toISOString()) + '.';
+      }
     })
-    .catch(function(error){
-      if(error && error.code === 'customer_login_required') return;
-      // Shopify metafields remain the safe fallback if the Edition Engine is unavailable.
-    });
+    .catch(showError);
 }
 
 function mountProvenance(root){
@@ -1056,7 +1218,7 @@ function mountLiveCampaign(root){
       var identities = Number(payload.counters.identityClaimed || 0);
       var identityLimit = Number(payload.edition.identityLimit || 0);
       var context = readCampaignContext() || {};
-      var liveState = effectiveCampaignState(context, payload.edition.state);
+      var liveState = effectiveCampaignState(context, payload.edition.state, payload.edition);
       var presentation = campaignPresentation(context, liveState);
 
       var stateText = root.querySelector('[data-pham-live-state]');

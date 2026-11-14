@@ -29,6 +29,12 @@ Current repository migration chain:
 
 - `0001_initial.sql` — baseline
 - `0002_object_lifecycle.sql` — acquisition timestamp, physical object lifecycle, tracking fields, lifecycle event table and Founder’s Token allocation metadata
+- `0003_edition_01_size_run.sql` — corrected edition sizes (M, L, XL, XXL)
+- `0004_identity_production_notes.sql` — private card-production notes
+- `0005_identity_contact_verification.sql` — verified email/WhatsApp record
+- `0006_paid_reservation_gate.sql` — default-closed D1 paid-intake switch, independent of presentation state
+
+**Critical:** paid-deposit webhooks now require both `reservation_open` state and `commerce_acceptance_enabled=1`. The old D1 state alone must never enable number allocation. The direct Shopify deposit SKU remains potentially purchasable if it is still published: this additional backend gate does **not** cancel or refund a Shopify charge automatically. Verify sales-channel publication and refund procedures before launch.
 
 Before deployment, confirm what the remote D1 database has already applied.
 

@@ -81,7 +81,7 @@ if (fs.existsSync('sections/pham-size-guide.liquid')) {
     '"default":67',
     '"default":69',
     '"default":71',
-    'XL = TECH PACK ANCHOR'
+    'XL is the sample reference.'
   ]) {
     if (!sizeGuide.includes(marker)) {
       failures.push(`Edition 01 tech-pack grading failure: missing marker ${marker}.`);
