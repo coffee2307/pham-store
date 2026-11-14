@@ -10,12 +10,12 @@
       when 'index'
         assign desc = settings.pham_seo_home_description
       when 'product'
-        assign desc = product.description | strip_html | truncate: 155
+        assign desc = product.description
         if desc == blank
           assign desc = settings.pham_seo_product_description
         endif
       when 'collection'
-        assign desc = collection.description | strip_html | truncate: 155
+        assign desc = collection.description
         if desc == blank
           assign desc = settings.pham_seo_shop_description
         endif
@@ -31,7 +31,7 @@
         elsif page.handle == 'size-guide'
           assign desc = settings.pham_seo_size_guide_description
         else
-          assign desc = page.content | strip_html | truncate: 155
+          assign desc = page.content
         endif
       when 'cart'
         assign desc = 'Review your PHAM edition selection and proceed to secure checkout.'
@@ -56,6 +56,6 @@
     assign desc = shop.description | default: shop.name
   endif
 
-  assign desc = desc | strip_html | strip | truncate: 160
 -%}
-{{- desc | escape -}}
+{%- capture pham_seo_description_plain -%}{%- render 'pham-richtext-plain', html: desc -%}{%- endcapture -%}
+{{- pham_seo_description_plain | strip | truncate: 160 | escape -}}

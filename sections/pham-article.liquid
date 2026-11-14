@@ -32,7 +32,8 @@
             <span aria-hidden="true">·</span> By {{ article.author }}
           {%- endif -%}
           {%- if section.settings.show_reading_time -%}
-            {%- assign words = article.content | strip_html | split: ' ' | size -%}
+            {%- capture pham_article_plain -%}{%- render 'pham-richtext-plain', html: article.content -%}{%- endcapture -%}
+            {%- assign words = pham_article_plain | strip | split: ' ' | size -%}
             {%- assign minutes = words | divided_by: 220.0 | ceil -%}
             {%- if minutes > 0 -%}
               <span aria-hidden="true">·</span> {{ minutes }} min read

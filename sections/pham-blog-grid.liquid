@@ -50,9 +50,11 @@
                   {%- if article.excerpt != blank or article.content != blank -%}
                     <p class="pham-blog__excerpt">
                       {%- if article.excerpt != blank -%}
-                        {{ article.excerpt | strip_html | truncatewords: 24 }}
+                        {%- capture pham_blog_excerpt -%}{%- render 'pham-richtext-plain', html: article.excerpt -%}{%- endcapture -%}
+                        {{ pham_blog_excerpt | strip | truncatewords: 24 }}
                       {%- else -%}
-                        {{ article.content | strip_html | truncatewords: 24 }}
+                        {%- capture pham_blog_content -%}{%- render 'pham-richtext-plain', html: article.content -%}{%- endcapture -%}
+                        {{ pham_blog_content | strip | truncatewords: 24 }}
                       {%- endif -%}
                     </p>
                   {%- endif -%}

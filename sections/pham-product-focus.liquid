@@ -89,7 +89,8 @@
 
             {%- if focus_product.description != blank -%}
               <div class="pham-product-focus__desc rte">
-                {{ focus_product.description | strip_html | truncatewords: 45 }}
+                {%- capture pham_focus_description -%}{%- render 'pham-richtext-plain', html: focus_product.description -%}{%- endcapture -%}
+                {{ pham_focus_description | strip | truncatewords: 45 }}
               </div>
             {%- endif -%}
 

@@ -62,7 +62,8 @@
   %}
 
   <{{ element }} {{ attributes }}>
-    {{ content | strip_html | truncatewords: truncatewords }}
+    {%- capture pham_card_description -%}{%- render 'pham-richtext-plain', html: content -%}{%- endcapture -%}
+    {{ pham_card_description | strip | truncatewords: truncatewords }}
     {% if show_read_more %}
       <a href="{{ article.url }}">{{- 'content.read_more' | t -}}</a>
     {% endif %}

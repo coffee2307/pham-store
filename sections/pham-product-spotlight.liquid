@@ -100,7 +100,8 @@
             <div class="pham-product-spotlight__desc rte">{{ section.settings.description }}</div>
           {%- elsif product.description != blank -%}
             <div class="pham-product-spotlight__desc rte">
-              {{ product.description | strip_html | strip | truncatewords: 60 }}
+              {%- capture pham_spotlight_description -%}{%- render 'pham-richtext-plain', html: product.description -%}{%- endcapture -%}
+              {{ pham_spotlight_description | strip | truncatewords: 60 }}
             </div>
           {%- endif -%}
 
