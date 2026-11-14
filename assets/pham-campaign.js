@@ -580,12 +580,12 @@ function mountReservation(root){
       submit.textContent = 'Preparing secure checkout…';
       if(error) error.hidden = true;
 
-      fetch('/cart/add.js', {
+      fetch('/cart.js', { headers: { 'Accept': 'application/json' } }).then(function(response){ if(!response.ok) throw new Error('Unable to verify cart contents. Please try again.'); return response.json(); }).then(function(cart){ if(!cart || !Array.isArray(cart.items)) throw new Error('Unable to verify cart contents. Please try again.'); if(cart.items.length) throw new Error('Your cart already has items. Remove them before placing a PHAM-001 reservation to prevent an invalid mixed order.'); return fetch('/cart/add.js', {
         method:'POST',
         headers:{'Content-Type':'application/json','Accept':'application/json'},
         body:JSON.stringify({items:items})
       })
-      .then(function(response){
+      }).then(function(response){
         return response.json().then(function(payload){
           if(!response.ok) throw new Error(payload.description || payload.message || 'Unable to prepare reservation.');
           return payload;

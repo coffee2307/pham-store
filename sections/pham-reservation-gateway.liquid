@@ -21,7 +21,7 @@
 {%- assign size_options = size_options_raw | split: ',' -%}
 {%- if identity_claimed >= identity_limit or identity_product == blank or identity_variant == blank or identity_variant.available == false -%}{%- assign identity_open = false -%}{%- endif -%}
 {%- assign can_checkout = false -%}
-{%- if commerce_ready and digital_delivery_ready and reservation_variant != blank -%}
+{%- if commerce_ready and digital_delivery_ready and reservation_variant != blank and reservation_variant.available -%}
   {%- if settings.pham_campaign_engine_enabled or state == 'reservation_open' -%}
     {%- assign can_checkout = true -%}
   {%- endif -%}
