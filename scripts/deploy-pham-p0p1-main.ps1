@@ -59,7 +59,7 @@ if ($answer -ne 'UPDATE MAIN 167387103488') {
 }
 
 $cliArgs = @('theme', 'push', '--store', $store, '--theme', $mainThemeId,
-             '--allow-live', '--nodelete', '--strict')
+             '--allow-live', '--nodelete')
 foreach ($file in $files) {
   $cliArgs += @('--only', $file)
 }
